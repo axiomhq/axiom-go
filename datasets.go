@@ -8,8 +8,13 @@ import (
 	"time"
 )
 
-// ErrUnknownContentType is raised when the given content type is not valid.
-var ErrUnknownContentType = errors.New("unknown content type")
+var (
+	// ErrUnknownContentType is raised when the given content type is not valid.
+	ErrUnknownContentType = errors.New("unknown content type")
+	// ErrUnknownContentEncoding is raised when the given content encoding is
+	// not valid.
+	ErrUnknownContentEncoding = errors.New("unknown content encoding")
+)
 
 // ContentType describes the content type of the data to ingest.
 type ContentType string
@@ -23,6 +28,16 @@ const (
 	NDJSON ContentType = "application/x-ndjson"
 	// CSV treats the data as CSV content.
 	CSV ContentType = "text/csv"
+)
+
+// ContentEncoding describes the content encoding of the data to ingest.
+type ContentEncoding string
+
+const (
+	// Identity marks the data as not being encoded.
+	Identity ContentEncoding = ""
+	// GZIP marks the data as being gzip encoded.
+	GZIP ContentEncoding = "gzip"
 )
 
 // Dataset represents an Axiom dataset.
@@ -138,7 +153,7 @@ type DatasetsService interface {
 	// * The ingestion content type must be one of JSON, NDJSON or CSV and the
 	//   input must be formatted accordingly.
 	// TODO(lukasmalkmus): Review the restrictions.
-	Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, opts IngestOptions) (*IngestResponse, error)
+	Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestResponse, error)
 }
 
 var _ DatasetsService = (*datasetsService)(nil)
@@ -163,36 +178,36 @@ func (s *datasetsService) List(ctx context.Context) ([]*Dataset, error) {
 func (s *datasetsService) Get(ctx context.Context, id string) (*Dataset, error) {
 	path := "/api/v1/datasets/" + id
 
-	var res *Dataset
+	var res Dataset
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // Info retrieves the information of a dataset identified by its id.
 func (s *datasetsService) Info(ctx context.Context, id string) (*DatasetInfo, error) {
 	path := "/api/v1/datasets/" + id + "/info"
 
-	var res *DatasetInfo
+	var res DatasetInfo
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // Create a dataset with the given id.
 func (s *datasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
 	path := "/api/v1/datasets"
 
-	var res *Dataset
+	var res Dataset
 	if err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // Delete the dataset identified by its id.
@@ -216,7 +231,7 @@ func (s *datasetsService) Delete(ctx context.Context, id string) error {
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
 //   must be formatted accordingly.
 // TODO(lukasmalkmus): Review the restrictions.
-func (s *datasetsService) Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, opts IngestOptions) (*IngestResponse, error) {
+func (s *datasetsService) Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestResponse, error) {
 	path, err := addOptions("/api/v1/datasets/"+datasetID+"/ingest", opts)
 	if err != nil {
 		return nil, err
@@ -234,10 +249,18 @@ func (s *datasetsService) Ingest(ctx context.Context, datasetID string, r io.Rea
 		return nil, ErrUnknownContentType
 	}
 
-	var res *IngestResponse
+	switch enc {
+	case Identity:
+	case GZIP:
+		req.Header.Set("Content-Encoding", string(enc))
+	default:
+		return nil, ErrUnknownContentEncoding
+	}
+
+	var res IngestResponse
 	if err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return &res, nil
 }

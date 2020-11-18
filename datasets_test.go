@@ -253,7 +253,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		}
 	]`)
 
-	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, IngestOptions{})
+	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, Identity, IngestOptions{})
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
