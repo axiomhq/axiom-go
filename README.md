@@ -57,21 +57,30 @@ $ make # Run linters, sanitizers and test suits
 ### Usage
 
 ```go
-import "github.com/axiomhq/axiom-go"
+package main
 
-// ...
+import (
+	"context"
+	"fmt"
+	"log"
 
-client, err := axiom.New("https://my-axiom.example.com")
-if err != nil {
-  return err
+	"github.com/axiomhq/axiom-go"
+)
+
+func main() {
+	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	datasets, err := client.Datasets.List(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(datasets)
 }
 
-datasets, err := client.Datasets.List(context.Background())
-if err != nil {
-  return err
-}
-
-fmt.Println(datasets)
 ```
 
 ## Contributing
