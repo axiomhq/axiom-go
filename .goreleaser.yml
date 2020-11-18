@@ -1,0 +1,28 @@
+project_name: axiom
+
+builds:
+  - skip: true
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+milestones:
+  - repo:
+      owner: axiomhq
+      name: axiom-go
+    close: true
+    fail_on_error: false
+
+release:
+  github:
+    owner: axiomhq
+    name: axiom-go
+  prerelease: auto
+  name_template: "Axiom Go v{{.Version}}"

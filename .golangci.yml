@@ -1,0 +1,54 @@
+run:
+  modules-download-mode: readonly
+  skip-dirs:
+    - .git
+    - .github
+    - .vscode
+    - bin
+    - dist
+  build-tags:
+    - integration
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - errcheck
+    - exhaustive
+    - exportloopref
+    - goconst
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nolintlint
+    - prealloc
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+linters-settings:
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/axiomhq/axiom-go
+  govet:
+    check-shadowing: true
+  nolintlint:
+    allow-unused: false
+    allow-leading-space: false
+    require-explanation: true
+    require-specific: true
