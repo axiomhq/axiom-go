@@ -54,6 +54,26 @@ $ make # Run linters, sanitizers and test suits
 
   [2]: https://golang.org/cmd/go/#hdr-Module_maintenance
 
+### Usage
+
+```go
+import "github.com/axiomhq/axiom-go"
+
+// ...
+
+client, err := axiom.New("https://my-axiom.example.com")
+if err != nil {
+  return err
+}
+
+datasets, err := client.Datasets.List(context.Background())
+if err != nil {
+  return err
+}
+
+fmt.Println(datasets)
+```
+
 ## Contributing
 
 Feel free to submit PRs or to fill issues. Every kind of help is appreciated.
