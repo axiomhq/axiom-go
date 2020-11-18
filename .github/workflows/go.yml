@@ -1,0 +1,96 @@
+name: go
+
+on:
+  push:
+    tags:
+      - "*"
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.15"
+
+      # The golangci-lint action takes care of caching by itself.
+      # - name: Cache dependencies
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/go/pkg/mod
+      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-go-
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v2
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.15"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Test
+        run: make test
+
+      - uses: codecov/codecov-action@v1
+        with:
+          # Set to true when we go open source.
+          # fail_ci_if_error: true
+          fail_ci_if_error: false
+
+  release:
+    name: Release
+    needs:
+      - lint
+      - test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.15"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Release
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
