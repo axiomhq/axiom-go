@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,8 +28,9 @@ func TestNewClient(t *testing.T) {
 	require.NotNil(t, client)
 
 	// Are endpoints/resources present?
-	assert.NotNil(t, client.Authentication)
 	assert.NotNil(t, client.Datasets)
+	assert.NotNil(t, client.Users)
+	assert.NotNil(t, client.Version)
 
 	// Is default configuration present?
 	assert.Equal(t, endpoint, client.baseURL.String())
@@ -36,11 +38,36 @@ func TestNewClient(t *testing.T) {
 	assert.NotNil(t, client.httpClient)
 }
 
-func TestNewRequest_BadURL(t *testing.T) {
-	client, err := NewClient(endpoint, accessToken)
-	require.NoError(t, err)
+func TestClient_Options_SetClient(t *testing.T) {
+	client, _ := NewClient(endpoint, accessToken)
 
-	_, err = client.newRequest(context.Background(), http.MethodGet, ":", nil)
+	exp := &http.Client{
+		Timeout: 0,
+	}
+	opt := SetClient(exp)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, exp, client.httpClient)
+}
+
+func TestClient_Options_SetUserAgent(t *testing.T) {
+	client, _ := NewClient(endpoint, accessToken)
+
+	exp := "axiom-go/1.0.0"
+	opt := SetUserAgent(exp)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, exp, client.userAgent)
+}
+
+func TestClient_newRequest_BadURL(t *testing.T) {
+	client, _ := NewClient(endpoint, accessToken)
+
+	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
 
 	if assert.IsType(t, err, new(url.Error)) {
@@ -54,9 +81,8 @@ func TestNewRequest_BadURL(t *testing.T) {
 // is fine, since there is no difference between an HTTP request body that is an
 // empty string versus one that is not set at all. However in certain cases,
 // intermediate systems may treat these differently resulting in subtle errors.
-func TestNewRequest_EmptyBody(t *testing.T) {
-	client, err := NewClient(endpoint, accessToken)
-	require.NoError(t, err)
+func TestClient_newRequest_EmptyBody(t *testing.T) {
+	client, _ := NewClient(endpoint, accessToken)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -64,7 +90,7 @@ func TestNewRequest_EmptyBody(t *testing.T) {
 	assert.Empty(t, req.Body)
 }
 
-func TestDo(t *testing.T) {
+func TestClient_do(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 		_, _ = fmt.Fprint(w, `{"A":"a"}`)
@@ -81,13 +107,13 @@ func TestDo(t *testing.T) {
 	require.NoError(t, err)
 
 	var body foo
-	_, err = client.do(req, &body)
+	err = client.do(req, &body)
 	require.NoError(t, err)
 
 	assert.Equal(t, foo{"a"}, body)
 }
 
-func TestDo_ioWriter(t *testing.T) {
+func TestClient_do_ioWriter(t *testing.T) {
 	content := `{"A":"a"}`
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -102,13 +128,13 @@ func TestDo_ioWriter(t *testing.T) {
 	require.NoError(t, err)
 
 	var buf bytes.Buffer
-	_, err = client.do(req, &buf)
+	err = client.do(req, &buf)
 	require.NoError(t, err)
 
 	assert.Equal(t, content, buf.String())
 }
 
-func TestDo_HTTPError(t *testing.T) {
+func TestClient_do_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		httpErr := Error{
 			Message: http.StatusText(http.StatusBadRequest),
@@ -123,11 +149,26 @@ func TestDo_HTTPError(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	_, err = client.do(req, nil)
+	err = client.do(req, nil)
 	require.NoError(t, err)
 }
 
-func TestDo_RedirectLoop(t *testing.T) {
+func TestClient_do_Unauthenticated(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	err = client.do(req, nil)
+	require.Equal(t, err, ErrUnauthenticated)
+}
+
+func TestClient_do_RedirectLoop(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
@@ -138,7 +179,7 @@ func TestDo_RedirectLoop(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	_, err = client.do(req, nil)
+	err = client.do(req, nil)
 	require.Error(t, err)
 
 	assert.IsType(t, err, new(url.Error))
@@ -162,4 +203,10 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }
+}
+
+func mustTimeParse(t *testing.T, layout, value string) time.Time {
+	ts, err := time.Parse(layout, value)
+	require.NoError(t, err)
+	return ts
 }

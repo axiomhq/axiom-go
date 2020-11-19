@@ -4,20 +4,35 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
 	"time"
-
-	"github.com/google/go-querystring/query"
 )
 
-// Keep up to date with the library version.
-const version = "0.1.0"
+// ErrUnauthenticated is raised when the access token isn't valid.
+var ErrUnauthenticated = errors.New("invalid authentication credentials")
+
+// Error is the generic error response returned on non 2xx HTTP status codes.
+type Error struct {
+	Message string `json:"error"`
+}
+
+// Error implements the error interface.
+func (e Error) Error() string {
+	return e.Message
+}
+
+// service is the base service used by all Axiom API services.
+//nolint:structcheck // https://github.com/golangci/golangci-lint/issues/1517
+type service struct {
+	client   *Client
+	basePath string
+}
 
 // DefaultHTTPClient returns the default HTTP client used for making requests.
 func DefaultHTTPClient() *http.Client {
@@ -29,22 +44,6 @@ func DefaultHTTPClient() *http.Client {
 			TLSHandshakeTimeout: 5 * time.Second,
 		},
 	}
-}
-
-// response is returned from internal methods when the response body is already
-// closed to prevent warnings.
-type response struct {
-	*http.Response
-}
-
-// Error is the generic error response returned on non 2xx HTTP status codes.
-type Error struct {
-	Message string `json:"error"`
-}
-
-// Error implements the error interface.
-func (e Error) Error() string {
-	return e.Message
 }
 
 // An Option can be used to configure the behaviour of the API client.
@@ -62,6 +61,14 @@ func SetClient(client *http.Client) Option {
 	}
 }
 
+// SetUserAgent sets the user agent used by the client.
+func SetUserAgent(userAgent string) Option {
+	return func(c *Client) error {
+		c.userAgent = userAgent
+		return nil
+	}
+}
+
 // Client provides the Axiom HTTP API operations.
 type Client struct {
 	baseURL     *url.URL
@@ -70,11 +77,13 @@ type Client struct {
 
 	httpClient *http.Client
 
-	Authentication AuthenticationService
-	Datasets       DatasetsService
+	Datasets *DatasetsService
+	Users    *UsersService
+	Version  *VersionService
 }
 
-// NewClient returns a new Axiom API client.
+// NewClient returns a new Axiom API client. The access token must be a personal
+// or ingest token which can be created on a users profile page of a deployment.
 func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) {
 	u, err := url.ParseRequestURI(baseURL)
 	if err != nil {
@@ -83,14 +92,15 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 
 	client := &Client{
 		baseURL:     u,
-		userAgent:   fmt.Sprintf("axiom-go/%s", version),
+		userAgent:   "axiom-go",
 		accessToken: accessToken,
 
 		httpClient: DefaultHTTPClient(),
 	}
 
-	client.Authentication = &authenticationService{client: client}
-	client.Datasets = &datasetsService{client: client}
+	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
+	client.Users = &UsersService{client, "/api/v1/users"}
+	client.Version = &VersionService{client, "/api/v1/version"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
@@ -112,10 +122,10 @@ func (c *Client) Options(options ...Option) error {
 
 // call creates a new API request and executes it. The response body is JSON
 // decoded or directly written to v, depending on v being an io.Writer or not.
-func (c *Client) call(ctx context.Context, method, path string, body, v interface{}) (*response, error) {
+func (c *Client) call(ctx context.Context, method, path string, body, v interface{}) error {
 	req, err := c.newRequest(ctx, method, path, body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	return c.do(req, v)
 }
@@ -169,57 +179,39 @@ func (c *Client) newRequest(ctx context.Context, method, endpoint string, body i
 // do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
-func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
+func (c *Client) do(req *http.Request, v interface{}) error {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
+		if statusCode == http.StatusForbidden {
+			return ErrUnauthenticated
+		}
+
 		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
-			return &response{resp}, fmt.Errorf("http error: %q", http.StatusText(statusCode))
+			return fmt.Errorf("http error: %q", http.StatusText(statusCode))
 		}
 
 		var errResp Error
 		if err = json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-			return &response{resp}, err
+			return err
 		}
 
-		return &response{resp}, errResp
+		return errResp
 	}
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
 			if _, err = io.Copy(w, resp.Body); err != nil {
-				return &response{resp}, err
+				return err
 			}
 		} else if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
-			return &response{resp}, err
+			return err
 		}
 	}
 
-	return &response{resp}, nil
-}
-
-// addOptions adds the parameters in opt as URL query parameters to s. opt must
-// be a struct whose fields may contain "url" tags.
-func addOptions(s string, opt interface{}) (string, error) {
-	v := reflect.ValueOf(opt)
-	if v.Kind() == reflect.Ptr && v.IsNil() {
-		return s, nil
-	}
-
-	u, err := url.Parse(s)
-	if err != nil {
-		return s, err
-	}
-
-	qs, err := query.Values(opt)
-	if err != nil {
-		return s, err
-	}
-
-	u.RawQuery = qs.Encode()
-	return u.String(), nil
+	return nil
 }

@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+// DatasetsService handles communication with the dataset related operations of
+// the Axiom API.
+//
+// Axiom API Reference: /api/v1/datasets
+type DatasetsService service
+
 var (
 	// ErrUnknownContentType is raised when the given content type is not valid.
 	ErrUnknownContentType = errors.New("unknown content type")
@@ -63,33 +69,33 @@ type Field struct {
 // DatasetInfo represents the details of the information stored inside an Axiom
 // dataset.
 type DatasetInfo struct {
-	// DisplayName is the human displayable name of a dataset.
+	// DisplayName is the human displayable name of the dataset.
 	DisplayName string `json:"displayName"`
-	// NumBlocks is the number of blocks of a dataset.
+	// NumBlocks is the number of blocks of the dataset.
 	NumBlocks uint64 `json:"numBlocks"`
-	// NumEvents is the number of events of a dataset.
+	// NumEvents is the number of events of the dataset.
 	NumEvents uint64 `json:"numEvents"`
-	// NumFields is the number of fields of a dataset.
+	// NumFields is the number of fields of the dataset.
 	NumFields uint32 `json:"numFields"`
-	// InputBytes is the amount of data stored in a dataset.
+	// InputBytes is the amount of data stored in the dataset.
 	InputBytes uint64 `json:"inputBytes"`
-	// InputBytesHuman is the amount of data stored in a dataset formatted in a
-	// human readable format.
+	// InputBytesHuman is the amount of data stored in the dataset formatted in
+	// a human readable format.
 	InputBytesHuman string `json:"inputBytesHuman"`
-	// CompressedBytes is the amount of compressed data stored in a dataset.
+	// CompressedBytes is the amount of compressed data stored in the dataset.
 	CompressedBytes uint64 `json:"compressedBytes"`
-	// CompressedBytesHuman is the amount of compressed data stored in a dataset
-	// formatted in a human readable format.
+	// CompressedBytesHuman is the amount of compressed data stored in the
+	// dataset formatted in a human readable format.
 	CompressedBytesHuman string `json:"compressedBytesHuman"`
-	// MinTime is the time of the oldest event stored in a dataset.
+	// MinTime is the time of the oldest event stored in the dataset.
 	MinTime time.Time `json:"minTime"`
-	// MaxTime is the time of the newest event stored in a dataset.
+	// MaxTime is the time of the newest event stored in the dataset.
 	MaxTime time.Time `json:"maxTime"`
-	// Fields are the fields of a dataset.
+	// Fields are the fields of the dataset.
 	Fields []Field `json:"fields"`
 }
 
-// CreateDatasetRequest is the request body used to create a dataset.
+// CreateDatasetRequest is a request used to create a dataset.
 type CreateDatasetRequest struct {
 	// Name of the dataset to create.
 	Name string `json:"name"`
@@ -107,16 +113,8 @@ type IngestOptions struct {
 	TimestampFormat string `url:"timestamp-format"`
 }
 
-// IngestFailure describes the ingestion failure of a single event.
-type IngestFailure struct {
-	// Timestamp of the event that failed to ingest.
-	Timestamp time.Time `json:"timestamp"`
-	// Error that made the event fail to ingest.
-	Error string `json:"error"`
-}
-
-// IngestResponse is the response returned after event ingestion.
-type IngestResponse struct {
+// IngestStatus is the status after an event ingestion operation.
+type IngestStatus struct {
 	// Ingested is the amount of events that have been ingested.
 	Ingested uint64 `json:"ingested"`
 	// Failed is the amount of events that failed to ingest.
@@ -131,43 +129,18 @@ type IngestResponse struct {
 	WALLength uint32 `json:"walLength"`
 }
 
-// DatasetsService bundles all the operations on Axiom datasets.
-type DatasetsService interface {
-	// List all available datasets.
-	List(ctx context.Context) ([]*Dataset, error)
-	// Get a dataset by id.
-	Get(ctx context.Context, datasetID string) (*Dataset, error)
-	// Info retrieves the information of a dataset identified by its id.
-	Info(ctx context.Context, datasetID string) (*DatasetInfo, error)
-	// Create a dataset with the given properties.
-	Create(ctx context.Context, opts CreateDatasetRequest) (*Dataset, error)
-	// Delete the dataset identified by its id.
-	Delete(ctx context.Context, datasetID string) error
-	// Ingest data into the dataset identified by its id. If the dataset doesn't
-	// exist, it will be created. The given data will be flattened, thus there
-	// are some restrictions on the field names (JSON object keys):
-	//
-	// * Not more than 200 bytes (not characters!)
-	// * UTF-8 compatible
-	// * "_time" and "_source" are reserved
-	// * The ingestion content type must be one of JSON, NDJSON or CSV and the
-	//   input must be formatted accordingly.
-	// TODO(lukasmalkmus): Review the restrictions.
-	Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestResponse, error)
-}
-
-var _ DatasetsService = (*datasetsService)(nil)
-
-type datasetsService struct {
-	client *Client
+// IngestFailure describes the ingestion failure of a single event.
+type IngestFailure struct {
+	// Timestamp of the event that failed to ingest.
+	Timestamp time.Time `json:"timestamp"`
+	// Error that made the event fail to ingest.
+	Error string `json:"error"`
 }
 
 // List all available datasets.
-func (s *datasetsService) List(ctx context.Context) ([]*Dataset, error) {
-	path := "/api/v1/datasets"
-
+func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 	var res []*Dataset
-	if _, err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -175,46 +148,44 @@ func (s *datasetsService) List(ctx context.Context) ([]*Dataset, error) {
 }
 
 // Get a dataset by id.
-func (s *datasetsService) Get(ctx context.Context, id string) (*Dataset, error) {
-	path := "/api/v1/datasets/" + id
+func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) {
+	path := s.basePath + "/" + id
 
 	var res Dataset
-	if _, err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
 	return &res, nil
 }
 
-// Info retrieves the information of a dataset identified by its id.
-func (s *datasetsService) Info(ctx context.Context, id string) (*DatasetInfo, error) {
-	path := "/api/v1/datasets/" + id + "/info"
+// Info retrieves the information of the dataset identified by its id.
+func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, error) {
+	path := s.basePath + "/" + id + "/info"
 
 	var res DatasetInfo
-	if _, err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
 	return &res, nil
 }
 
-// Create a dataset with the given id.
-func (s *datasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
-	path := "/api/v1/datasets"
-
+// Create a dataset with the given properties.
+func (s *DatasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
 	var res Dataset
-	if _, err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
 	}
 
 	return &res, nil
 }
 
-// Delete the dataset identified by its id.
-func (s *datasetsService) Delete(ctx context.Context, id string) error {
-	path := "/api/v1/datasets/" + id
+// Delete the dataset identified by the given id.
+func (s *DatasetsService) Delete(ctx context.Context, id string) error {
+	path := s.basePath + "/" + id
 
-	if _, err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
+	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
 		return err
 	}
 
@@ -231,8 +202,8 @@ func (s *datasetsService) Delete(ctx context.Context, id string) error {
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
 //   must be formatted accordingly.
 // TODO(lukasmalkmus): Review the restrictions.
-func (s *datasetsService) Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestResponse, error) {
-	path, err := addOptions("/api/v1/datasets/"+datasetID+"/ingest", opts)
+func (s *DatasetsService) Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
+	path, err := addOptions(s.basePath+"/"+datasetID+"/ingest", opts)
 	if err != nil {
 		return nil, err
 	}
@@ -257,8 +228,8 @@ func (s *datasetsService) Ingest(ctx context.Context, datasetID string, r io.Rea
 		return nil, ErrUnknownContentEncoding
 	}
 
-	var res IngestResponse
-	if _, err = s.client.do(req, &res); err != nil {
+	var res IngestStatus
+	if err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}
 

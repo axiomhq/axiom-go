@@ -204,7 +204,7 @@ func TestDatasetsService_Delete(t *testing.T) {
 }
 
 func TestDatasetsService_Ingest(t *testing.T) {
-	exp := &IngestResponse{
+	exp := &IngestStatus{
 		Ingested:       2,
 		Failed:         0,
 		Failures:       []*IngestFailure{},
@@ -261,9 +261,3 @@ func TestDatasetsService_Ingest(t *testing.T) {
 
 // TODO(lukasmalkmus): Write a test that contains some failures in the server
 // response.
-
-func mustTimeParse(t *testing.T, layout, value string) time.Time {
-	ts, err := time.Parse(layout, value)
-	require.NoError(t, err)
-	return ts
-}
