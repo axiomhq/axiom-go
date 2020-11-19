@@ -12,6 +12,182 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDatasetsService_Stats(t *testing.T) {
+	exp := &DatasetStats{
+		Datasets: []*DatasetInfo{
+			{
+				Name:                 "test",
+				NumBlocks:            1,
+				NumEvents:            68459,
+				NumFields:            8,
+				InputBytes:           10383386,
+				InputBytesHuman:      "10 MB",
+				CompressedBytes:      2509224,
+				CompressedBytesHuman: "2.5 MB",
+				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
+				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+				Fields: []Field{
+					{
+						Name: "_sysTime",
+						Type: "integer",
+					},
+					{
+						Name: "_time",
+						Type: "integer",
+					},
+					{
+						Name: "path",
+						Type: "string",
+					},
+					{
+						Name: "size",
+						Type: "integer",
+					},
+					{
+						Name: "status",
+						Type: "integer",
+					},
+				},
+				Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+			},
+			{
+				Name:                 "test1",
+				NumBlocks:            1,
+				NumEvents:            68459,
+				NumFields:            8,
+				InputBytes:           10383386,
+				InputBytesHuman:      "10 MB",
+				CompressedBytes:      2509224,
+				CompressedBytesHuman: "2.5 MB",
+				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
+				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+				Fields: []Field{
+					{
+						Name: "_sysTime",
+						Type: "integer",
+					},
+					{
+						Name: "_time",
+						Type: "integer",
+					},
+					{
+						Name: "path",
+						Type: "string",
+					},
+					{
+						Name: "size",
+						Type: "integer",
+					},
+					{
+						Name: "status",
+						Type: "integer",
+					},
+				},
+				Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+			},
+		},
+		NumBlocks:            2,
+		NumEvents:            136918,
+		InputBytes:           666337356,
+		InputBytesHuman:      "666 MB",
+		CompressedBytes:      19049348,
+		CompressedBytesHuman: "19 MB",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"datasets": [
+				{
+					"name": "test",
+					"numBlocks": 1,
+					"numEvents": 68459,
+					"numFields": 8,
+					"inputBytes": 10383386,
+					"inputBytesHuman": "10 MB",
+					"compressedBytes": 2509224,
+					"compressedBytesHuman": "2.5 MB",
+					"minTime": "2020-11-17T22:30:59Z",
+					"maxTime": "2020-11-18T17:31:55Z",
+					"fields": [
+						{
+							"name": "_sysTime",
+							"type": "integer"
+						},
+						{
+							"name": "_time",
+							"type": "integer"
+						},
+						{
+							"name": "path",
+							"type": "string"
+						},
+						{
+							"name": "size",
+							"type": "integer"
+						},
+						{
+							"name": "status",
+							"type": "integer"
+						}
+					],
+					"created": "2020-11-18T21:30:20.623322799Z"
+				},
+				{
+					"name": "test1",
+					"numBlocks": 1,
+					"numEvents": 68459,
+					"numFields": 8,
+					"inputBytes": 10383386,
+					"inputBytesHuman": "10 MB",
+					"compressedBytes": 2509224,
+					"compressedBytesHuman": "2.5 MB",
+					"minTime": "2020-11-17T22:30:59Z",
+					"maxTime": "2020-11-18T17:31:55Z",
+					"fields": [
+						{
+							"name": "_sysTime",
+							"type": "integer"
+						},
+						{
+							"name": "_time",
+							"type": "integer"
+						},
+						{
+							"name": "path",
+							"type": "string"
+						},
+						{
+							"name": "size",
+							"type": "integer"
+						},
+						{
+							"name": "status",
+							"type": "integer"
+						}
+					],
+					"created": "2020-11-18T21:30:20.623322799Z"
+				}
+			],
+			"numBlocks": 2,
+			"numEvents": 136918,
+			"inputBytes": 666337356,
+			"inputBytesHuman": "666 MB",
+			"compressedBytes": 19049348,
+			"compressedBytesHuman": "19 MB"
+		}`)
+		require.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/_stats", hf)
+	defer teardown()
+
+	res, err := client.Datasets.Stats(context.Background())
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
 func TestDatasetsService_List(t *testing.T) {
 	exp := []*Dataset{
 		{
@@ -72,91 +248,6 @@ func TestDatasetsService_Get(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
-func TestDatasetsService_Info(t *testing.T) {
-	exp := &DatasetInfo{
-		DisplayName:          "test",
-		NumBlocks:            1,
-		NumEvents:            68459,
-		NumFields:            8,
-		InputBytes:           10383386,
-		InputBytesHuman:      "10 MB",
-		CompressedBytes:      2509224,
-		CompressedBytesHuman: "2.5 MB",
-		MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
-		MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
-		Fields: []Field{
-			{
-				Name: "_sysTime",
-				Type: "integer",
-			},
-			{
-				Name: "_time",
-				Type: "integer",
-			},
-			{
-				Name: "path",
-				Type: "string",
-			},
-			{
-				Name: "size",
-				Type: "integer",
-			},
-			{
-				Name: "status",
-				Type: "integer",
-			},
-		},
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-
-		_, err := fmt.Fprint(w, `{
-			"displayName": "test",
-			"numBlocks": 1,
-			"numEvents": 68459,
-			"numFields": 8,
-			"inputBytes": 10383386,
-			"inputBytesHuman": "10 MB",
-			"compressedBytes": 2509224,
-			"compressedBytesHuman": "2.5 MB",
-			"minTime": "2020-11-17T22:30:59Z",
-			"maxTime": "2020-11-18T17:31:55Z",
-			"fields": [
-				{
-					"name": "_sysTime",
-					"type": "integer"
-				},
-				{
-					"name": "_time",
-					"type": "integer"
-				},
-				{
-					"name": "path",
-					"type": "string"
-				},
-				{
-					"name": "size",
-					"type": "integer"
-				},
-				{
-					"name": "status",
-					"type": "integer"
-				}
-			]
-		}`)
-		require.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/datasets/test/info", hf)
-	defer teardown()
-
-	res, err := client.Datasets.Info(context.Background(), "test")
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
-}
-
 func TestDatasetsService_Create(t *testing.T) {
 	exp := &Dataset{
 		ID:          "test",
@@ -189,6 +280,37 @@ func TestDatasetsService_Create(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestDatasetsService_Update(t *testing.T) {
+	exp := &Dataset{
+		ID:          "test",
+		Name:        "test",
+		Description: "This is the new description",
+		Created:     mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"id": "test",
+			"name": "test",
+			"description": "This is the new description",
+			"created": "2020-11-18T21:30:20.623322799Z"
+		}`)
+		require.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test", hf)
+	defer teardown()
+
+	res, err := client.Datasets.Update(context.Background(), "test", UpdateDatasetRequest{
+		Description: "This is the new description",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 func TestDatasetsService_Delete(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodDelete, r.Method)
@@ -201,6 +323,93 @@ func TestDatasetsService_Delete(t *testing.T) {
 
 	err := client.Datasets.Delete(context.Background(), "test")
 	require.NoError(t, err)
+}
+
+func TestDatasetsService_Info(t *testing.T) {
+	exp := &DatasetInfo{
+		Name:                 "test",
+		NumBlocks:            1,
+		NumEvents:            68459,
+		NumFields:            8,
+		InputBytes:           10383386,
+		InputBytesHuman:      "10 MB",
+		CompressedBytes:      2509224,
+		CompressedBytesHuman: "2.5 MB",
+		MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
+		MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+		Fields: []Field{
+			{
+				Name: "_sysTime",
+				Type: "integer",
+			},
+			{
+				Name: "_time",
+				Type: "integer",
+			},
+			{
+				Name: "path",
+				Type: "string",
+			},
+			{
+				Name: "size",
+				Type: "integer",
+			},
+			{
+				Name: "status",
+				Type: "integer",
+			},
+		},
+		Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"name": "test",
+			"numBlocks": 1,
+			"numEvents": 68459,
+			"numFields": 8,
+			"inputBytes": 10383386,
+			"inputBytesHuman": "10 MB",
+			"compressedBytes": 2509224,
+			"compressedBytesHuman": "2.5 MB",
+			"minTime": "2020-11-17T22:30:59Z",
+			"maxTime": "2020-11-18T17:31:55Z",
+			"fields": [
+				{
+					"name": "_sysTime",
+					"type": "integer"
+				},
+				{
+					"name": "_time",
+					"type": "integer"
+				},
+				{
+					"name": "path",
+					"type": "string"
+				},
+				{
+					"name": "size",
+					"type": "integer"
+				},
+				{
+					"name": "status",
+					"type": "integer"
+				}
+			],
+			"created": "2020-11-18T21:30:20.623322799Z"
+		}`)
+		require.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/info", hf)
+	defer teardown()
+
+	res, err := client.Datasets.Info(context.Background(), "test")
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
 }
 
 func TestDatasetsService_Ingest(t *testing.T) {

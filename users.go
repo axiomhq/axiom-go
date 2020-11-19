@@ -47,6 +47,12 @@ type CreateUserRequest struct {
 	TeamIDs []string `json:"teamIds"`
 }
 
+// UpdateUserRequest is a request used to update an user.
+type UpdateUserRequest struct {
+	// Name of the user.
+	Name string `json:"name"`
+}
+
 // Current retrieves the authenticated user.
 func (s *UsersService) Current(ctx context.Context) (*AuthenticatedUser, error) {
 	path := "/api/v1/user"
@@ -86,10 +92,22 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	return &res, nil
 }
 
-// Create a user with the given id.
+// Create a user with the given properties.
 func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
 	var res User
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Update the user identified by the given id with the given properties.
+func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequest) (*User, error) {
+	path := s.basePath + "/" + id
+
+	var res User
+	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}
 

@@ -54,7 +54,7 @@ type Dataset struct {
 	Name string `json:"name"`
 	// Description is the description of the dataset.
 	Description string `json:"description"`
-	// Create is the time the dataset was created at.
+	// Created is the time the dataset was created at.
 	Created time.Time `json:"created"`
 }
 
@@ -69,8 +69,8 @@ type Field struct {
 // DatasetInfo represents the details of the information stored inside an Axiom
 // dataset.
 type DatasetInfo struct {
-	// DisplayName is the human displayable name of the dataset.
-	DisplayName string `json:"displayName"`
+	// Name is the unique name of the dataset.
+	Name string `json:"name"`
 	// NumBlocks is the number of blocks of the dataset.
 	NumBlocks uint64 `json:"numBlocks"`
 	// NumEvents is the number of events of the dataset.
@@ -93,24 +93,27 @@ type DatasetInfo struct {
 	MaxTime time.Time `json:"maxTime"`
 	// Fields are the fields of the dataset.
 	Fields []Field `json:"fields"`
+	// Created is the time the dataset was created at.
+	Created time.Time `json:"created"`
 }
 
-// CreateDatasetRequest is a request used to create a dataset.
-type CreateDatasetRequest struct {
-	// Name of the dataset to create.
-	Name string `json:"name"`
-	// Description of the dataset to create.
-	Description string `json:"description"`
-}
-
-// IngestOptions are the request query url parameters for event ingestion.
-type IngestOptions struct {
-	// Define a custom field for the timestamps, defaults to `_time`.
-	TimestampField string `url:"timestamp-field"`
-	// TimestampFormat defines a custom format for the timestamps.
-	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
-	// in https://pkg.go.dev/time/?tab=doc#Parse
-	TimestampFormat string `url:"timestamp-format"`
+// DatasetStats are the stats of
+type DatasetStats struct {
+	Datasets []*DatasetInfo `json:"datasets"`
+	// NumBlocks is the number of blocks of the dataset.
+	NumBlocks uint64 `json:"numBlocks"`
+	// NumEvents is the number of events of the dataset.
+	NumEvents uint64 `json:"numEvents"`
+	// InputBytes is the amount of data stored in the dataset.
+	InputBytes uint64 `json:"inputBytes"`
+	// InputBytesHuman is the amount of data stored in the dataset formatted in
+	// a human readable format.
+	InputBytesHuman string `json:"inputBytesHuman"`
+	// CompressedBytes is the amount of compressed data stored in the dataset.
+	CompressedBytes uint64 `json:"compressedBytes"`
+	// CompressedBytesHuman is the amount of compressed data stored in the
+	// dataset formatted in a human readable format.
+	CompressedBytesHuman string `json:"compressedBytesHuman"`
 }
 
 // IngestStatus is the status after an event ingestion operation.
@@ -137,6 +140,45 @@ type IngestFailure struct {
 	Error string `json:"error"`
 }
 
+// CreateDatasetRequest is a request used to create a dataset.
+type CreateDatasetRequest struct {
+	// Name of the dataset to create.
+	Name string `json:"name"`
+	// Description of the dataset to create.
+	Description string `json:"description"`
+}
+
+// UpdateDatasetRequest is a request used to update a dataset.
+type UpdateDatasetRequest struct {
+	// Description of the dataset to update.
+	Description string `json:"description"`
+}
+
+// IngestOptions are the request query url parameters for event ingestion.
+type IngestOptions struct {
+	// Define a custom field for the timestamps, defaults to `_time`.
+	TimestampField string `url:"timestamp-field"`
+	// TimestampFormat defines a custom format for the timestamps.
+	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
+	// in https://pkg.go.dev/time/?tab=doc#Parse
+	TimestampFormat string `url:"timestamp-format"`
+}
+
+// Stats returns detailed statistics about all available datasets. This
+// operation is more expenssive and listing the datasets and then getting the
+// information of a specific dataset is preferred, when not aggregated
+// statistics across all datasets are needed.
+func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
+	path := s.basePath + "/_stats"
+
+	var res *DatasetStats
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 // List all available datasets.
 func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 	var res []*Dataset
@@ -159,22 +201,23 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 	return &res, nil
 }
 
-// Info retrieves the information of the dataset identified by its id.
-func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, error) {
-	path := s.basePath + "/" + id + "/info"
-
-	var res DatasetInfo
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+// Create a dataset with the given properties. The dataset name is restricted to
+// 128 bytes and can not contain the "axiom-" prefix.
+func (s *DatasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
+	var res Dataset
+	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
 	}
 
 	return &res, nil
 }
 
-// Create a dataset with the given properties.
-func (s *DatasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
+// Update the dataset identified by the given id with the given properties.
+func (s *DatasetsService) Update(ctx context.Context, id string, req UpdateDatasetRequest) (*Dataset, error) {
+	path := s.basePath + "/" + id
+
 	var res Dataset
-	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}
 
@@ -190,6 +233,18 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+// Info retrieves the information of the dataset identified by its id.
+func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, error) {
+	path := s.basePath + "/" + id + "/info"
+
+	var res DatasetInfo
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
 }
 
 // Ingest data into the dataset identified by its id. If the dataset doesn't
