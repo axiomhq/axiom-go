@@ -111,8 +111,7 @@ func TestDo_ioWriter(t *testing.T) {
 func TestDo_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		httpErr := Error{
-			StatusCode: http.StatusBadRequest,
-			Message:    http.StatusText(http.StatusBadRequest),
+			Message: http.StatusText(http.StatusBadRequest),
 		}
 		err := json.NewEncoder(w).Encode(httpErr)
 		require.NoError(t, err)

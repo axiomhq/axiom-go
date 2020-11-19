@@ -39,13 +39,12 @@ type response struct {
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
 type Error struct {
-	StatusCode int    `json:"status"`
-	Message    string `json:"error"`
+	Message string `json:"error"`
 }
 
 // Error implements the error interface.
 func (e Error) Error() string {
-	return fmt.Sprintf("%s: %s", http.StatusText(e.StatusCode), e.Message)
+	return e.Message
 }
 
 // An Option can be used to configure the behaviour of the API client.
@@ -185,10 +184,6 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		var errResp Error
 		if err = json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
 			return &response{resp}, err
-		}
-
-		if errResp.StatusCode == 0 {
-			errResp.StatusCode = statusCode
 		}
 
 		return &response{resp}, errResp
