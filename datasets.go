@@ -167,7 +167,7 @@ func (s *datasetsService) List(ctx context.Context) ([]*Dataset, error) {
 	path := "/api/v1/datasets"
 
 	var res []*Dataset
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if _, err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -179,7 +179,7 @@ func (s *datasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 	path := "/api/v1/datasets/" + id
 
 	var res Dataset
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if _, err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -191,7 +191,7 @@ func (s *datasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 	path := "/api/v1/datasets/" + id + "/info"
 
 	var res DatasetInfo
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if _, err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -203,7 +203,7 @@ func (s *datasetsService) Create(ctx context.Context, req CreateDatasetRequest) 
 	path := "/api/v1/datasets"
 
 	var res Dataset
-	if err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
+	if _, err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
 		return nil, err
 	}
 
@@ -214,7 +214,7 @@ func (s *datasetsService) Create(ctx context.Context, req CreateDatasetRequest) 
 func (s *datasetsService) Delete(ctx context.Context, id string) error {
 	path := "/api/v1/datasets/" + id
 
-	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
+	if _, err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
 		return err
 	}
 
@@ -258,7 +258,7 @@ func (s *datasetsService) Ingest(ctx context.Context, datasetID string, r io.Rea
 	}
 
 	var res IngestResponse
-	if err = s.client.do(req, &res); err != nil {
+	if _, err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}
 

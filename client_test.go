@@ -27,7 +27,8 @@ func TestNewClient(t *testing.T) {
 	require.NotNil(t, client)
 
 	// Are endpoints/resources present?
-	assert.Equal(t, &datasetsService{client: client}, client.Datasets)
+	assert.NotNil(t, client.Authentication)
+	assert.NotNil(t, client.Datasets)
 
 	// Is default configuration present?
 	assert.Equal(t, endpoint, client.baseURL.String())
@@ -80,7 +81,7 @@ func TestDo(t *testing.T) {
 	require.NoError(t, err)
 
 	var body foo
-	err = client.do(req, &body)
+	_, err = client.do(req, &body)
 	require.NoError(t, err)
 
 	assert.Equal(t, foo{"a"}, body)
@@ -101,7 +102,7 @@ func TestDo_ioWriter(t *testing.T) {
 	require.NoError(t, err)
 
 	var buf bytes.Buffer
-	err = client.do(req, &buf)
+	_, err = client.do(req, &buf)
 	require.NoError(t, err)
 
 	assert.Equal(t, content, buf.String())
@@ -123,7 +124,7 @@ func TestDo_HTTPError(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	err = client.do(req, nil)
+	_, err = client.do(req, nil)
 	require.NoError(t, err)
 }
 
@@ -138,7 +139,7 @@ func TestDo_RedirectLoop(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	err = client.do(req, nil)
+	_, err = client.do(req, nil)
 	require.Error(t, err)
 
 	assert.IsType(t, err, new(url.Error))

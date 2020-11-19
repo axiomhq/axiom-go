@@ -31,6 +31,12 @@ func DefaultHTTPClient() *http.Client {
 	}
 }
 
+// response is returned from internal methods when the response body is already
+// closed to prevent warnings.
+type response struct {
+	*http.Response
+}
+
 // Error is the generic error response returned on non 2xx HTTP status codes.
 type Error struct {
 	StatusCode int    `json:"status"`
@@ -65,7 +71,8 @@ type Client struct {
 
 	httpClient *http.Client
 
-	Datasets DatasetsService
+	Authentication AuthenticationService
+	Datasets       DatasetsService
 }
 
 // NewClient returns a new Axiom API client.
@@ -83,6 +90,7 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 		httpClient: DefaultHTTPClient(),
 	}
 
+	client.Authentication = &authenticationService{client: client}
 	client.Datasets = &datasetsService{client: client}
 
 	// Apply supplied options.
@@ -105,10 +113,10 @@ func (c *Client) Options(options ...Option) error {
 
 // call creates a new API request and executes it. The response body is JSON
 // decoded or directly written to v, depending on v being an io.Writer or not.
-func (c *Client) call(ctx context.Context, method, path string, body, v interface{}) error {
+func (c *Client) call(ctx context.Context, method, path string, body, v interface{}) (*response, error) {
 	req, err := c.newRequest(ctx, method, path, body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return c.do(req, v)
 }
@@ -162,41 +170,41 @@ func (c *Client) newRequest(ctx context.Context, method, endpoint string, body i
 // do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
-func (c *Client) do(req *http.Request, v interface{}) error {
+func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
-			return fmt.Errorf("http error: %q", http.StatusText(statusCode))
+			return &response{resp}, fmt.Errorf("http error: %q", http.StatusText(statusCode))
 		}
 
 		var errResp Error
 		if err = json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-			return err
+			return &response{resp}, err
 		}
 
 		if errResp.StatusCode == 0 {
 			errResp.StatusCode = statusCode
 		}
 
-		return errResp
+		return &response{resp}, errResp
 	}
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
 			if _, err = io.Copy(w, resp.Body); err != nil {
-				return err
+				return &response{resp}, err
 			}
 		} else if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
-			return err
+			return &response{resp}, err
 		}
 	}
 
-	return nil
+	return &response{resp}, nil
 }
 
 // addOptions adds the parameters in opt as URL query parameters to s. opt must
