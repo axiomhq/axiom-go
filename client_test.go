@@ -28,6 +28,7 @@ func TestNewClient(t *testing.T) {
 	require.NotNil(t, client)
 
 	// Are endpoints/resources present?
+	assert.NotNil(t, client.Dashboards)
 	assert.NotNil(t, client.Datasets)
 	assert.NotNil(t, client.Users)
 	assert.NotNil(t, client.Version)

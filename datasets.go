@@ -8,12 +8,6 @@ import (
 	"time"
 )
 
-// DatasetsService handles communication with the dataset related operations of
-// the Axiom API.
-//
-// Axiom API Reference: /api/v1/datasets
-type DatasetsService service
-
 var (
 	// ErrUnknownContentType is raised when the given content type is not valid.
 	ErrUnknownContentType = errors.New("unknown content type")
@@ -48,11 +42,11 @@ const (
 
 // Dataset represents an Axiom dataset.
 type Dataset struct {
-	// ID is the unique ID of the dataset.
+	// ID of the dataset.
 	ID string `json:"id"`
 	// Name is the unique name of the dataset.
 	Name string `json:"name"`
-	// Description is the description of the dataset.
+	// Description of the dataset.
 	Description string `json:"description"`
 	// Created is the time the dataset was created at.
 	Created time.Time `json:"created"`
@@ -157,12 +151,18 @@ type UpdateDatasetRequest struct {
 // IngestOptions are the request query url parameters for event ingestion.
 type IngestOptions struct {
 	// Define a custom field for the timestamps, defaults to `_time`.
-	TimestampField string `url:"timestamp-field"`
+	TimestampField string `url:"timestamp-field,omitempty"`
 	// TimestampFormat defines a custom format for the timestamps.
 	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
 	// in https://pkg.go.dev/time/?tab=doc#Parse
-	TimestampFormat string `url:"timestamp-format"`
+	TimestampFormat string `url:"timestamp-format,omitempty"`
 }
+
+// DatasetsService handles communication with the dataset related operations of
+// the Axiom API.
+//
+// Axiom API Reference: /api/v1/datasets
+type DatasetsService service
 
 // Stats returns detailed statistics about all available datasets. This
 // operation is more expenssive and listing the datasets and then getting the

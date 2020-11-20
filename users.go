@@ -5,12 +5,6 @@ import (
 	"net/http"
 )
 
-// UsersService handles communication with the user related operations of the
-// Axiom API.
-//
-// Axiom API Reference: /api/v1/users
-type UsersService service
-
 // User represents an user of the deployment.
 type User struct {
 	// ID is the unique id of the user.
@@ -52,6 +46,12 @@ type UpdateUserRequest struct {
 	// Name of the user.
 	Name string `json:"name"`
 }
+
+// UsersService handles communication with the user related operations of the
+// Axiom API.
+//
+// Axiom API Reference: /api/v1/users
+type UsersService service
 
 // Current retrieves the authenticated user.
 func (s *UsersService) Current(ctx context.Context) (*AuthenticatedUser, error) {

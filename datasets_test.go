@@ -188,6 +188,7 @@ func TestDatasetsService_Stats(t *testing.T) {
 
 	assert.Equal(t, exp, res)
 }
+
 func TestDatasetsService_List(t *testing.T) {
 	exp := []*Dataset{
 		{
@@ -224,7 +225,7 @@ func TestDatasetsService_Get(t *testing.T) {
 	exp := &Dataset{
 		ID:          "test",
 		Name:        "test",
-		Description: "",
+		Description: "This is a test description",
 		Created:     mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
 	}
 
@@ -234,6 +235,7 @@ func TestDatasetsService_Get(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
+			"description": "This is a test description",
 			"created": "2020-11-17T22:29:00.521238198Z"
 		}`)
 		require.NoError(t, err)

@@ -77,9 +77,10 @@ type Client struct {
 
 	httpClient *http.Client
 
-	Datasets *DatasetsService
-	Users    *UsersService
-	Version  *VersionService
+	Dashboards *DashboardsService
+	Datasets   *DatasetsService
+	Users      *UsersService
+	Version    *VersionService
 }
 
 // NewClient returns a new Axiom API client. The access token must be a personal
@@ -98,6 +99,7 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 		httpClient: DefaultHTTPClient(),
 	}
 
+	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}

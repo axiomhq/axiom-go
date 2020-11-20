@@ -5,15 +5,15 @@ import (
 	"net/http"
 )
 
+type version struct {
+	CurrentVersion string `json:"currentVersion"`
+}
+
 // VersionService handles communication with the version related operations of
 // the Axiom API.
 //
 // Axiom API Reference: /api/v1/version
 type VersionService service
-
-type version struct {
-	CurrentVersion string `json:"currentVersion"`
-}
 
 // Get the version of a deployment.
 func (s *VersionService) Get(ctx context.Context) (string, error) {
