@@ -6,6 +6,7 @@ import (
 )
 
 type version struct {
+	// CurrentVersion of the deployment.
 	CurrentVersion string `json:"currentVersion"`
 }
 

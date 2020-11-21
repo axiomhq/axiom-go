@@ -267,9 +267,7 @@ func TestUsersService_UpdateRole(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/users/7debe8bb-69f1-436f-94f6-a2fe23e71cf5/role", hf)
 	defer teardown()
 
-	res, err := client.Users.UpdateRole(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5", UpdateUserRoleRequest{
-		Role: RoleAdmin,
-	})
+	res, err := client.Users.UpdateRole(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5", RoleAdmin)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)

@@ -58,8 +58,7 @@ type UpdateUserRequest struct {
 	Name string `json:"name"`
 }
 
-// UpdateUserRoleRequest is a request used to update an users role.
-type UpdateUserRoleRequest struct {
+type updateUserRoleRequest struct {
 	// Role is the new role of the user.
 	Role UserRole `json:"role"`
 }
@@ -133,11 +132,11 @@ func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequ
 
 // UpdateRole updates the role of the user identified by the given id with the
 // given properties.
-func (s *UsersService) UpdateRole(ctx context.Context, id string, req UpdateUserRoleRequest) (*User, error) {
+func (s *UsersService) UpdateRole(ctx context.Context, id string, role UserRole) (*User, error) {
 	path := s.basePath + "/" + id + "/role"
 
 	var res User
-	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodPut, path, updateUserRoleRequest{role}, &res); err != nil {
 		return nil, err
 	}
 
