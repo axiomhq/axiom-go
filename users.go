@@ -47,6 +47,12 @@ type UpdateUserRequest struct {
 	Name string `json:"name"`
 }
 
+// UpdateUserRoleRequest is a request used to update an users role.
+type UpdateUserRoleRequest struct {
+	// Role of the user.
+	Role string `json:"role"`
+}
+
 // UsersService handles communication with the user related operations of the
 // Axiom API.
 //
@@ -105,6 +111,19 @@ func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User
 // Update the user identified by the given id with the given properties.
 func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequest) (*User, error) {
 	path := s.basePath + "/" + id
+
+	var res User
+	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// UpdateRole updates the role of the user identified by the given id with the
+// given properties.
+func (s *UsersService) UpdateRole(ctx context.Context, id string, req UpdateUserRoleRequest) (*User, error) {
+	path := s.basePath + "/" + id + "/role"
 
 	var res User
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {

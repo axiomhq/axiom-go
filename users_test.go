@@ -243,6 +243,38 @@ func TestUsersService_Update(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestUsersService_UpdateRole(t *testing.T) {
+	exp := &User{
+		ID:    "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
+		Name:  "Michael Doe",
+		Email: "john@example.com",
+		Role:  "admin",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
+			"name": "Michael Doe",
+			"email": "john@example.com",
+			"role": "admin",
+			"permissions": null
+		}`)
+		require.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/users/7debe8bb-69f1-436f-94f6-a2fe23e71cf5/role", hf)
+	defer teardown()
+
+	res, err := client.Users.UpdateRole(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5", UpdateUserRoleRequest{
+		Role: "admin",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 func TestUsersService_Delete(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodDelete, r.Method)
