@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +49,7 @@ func TestDashboardsService_List(t *testing.T) {
 					"static": false,
 				},
 			},
-			RefreshTime:     15,
+			RefreshTime:     15 * time.Second,
 			SchemaVersion:   2,
 			TimeWindowStart: "qr-now-30m",
 			TimeWindowEnd:   "qr-now",
@@ -152,7 +153,7 @@ func TestDashboardsService_Get(t *testing.T) {
 				"static": false,
 			},
 		},
-		RefreshTime:     15,
+		RefreshTime:     15 * time.Second,
 		SchemaVersion:   2,
 		TimeWindowStart: "qr-now-30m",
 		TimeWindowEnd:   "qr-now",
@@ -253,7 +254,7 @@ func TestDashboardsService_Create(t *testing.T) {
 				"static": false,
 			},
 		},
-		RefreshTime:     15,
+		RefreshTime:     15 * time.Second,
 		SchemaVersion:   2,
 		TimeWindowStart: "qr-now-30m",
 		TimeWindowEnd:   "qr-now",
@@ -346,7 +347,7 @@ func TestDashboardsService_Create(t *testing.T) {
 				"static": false,
 			},
 		},
-		RefreshTime:     15,
+		RefreshTime:     15 * time.Second,
 		SchemaVersion:   2,
 		TimeWindowStart: "qr-now-30m",
 		TimeWindowEnd:   "qr-now",

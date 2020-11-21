@@ -2,7 +2,9 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"time"
 )
 
 // Dashboard represents an Axiom dashboard.
@@ -19,14 +21,41 @@ type Dashboard struct {
 	Charts []interface{} `json:"charts"`
 	// Layout contains the raw data composing the dashboards layout.
 	Layout []interface{} `json:"layout"`
-	// RefreshTime is the duration in seconds after which the dashboard is
-	// updated.
-	RefreshTime     int    `json:"refreshTime"`
-	SchemaVersion   int    `json:"schemaVersion"`
-	TimeWindowStart string `json:"timeWindowStart"`
-	TimeWindowEnd   string `json:"timeWindowEnd"`
+	// RefreshTime is the duration after which the dashboards data is updated.
+	RefreshTime     time.Duration `json:"refreshTime"`
+	SchemaVersion   int           `json:"schemaVersion"`
+	TimeWindowStart string        `json:"timeWindowStart"`
+	TimeWindowEnd   string        `json:"timeWindowEnd"`
 	// Version of the dashboard.
 	Version string `json:"version"`
+}
+
+// MarshalJSON implements json.Marshaler. It is in place to set the RefreshTime
+// to seconds because that's what the server understands.
+func (d Dashboard) MarshalJSON() ([]byte, error) {
+	type localDash Dashboard
+
+	// Set to the value in seconds.
+	d.RefreshTime = time.Duration(d.RefreshTime.Seconds())
+
+	return json.Marshal(localDash(d))
+}
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to set the
+// RefreshTime to a proper time.Duration value because the server returns the
+// seconds.
+func (d *Dashboard) UnmarshalJSON(b []byte) error {
+	type localDash *Dashboard
+
+	if err := json.Unmarshal(b, localDash(d)); err != nil {
+		return err
+	}
+
+	// Set to a proper time.Duration value interpreting the server response
+	// value in seconds.
+	d.RefreshTime = d.RefreshTime * time.Second
+
+	return nil
 }
 
 // DashboardsService handles communication with the dashboard related operations
