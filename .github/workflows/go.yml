@@ -55,6 +55,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+        # TODO(lukasmalkmus): Enable integration tests as soon as there is a
+        # test instance and user ready. Set deployment url and access token
+        # using secrets.
+        # run: make test-integration
       - name: Test
         run: make test
 

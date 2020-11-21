@@ -20,11 +20,13 @@ var ErrUnauthenticated = errors.New("invalid authentication credentials")
 // Error is the generic error response returned on non 2xx HTTP status codes.
 type Error struct {
 	Message string `json:"error"`
+
+	statusCode int
 }
 
 // Error implements the error interface.
 func (e Error) Error() string {
-	return e.Message
+	return fmt.Sprintf("API error %d: %s", e.statusCode, e.Message)
 }
 
 // service is the base service used by all Axiom API services.
@@ -188,17 +190,26 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 	}
 	defer resp.Body.Close()
 
+	dec := json.NewDecoder(resp.Body)
+	dec.DisallowUnknownFields()
+
 	if statusCode := resp.StatusCode; statusCode >= 400 {
+		// Handle special errors.
 		if statusCode == http.StatusForbidden {
 			return ErrUnauthenticated
 		}
 
+		// Handle generic HTTP errors if the response is not JSON formatted.
 		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
-			return fmt.Errorf("http error: %q", http.StatusText(statusCode))
+			return Error{
+				Message:    http.StatusText(statusCode),
+				statusCode: statusCode,
+			}
 		}
 
-		var errResp Error
-		if err = json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+		// Handle a properly JSON formatted Axiom API error response.
+		errResp := Error{statusCode: statusCode}
+		if err = dec.Decode(&errResp); err != nil {
 			return err
 		}
 
@@ -207,12 +218,10 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
-			if _, err = io.Copy(w, resp.Body); err != nil {
-				return err
-			}
-		} else if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
+			_, err = io.Copy(w, resp.Body)
 			return err
 		}
+		return dec.Decode(v)
 	}
 
 	return nil

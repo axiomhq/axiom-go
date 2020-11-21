@@ -5,6 +5,17 @@ import (
 	"net/http"
 )
 
+// UserRole represents the role of a user.
+type UserRole string
+
+// All available user roles.
+const (
+	RoleReadOnly UserRole = "read-only"
+	RoleUser     UserRole = "user"
+	RoleAdmin    UserRole = "admin"
+	RoleOwner    UserRole = "owner"
+)
+
 // User represents an user of the deployment.
 type User struct {
 	// ID is the unique id of the user.
@@ -13,8 +24,8 @@ type User struct {
 	Name string `json:"name"`
 	// Email is the primary email of the user.
 	Email string `json:"email"`
-	// Role of the user. Can be "owner", "admin", "user" or "read-only".
-	Role string `json:"role"`
+	// Role of the user.
+	Role UserRole `json:"role"`
 	// Permissions of the user.
 	Permissions []string `json:"permissions"`
 }
@@ -35,8 +46,8 @@ type CreateUserRequest struct {
 	Name string `json:"name"`
 	// Email is the primary email address of the user.
 	Email string `json:"email"`
-	// Role of the user. Must be one of "owner", "admin", "user" or "read-only".
-	Role string `json:"role"`
+	// Role of the user.
+	Role UserRole `json:"role"`
 	// TeamIDs are the unique IDs of the teams the user will be part of.
 	TeamIDs []string `json:"teamIds"`
 }
@@ -49,8 +60,8 @@ type UpdateUserRequest struct {
 
 // UpdateUserRoleRequest is a request used to update an users role.
 type UpdateUserRoleRequest struct {
-	// Role of the user.
-	Role string `json:"role"`
+	// Role is the new role of the user.
+	Role UserRole `json:"role"`
 }
 
 // UsersService handles communication with the user related operations of the

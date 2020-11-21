@@ -6,6 +6,8 @@ run:
     - .vscode
     - bin
     - dist
+  build-tags:
+    - integration
 
 linters:
   disable-all: true

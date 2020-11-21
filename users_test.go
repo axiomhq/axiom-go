@@ -46,7 +46,7 @@ func TestUsersService_List(t *testing.T) {
 			ID:          "20475220-20e4-4080-b2f4-68315e21f5ec",
 			Name:        "John Doe",
 			Email:       "john@example.com",
-			Role:        "owner",
+			Role:        RoleOwner,
 			Permissions: []string{},
 		},
 		{
@@ -151,7 +151,7 @@ func TestUsersService_Get(t *testing.T) {
 		ID:          "20475220-20e4-4080-b2f4-68315e21f5ec",
 		Name:        "John Doe",
 		Email:       "john@example.com",
-		Role:        "owner",
+		Role:        RoleOwner,
 		Permissions: []string{},
 	}
 
@@ -182,7 +182,7 @@ func TestUsersService_Create(t *testing.T) {
 		ID:    "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 		Name:  "John Doe",
 		Email: "john@example.com",
-		Role:  "user",
+		Role:  RoleUser,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -204,7 +204,7 @@ func TestUsersService_Create(t *testing.T) {
 	res, err := client.Users.Create(context.Background(), CreateUserRequest{
 		Name:  "John Doe",
 		Email: "john@example.com",
-		Role:  "user",
+		Role:  RoleUser,
 	})
 	require.NoError(t, err)
 
@@ -216,7 +216,7 @@ func TestUsersService_Update(t *testing.T) {
 		ID:    "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 		Name:  "Michael Doe",
 		Email: "john@example.com",
-		Role:  "user",
+		Role:  RoleUser,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -248,7 +248,7 @@ func TestUsersService_UpdateRole(t *testing.T) {
 		ID:    "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 		Name:  "Michael Doe",
 		Email: "john@example.com",
-		Role:  "admin",
+		Role:  RoleAdmin,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -268,7 +268,7 @@ func TestUsersService_UpdateRole(t *testing.T) {
 	defer teardown()
 
 	res, err := client.Users.UpdateRole(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5", UpdateUserRoleRequest{
-		Role: "admin",
+		Role: RoleAdmin,
 	})
 	require.NoError(t, err)
 
