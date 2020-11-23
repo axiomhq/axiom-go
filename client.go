@@ -81,6 +81,7 @@ type Client struct {
 
 	Dashboards *DashboardsService
 	Datasets   *DatasetsService
+	Teams      *TeamsService
 	Users      *UsersService
 	Version    *VersionService
 }
@@ -103,6 +104,7 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 
 	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
+	client.Teams = &TeamsService{client, "/api/v1/teams"}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}
 

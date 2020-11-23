@@ -98,16 +98,16 @@ func (s *DashboardsService) Create(ctx context.Context, req Dashboard) (*Dashboa
 }
 
 // Update the dashboard identified by the given id with the given properties.
-// func (s *DashboardsService) Update(ctx context.Context, id string, req Dashboard) (*Dashboard, error) {
-// 	path := s.basePath + "/" + id
+func (s *DashboardsService) Update(ctx context.Context, id string, req Dashboard) (*Dashboard, error) {
+	path := s.basePath + "/" + id
 
-// 	var res Dashboard
-// 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
-// 		return nil, err
-// 	}
+	var res Dashboard
+	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
+		return nil, err
+	}
 
-// 	return &res, nil
-// }
+	return &res, nil
+}
 
 // Delete the dashboard identified by the given id.
 func (s *DashboardsService) Delete(ctx context.Context, id string) error {

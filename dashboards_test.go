@@ -16,7 +16,7 @@ func TestDashboardsService_List(t *testing.T) {
 		{
 			ID:          "buTFUddK4X5845Qwzv",
 			Name:        "Test",
-			Description: "A Test dashboard.",
+			Description: "A test dashboard.",
 			Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			Charts: []interface{}{
 				map[string]interface{}{
@@ -64,7 +64,7 @@ func TestDashboardsService_List(t *testing.T) {
 			{
 				"name": "Test",
 				"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-				"description": "A Test dashboard.",
+				"description": "A test dashboard.",
 				"charts": [
 					{
 						"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -120,7 +120,7 @@ func TestDashboardsService_Get(t *testing.T) {
 	exp := &Dashboard{
 		ID:          "buTFUddK4X5845Qwzv",
 		Name:        "Test",
-		Description: "A Test dashboard.",
+		Description: "A test dashboard.",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -166,7 +166,7 @@ func TestDashboardsService_Get(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
 			"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-			"description": "A Test dashboard.",
+			"description": "A test dashboard.",
 			"charts": [
 				{
 					"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -221,7 +221,7 @@ func TestDashboardsService_Create(t *testing.T) {
 	exp := &Dashboard{
 		ID:          "buTFUddK4X5845Qwzv",
 		Name:        "Test",
-		Description: "A Test dashboard.",
+		Description: "A test dashboard.",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -267,7 +267,7 @@ func TestDashboardsService_Create(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
 			"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-			"description": "A Test dashboard.",
+			"description": "A test dashboard.",
 			"charts": [
 				{
 					"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -314,7 +314,7 @@ func TestDashboardsService_Create(t *testing.T) {
 
 	res, err := client.Dashboards.Create(context.Background(), Dashboard{
 		Name:        "Test",
-		Description: "A Test dashboard.",
+		Description: "A test dashboard.",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -357,7 +357,145 @@ func TestDashboardsService_Create(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
-// TODO(lukasmalkmus): Update test.
+func TestDashboardsService_Update(t *testing.T) {
+	exp := &Dashboard{
+		ID:          "buTFUddK4X5845Qwzv",
+		Name:        "Test",
+		Description: "An updated test dashboard.",
+		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
+		Charts: []interface{}{
+			map[string]interface{}{
+				"id":        "5b28c014-8247-4271-a310-7c5953574614",
+				"name":      "Total",
+				"type":      "TimeSeries",
+				"datasetId": "test",
+				"query": map[string]interface{}{
+					"aggregations": []interface{}{
+						map[string]interface{}{
+							"op":    "count",
+							"field": "",
+						},
+					},
+					"resolution": "15s",
+				},
+				"modified": float64(1605882074936),
+			},
+		},
+		Layout: []interface{}{
+			map[string]interface{}{
+				"w":      float64(6),
+				"h":      float64(4),
+				"x":      float64(0),
+				"y":      float64(0),
+				"i":      "5b28c014-8247-4271-a310-7c5953574614",
+				"minW":   float64(4),
+				"minH":   float64(4),
+				"moved":  false,
+				"static": false,
+			},
+		},
+		RefreshTime:     15 * time.Second,
+		SchemaVersion:   2,
+		TimeWindowStart: "qr-now-30m",
+		TimeWindowEnd:   "qr-now",
+		Version:         "1605882077469288241",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"name": "Test",
+			"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
+			"description": "An updated test dashboard.",
+			"charts": [
+				{
+					"id": "5b28c014-8247-4271-a310-7c5953574614",
+					"name": "Total",
+					"type": "TimeSeries",
+					"datasetId": "test",
+					"query": {
+						"aggregations": [
+							{
+								"op": "count",
+								"field": ""
+							}
+						],
+						"resolution": "15s"
+					},
+					"modified": 1605882074936
+				}
+			],
+			"layout": [
+				{
+					"w": 6,
+					"h": 4,
+					"x": 0,
+					"y": 0,
+					"i": "5b28c014-8247-4271-a310-7c5953574614",
+					"minW": 4,
+					"minH": 4,
+					"moved": false,
+					"static": false
+				}
+			],
+			"refreshTime": 15,
+			"schemaVersion": 2,
+			"timeWindowStart": "qr-now-30m",
+			"timeWindowEnd": "qr-now",
+			"id": "buTFUddK4X5845Qwzv",
+			"version": "1605882077469288241"
+		}`)
+		require.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/dashboards/buTFUddK4X5845Qwzv", hf)
+	defer teardown()
+
+	res, err := client.Dashboards.Update(context.Background(), "buTFUddK4X5845Qwzv", Dashboard{
+		Name:        "Test",
+		Description: "An updated test dashboard.",
+		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
+		Charts: []interface{}{
+			map[string]interface{}{
+				"id":        "5b28c014-8247-4271-a310-7c5953574614",
+				"name":      "Total",
+				"type":      "TimeSeries",
+				"datasetId": "test",
+				"query": map[string]interface{}{
+					"aggregations": []interface{}{
+						map[string]interface{}{
+							"op":    "count",
+							"field": "",
+						},
+					},
+					"resolution": "15s",
+				},
+				"modified": float64(1605882074936),
+			},
+		},
+		Layout: []interface{}{
+			map[string]interface{}{
+				"w":      float64(6),
+				"h":      float64(4),
+				"x":      float64(0),
+				"y":      float64(0),
+				"i":      "5b28c014-8247-4271-a310-7c5953574614",
+				"minW":   float64(4),
+				"minH":   float64(4),
+				"moved":  false,
+				"static": false,
+			},
+		},
+		RefreshTime:     15 * time.Second,
+		SchemaVersion:   2,
+		TimeWindowStart: "qr-now-30m",
+		TimeWindowEnd:   "qr-now",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
 
 func TestDashboardsService_Delete(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
