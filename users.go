@@ -82,14 +82,9 @@ func (s *UsersService) Current(ctx context.Context) (*AuthenticatedUser, error) 
 }
 
 // List all available users.
-func (s *UsersService) List(ctx context.Context, opts ListOptions) ([]*User, error) {
-	path, err := addOptions(s.basePath, opts)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *UsersService) List(ctx context.Context) ([]*User, error) {
 	var res []*User
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
 

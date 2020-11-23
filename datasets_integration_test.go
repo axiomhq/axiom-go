@@ -56,7 +56,7 @@ func (s *DatasetsTestSuite) SetupSuite() {
 	var err error
 	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.CreateDatasetRequest{
 		Name:        "test",
-		Description: "This is a test dataset.",
+		Description: "This is a test dataset",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.dataset)
@@ -75,16 +75,15 @@ func (s *DatasetsTestSuite) TearDownSuite() {
 }
 
 func (s *DatasetsTestSuite) TestUpdate() {
-	// TODO(lukasmalkmus): Activate if awkward API validation (matching ID in
-	// param and body) has been fixed.
-	s.T().Skip()
+	s.T().Skip("Activate if awkward API validation (matching ID in param and body) has been fixed.")
 
-	var err error
-	s.dataset, err = s.client.Datasets.Update(s.ctx, s.dataset.ID, axiom.UpdateDatasetRequest{
-		Description: "This is a soon to be filled test dataset.",
+	dataset, err := s.client.Datasets.Update(s.ctx, s.dataset.ID, axiom.UpdateDatasetRequest{
+		Description: "This is a soon to be filled test dataset",
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(s.dataset)
+	s.Require().NotNil(dataset)
+
+	s.dataset = dataset
 }
 
 func (s *DatasetsTestSuite) TestGet() {
@@ -119,8 +118,7 @@ func (s *DatasetsTestSuite) TestIngest() {
 }
 
 func (s *DatasetsTestSuite) TestInfoAndStats() {
-	// TODO(lukasmalkmus): Enable as soon as the API response has been fixed.
-	s.T().Skip()
+	s.T().Skip("Enable as soon as the API response has been fixed!")
 
 	datasetInfo, err := s.client.Datasets.Info(s.ctx, s.dataset.ID)
 	s.Require().NoError(err)

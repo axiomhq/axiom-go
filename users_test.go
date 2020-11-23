@@ -112,13 +112,15 @@ func TestUsersService_List(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/users", hf)
 	defer teardown()
 
-	res, err := client.Users.List(context.Background(), ListOptions{})
+	res, err := client.Users.List(context.Background())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
 }
 
 func TestUsersService_List_OptionsLimit(t *testing.T) {
+	t.Skip("Listing not implemented on the server yet!")
+
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
@@ -140,9 +142,7 @@ func TestUsersService_List_OptionsLimit(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/users", hf)
 	defer teardown()
 
-	_, err := client.Users.List(context.Background(), ListOptions{
-		Limit: 1,
-	})
+	_, err := client.Users.List(context.Background())
 	require.NoError(t, err)
 }
 

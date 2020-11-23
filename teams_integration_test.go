@@ -48,17 +48,16 @@ func (s *TeamsTestSuite) TearDownSuite() {
 }
 
 func (s *TeamsTestSuite) TestUpdate() {
-	// TODO(lukasmalkmus): Enable as soon as the API param and body ID check has
-	// been fixed.
-	s.T().Skip()
+	s.T().Skip("Enable as soon as the API param and body ID check has been fixed!")
 
-	var err error
-	s.team, err = s.client.Teams.Update(s.suiteCtx, s.team.ID, axiom.Team{
+	team, err := s.client.Teams.Update(s.suiteCtx, s.team.ID, axiom.Team{
 		Name: "Updated Test Team",
 		// TODO(lukasmalkmus): Probably add user an dataset.
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(s.team)
+	s.Require().NotNil(team)
+
+	s.team = team
 }
 
 func (s *TeamsTestSuite) TestGet() {

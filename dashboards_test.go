@@ -16,7 +16,7 @@ func TestDashboardsService_List(t *testing.T) {
 		{
 			ID:          "buTFUddK4X5845Qwzv",
 			Name:        "Test",
-			Description: "A test dashboard.",
+			Description: "A test dashboard",
 			Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			Charts: []interface{}{
 				map[string]interface{}{
@@ -64,7 +64,7 @@ func TestDashboardsService_List(t *testing.T) {
 			{
 				"name": "Test",
 				"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-				"description": "A test dashboard.",
+				"description": "A test dashboard",
 				"charts": [
 					{
 						"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -120,7 +120,7 @@ func TestDashboardsService_Get(t *testing.T) {
 	exp := &Dashboard{
 		ID:          "buTFUddK4X5845Qwzv",
 		Name:        "Test",
-		Description: "A test dashboard.",
+		Description: "A test dashboard",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -166,7 +166,7 @@ func TestDashboardsService_Get(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
 			"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-			"description": "A test dashboard.",
+			"description": "A test dashboard",
 			"charts": [
 				{
 					"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -221,7 +221,7 @@ func TestDashboardsService_Create(t *testing.T) {
 	exp := &Dashboard{
 		ID:          "buTFUddK4X5845Qwzv",
 		Name:        "Test",
-		Description: "A test dashboard.",
+		Description: "A test dashboard",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -267,7 +267,7 @@ func TestDashboardsService_Create(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
 			"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-			"description": "A test dashboard.",
+			"description": "A test dashboard",
 			"charts": [
 				{
 					"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -314,7 +314,7 @@ func TestDashboardsService_Create(t *testing.T) {
 
 	res, err := client.Dashboards.Create(context.Background(), Dashboard{
 		Name:        "Test",
-		Description: "A test dashboard.",
+		Description: "A test dashboard",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -361,7 +361,7 @@ func TestDashboardsService_Update(t *testing.T) {
 	exp := &Dashboard{
 		ID:          "buTFUddK4X5845Qwzv",
 		Name:        "Test",
-		Description: "An updated test dashboard.",
+		Description: "An updated test dashboard",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{
@@ -407,7 +407,7 @@ func TestDashboardsService_Update(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
 			"owner": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-			"description": "An updated test dashboard.",
+			"description": "An updated test dashboard",
 			"charts": [
 				{
 					"id": "5b28c014-8247-4271-a310-7c5953574614",
@@ -454,7 +454,7 @@ func TestDashboardsService_Update(t *testing.T) {
 
 	res, err := client.Dashboards.Update(context.Background(), "buTFUddK4X5845Qwzv", Dashboard{
 		Name:        "Test",
-		Description: "An updated test dashboard.",
+		Description: "An updated test dashboard",
 		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Charts: []interface{}{
 			map[string]interface{}{

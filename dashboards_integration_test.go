@@ -31,7 +31,7 @@ func (s *DashboardsTestSuite) SetupSuite() {
 	var err error
 	s.dashboard, err = s.client.Dashboards.Create(s.suiteCtx, axiom.Dashboard{
 		Name:            "Test Dashboard",
-		Description:     "This is a test dashboard.",
+		Description:     "This is a test dashboard",
 		Owner:           s.testUser.ID,
 		Charts:          []interface{}{},
 		Layout:          []interface{}{},
@@ -56,7 +56,17 @@ func (s *DashboardsTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-// TODO(lukasmalkmus): Add Update test case.
+func (s *DashboardsTestSuite) TestUpdate() {
+	s.T().Skip("Enable as soon as the API response has been fixed!")
+
+	dashboard, err := s.client.Dashboards.Update(s.suiteCtx, s.dashboard.ID, axiom.Dashboard{
+		Description: "This is a very awesome test dashboard",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(dashboard)
+
+	s.dashboard = dashboard
+}
 
 func (s *DashboardsTestSuite) TestGet() {
 	dashboard, err := s.client.Dashboards.Get(s.ctx, s.dashboard.ID)
