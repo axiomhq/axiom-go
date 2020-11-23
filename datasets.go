@@ -166,7 +166,7 @@ type DatasetsService service
 
 // Stats returns detailed statistics about all available datasets. This
 // operation is more expenssive and listing the datasets and then getting the
-// information of a specific dataset is preferred, when not aggregated
+// information of a specific dataset is preferred, when no aggregated
 // statistics across all datasets are needed.
 func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
 	path := s.basePath + "/_stats"

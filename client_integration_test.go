@@ -42,7 +42,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NotEmpty(accessToken, "integration test needs a personal access token set")
 	s.Require().NotEmpty(deploymentURL, "integration test needs a deployment url set")
 
-	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), 15*time.Second)
+	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
 	var err error
 	s.client, err = axiom.NewClient(deploymentURL, accessToken, axiom.SetUserAgent("axiom-test"))
@@ -59,7 +59,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
-	s.ctx, s.cancel = context.WithTimeout(context.Background(), 15*time.Second)
+	s.ctx, s.cancel = context.WithTimeout(s.suiteCtx, 15*time.Second)
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {

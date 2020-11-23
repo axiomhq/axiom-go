@@ -3,6 +3,7 @@
 package axiom_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -44,7 +45,12 @@ func (s *DashboardsTestSuite) SetupSuite() {
 }
 
 func (s *DashboardsTestSuite) TearDownSuite() {
-	err := s.client.Dashboards.Delete(s.suiteCtx, s.dashboard.ID)
+	// Teardown routines use their own context to avoid not being run at all
+	// when the suite gets cancelled or times out.
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	err := s.client.Dashboards.Delete(ctx, s.dashboard.ID)
 	s.Require().NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()

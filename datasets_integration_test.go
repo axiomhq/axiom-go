@@ -4,9 +4,11 @@ package axiom_test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -61,7 +63,12 @@ func (s *DatasetsTestSuite) SetupSuite() {
 }
 
 func (s *DatasetsTestSuite) TearDownSuite() {
-	err := s.client.Datasets.Delete(s.suiteCtx, s.dataset.ID)
+	// Teardown routines use their own context to avoid not being run at all
+	// when the suite gets cancelled or times out.
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
 	s.Require().NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
