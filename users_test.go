@@ -74,9 +74,6 @@ func TestUsersService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
-		limit := r.URL.Query().Get("limit")
-		assert.Empty(t, limit)
-
 		_, err := fmt.Fprint(w, `[
 			{
 				"id": "20475220-20e4-4080-b2f4-68315e21f5ec",
@@ -116,34 +113,6 @@ func TestUsersService_List(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
-}
-
-func TestUsersService_List_OptionsLimit(t *testing.T) {
-	t.Skip("Listing not implemented on the server yet!")
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-
-		limit := r.URL.Query().Get("limit")
-		assert.Equal(t, limit, "1")
-
-		_, err := fmt.Fprint(w, `[
-			{
-				"id": "20475220-20e4-4080-b2f4-68315e21f5ec",
-				"name": "John Doe",
-				"email": "john@example.com",
-				"role": "owner",
-				"permissions": []
-			}
-		]`)
-		require.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/users", hf)
-	defer teardown()
-
-	_, err := client.Users.List(context.Background())
-	require.NoError(t, err)
 }
 
 func TestUsersService_Get(t *testing.T) {

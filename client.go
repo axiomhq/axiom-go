@@ -82,8 +82,12 @@ type Client struct {
 	Dashboards *DashboardsService
 	Datasets   *DatasetsService
 	Teams      *TeamsService
-	Users      *UsersService
-	Version    *VersionService
+	Tokens     struct {
+		Ingest   *TokensService
+		Personal *TokensService
+	}
+	Users   *UsersService
+	Version *VersionService
 }
 
 // NewClient returns a new Axiom API client. The access token must be a personal
@@ -105,6 +109,8 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
+	client.Tokens.Ingest = &TokensService{client, "/api/v1/tokens/ingest"}
+	client.Tokens.Personal = &TokensService{client, "/api/v1/tokens/personal"}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}
 
@@ -201,7 +207,7 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 			return ErrUnauthenticated
 		}
 
-		// Handle generic HTTP errors if the response is not JSON formatted.
+		// Handle a generic HTTP error if the response is not JSON formatted.
 		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
 			return Error{
 				Message:    http.StatusText(statusCode),

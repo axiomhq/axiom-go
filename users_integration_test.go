@@ -56,12 +56,13 @@ func (s *UsersTestSuite) TearDownSuite() {
 func (s *UsersTestSuite) TestUpdate() {
 	s.T().Skip("Enable as soon as the API response has been fixed!")
 
-	var err error
-	s.user, err = s.client.Users.Update(s.suiteCtx, s.user.ID, axiom.UpdateUserRequest{
+	user, err := s.client.Users.Update(s.suiteCtx, s.user.ID, axiom.UpdateUserRequest{
 		Name: "Johnny Doe",
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(s.user)
+	s.Require().NotNil(user)
+
+	s.user = user
 }
 
 func (s *UsersTestSuite) TestUpdateRole() {
@@ -88,14 +89,4 @@ func (s *UsersTestSuite) TestList() {
 	s.Require().NotNil(users)
 
 	s.Contains(users, s.user)
-}
-
-func (s *UsersTestSuite) TestList_Limit() {
-	s.T().Skip("Enable if we finally support limiting!")
-
-	// users, err := s.client.Users.List(s.ctx, axiom.ListOptions{Limit: 1})
-	// s.Require().NoError(err)
-	// s.Require().NotNil(users)
-
-	// s.Len(users, 1)
 }
