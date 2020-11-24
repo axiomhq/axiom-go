@@ -51,7 +51,7 @@ func (s *DashboardsTestSuite) TearDownSuite() {
 	defer cancel()
 
 	err := s.client.Dashboards.Delete(ctx, s.dashboard.ID)
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
 }
@@ -77,7 +77,7 @@ func (s *DashboardsTestSuite) TestGet() {
 }
 
 func (s *DashboardsTestSuite) TestList() {
-	dashboards, err := s.client.Dashboards.List(s.ctx)
+	dashboards, err := s.client.Dashboards.List(s.ctx, axiom.ListOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(dashboards)
 

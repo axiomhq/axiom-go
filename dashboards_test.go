@@ -60,6 +60,9 @@ func TestDashboardsService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		assert.Equal(t, "1", r.URL.Query().Get("limit"))
+		assert.Equal(t, "1", r.URL.Query().Get("offset"))
+
 		_, err := fmt.Fprint(w, `[
 			{
 				"name": "Test",
@@ -110,7 +113,10 @@ func TestDashboardsService_List(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/dashboards", hf)
 	defer teardown()
 
-	res, err := client.Dashboards.List(context.Background())
+	res, err := client.Dashboards.List(context.Background(), ListOptions{
+		Limit:  1,
+		Offset: 1,
+	})
 	require.NoError(t, err)
 
 	assert.EqualValues(t, exp, res)

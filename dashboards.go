@@ -30,8 +30,8 @@ type Dashboard struct {
 	Version string `json:"version"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to set the RefreshTime
-// to seconds because that's what the server understands.
+// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// RefreshTime to seconds because that's what the server expects.
 func (d Dashboard) MarshalJSON() ([]byte, error) {
 	type localDash Dashboard
 
@@ -41,9 +41,9 @@ func (d Dashboard) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localDash(d))
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to set the
-// RefreshTime to a proper time.Duration value because the server returns the
-// seconds.
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// RefreshTime into a proper time.Duration value because the server returns it
+// in seconds.
 func (d *Dashboard) UnmarshalJSON(b []byte) error {
 	type localDash *Dashboard
 
@@ -65,9 +65,14 @@ func (d *Dashboard) UnmarshalJSON(b []byte) error {
 type DashboardsService service
 
 // List all available dashboards.
-func (s *DashboardsService) List(ctx context.Context) ([]*Dashboard, error) {
+func (s *DashboardsService) List(ctx context.Context, opts ListOptions) ([]*Dashboard, error) {
+	path, err := addOptions(s.basePath, opts)
+	if err != nil {
+		return nil, err
+	}
+
 	var res []*Dashboard
-	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 

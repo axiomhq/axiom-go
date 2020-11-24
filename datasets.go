@@ -136,7 +136,8 @@ type IngestFailure struct {
 
 // CreateDatasetRequest is a request used to create a dataset.
 type CreateDatasetRequest struct {
-	// Name of the dataset to create.
+	// Name of the dataset to create. Restricted to 128 bytes and can not
+	// contain the "axiom-" prefix.
 	Name string `json:"name"`
 	// Description of the dataset to create.
 	Description string `json:"description"`
@@ -148,13 +149,15 @@ type UpdateDatasetRequest struct {
 	Description string `json:"description"`
 }
 
-// IngestOptions are the request query url parameters for event ingestion.
+// IngestOptions specifies the parameters for the Ingest method of the Datasets
+// service.
 type IngestOptions struct {
-	// Define a custom field for the timestamps, defaults to `_time`.
+	// TimestampField defines a custom field to extract the ingestion timestamp
+	// from. Defaults to `_time`.
 	TimestampField string `url:"timestamp-field,omitempty"`
-	// TimestampFormat defines a custom format for the timestamps.
+	// TimestampFormat defines a custom format for the TimestampField.
 	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
-	// in https://pkg.go.dev/time/?tab=doc#Parse
+	// in https://pkg.go.dev/time/?tab=doc#Parse.
 	TimestampFormat string `url:"timestamp-format,omitempty"`
 }
 
@@ -201,8 +204,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 	return &res, nil
 }
 
-// Create a dataset with the given properties. The dataset name is restricted to
-// 128 bytes and can not contain the "axiom-" prefix.
+// Create a dataset with the given properties.
 func (s *DatasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
 	var res Dataset
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {

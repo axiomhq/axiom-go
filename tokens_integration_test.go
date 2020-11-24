@@ -67,7 +67,7 @@ func (s *TokensTestSuite) TearDownSuite() {
 	defer cancel()
 
 	err := s.service.Delete(ctx, s.token.ID)
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
 }

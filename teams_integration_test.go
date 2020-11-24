@@ -42,7 +42,7 @@ func (s *TeamsTestSuite) TearDownSuite() {
 	defer cancel()
 
 	err := s.client.Teams.Delete(ctx, s.team.ID)
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
 }

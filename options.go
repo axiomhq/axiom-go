@@ -10,8 +10,10 @@ import (
 // ListOptions specifies the optional parameters to various List methods that
 // support result limits.
 type ListOptions struct {
-	// Limit the size of the result set.
+	// Limit of the of the result set.
 	Limit uint `url:"limit,omitempty"`
+	// Offset the result set has from its base.
+	Offset uint `url:"offset,omitempty"`
 }
 
 // addOptions adds the parameters in opt as URL query parameters to s. opt must

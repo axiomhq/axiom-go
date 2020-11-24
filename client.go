@@ -86,8 +86,9 @@ type Client struct {
 		Ingest   *TokensService
 		Personal *TokensService
 	}
-	Users   *UsersService
-	Version *VersionService
+	Users         *UsersService
+	Version       *VersionService
+	VirtualFields *VirtualFieldsService
 }
 
 // NewClient returns a new Axiom API client. The access token must be a personal
@@ -113,6 +114,7 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 	client.Tokens.Personal = &TokensService{client, "/api/v1/tokens/personal"}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}
+	client.VirtualFields = &VirtualFieldsService{client, "/api/v1/vfields"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {

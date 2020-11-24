@@ -69,7 +69,7 @@ func (s *DatasetsTestSuite) TearDownSuite() {
 	defer cancel()
 
 	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
 }

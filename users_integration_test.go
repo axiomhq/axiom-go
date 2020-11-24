@@ -48,7 +48,7 @@ func (s *UsersTestSuite) TearDownSuite() {
 	defer cancel()
 
 	err := s.client.Users.Delete(ctx, s.user.ID)
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
 }

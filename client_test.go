@@ -35,6 +35,7 @@ func TestNewClient(t *testing.T) {
 	assert.NotNil(t, client.Tokens.Personal)
 	assert.NotNil(t, client.Users)
 	assert.NotNil(t, client.Version)
+	assert.NotNil(t, client.VirtualFields)
 
 	// Is default configuration present?
 	assert.Equal(t, endpoint, client.baseURL.String())
