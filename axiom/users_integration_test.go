@@ -54,15 +54,22 @@ func (s *UsersTestSuite) TearDownSuite() {
 }
 
 func (s *UsersTestSuite) TestUpdate() {
-	s.T().Skip("Enable as soon as the API response has been fixed!")
+	// TODO(lukasmalkmus): Enable this as soon as we can update other users, not
+	// just the authenticated one.
 
-	user, err := s.client.Users.Update(s.suiteCtx, s.user.ID, axiom.UpdateUserRequest{
-		Name: "Johnny Doe",
+	// user, err := s.client.Users.Update(s.suiteCtx, s.user.ID, axiom.UpdateUserRequest{
+	// 	Name: s.testUser.Name,
+	// })
+	// s.Require().NoError(err)
+	// s.Require().NotNil(user)
+
+	// s.user = user
+
+	user, err := s.client.Users.Update(s.suiteCtx, s.testUser.ID, axiom.UpdateUserRequest{
+		Name: s.testUser.Name,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
-
-	s.user = user
 }
 
 func (s *UsersTestSuite) TestUpdateRole() {

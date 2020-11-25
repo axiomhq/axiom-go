@@ -5,15 +5,15 @@ import (
 	"net/http"
 )
 
-// Team represents a team of the deployment.
+// Team represents a team
 type Team struct {
 	// ID is the unique id of the team.
 	ID string `json:"id"`
 	// Name of the team.
 	Name string `json:"name"`
-	// Members are the IDs of all team members.
+	// Members are the IDs of the teams members.
 	Members []string `json:"members"`
-	// Datasets are the IDs of the datasets assigned to the team.
+	// Datasets are the IDs of the teams assigned datasets.
 	Datasets []string `json:"datasets"`
 }
 

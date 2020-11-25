@@ -48,7 +48,7 @@ func (ur *UserRole) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// User represents an user of the deployment.
+// User represents an user.
 type User struct {
 	// ID is the unique id of the user.
 	ID string `json:"id"`

@@ -73,7 +73,7 @@ fmt: ## Format and simplify the source code using `gofmt`
 	@! $(GOFMT) -s -w $(shell find . -path -prune -o -name '*.go' -print) | grep '^'
 
 .PHONY: generate
-generate: $(STRINGER) axiom/users_string.go ## Generate code using `go generate`
+generate: $(STRINGER) axiom/users_string.go axiom/starred_string.go ## Generate code using `go generate`
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Lint the source code

@@ -18,7 +18,7 @@ import (
 const (
 	// endpoint is a test url that won't be called.
 	endpoint = "http://axiom.local"
-	// accessToken is a dummy access token.
+	// accessToken is a placeholder access token.
 	accessToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 )
 
@@ -30,6 +30,7 @@ func TestNewClient(t *testing.T) {
 	// Are endpoints/resources present?
 	assert.NotNil(t, client.Dashboards)
 	assert.NotNil(t, client.Datasets)
+	assert.NotNil(t, client.StarredQueries)
 	assert.NotNil(t, client.Teams)
 	assert.NotNil(t, client.Tokens.Ingest)
 	assert.NotNil(t, client.Tokens.Personal)

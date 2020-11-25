@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// VirtualField represents a virtual field in a dataset of the deployment.
+// VirtualField represents a virtual field of a dataset.
 type VirtualField struct {
 	// ID is the unique id of the virtual field.
 	ID string `json:"id"`

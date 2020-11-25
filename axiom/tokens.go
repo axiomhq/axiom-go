@@ -5,7 +5,9 @@ import (
 	"net/http"
 )
 
-// Token represents a token of the deployment.
+// Token represents an access token. Tokens can either be ingest tokens, valid
+// for ingestion into one or more datasets or personal tokens for access to the
+// whole Axiom API.
 type Token struct {
 	// ID is the unique id of the token.
 	ID string `json:"id"`
@@ -13,7 +15,7 @@ type Token struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token.
+	// Scopes of the token. Only used by ingest tokens.
 	Scopes []string `json:"scopes"`
 }
 
@@ -21,7 +23,7 @@ type Token struct {
 type RawToken struct {
 	// Token is the actual secret value of the token.
 	Token string `json:"token"`
-	// Scopes of the token.
+	// Scopes of the token. Only used by ingest tokens.
 	Scopes []string `json:"scopes"`
 }
 
@@ -31,14 +33,16 @@ type CreateTokenRequest struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token.
+	// Scopes of the token. Only used by ingest tokens. Can be set to a list of
+	// dataset IDs to allow ingestion into the specified ones or "*" for all,
+	// which is the default when the field is unset.
 	Scopes []string `json:"scopes"`
 }
 
 // TokensService handles communication with the token related operations of the
 // Axiom API.
 //
-// Axiom API Reference: /api/v1/tokens
+// Axiom API Reference: /api/v1/tokens/{ingest,personal}
 type TokensService service
 
 // List all available tokens.

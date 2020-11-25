@@ -65,8 +65,6 @@ func (s *VirtualFieldsTestSuite) TearDownSuite() {
 }
 
 func (s *VirtualFieldsTestSuite) TestUpdate() {
-	s.T().Skip("Enable as soon as the API response has been fixed!")
-
 	virtualField, err := s.client.VirtualFields.Update(s.suiteCtx, s.virtualField.ID, axiom.VirtualField{
 		Dataset:     s.datasetID,
 		Name:        "Failed Requests",

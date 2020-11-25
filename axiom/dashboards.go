@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Dashboard represents an Axiom dashboard.
+// Dashboard represents a dashboard.
 type Dashboard struct {
 	// ID is the unique ID of the dashboard.
 	ID string `json:"id"`
@@ -15,7 +15,7 @@ type Dashboard struct {
 	Name string `json:"name"`
 	// Description of the dashboard.
 	Description string `json:"description"`
-	// Owner of the dashboard.
+	// Owner is the ID of the dashboard owner.
 	Owner string `json:"owner"`
 	// Charts contains the raw data composing the dashboards charts.
 	Charts []interface{} `json:"charts"`

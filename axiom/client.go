@@ -79,10 +79,11 @@ type Client struct {
 
 	httpClient *http.Client
 
-	Dashboards *DashboardsService
-	Datasets   *DatasetsService
-	Teams      *TeamsService
-	Tokens     struct {
+	Dashboards     *DashboardsService
+	Datasets       *DatasetsService
+	StarredQueries *StarredQueriesService
+	Teams          *TeamsService
+	Tokens         struct {
 		Ingest   *TokensService
 		Personal *TokensService
 	}
@@ -92,7 +93,8 @@ type Client struct {
 }
 
 // NewClient returns a new Axiom API client. The access token must be a personal
-// or ingest token which can be created on a users profile page of a deployment.
+// or ingest token which can be created on the settings or user profile page of
+// a deployment.
 func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) {
 	u, err := url.ParseRequestURI(baseURL)
 	if err != nil {
@@ -109,6 +111,7 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 
 	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
+	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
 	client.Tokens.Ingest = &TokensService{client, "/api/v1/tokens/ingest"}
 	client.Tokens.Personal = &TokensService{client, "/api/v1/tokens/personal"}
@@ -201,7 +204,7 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 	defer resp.Body.Close()
 
 	dec := json.NewDecoder(resp.Body)
-	dec.DisallowUnknownFields()
+	dec.DisallowUnknownFields() // TODO(lukasmalkmus): Make this optional?
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		// Handle special errors.
