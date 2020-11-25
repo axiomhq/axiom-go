@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/axiomhq/axiom-go"
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 var (

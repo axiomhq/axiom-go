@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/axiomhq/axiom-go"
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 func Example() {

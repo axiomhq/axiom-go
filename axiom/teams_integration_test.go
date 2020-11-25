@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/axiomhq/axiom-go"
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 // TeamsTestSuite tests all methods of the Axiom Teams API against a

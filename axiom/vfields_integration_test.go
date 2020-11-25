@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/axiomhq/axiom-go"
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 // VirtualFieldsTestSuite tests all methods of the Axiom Virtual Fields API

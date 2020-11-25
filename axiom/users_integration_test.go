@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/axiomhq/axiom-go"
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 // UsersTestSuite tests all methods of the Axiom Users API against a live

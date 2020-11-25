@@ -64,7 +64,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/axiomhq/axiom-go"
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 func main() {
@@ -101,7 +101,7 @@ See [LICENSE](LICENSE) for more information.
 
 <!-- Badges -->
 
-[godoc]: https://github.com/axiomhq/axiom-go
+[godoc]: https://github.com/axiomhq/axiom-go/axiom
 [godoc_badge]: https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
 [go_workflow]: https://github.com/axiomhq/axiom-go/actions?query=workflow%3Ago
 [go_workflow_badge]: https://img.shields.io/github/workflow/status/axiomhq/axiom-go/go?style=flat-square
