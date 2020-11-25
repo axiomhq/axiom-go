@@ -2,6 +2,7 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -515,4 +516,42 @@ func TestDashboardsService_Delete(t *testing.T) {
 
 	err := client.Dashboards.Delete(context.Background(), "buTFUddK4X5845Qwzv")
 	require.NoError(t, err)
+}
+
+func TestDashboard_Marshal(t *testing.T) {
+	exp := `{
+		"name": "Test",
+		"refreshTime": 5,
+		"owner": "",
+		"description": "",
+		"charts": null,
+		"layout": null,
+		"schemaVersion": 0,
+		"timeWindowStart": "",
+		"timeWindowEnd": "",
+		"id": "",
+		"version": ""
+	}`
+
+	b, err := json.Marshal(Dashboard{
+		Name:        "Test",
+		RefreshTime: 5 * time.Second,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestDashboard_Unmarshal(t *testing.T) {
+	exp := Dashboard{
+		Name:        "Test",
+		RefreshTime: 5 * time.Second,
+	}
+
+	var act Dashboard
+	err := json.Unmarshal([]byte(`{ "name": "Test", "refreshTime": 5 }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, act)
 }

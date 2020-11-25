@@ -2,19 +2,51 @@ package axiom
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 )
 
+//go:generate ../bin/stringer -type=UserRole -linecomment -output=users_string.go
+
 // UserRole represents the role of a user.
-type UserRole string
+type UserRole uint8
 
 // All available user roles.
 const (
-	RoleReadOnly UserRole = "read-only"
-	RoleUser     UserRole = "user"
-	RoleAdmin    UserRole = "admin"
-	RoleOwner    UserRole = "owner"
+	RoleReadOnly UserRole = iota + 1 // read-only
+	RoleUser                         // user
+	RoleAdmin                        // admin
+	RoleOwner                        // owner
 )
+
+// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// UserRole to its string representation because that's what the server expects.
+func (ur UserRole) MarshalJSON() ([]byte, error) {
+	s := fmt.Sprintf("%q", ur)
+	return []byte(s), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UserRole from the string representation the server returns.
+func (ur *UserRole) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), `"`)
+
+	switch s {
+	case RoleReadOnly.String():
+		*ur = RoleReadOnly
+	case RoleUser.String():
+		*ur = RoleUser
+	case RoleAdmin.String():
+		*ur = RoleAdmin
+	case RoleOwner.String():
+		*ur = RoleOwner
+	default:
+		return fmt.Errorf("unknown user role %q", s)
+	}
+
+	return nil
+}
 
 // User represents an user of the deployment.
 type User struct {

@@ -73,9 +73,7 @@ fmt: ## Format and simplify the source code using `gofmt`
 	@! $(GOFMT) -s -w $(shell find . -path -prune -o -name '*.go' -print) | grep '^'
 
 .PHONY: generate
-generate: $(STRINGER) ## Generate code using `go generate`
-	@echo ">> generating code"
-	@$(GO) generate ./...
+generate: $(STRINGER) axiom/users_string.go ## Generate code using `go generate`
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Lint the source code
@@ -98,6 +96,12 @@ tools: $(GOLANGCI_LINT) $(GORELEASER) $(GOTESTSUM) $(STRINGER) ## Install all to
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+# GO GENERATE TARGETS
+
+axiom/%_string.go: axiom/%.go
+	@echo ">> generating $@ from $<"
+	@$(GO) generate $<
 
 # MISC TARGETS
 

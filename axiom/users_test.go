@@ -2,6 +2,7 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -53,7 +54,7 @@ func TestUsersService_List(t *testing.T) {
 			ID:    "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			Name:  "Michael Doe",
 			Email: "michael@example.com",
-			Role:  "owner",
+			Role:  RoleOwner,
 			Permissions: []string{
 				"CanUpdate",
 				"ChangeAccess",
@@ -254,4 +255,30 @@ func TestUsersService_Delete(t *testing.T) {
 
 	err := client.Users.Delete(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5")
 	require.NoError(t, err)
+}
+
+func TestUserRole_Marshal(t *testing.T) {
+	exp := `{
+		"role": "read-only"
+	}`
+
+	b, err := json.Marshal(struct {
+		Role UserRole `json:"role"`
+	}{
+		Role: RoleReadOnly,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestUserRole_Unmarshal(t *testing.T) {
+	var act struct {
+		Role UserRole `json:"role"`
+	}
+	err := json.Unmarshal([]byte(`{ "role": "read-only" }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, RoleReadOnly, act.Role)
 }
