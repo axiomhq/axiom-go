@@ -39,7 +39,7 @@ func TestTeamsService_List(t *testing.T) {
 				]
 			}
 		]`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/teams", hf)
@@ -76,7 +76,7 @@ func TestTeamsService_Get(t *testing.T) {
 				"logs"
 			]
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/teams/CcXzGSwIFeshgnHTmD", hf)
@@ -99,6 +99,7 @@ func TestTeamsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "4miTfZKp29VByAQgTd",
@@ -108,7 +109,7 @@ func TestTeamsService_Create(t *testing.T) {
 				"nginx-logs"
 			]
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/teams", hf)
@@ -136,6 +137,7 @@ func TestTeamsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "4miTfZKp29VByAQgTd",
@@ -145,7 +147,7 @@ func TestTeamsService_Update(t *testing.T) {
 			],
 			"datasets": null
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/teams/4miTfZKp29VByAQgTd", hf)

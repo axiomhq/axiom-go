@@ -39,7 +39,7 @@ func TestVirtualFieldsService_List(t *testing.T) {
 				"id": "PiGheBIFBc4Khn4dBZ"
 			}
 		]`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/vfields", hf)
@@ -78,7 +78,7 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 			"expression": "response <= 200 && response < 400",
 			"id": "PiGheBIFBc4Khn4dBZ"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/vfields/PiGheBIFBc4Khn4dBZ", hf)
@@ -102,6 +102,7 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"dataset": "nginx-logs",
@@ -111,7 +112,7 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 			"expression": "response >= 400",
 			"id": "FmgciXxL3njoNgzWVR"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/vfields", hf)
@@ -141,6 +142,7 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"dataset": "nginx-logs",
@@ -150,7 +152,7 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 			"expression": "response > 399",
 			"id": "FmgciXxL3njoNgzWVR"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/vfields/FmgciXxL3njoNgzWVR", hf)

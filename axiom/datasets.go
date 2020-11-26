@@ -1,12 +1,16 @@
 package axiom
 
 import (
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"time"
 )
+
+//go:generate ../bin/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
 
 var (
 	// ErrUnknownContentType is raised when the given content type is not valid.
@@ -17,28 +21,31 @@ var (
 )
 
 // ContentType describes the content type of the data to ingest.
-type ContentType string
+type ContentType uint8
 
 const (
 	// JSON treats the data as JSON array.
-	JSON ContentType = "application/json"
+	JSON ContentType = iota + 1 // application/json
 	// NDJSON treats the data as newline delimited JSON objects. Preferred as it
 	// is faster than JSON array based ingestion.
 	// TODO(lukasmalkmus): Is this still true?
-	NDJSON ContentType = "application/x-ndjson"
+	NDJSON // application/x-ndjson
 	// CSV treats the data as CSV content.
-	CSV ContentType = "text/csv"
+	CSV // text/csv
 )
 
 // ContentEncoding describes the content encoding of the data to ingest.
-type ContentEncoding string
+type ContentEncoding uint8
 
 const (
 	// Identity marks the data as not being encoded.
-	Identity ContentEncoding = ""
+	Identity ContentEncoding = iota + 1 //
 	// GZIP marks the data as being gzip encoded.
-	GZIP ContentEncoding = "gzip"
+	GZIP // "gzip"
 )
+
+// An Event is a map of key-value pairs.
+type Event = map[string]interface{}
 
 // Dataset represents an Axiom dataset.
 type Dataset struct {
@@ -259,8 +266,8 @@ func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
 //   must be formatted accordingly.
 // TODO(lukasmalkmus): Review the restrictions.
-func (s *DatasetsService) Ingest(ctx context.Context, datasetID string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
-	path, err := addOptions(s.basePath+"/"+datasetID+"/ingest", opts)
+func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
+	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +279,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, datasetID string, r io.Rea
 
 	switch typ {
 	case JSON, NDJSON, CSV:
-		req.Header.Set("Content-Type", string(typ))
+		req.Header.Set("content-type", typ.String())
 	default:
 		return nil, ErrUnknownContentType
 	}
@@ -280,10 +287,65 @@ func (s *DatasetsService) Ingest(ctx context.Context, datasetID string, r io.Rea
 	switch enc {
 	case Identity:
 	case GZIP:
-		req.Header.Set("Content-Encoding", string(enc))
+		req.Header.Set("content-encoding", enc.String())
 	default:
 		return nil, ErrUnknownContentEncoding
 	}
+
+	var res IngestStatus
+	if err = s.client.do(req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Ingest events into the dataset identified by its id. If the dataset doesn't
+// exist, it will be created. The given data will be flattened, thus there are
+// some restrictions on the field names (JSON object keys):
+//
+// * Not more than 200 bytes (not characters!)
+// * UTF-8 compatible
+// * "_time" and "_source" are reserved
+// * The ingestion content type must be one of JSON, NDJSON or CSV and the input
+//   must be formatted accordingly.
+// TODO(lukasmalkmus): Review the restrictions.
+func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
+	if len(events) == 0 {
+		return &IngestStatus{}, nil
+	}
+
+	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	pr, pw := io.Pipe()
+	go func() {
+		// Does not fail with a valid compression level.
+		gzw, _ := gzip.NewWriterLevel(pw, gzip.BestSpeed)
+
+		var (
+			enc    = json.NewEncoder(gzw)
+			encErr error
+		)
+		for _, event := range events {
+			if encErr = enc.Encode(event); encErr != nil {
+				break
+			}
+		}
+
+		_ = gzw.Close()
+		_ = pw.CloseWithError(encErr)
+	}()
+
+	req, err := s.client.newRequest(ctx, http.MethodPost, path, pr)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("content-type", NDJSON.String())
+	req.Header.Set("content-encoding", GZIP.String())
 
 	var res IngestStatus
 	if err = s.client.do(req, &res); err != nil {

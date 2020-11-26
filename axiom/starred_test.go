@@ -78,7 +78,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 				"created": "2020-11-24T16:53:38.267775284Z"
 			}
 		]`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/starred", hf)
@@ -155,7 +155,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 			"id": "NBYj9rO5p4F5CtYEy6",
 			"created": "2020-11-24T16:53:38.267775284Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/starred/NBYj9rO5p4F5CtYEy6", hf)
@@ -187,6 +187,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
@@ -204,7 +205,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 			"id": "NBYj9rO5p4F5CtYEy6",
 			"created": "2020-11-25T17:34:07.659355723Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/starred", hf)
@@ -248,6 +249,7 @@ func TestStarredQueriesService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
@@ -265,7 +267,7 @@ func TestStarredQueriesService_Update(t *testing.T) {
 			"id": "NBYj9rO5p4F5CtYEy6",
 			"created": "2020-11-25T17:34:07.659355723Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/starred/NBYj9rO5p4F5CtYEy6", hf)

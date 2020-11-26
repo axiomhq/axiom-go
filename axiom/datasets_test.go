@@ -1,8 +1,11 @@
 package axiom
 
 import (
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -177,7 +180,7 @@ func TestDatasetsService_Stats(t *testing.T) {
 			"compressedBytes": 19049348,
 			"compressedBytesHuman": "19 MB"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets/_stats", hf)
@@ -209,7 +212,7 @@ func TestDatasetsService_List(t *testing.T) {
 				"created": "2020-11-17T22:29:00.521238198Z"
 			}
 		]`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets", hf)
@@ -238,7 +241,7 @@ func TestDatasetsService_Get(t *testing.T) {
 			"description": "This is a test description",
 			"created": "2020-11-17T22:29:00.521238198Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets/test", hf)
@@ -260,6 +263,7 @@ func TestDatasetsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
@@ -267,7 +271,7 @@ func TestDatasetsService_Create(t *testing.T) {
 			"description": "This is a test description",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets", hf)
@@ -292,6 +296,7 @@ func TestDatasetsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
@@ -299,7 +304,7 @@ func TestDatasetsService_Update(t *testing.T) {
 			"description": "This is the new description",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets/test", hf)
@@ -402,7 +407,7 @@ func TestDatasetsService_Info(t *testing.T) {
 			],
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets/test/info", hf)
@@ -426,6 +431,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"ingested": 2,
@@ -435,7 +441,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 			"blocksCreated": 0,
 			"walLength": 2
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/datasets/test/ingest", hf)
@@ -470,5 +476,83 @@ func TestDatasetsService_Ingest(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestDatasetsService_IngestEvents(t *testing.T) {
+	exp := &IngestStatus{
+		Ingested:       2,
+		Failed:         0,
+		Failures:       []*IngestFailure{},
+		ProcessedBytes: 630,
+		BlocksCreated:  0,
+		WALLength:      2,
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/x-ndjson", r.Header.Get("content-type"))
+
+		gzr, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+
+		assertValidJSON(t, gzr)
+		assert.NoError(t, gzr.Close())
+
+		_, err = fmt.Fprint(w, `{
+			"ingested": 2,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/ingest", hf)
+	defer teardown()
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	res, err := client.Datasets.IngestEvents(context.Background(), "test", IngestOptions{}, events...)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 // TODO(lukasmalkmus): Write a test that contains some failures in the server
 // response.
+
+func assertValidJSON(t *testing.T, r io.Reader) bool {
+	dec := json.NewDecoder(r)
+	for dec.More() {
+		var v interface{}
+		err := dec.Decode(&v)
+		if !assert.NoError(t, err) {
+			return false
+		} else if !assert.NotEmpty(t, v) {
+			return false
+		}
+	}
+
+	return true
+}

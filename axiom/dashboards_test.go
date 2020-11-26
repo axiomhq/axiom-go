@@ -108,7 +108,7 @@ func TestDashboardsService_List(t *testing.T) {
 				"version": "1605882077469288241"
 			}
 		]`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/dashboards", hf)
@@ -212,7 +212,7 @@ func TestDashboardsService_Get(t *testing.T) {
 			"id": "buTFUddK4X5845Qwzv",
 			"version": "1605882077469288241"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/dashboards/test", hf)
@@ -270,6 +270,7 @@ func TestDashboardsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
@@ -313,7 +314,7 @@ func TestDashboardsService_Create(t *testing.T) {
 			"id": "buTFUddK4X5845Qwzv",
 			"version": "1605882077469288241"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/dashboards", hf)
@@ -410,6 +411,7 @@ func TestDashboardsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"name": "Test",
@@ -453,7 +455,7 @@ func TestDashboardsService_Update(t *testing.T) {
 			"id": "buTFUddK4X5845Qwzv",
 			"version": "1605882077469288241"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/dashboards/buTFUddK4X5845Qwzv", hf)

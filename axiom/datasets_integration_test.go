@@ -38,6 +38,29 @@ const ingestData = `[
 	}
 ]`
 
+var ingestEvents = []axiom.Event{
+	{
+		"time":        "17/May/2015:08:05:32 +0000",
+		"remote_ip":   "93.180.71.3",
+		"remote_user": "-",
+		"request":     "GET /downloads/product_1 HTTP/1.1",
+		"response":    304,
+		"bytes":       0,
+		"referrer":    "-",
+		"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+	},
+	{
+		"time":        "17/May/2015:08:05:32 +0000",
+		"remote_ip":   "93.180.71.3",
+		"remote_user": "-",
+		"request":     "GET /downloads/product_1 HTTP/1.1",
+		"response":    304,
+		"bytes":       0,
+		"referrer":    "-",
+		"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+	},
+}
+
 // DatasetsTestSuite tests all methods of the Axiom Datasets API against a live
 // deployment.
 type DatasetsTestSuite struct {
@@ -102,21 +125,6 @@ func (s *DatasetsTestSuite) TestList() {
 	s.Contains(datasets, s.dataset)
 }
 
-func (s *DatasetsTestSuite) TestIngest() {
-	var (
-		ingested bytes.Buffer
-		r        = io.TeeReader(strings.NewReader(ingestData), &ingested)
-	)
-	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{})
-	s.Require().NoError(err)
-	s.Require().NotNil(ingestStatus)
-
-	s.EqualValues(ingestStatus.Ingested, 2)
-	s.Zero(ingestStatus.Failed)
-	s.Empty(ingestStatus.Failures)
-	s.EqualValues(ingestStatus.ProcessedBytes, ingested.Len())
-}
-
 func (s *DatasetsTestSuite) TestInfoAndStats() {
 	s.T().Skip("Enable as soon as the API response has been fixed!")
 
@@ -132,6 +140,31 @@ func (s *DatasetsTestSuite) TestInfoAndStats() {
 	s.Require().NotNil(datasetStats)
 
 	s.Contains(datasetStats, datasetInfo)
+}
+
+func (s *DatasetsTestSuite) TestIngest() {
+	var (
+		ingested bytes.Buffer
+		r        = io.TeeReader(strings.NewReader(ingestData), &ingested)
+	)
+	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{})
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
+	s.EqualValues(ingestStatus.ProcessedBytes, ingested.Len())
+}
+
+func (s *DatasetsTestSuite) TestIngestEvents() {
+	ingestStatus, err := s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
 }
 
 // TODO(lukasmalkmus): Query some stuff here.

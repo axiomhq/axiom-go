@@ -17,13 +17,13 @@ DIST_DIR		:= dist
 
 # FLAGS
 GO_TEST_FLAGS		:= -race -coverprofile=$(COVERPROFILE)
+GOTESTSUM_FLAGS		=
 GORELEASER_FLAGS	:= --snapshot --rm-dist
 
 # DEPENDENCIES
 GOMODDEPS = go.mod go.sum
 
 # Enable verbose test output if explicitly set.
-GOTESTSUM_FLAGS	=
 ifdef VERBOSE
 	GOTESTSUM_FLAGS += --format=standard-verbose
 endif
@@ -73,7 +73,7 @@ fmt: ## Format and simplify the source code using `gofmt`
 	@! $(GOFMT) -s -w $(shell find . -path -prune -o -name '*.go' -print) | grep '^'
 
 .PHONY: generate
-generate: $(STRINGER) axiom/users_string.go axiom/starred_string.go ## Generate code using `go generate`
+generate: $(STRINGER) axiom/users_string.go axiom/starred_string.go axiom/datasets_string.go ## Generate code using `go generate`
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Lint the source code

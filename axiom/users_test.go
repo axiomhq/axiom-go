@@ -30,7 +30,7 @@ func TestUsersService_Current(t *testing.T) {
 				"lukas@axiom.co"
 			]
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/user", hf)
@@ -104,7 +104,7 @@ func TestUsersService_List(t *testing.T) {
 				]
 			}
 		]`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/users", hf)
@@ -135,7 +135,7 @@ func TestUsersService_Get(t *testing.T) {
 			"role": "owner",
 			"permissions": []
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/users/20475220-20e4-4080-b2f4-68315e21f5ec", hf)
@@ -157,6 +157,7 @@ func TestUsersService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
@@ -165,7 +166,7 @@ func TestUsersService_Create(t *testing.T) {
 			"role": "user",
 			"permissions": null
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/users", hf)
@@ -191,6 +192,7 @@ func TestUsersService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
@@ -199,7 +201,7 @@ func TestUsersService_Update(t *testing.T) {
 			"role": "user",
 			"permissions": null
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/users/7debe8bb-69f1-436f-94f6-a2fe23e71cf5", hf)
@@ -223,6 +225,7 @@ func TestUsersService_UpdateRole(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
@@ -231,7 +234,7 @@ func TestUsersService_UpdateRole(t *testing.T) {
 			"role": "admin",
 			"permissions": null
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/users/7debe8bb-69f1-436f-94f6-a2fe23e71cf5/role", hf)

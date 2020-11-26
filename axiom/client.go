@@ -73,9 +73,10 @@ func SetUserAgent(userAgent string) Option {
 
 // Client provides the Axiom HTTP API operations.
 type Client struct {
-	baseURL     *url.URL
-	userAgent   string
-	accessToken string
+	baseURL        *url.URL
+	userAgent      string
+	accessToken    string
+	strictDecoding bool
 
 	httpClient *http.Client
 
@@ -178,17 +179,17 @@ func (c *Client) newRequest(ctx context.Context, method, endpoint string, body i
 
 	// Set Content-Type.
 	if body != nil && !isReader {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("content-type", "application/json")
 	} else if body != nil {
-		req.Header.Set("Content-Type", "application/octet-stream")
+		req.Header.Set("content-type", "application/octet-stream")
 	}
 
 	// Set Authorization header.
-	req.Header.Set("Authorization", "Bearer "+c.accessToken)
+	req.Header.Set("authorization", "Bearer "+c.accessToken)
 
 	// Set other headers.
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("user-agent", c.userAgent)
 
 	return req, nil
 }
@@ -204,7 +205,9 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 	defer resp.Body.Close()
 
 	dec := json.NewDecoder(resp.Body)
-	dec.DisallowUnknownFields() // TODO(lukasmalkmus): Make this optional?
+	if c.strictDecoding {
+		dec.DisallowUnknownFields()
+	}
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		// Handle special errors.

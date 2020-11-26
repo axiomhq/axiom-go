@@ -22,6 +22,16 @@ const (
 	accessToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 )
 
+// SetStrictDecoding is a special testing only client option that failes JSON
+// response decoding if fields not present in the destination struct are
+// encountered.
+func SetStrictDecoding() Option {
+	return func(c *Client) error {
+		c.strictDecoding = true
+		return nil
+	}
+}
+
 func TestNewClient(t *testing.T) {
 	client, err := NewClient(endpoint, accessToken)
 	require.NoError(t, err)
@@ -147,7 +157,7 @@ func TestClient_do_HTTPError(t *testing.T) {
 			Message: http.StatusText(http.StatusBadRequest),
 		}
 		err := json.NewEncoder(w).Encode(httpErr)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/", hf)
@@ -200,13 +210,19 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 
 	r := http.NewServeMux()
 	r.HandleFunc(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.NotEmpty(t, r.Header.Get("Authorization"), "no authentication present on the request")
+		assert.NotEmpty(t, r.Header.Get("authorization"), "no authorization header present on the request")
+		assert.Equal(t, r.Header.Get("accept"), "application/json", "no accept header present on the request")
+		assert.Equal(t, r.Header.Get("user-agent"), "axiom-go", "no user-agent header present on the request")
+
+		if r.ContentLength > 0 {
+			assert.NotEmpty(t, r.Header.Get("Content-Type"), "no Content-Type header present on the request")
+		}
 
 		handler.ServeHTTP(w, r)
 	}))
 	srv := httptest.NewServer(r)
 
-	client, err := NewClient(srv.URL, accessToken, SetClient(srv.Client()))
+	client, err := NewClient(srv.URL, accessToken, SetClient(srv.Client()), SetStrictDecoding())
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

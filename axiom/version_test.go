@@ -19,7 +19,7 @@ func TestVersionService_Get(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"currentVersion": "v1.4.0-20201118T1633+1f878f59d"
 		}`)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/api/v1/version", hf)
