@@ -171,7 +171,7 @@ func TestUsersService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/users", hf)
 	defer teardown()
 
-	res, err := client.Users.Create(context.Background(), CreateUserRequest{
+	res, err := client.Users.Create(context.Background(), UserCreateRequest{
 		Name:  "John Doe",
 		Email: "john@example.com",
 		Role:  RoleUser,
@@ -205,7 +205,7 @@ func TestUsersService_Update(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/users/7debe8bb-69f1-436f-94f6-a2fe23e71cf5", hf)
 	defer teardown()
 
-	res, err := client.Users.Update(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5", UpdateUserRequest{
+	res, err := client.Users.Update(context.Background(), "7debe8bb-69f1-436f-94f6-a2fe23e71cf5", UserUpdateRequest{
 		Name: "Michael Doe",
 	})
 	require.NoError(t, err)

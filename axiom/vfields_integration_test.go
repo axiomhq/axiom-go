@@ -29,7 +29,7 @@ func TestVirtualFieldsTestSuite(t *testing.T) {
 func (s *VirtualFieldsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
-	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.CreateDatasetRequest{
+	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test",
 		Description: "This is a test dataset",
 	})

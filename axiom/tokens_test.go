@@ -137,7 +137,7 @@ func TestTokensService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/personal", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.Create(context.Background(), CreateTokenRequest{
+	res, err := client.Tokens.Personal.Create(context.Background(), TokenCreateRequest{
 		Name:        "Test",
 		Description: "A test token",
 	})

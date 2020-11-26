@@ -134,8 +134,8 @@ type IngestFailure struct {
 	Error string `json:"error"`
 }
 
-// CreateDatasetRequest is a request used to create a dataset.
-type CreateDatasetRequest struct {
+// DatasetCreateRequest is a request used to create a dataset.
+type DatasetCreateRequest struct {
 	// Name of the dataset to create. Restricted to 128 bytes and can not
 	// contain the "axiom-" prefix.
 	Name string `json:"name"`
@@ -143,8 +143,8 @@ type CreateDatasetRequest struct {
 	Description string `json:"description"`
 }
 
-// UpdateDatasetRequest is a request used to update a dataset.
-type UpdateDatasetRequest struct {
+// DatasetUpdateRequest is a request used to update a dataset.
+type DatasetUpdateRequest struct {
 	// Description of the dataset to update.
 	Description string `json:"description"`
 }
@@ -205,7 +205,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 }
 
 // Create a dataset with the given properties.
-func (s *DatasetsService) Create(ctx context.Context, req CreateDatasetRequest) (*Dataset, error) {
+func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) (*Dataset, error) {
 	var res Dataset
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (s *DatasetsService) Create(ctx context.Context, req CreateDatasetRequest) 
 }
 
 // Update the dataset identified by the given id with the given properties.
-func (s *DatasetsService) Update(ctx context.Context, id string, req UpdateDatasetRequest) (*Dataset, error) {
+func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpdateRequest) (*Dataset, error) {
 	path := s.basePath + "/" + id
 
 	var res Dataset

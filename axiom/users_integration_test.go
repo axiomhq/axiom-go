@@ -28,7 +28,7 @@ func (s *UsersTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
-	s.user, err = s.client.Users.Create(s.suiteCtx, axiom.CreateUserRequest{
+	s.user, err = s.client.Users.Create(s.suiteCtx, axiom.UserCreateRequest{
 		Name:  "John Doe",
 		Email: "john.doe@example.com",
 		Role:  axiom.RoleAdmin,
@@ -57,7 +57,7 @@ func (s *UsersTestSuite) TestUpdate() {
 	// TODO(lukasmalkmus): Enable this as soon as we can update other users, not
 	// just the authenticated one.
 
-	// user, err := s.client.Users.Update(s.suiteCtx, s.user.ID, axiom.UpdateUserRequest{
+	// user, err := s.client.Users.Update(s.suiteCtx, s.user.ID, axiom.UserUpdateRequest{
 	// 	Name: s.testUser.Name,
 	// })
 	// s.Require().NoError(err)
@@ -65,7 +65,7 @@ func (s *UsersTestSuite) TestUpdate() {
 
 	// s.user = user
 
-	user, err := s.client.Users.Update(s.suiteCtx, s.testUser.ID, axiom.UpdateUserRequest{
+	user, err := s.client.Users.Update(s.suiteCtx, s.testUser.ID, axiom.UserUpdateRequest{
 		Name: s.testUser.Name,
 	})
 	s.Require().NoError(err)

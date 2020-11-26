@@ -54,7 +54,7 @@ func (s *DatasetsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
-	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.CreateDatasetRequest{
+	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test",
 		Description: "This is a test dataset",
 	})
@@ -77,7 +77,7 @@ func (s *DatasetsTestSuite) TearDownSuite() {
 func (s *DatasetsTestSuite) TestUpdate() {
 	s.T().Skip("Activate if awkward API validation (matching ID in param and body) has been fixed.")
 
-	dataset, err := s.client.Datasets.Update(s.ctx, s.dataset.ID, axiom.UpdateDatasetRequest{
+	dataset, err := s.client.Datasets.Update(s.ctx, s.dataset.ID, axiom.DatasetUpdateRequest{
 		Description: "This is a soon to be filled test dataset",
 	})
 	s.Require().NoError(err)

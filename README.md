@@ -34,7 +34,7 @@ _Axiom Go_ provides a client library for the Axiom API.
 With a working Go installation (>=1.15), run:
 
 ```shell
-$ go get -u github.com/axiomhq/axiom-go
+$ go get -u github.com/axiomhq/axiom-go/axiom
 ```
 
 Go 1.11 and higher _should_ be sufficient enough to use `go get` but it is not 
@@ -49,7 +49,7 @@ installation.
 ```shell
 $ git clone https://github.com/axiomhq/axiom-go.git
 $ cd axiom-go
-$ make # Run linters, sanitizers and test suits
+$ make # Run code generators, linters, sanitizers and test suits
 ```
 
   [2]: https://golang.org/cmd/go/#hdr-Module_maintenance

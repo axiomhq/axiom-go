@@ -28,7 +28,7 @@ func (s *TeamsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
-	s.team, err = s.client.Teams.Create(s.suiteCtx, axiom.CreateTeamRequest{
+	s.team, err = s.client.Teams.Create(s.suiteCtx, axiom.TeamCreateRequest{
 		Name: "Test Team",
 	})
 	s.Require().NoError(err)

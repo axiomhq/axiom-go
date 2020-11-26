@@ -114,7 +114,7 @@ func TestTeamsService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/teams", hf)
 	defer teardown()
 
-	res, err := client.Teams.Create(context.Background(), CreateTeamRequest{
+	res, err := client.Teams.Create(context.Background(), TeamCreateRequest{
 		Name: "Server Team",
 		Datasets: []string{
 			"nginx-logs",

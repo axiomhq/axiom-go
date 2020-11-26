@@ -72,8 +72,8 @@ type AuthenticatedUser struct {
 	Emails []string `json:"emails"`
 }
 
-// CreateUserRequest is a request used to create an user.
-type CreateUserRequest struct {
+// UserCreateRequest is a request used to create an user.
+type UserCreateRequest struct {
 	// Name of the user.
 	Name string `json:"name"`
 	// Email is the primary email address of the user.
@@ -84,8 +84,8 @@ type CreateUserRequest struct {
 	TeamIDs []string `json:"teamIds"`
 }
 
-// UpdateUserRequest is a request used to update an user.
-type UpdateUserRequest struct {
+// UserUpdateRequest is a request used to update an user.
+type UserUpdateRequest struct {
 	// Name of the user.
 	Name string `json:"name"`
 }
@@ -136,7 +136,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 }
 
 // Create a user with the given properties.
-func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
+func (s *UsersService) Create(ctx context.Context, req UserCreateRequest) (*User, error) {
 	var res User
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User
 }
 
 // Update the user identified by the given id with the given properties.
-func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequest) (*User, error) {
+func (s *UsersService) Update(ctx context.Context, id string, req UserUpdateRequest) (*User, error) {
 	path := s.basePath + "/" + id
 
 	var res User

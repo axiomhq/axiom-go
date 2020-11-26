@@ -273,7 +273,7 @@ func TestDatasetsService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/datasets", hf)
 	defer teardown()
 
-	res, err := client.Datasets.Create(context.Background(), CreateDatasetRequest{
+	res, err := client.Datasets.Create(context.Background(), DatasetCreateRequest{
 		Name:        "test",
 		Description: "This is a test description",
 	})
@@ -305,7 +305,7 @@ func TestDatasetsService_Update(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/datasets/test", hf)
 	defer teardown()
 
-	res, err := client.Datasets.Update(context.Background(), "test", UpdateDatasetRequest{
+	res, err := client.Datasets.Update(context.Background(), "test", DatasetUpdateRequest{
 		Description: "This is the new description",
 	})
 	require.NoError(t, err)

@@ -52,7 +52,7 @@ func (s *TokensTestSuite) SetupSuite() {
 	}
 
 	var err error
-	s.token, err = s.service.Create(s.suiteCtx, axiom.CreateTokenRequest{
+	s.token, err = s.service.Create(s.suiteCtx, axiom.TokenCreateRequest{
 		Name:        "Test",
 		Description: "A test token",
 	})

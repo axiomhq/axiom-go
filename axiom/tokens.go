@@ -27,8 +27,8 @@ type RawToken struct {
 	Scopes []string `json:"scopes"`
 }
 
-// CreateTokenRequest is a request used to create a token.
-type CreateTokenRequest struct {
+// TokenCreateRequest is a request used to create a token.
+type TokenCreateRequest struct {
 	// Name of the token.
 	Name string `json:"name"`
 	// Description of the token.
@@ -80,7 +80,7 @@ func (s *TokensService) View(ctx context.Context, id string) (*RawToken, error) 
 }
 
 // Create a token with the given properties.
-func (s *TokensService) Create(ctx context.Context, req CreateTokenRequest) (*Token, error) {
+func (s *TokensService) Create(ctx context.Context, req TokenCreateRequest) (*Token, error) {
 	var res Token
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err

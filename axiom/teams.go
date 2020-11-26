@@ -17,8 +17,8 @@ type Team struct {
 	Datasets []string `json:"datasets"`
 }
 
-// CreateTeamRequest is a request used to create a team.
-type CreateTeamRequest struct {
+// TeamCreateRequest is a request used to create a team.
+type TeamCreateRequest struct {
 	// Name of the team.
 	Name string `json:"name"`
 	// Datasets of the team.
@@ -54,7 +54,7 @@ func (s *TeamsService) Get(ctx context.Context, id string) (*Team, error) {
 }
 
 // Create a team with the given properties.
-func (s *TeamsService) Create(ctx context.Context, req CreateTeamRequest) (*Team, error) {
+func (s *TeamsService) Create(ctx context.Context, req TeamCreateRequest) (*Team, error) {
 	var res Team
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
