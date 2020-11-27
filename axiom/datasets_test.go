@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -489,6 +490,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-ndjson", r.Header.Get("content-type"))
+		assert.Equal(t, "gzip", r.Header.Get("content-encoding"))
 
 		gzr, err := gzip.NewReader(r.Body)
 		require.NoError(t, err)
@@ -541,6 +543,25 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 
 // TODO(lukasmalkmus): Write a test that contains some failures in the server
 // response.
+
+func TestGZIPStreamer(t *testing.T) {
+	exp := "Some fox jumps over a fence."
+
+	r, err := GZIPStreamer(strings.NewReader(exp), gzip.BestSpeed)
+	require.NoError(t, err)
+
+	gzr, err := gzip.NewReader(r)
+	require.NoError(t, err)
+	defer func() {
+		closeErr := gzr.Close()
+		require.NoError(t, closeErr)
+	}()
+
+	act, err := ioutil.ReadAll(gzr)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, string(act))
+}
 
 func assertValidJSON(t *testing.T, r io.Reader) bool {
 	dec := json.NewDecoder(r)

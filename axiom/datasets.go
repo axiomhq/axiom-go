@@ -41,11 +41,11 @@ const (
 	// Identity marks the data as not being encoded.
 	Identity ContentEncoding = iota + 1 //
 	// GZIP marks the data as being gzip encoded.
-	GZIP // "gzip"
+	GZIP // gzip
 )
 
 // An Event is a map of key-value pairs.
-type Event = map[string]interface{}
+type Event map[string]interface{}
 
 // Dataset represents an Axiom dataset.
 type Dataset struct {
@@ -264,7 +264,7 @@ func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 // * UTF-8 compatible
 // * "_time" and "_source" are reserved
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
-//   must be formatted accordingly.
+//   must be formatted accordingly
 // TODO(lukasmalkmus): Review the restrictions.
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
 	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
@@ -308,7 +308,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 // * UTF-8 compatible
 // * "_time" and "_source" are reserved
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
-//   must be formatted accordingly.
+//   must be formatted accordingly
 // TODO(lukasmalkmus): Review the restrictions.
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
 	if len(events) == 0 {
@@ -353,4 +353,23 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	}
 
 	return &res, nil
+}
+
+// GZIPStreamer returns an io.Reader that gzip compresses the data in reads from
+// the provided reader using the specified compression level.
+func GZIPStreamer(r io.Reader, level int) (io.Reader, error) {
+	pr, pw := io.Pipe()
+
+	gzw, err := gzip.NewWriterLevel(pw, level)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		_, err := io.Copy(gzw, r)
+		_ = gzw.Close()
+		_ = pw.CloseWithError(err)
+	}()
+
+	return pr, nil
 }

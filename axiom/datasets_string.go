@@ -32,9 +32,9 @@ func _() {
 	_ = x[GZIP-2]
 }
 
-const _ContentEncoding_name = "\"gzip\""
+const _ContentEncoding_name = "gzip"
 
-var _ContentEncoding_index = [...]uint8{0, 0, 6}
+var _ContentEncoding_index = [...]uint8{0, 0, 4}
 
 func (i ContentEncoding) String() string {
 	i -= 1
