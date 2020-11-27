@@ -44,6 +44,80 @@ const (
 	GZIP // gzip
 )
 
+// A FilterOp can be applied on queries to filter based on different conditions.
+type FilterOp string
+
+// All available query filter operations.
+const (
+	OpAnd FilterOp = "and"
+	OpOr  FilterOp = "or"
+	OpNot FilterOp = "not"
+
+	// Works for strings and numbers.
+	OpEqual     FilterOp = "=="
+	OpNotEqual  FilterOp = "!="
+	OpExists    FilterOp = "exists"
+	OpNotExists FilterOp = "not-exists"
+
+	// Only works for numbers.
+	OpGreaterThan      FilterOp = ">"
+	OpGreaterThanEqual FilterOp = ">="
+	OpLessThan         FilterOp = "<"
+	OpLessThanEqual    FilterOp = "<="
+
+	// Only works for strings.
+	OpStartsWith    FilterOp = "starts-with"
+	OpNotStartsWith FilterOp = "not-starts-with"
+	OpEndsWith      FilterOp = "ends-with"
+	OpNotEndsWith   FilterOp = "not-ends-with"
+	// Uses `regexp.Compile` internally.
+	OpRegexp FilterOp = "regexp"
+	// Uses `regexp.Compile` internally.
+	OpNotRegexp FilterOp = "not-regexp"
+
+	// Works for strings and arrays.
+	OpContains    FilterOp = "contains"
+	OpNotContains FilterOp = "not-contains"
+)
+
+// An AggregationOp can be applied on queries to aggrgate based on different
+// conditions.
+type AggregationOp string
+
+// All available query aggregation operations.
+const (
+	// Works with all types, field should be `*`.
+	OpCount         AggregationOp = "count"
+	OpCountDistinct AggregationOp = "distinct"
+
+	// Only works for numbers.
+	OpSum         AggregationOp = "sum"
+	OpAvg         AggregationOp = "avg"
+	OpMin         AggregationOp = "min"
+	OpMax         AggregationOp = "max"
+	OpTopk        AggregationOp = "topk"
+	OpPercentiles AggregationOp = "percentiles"
+	OpHistogram   AggregationOp = "histogram"
+)
+
+// Resolution of a query.
+// TODO(lukasmalkmus): Get rid of this an write a costum JSON Marshaller for the
+// Query type so the user doesn't need to convert to Resolution type first.
+type Resolution time.Duration
+
+// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// Resolution to its string representation because that's what the server
+// expects.
+func (r Resolution) MarshalJSON() ([]byte, error) {
+	// If the resolution is not specified, it is set to auto for resolution
+	// auto-detection on the server side.
+	if r == 0 {
+		return []byte(`"auto"`), nil
+	}
+
+	return json.Marshal(time.Duration(r).String())
+}
+
 // An Event is a map of key-value pairs.
 type Event map[string]interface{}
 
@@ -141,6 +215,96 @@ type IngestFailure struct {
 	Error string `json:"error"`
 }
 
+// Query represents a query that gets executed on a dataset.
+type Query struct {
+	// StartTime of the query. Required.
+	StartTime time.Time `json:"startTime"`
+	// EndTime of the query. Required.
+	EndTime time.Time `json:"endTime"`
+	// Resolution of the queries graph. Valid values are the queries time
+	// range / 100 at maximum and / 1000 at minimum. Leave unset for serve-side
+	// auto-detection.
+	Resolution Resolution `json:"resolution"`
+
+	// Aggregations   []Aggregation   `json:"aggregations"`
+	// Filter         Filter          `json:"filter"`
+	// GroupBy        []string        `json:"groupBy"`
+	// Order          []Order         `json:"order"`
+	// Limit          uint32          `json:"limit"`
+	// VirtualColumns []VirtualColumn `json:"virtualFields"`
+
+	// Cursor is the query cursor.
+	// TODO(lukasmalkmus): What is a query cursor?
+	Cursor string `json:"cursor"`
+}
+
+// QueryResult is the result of a query.
+type QueryResult struct {
+	// Status of the query result.
+	Status QueryStatus `json:"status"`
+	// Matches are the events that matched the query.
+	Matches []Entry `json:"matches"`
+	// Buckets are the time series buckets.
+	// Buckets Timeseries `json:"buckets"`
+}
+
+// QueryStatus is the status of a query result.
+type QueryStatus struct {
+	// ElapsedTime is the duration it took the query to execute.
+	ElapsedTime time.Duration `json:"elapsedTime"`
+	// BlocksExamined is the amount of blocks that have been examined by the
+	// query.
+	BlocksExamined uint64 `json:"blocksExamined"`
+	// RowsExamined is the amount of rows that have been examined by the query.
+	RowsExamined uint64 `json:"rowsExamined"`
+	// RowsMatched is the amount of rows that matched the query.
+	RowsMatched uint64 `json:"rowsMatched"`
+	// NumGroups is the amount of groups returned by the query.
+	NumGroups uint32 `json:"numGroups"`
+	// IsPartial describes if the query result is a partial result.
+	IsPartial bool `json:"isPartial"`
+	// IsEstimate describes if the query result is estimated.
+	IsEstimate bool `json:"isEstimate"`
+	// CacheStatus describes the effects the query had on cache.
+	// TODO(lukasmalkmus): Better docs: What do the returned values mean?
+	CacheStatus uint8 `json:"cacheStatus"`
+	// MinBlockTime is the timestamp of the oldest block examined.
+	MinBlockTime time.Time `json:"minBlockTime"`
+	// MaxBlockTime is the timestamp of the newest block examined.
+	MaxBlockTime time.Time `json:"maxBlockTime"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// ElapsedTime into a proper time.Duration value because the server returns it
+// in microseconds.
+func (qs *QueryStatus) UnmarshalJSON(b []byte) error {
+	type localQueryStatus *QueryStatus
+
+	if err := json.Unmarshal(b, localQueryStatus(qs)); err != nil {
+		return err
+	}
+
+	// Set to a proper time.Duration value interpreting the server response
+	// value in microseconds.
+	qs.ElapsedTime = qs.ElapsedTime * time.Microsecond
+
+	return nil
+}
+
+// Entry is an event that matched a query and is thus part of the result set.
+type Entry struct {
+	// Time is the time the event occurred. Matches SysTime if not specified
+	// during ingestion.
+	Time time.Time `json:"_time"`
+	// SysTime is the time the event was recorded on the server.
+	SysTime time.Time `json:"_sysTime"`
+	// RowID is the unique ID of the event row.
+	RowID string `json:"_rowId"`
+	// Data contains the raw data of the event (with filters and aggregations
+	// applied).
+	Data map[string]interface{} `json:"data"`
+}
+
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
 	// Name of the dataset to create. Restricted to 128 bytes and can not
@@ -156,8 +320,8 @@ type DatasetUpdateRequest struct {
 	Description string `json:"description"`
 }
 
-// IngestOptions specifies the parameters for the Ingest method of the Datasets
-// service.
+// IngestOptions specifies the parameters for the Ingest and IngestEvents method
+// of the Datasets service.
 type IngestOptions struct {
 	// TimestampField defines a custom field to extract the ingestion timestamp
 	// from. Defaults to `_time`.
@@ -166,6 +330,15 @@ type IngestOptions struct {
 	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
 	// in https://pkg.go.dev/time/?tab=doc#Parse.
 	TimestampFormat string `url:"timestamp-format,omitempty"`
+}
+
+// QueryOptions specifies the parameters for the Query method of the Datasets
+// service.
+type QueryOptions struct {
+	// StreamingDuration of a query.
+	StreamingDuration time.Duration `url:"streaming-duration,omitempty"`
+	// NoCache omits the query cache.
+	NoCache bool `url:"no-cache,omitempty"`
 }
 
 // DatasetsService handles communication with the dataset related operations of
@@ -348,6 +521,26 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	req.Header.Set("content-encoding", GZIP.String())
 
 	var res IngestStatus
+	if err = s.client.do(req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Query executes the given query on the dataset identified by its id.
+func (s *DatasetsService) Query(ctx context.Context, id string, query Query, opts QueryOptions) (*QueryResult, error) {
+	path, err := addOptions(s.basePath+"/"+id+"/query", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.newRequest(ctx, http.MethodPost, path, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var res QueryResult
 	if err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}

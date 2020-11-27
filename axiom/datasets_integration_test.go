@@ -167,4 +167,18 @@ func (s *DatasetsTestSuite) TestIngestEvents() {
 	s.Empty(ingestStatus.Failures)
 }
 
-// TODO(lukasmalkmus): Query some stuff here.
+func (s *DatasetsTestSuite) TestQuery() {
+	s.T().Skip("Activate if we know why the result set is empty.")
+
+	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, axiom.Query{
+		StartTime: time.Time{},
+		EndTime:   time.Now(),
+	}, axiom.QueryOptions{})
+	s.Require().NoError(err)
+	s.Require().NotNil(queryResult)
+
+	s.EqualValues(0, queryResult.Status.BlocksExamined)
+	s.EqualValues(4, queryResult.Status.RowsExamined)
+	s.EqualValues(4, queryResult.Status.RowsMatched)
+	s.Len(queryResult.Matches, 4)
+}

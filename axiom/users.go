@@ -2,9 +2,9 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 //go:generate ../bin/stringer -type=UserRole -linecomment -output=users_string.go
@@ -23,14 +23,16 @@ const (
 // MarshalJSON implements json.Marshaler. It is in place to marshal the
 // UserRole to its string representation because that's what the server expects.
 func (ur UserRole) MarshalJSON() ([]byte, error) {
-	s := fmt.Sprintf("%q", ur)
-	return []byte(s), nil
+	return json.Marshal(ur.String())
 }
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // UserRole from the string representation the server returns.
 func (ur *UserRole) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), `"`)
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
 
 	switch s {
 	case RoleReadOnly.String():

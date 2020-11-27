@@ -541,8 +541,126 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
-// TODO(lukasmalkmus): Write a test that contains some failures in the server
-// response.
+// TODO(lukasmalkmus): Write an ingest test that contains some failures in the
+// server response.
+
+func TestDatasetsService_Query(t *testing.T) {
+	exp := &QueryResult{
+		Status: QueryStatus{
+			ElapsedTime:    542114 * time.Microsecond,
+			BlocksExamined: 4,
+			RowsExamined:   142655,
+			RowsMatched:    142655,
+			NumGroups:      0,
+			IsPartial:      false,
+			CacheStatus:    1,
+			MinBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
+			MaxBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-27T12:06:38.966791794Z"),
+		},
+		Matches: []Entry{
+			{
+				Time:    mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
+				SysTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
+				RowID:   "c776x1uafkpu-4918f6cb9000095-0",
+				Data: map[string]interface{}{
+					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes":       float64(0),
+					"referrer":    "-",
+					"remote_ip":   "93.180.71.3",
+					"remote_user": "-",
+					"request":     "GET /downloads/product_1 HTTP/1.1",
+					"response":    float64(304),
+					"time":        "17/May/2015:08:05:32 +0000",
+				},
+			},
+			{
+				Time:    mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569479846Z"),
+				SysTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
+				RowID:   "c776x1uafnvq-4918f6cb9000095-1",
+				Data: map[string]interface{}{
+					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes":       float64(0),
+					"referrer":    "-",
+					"remote_ip":   "93.180.71.3",
+					"remote_user": "-",
+					"request":     "GET /downloads/product_1 HTTP/1.1",
+					"response":    float64(304),
+					"time":        "17/May/2015:08:05:23 +0000",
+				},
+			},
+		},
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+
+		assert.Equal(t, "1s", r.URL.Query().Get("streaming-duration"))
+		assert.Equal(t, "true", r.URL.Query().Get("no-cache"))
+
+		_, err := fmt.Fprint(w, `{
+			"status": {
+				"elapsedTime": 542114,
+				"blocksExamined": 4,
+				"rowsExamined": 142655,
+				"rowsMatched": 142655,
+				"numGroups": 0,
+				"isPartial": false,
+				"cacheStatus": 1,
+				"minBlockTime": "2020-11-19T11:06:31.569475746Z",
+				"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
+			},
+			"matches": [
+				{
+					"_time": "2020-11-19T11:06:31.569475746Z",
+					"_sysTime": "2020-11-19T11:06:31.581384524Z",
+					"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
+					"data": {
+						"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+						"bytes": 0,
+						"referrer": "-",
+						"remote_ip": "93.180.71.3",
+						"remote_user": "-",
+						"request": "GET /downloads/product_1 HTTP/1.1",
+						"response": 304,
+						"time": "17/May/2015:08:05:32 +0000"
+					}
+				},
+				{
+					"_time": "2020-11-19T11:06:31.569479846Z",
+					"_sysTime": "2020-11-19T11:06:31.581384524Z",
+					"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
+					"data": {
+						"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+						"bytes": 0,
+						"referrer": "-",
+						"remote_ip": "93.180.71.3",
+						"remote_user": "-",
+						"request": "GET /downloads/product_1 HTTP/1.1",
+						"response": 304,
+						"time": "17/May/2015:08:05:23 +0000"
+					}
+				}
+			]
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/query", hf)
+	defer teardown()
+
+	res, err := client.Datasets.Query(context.Background(), "test", Query{
+		StartTime:  mustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
+		EndTime:    mustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
+		Resolution: Resolution(time.Minute),
+	}, QueryOptions{
+		StreamingDuration: time.Second,
+		NoCache:           true,
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
 
 func TestGZIPStreamer(t *testing.T) {
 	exp := "Some fox jumps over a fence."
@@ -576,4 +694,27 @@ func assertValidJSON(t *testing.T, r io.Reader) bool {
 	}
 
 	return true
+}
+
+func TestResolution_MarshalJSON(t *testing.T) {
+	tests := []struct {
+		in  Resolution
+		exp string
+	}{
+		{Resolution(time.Minute), "1m0s"},
+		{Resolution(time.Second + 500*time.Millisecond), "1.5s"},
+		{Resolution(time.Second), "1s"},
+		{0, "auto"},
+	}
+	for _, tt := range tests {
+		t.Run(time.Duration(tt.in).String(), func(t *testing.T) {
+			got, err := tt.in.MarshalJSON()
+			require.NoError(t, err)
+
+			// Cut "" because JSON marshalling returns a JSON string value.
+			act := strings.Trim(string(got), `"`)
+
+			assert.Equal(t, tt.exp, act)
+		})
+	}
 }
