@@ -70,10 +70,8 @@ const (
 	OpNotStartsWith FilterOp = "not-starts-with"
 	OpEndsWith      FilterOp = "ends-with"
 	OpNotEndsWith   FilterOp = "not-ends-with"
-	// Uses `regexp.Compile` internally.
-	OpRegexp FilterOp = "regexp"
-	// Uses `regexp.Compile` internally.
-	OpNotRegexp FilterOp = "not-regexp"
+	OpRegexp        FilterOp = "regexp"     // Uses `regexp.Compile` internally.
+	OpNotRegexp     FilterOp = "not-regexp" // Uses `regexp.Compile` internally.
 
 	// Works for strings and arrays.
 	OpContains    FilterOp = "contains"
@@ -99,24 +97,6 @@ const (
 	OpPercentiles AggregationOp = "percentiles"
 	OpHistogram   AggregationOp = "histogram"
 )
-
-// Resolution of a query.
-// TODO(lukasmalkmus): Get rid of this an write a costum JSON Marshaller for the
-// Query type so the user doesn't need to convert to Resolution type first.
-type Resolution time.Duration
-
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
-// Resolution to its string representation because that's what the server
-// expects.
-func (r Resolution) MarshalJSON() ([]byte, error) {
-	// If the resolution is not specified, it is set to auto for resolution
-	// auto-detection on the server side.
-	if r == 0 {
-		return []byte(`"auto"`), nil
-	}
-
-	return json.Marshal(time.Duration(r).String())
-}
 
 // An Event is a map of key-value pairs.
 type Event map[string]interface{}
@@ -222,20 +202,101 @@ type Query struct {
 	// EndTime of the query. Required.
 	EndTime time.Time `json:"endTime"`
 	// Resolution of the queries graph. Valid values are the queries time
-	// range / 100 at maximum and / 1000 at minimum. Leave unset for serve-side
-	// auto-detection.
-	Resolution Resolution `json:"resolution"`
-
-	// Aggregations   []Aggregation   `json:"aggregations"`
-	// Filter         Filter          `json:"filter"`
-	// GroupBy        []string        `json:"groupBy"`
-	// Order          []Order         `json:"order"`
-	// Limit          uint32          `json:"limit"`
-	// VirtualColumns []VirtualColumn `json:"virtualFields"`
-
+	// range / 100 at maximum and / 1000 at minimum. Use zero value for
+	// serve-side auto-detection.
+	Resolution time.Duration `json:"resolution"`
+	// Aggregations performed as part of the query.
+	Aggregations []Aggregation `json:"aggregations"`
+	// Filter applied on the queried results.
+	// TODO(lukasmalkmus): Be more accurate! When is a filter applied in the
+	// query lifecycle?
+	Filter Filter `json:"filter"`
+	// GroupBy specifies a list of field names to group the query result by.
+	GroupBy []string `json:"groupBy"`
+	// Order specifies a list of order rules that specify the order of the query
+	// result.
+	Order []Order `json:"order"`
+	// Limit the amount of results returned from the query.
+	Limit uint32 `json:"limit"`
+	// VirtualColumns specifies a list of virtual fields that can be referenced
+	// by aggregations, filters and orders.
+	VirtualColumns []VirtualColumn `json:"virtualFields"`
 	// Cursor is the query cursor.
 	// TODO(lukasmalkmus): What is a query cursor?
 	Cursor string `json:"cursor"`
+}
+
+// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// Resolution to its string representation because that's what the server
+// expects.
+func (q Query) MarshalJSON() ([]byte, error) {
+	type LocalQuery Query
+	localQuery := struct {
+		LocalQuery
+
+		Resolution string `json:"resolution"`
+	}{
+		LocalQuery: LocalQuery(q),
+
+		Resolution: q.Resolution.String(),
+	}
+
+	// If the resolution is not specified, it is set to auto for resolution
+	// auto-detection on the server side.
+	if q.Resolution == 0 {
+		localQuery.Resolution = "auto"
+	}
+
+	return json.Marshal(localQuery)
+}
+
+// Aggregation performed as part of a query.
+type Aggregation struct {
+	// Op is the operation of the aggregation.
+	Op AggregationOp `json:"op"`
+	// Field the aggregation operation is performed on.
+	Field string `json:"field"`
+	// Argument to the aggregation.
+	// TODO(lukasmalkmus): What exactly is an argument to an aggregation?
+	Argument interface{} `json:"argument"`
+}
+
+// Filter applied as part of a query.
+type Filter struct {
+	// Op is the operation of the filter.
+	Op FilterOp `json:"op"`
+	// Field the filter operation is performed on.
+	Field string `json:"field"`
+	// Value to perform the filter operation against.
+	Value interface{} `json:"value"`
+	// CaseInsensitive specifies if the filter is case insensitive or not. Only
+	// valid for OpStartsWith, OpNotStartsWith, OpEndsWith, OpNotEndsWith,
+	// OpContains and OpNotContains.
+	// TODO(lukasmalkmus): Why not "==" and "!="?
+	CaseInsensitive bool `json:"caseInsensitive"`
+	// Children specifies child filters for the filter. Only valid for OpAnd,
+	// OpOr and OpNot.
+	Children []Filter `json:"children"`
+}
+
+// Order specifies the order a queries result will be in.
+type Order struct {
+	// Field to order on.
+	Field string `json:"field"`
+	// Desc specifies if the field is ordered ascending or descending.
+	Desc bool `json:"desc"`
+}
+
+// A VirtualColumn is not part of a dataset and its value is derived from an
+// expression. Aggregations, filters and orders can reference this field like
+// any other field.
+// TODO(lukasmalkmus): Why is this not called VirtualField (apart from the name
+// clashing with the type in vfields.go).
+type VirtualColumn struct {
+	// Alias the virtual field is referenced by.
+	Alias string `json:"alias"`
+	// Expression which specifies the virtual fields value.
+	Expression string `json:"expr"`
 }
 
 // QueryResult is the result of a query.
@@ -245,7 +306,7 @@ type QueryResult struct {
 	// Matches are the events that matched the query.
 	Matches []Entry `json:"matches"`
 	// Buckets are the time series buckets.
-	// Buckets Timeseries `json:"buckets"`
+	Buckets Timeseries `json:"buckets"`
 }
 
 // QueryStatus is the status of a query result.
@@ -305,10 +366,48 @@ type Entry struct {
 	Data map[string]interface{} `json:"data"`
 }
 
+// Timeseries are queried time series.
+type Timeseries struct {
+	// Series are the intervals that build a time series.
+	Series []Interval `json:"series"`
+	// Totals of the time series.
+	Totals []EntryGroup `json:"totals"`
+}
+
+// Interval is the interval of queried time series.
+type Interval struct {
+	// StartTime of the interval.
+	StartTime time.Time `json:"startTime"`
+	// EndTime of the interval.
+	EndTime time.Time `json:"endTime"`
+	// Groups of the interval.
+	Groups []EntryGroup `json:"groups"`
+}
+
+// EntryGroup is a group of queried event.
+type EntryGroup struct {
+	// ID of the group.
+	ID uint64 `json:"id"`
+	// Group ...
+	// TODO(lukasmalkmus): What is this?
+	Group map[string]interface{} `json:"group"`
+	// Aggregations of the group.
+	Aggregations []EntryGroupAgg `json:"aggregations"`
+}
+
+// EntryGroupAgg is an aggregation which is part of a group of queried events.
+type EntryGroupAgg struct {
+	// Op is the aggregations operation.
+	Op AggregationOp `json:"op"`
+	// Value is the result value of the aggregation.
+	Value interface{} `json:"value"`
+}
+
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
 	// Name of the dataset to create. Restricted to 128 bytes and can not
 	// contain the "axiom-" prefix.
+	// TODO(lukasmalkmus): Clarify naming constraints.
 	Name string `json:"name"`
 	// Description of the dataset to create.
 	Description string `json:"description"`

@@ -589,6 +589,10 @@ func TestDatasetsService_Query(t *testing.T) {
 				},
 			},
 		},
+		Buckets: Timeseries{
+			Series: []Interval{},
+			Totals: []EntryGroup{},
+		},
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -641,7 +645,11 @@ func TestDatasetsService_Query(t *testing.T) {
 						"time": "17/May/2015:08:05:23 +0000"
 					}
 				}
-			]
+			],
+			"buckets": {
+				"series": [],
+				"totals": []
+			}
 		}`)
 		assert.NoError(t, err)
 	}
@@ -650,9 +658,8 @@ func TestDatasetsService_Query(t *testing.T) {
 	defer teardown()
 
 	res, err := client.Datasets.Query(context.Background(), "test", Query{
-		StartTime:  mustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
-		EndTime:    mustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
-		Resolution: Resolution(time.Minute),
+		StartTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
+		EndTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
 	}, QueryOptions{
 		StreamingDuration: time.Second,
 		NoCache:           true,
@@ -696,25 +703,28 @@ func assertValidJSON(t *testing.T, r io.Reader) bool {
 	return true
 }
 
-func TestResolution_MarshalJSON(t *testing.T) {
+// TestQuery_MarshalJSON is a primitive test that makes sure the resolution of a
+// query is properly marshalled into a string that is "auto" on zero resolution.
+func TestQuery_MarshalJSON(t *testing.T) {
 	tests := []struct {
-		in  Resolution
-		exp string
+		input time.Duration
+		exp   string
 	}{
-		{Resolution(time.Minute), "1m0s"},
-		{Resolution(time.Second + 500*time.Millisecond), "1.5s"},
-		{Resolution(time.Second), "1s"},
+		{time.Minute + 30*time.Second, "1m30s"},
+		{time.Second, "1s"},
 		{0, "auto"},
 	}
 	for _, tt := range tests {
-		t.Run(time.Duration(tt.in).String(), func(t *testing.T) {
-			got, err := tt.in.MarshalJSON()
+		t.Run(tt.input.String(), func(t *testing.T) {
+			q := Query{
+				Resolution: tt.input,
+			}
+
+			act, err := q.MarshalJSON()
 			require.NoError(t, err)
+			require.NotEmpty(t, act)
 
-			// Cut "" because JSON marshalling returns a JSON string value.
-			act := strings.Trim(string(got), `"`)
-
-			assert.Equal(t, tt.exp, act)
+			assert.Contains(t, string(act), tt.exp)
 		})
 	}
 }

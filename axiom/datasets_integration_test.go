@@ -171,8 +171,8 @@ func (s *DatasetsTestSuite) TestQuery() {
 	s.T().Skip("Activate if we know why the result set is empty.")
 
 	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, axiom.Query{
-		StartTime: time.Time{},
-		EndTime:   time.Now(),
+		StartTime: time.Now().UTC().Add(-time.Minute),
+		EndTime:   time.Now().UTC(),
 	}, axiom.QueryOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(queryResult)
