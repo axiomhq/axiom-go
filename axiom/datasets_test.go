@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/axiomhq/axiom-go/axiom/query"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -545,8 +547,8 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 // server response.
 
 func TestDatasetsService_Query(t *testing.T) {
-	exp := &QueryResult{
-		Status: QueryStatus{
+	exp := &query.Result{
+		Status: query.Status{
 			ElapsedTime:    542114 * time.Microsecond,
 			BlocksExamined: 4,
 			RowsExamined:   142655,
@@ -557,7 +559,7 @@ func TestDatasetsService_Query(t *testing.T) {
 			MinBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
 			MaxBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-27T12:06:38.966791794Z"),
 		},
-		Matches: []Entry{
+		Matches: []query.Entry{
 			{
 				Time:    mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
 				SysTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
@@ -589,9 +591,9 @@ func TestDatasetsService_Query(t *testing.T) {
 				},
 			},
 		},
-		Buckets: Timeseries{
-			Series: []Interval{},
-			Totals: []EntryGroup{},
+		Buckets: query.Timeseries{
+			Series: []query.Interval{},
+			Totals: []query.EntryGroup{},
 		},
 	}
 
@@ -657,10 +659,10 @@ func TestDatasetsService_Query(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/datasets/test/query", hf)
 	defer teardown()
 
-	res, err := client.Datasets.Query(context.Background(), "test", Query{
+	res, err := client.Datasets.Query(context.Background(), "test", query.Query{
 		StartTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
 		EndTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
-	}, QueryOptions{
+	}, query.Options{
 		StreamingDuration: time.Second,
 		NoCache:           true,
 	})
@@ -701,30 +703,4 @@ func assertValidJSON(t *testing.T, r io.Reader) bool {
 	}
 
 	return true
-}
-
-// TestQuery_MarshalJSON is a primitive test that makes sure the resolution of a
-// query is properly marshalled into a string that is "auto" on zero resolution.
-func TestQuery_MarshalJSON(t *testing.T) {
-	tests := []struct {
-		input time.Duration
-		exp   string
-	}{
-		{time.Minute + 30*time.Second, "1m30s"},
-		{time.Second, "1s"},
-		{0, "auto"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.input.String(), func(t *testing.T) {
-			q := Query{
-				Resolution: tt.input,
-			}
-
-			act, err := q.MarshalJSON()
-			require.NoError(t, err)
-			require.NotEmpty(t, act)
-
-			assert.Contains(t, string(act), tt.exp)
-		})
-	}
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 const ingestData = `[
@@ -170,10 +171,10 @@ func (s *DatasetsTestSuite) TestIngestEvents() {
 func (s *DatasetsTestSuite) TestQuery() {
 	s.T().Skip("Activate if we know why the result set is empty.")
 
-	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, axiom.Query{
+	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
 		StartTime: time.Now().UTC().Add(-time.Minute),
 		EndTime:   time.Now().UTC(),
-	}, axiom.QueryOptions{})
+	}, query.Options{})
 	s.Require().NoError(err)
 	s.Require().NotNil(queryResult)
 

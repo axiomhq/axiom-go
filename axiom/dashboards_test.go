@@ -2,7 +2,6 @@ package axiom
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -520,7 +519,7 @@ func TestDashboardsService_Delete(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestDashboard_Marshal(t *testing.T) {
+func TestDashboard_MarshalJSON(t *testing.T) {
 	exp := `{
 		"name": "Test",
 		"refreshTime": 5,
@@ -535,24 +534,24 @@ func TestDashboard_Marshal(t *testing.T) {
 		"version": ""
 	}`
 
-	b, err := json.Marshal(Dashboard{
+	b, err := Dashboard{
 		Name:        "Test",
 		RefreshTime: 5 * time.Second,
-	})
+	}.MarshalJSON()
 	require.NoError(t, err)
 	require.NotEmpty(t, b)
 
 	assert.JSONEq(t, exp, string(b))
 }
 
-func TestDashboard_Unmarshal(t *testing.T) {
+func TestDashboard_UnmarshalJSON(t *testing.T) {
 	exp := Dashboard{
 		Name:        "Test",
 		RefreshTime: 5 * time.Second,
 	}
 
 	var act Dashboard
-	err := json.Unmarshal([]byte(`{ "name": "Test", "refreshTime": 5 }`), &act)
+	err := act.UnmarshalJSON([]byte(`{ "name": "Test", "refreshTime": 5 }`))
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, act)
