@@ -16,7 +16,7 @@
 // 	Get the version of the configured deployment:
 //	version, err := client.Version.Get(ctx)
 //
-// Some API methods have optional parameters that can be passed:
+// Some API methods have additional parameters that can be passed:
 //
 //	dashboards, err := client.Dashboards.List(ctx, axiom.ListOptions{
 //		Limit: 5,

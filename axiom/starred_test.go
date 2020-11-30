@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-querystring/query"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -303,4 +304,26 @@ func TestStarredQueriesService_Delete(t *testing.T) {
 
 	err := client.StarredQueries.Delete(context.Background(), "NBYj9rO5p4F5CtYEy6")
 	require.NoError(t, err)
+}
+
+func TestQueryKind_EncodeValues(t *testing.T) {
+	exp := "queryKind=analytics"
+
+	qs, err := query.Values(struct {
+		QueryKind QueryKind `url:"queryKind"`
+	}{
+		QueryKind: QueryKindAnalytics,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, qs.Encode())
+
+	assert.Equal(t, exp, qs.Encode())
+}
+
+func TestQueryKind_String(t *testing.T) {
+	for c := QueryKindAnalytics; c <= QueryKindStream; c++ {
+		s := c.String()
+		assert.NotEmpty(t, s)
+		assert.NotContains(t, s, "QueryKind(")
+	}
 }

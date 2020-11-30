@@ -40,6 +40,7 @@ func TestNewClient(t *testing.T) {
 	// Are endpoints/resources present?
 	assert.NotNil(t, client.Dashboards)
 	assert.NotNil(t, client.Datasets)
+	assert.NotNil(t, client.Monitors)
 	assert.NotNil(t, client.StarredQueries)
 	assert.NotNil(t, client.Teams)
 	assert.NotNil(t, client.Tokens.Ingest)
@@ -231,5 +232,6 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 func mustTimeParse(t *testing.T, layout, value string) time.Time {
 	ts, err := time.Parse(layout, value)
 	require.NoError(t, err)
+	require.False(t, ts.IsZero())
 	return ts
 }

@@ -285,3 +285,11 @@ func TestUserRole_Unmarshal(t *testing.T) {
 
 	assert.Equal(t, RoleReadOnly, act.Role)
 }
+
+func TestUserRole_String(t *testing.T) {
+	for r := RoleReadOnly; r <= RoleAdmin; r++ {
+		s := r.String()
+		assert.NotEmpty(t, s)
+		assert.NotContains(t, s, "UserRole(")
+	}
+}

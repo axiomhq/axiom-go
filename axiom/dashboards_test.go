@@ -2,6 +2,7 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -519,10 +520,31 @@ func TestDashboardsService_Delete(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestDashboard(t *testing.T) {
+	exp := Dashboard{
+		ID:            "buTFUddK4X5845Qwzv",
+		Name:          "Test",
+		Description:   "A test dashboard",
+		RefreshTime:   time.Second,
+		SchemaVersion: 2,
+		Version:       "1605882077469288241",
+	}
+
+	b, err := json.Marshal(exp)
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	var act Dashboard
+	err = json.Unmarshal(b, &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, act)
+}
+
 func TestDashboard_MarshalJSON(t *testing.T) {
 	exp := `{
-		"name": "Test",
-		"refreshTime": 5,
+		"name": "",
+		"refreshTime": 1,
 		"owner": "",
 		"description": "",
 		"charts": null,
@@ -534,24 +556,22 @@ func TestDashboard_MarshalJSON(t *testing.T) {
 		"version": ""
 	}`
 
-	b, err := Dashboard{
-		Name:        "Test",
-		RefreshTime: 5 * time.Second,
+	act, err := Dashboard{
+		RefreshTime: time.Second,
 	}.MarshalJSON()
 	require.NoError(t, err)
-	require.NotEmpty(t, b)
+	require.NotEmpty(t, act)
 
-	assert.JSONEq(t, exp, string(b))
+	assert.JSONEq(t, exp, string(act))
 }
 
 func TestDashboard_UnmarshalJSON(t *testing.T) {
 	exp := Dashboard{
-		Name:        "Test",
-		RefreshTime: 5 * time.Second,
+		RefreshTime: time.Second,
 	}
 
 	var act Dashboard
-	err := act.UnmarshalJSON([]byte(`{ "name": "Test", "refreshTime": 5 }`))
+	err := act.UnmarshalJSON([]byte(`{ "refreshTime": 1 }`))
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, act)

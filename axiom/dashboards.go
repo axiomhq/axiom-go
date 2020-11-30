@@ -22,10 +22,16 @@ type Dashboard struct {
 	// Layout contains the raw data composing the dashboards layout.
 	Layout []interface{} `json:"layout"`
 	// RefreshTime is the duration after which the dashboards data is updated.
-	RefreshTime     time.Duration `json:"refreshTime"`
-	SchemaVersion   int           `json:"schemaVersion"`
-	TimeWindowStart string        `json:"timeWindowStart"`
-	TimeWindowEnd   string        `json:"timeWindowEnd"`
+	RefreshTime time.Duration `json:"refreshTime"`
+	// SchemaVersion ...
+	// TODO(lukasmalkmus): Better docs.
+	SchemaVersion int `json:"schemaVersion"`
+	// TimeWindowStart ...
+	// TODO(lukasmalkmus): Better docs.
+	TimeWindowStart string `json:"timeWindowStart"`
+	// TimeWindowEnd ...
+	// TODO(lukasmalkmus): Better docs.
+	TimeWindowEnd string `json:"timeWindowEnd"`
 	// Version of the dashboard.
 	Version string `json:"version"`
 }
