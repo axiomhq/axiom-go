@@ -14,10 +14,10 @@ func Example() {
 		log.Fatal(err)
 	}
 
-	datasets, err := client.Datasets.List(context.Background())
+	version, err := client.Version.Get(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(datasets)
+	fmt.Println(version)
 }
