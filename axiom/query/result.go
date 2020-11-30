@@ -41,6 +41,18 @@ type Status struct {
 	MaxBlockTime time.Time `json:"maxBlockTime"`
 }
 
+// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// ElapsedTime into its microsecond representation because that's what the
+// server expects.
+func (s Status) MarshalJSON() ([]byte, error) {
+	type localStatus Status
+
+	// Set to the value in microseconds.
+	s.ElapsedTime = time.Duration(s.ElapsedTime.Microseconds())
+
+	return json.Marshal(localStatus(s))
+}
+
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // ElapsedTime into a proper time.Duration value because the server returns it
 // in microseconds.

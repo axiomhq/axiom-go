@@ -60,6 +60,32 @@ func (q Query) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localQuery)
 }
 
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// Resolutionstring value to a proper time.Duration because that's what the
+// server returns.
+func (q *Query) UnmarshalJSON(b []byte) error {
+	type LocalQuery Query
+	localQuery := struct {
+		*LocalQuery
+
+		Resolution string `json:"resolution"`
+	}{
+		LocalQuery: (*LocalQuery)(q),
+	}
+
+	if err := json.Unmarshal(b, &localQuery); err != nil {
+		return err
+	}
+
+	// If the resolution is not specified, parsing it is omitted.
+	var err error
+	if s := localQuery.Resolution; s != "" && s != "auto" {
+		q.Resolution, err = time.ParseDuration(s)
+	}
+
+	return err
+}
+
 // Order specifies the order a queries result will be in.
 type Order struct {
 	// Field to order on.

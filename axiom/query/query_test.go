@@ -1,6 +1,8 @@
 package query
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -8,8 +10,58 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestQuery_MarshalJSON is a primitive test that makes sure the resolution of a
-// query is properly marshalled into a string that is "auto" on zero resolution.
+func TestQuery(t *testing.T) {
+	exp := Query{
+		StartTime:  time.Now().UTC(),
+		EndTime:    time.Now().UTC().Add(-time.Hour),
+		Resolution: time.Second,
+		GroupBy:    []string{"hello", "world"},
+		Aggregations: []Aggregation{
+			{
+				Op:    OpAvg,
+				Field: "hostname",
+			},
+		},
+		Filter: Filter{
+			Op: OpOr,
+			Children: []Filter{
+				{
+					Field: "hostname",
+					Op:    OpEqual,
+					Value: "foo",
+				},
+				{
+					Field: "hostname",
+					Op:    OpEqual,
+					Value: "bar",
+				},
+			},
+		},
+		Order: []Order{
+			{
+				Field: "_timestamp",
+			},
+		},
+		VirtualFields: []VirtualField{
+			{
+				Alias:      "virtA",
+				Expression: "status*2",
+			},
+		},
+		Cursor: "c28qdg7oec7w-40-20",
+	}
+
+	b, err := json.Marshal(exp)
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	var act Query
+	err = json.Unmarshal(b, &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, act)
+}
+
 func TestQuery_MarshalJSON(t *testing.T) {
 	tests := []struct {
 		input time.Duration
@@ -30,6 +82,31 @@ func TestQuery_MarshalJSON(t *testing.T) {
 			require.NotEmpty(t, act)
 
 			assert.Contains(t, string(act), tt.exp)
+		})
+	}
+}
+
+func TestQuery_UnarshalJSON(t *testing.T) {
+	tests := []struct {
+		input string
+		exp   time.Duration
+	}{
+		{"1m30s", time.Minute + 30*time.Second},
+		{"1s", time.Second},
+		{"auto", 0},
+		{"", 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			exp := Query{
+				Resolution: tt.exp,
+			}
+
+			var act Query
+			err := act.UnmarshalJSON([]byte(fmt.Sprintf(`{ "resolution": "%s" }`, tt.input)))
+			require.NoError(t, err)
+
+			assert.Equal(t, exp, act)
 		})
 	}
 }
