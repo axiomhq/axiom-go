@@ -80,8 +80,9 @@ func main() {
 
 	fmt.Println(datasets)
 }
-
 ```
+
+More examples can be found in the [example folder](example).
 
 ## Contributing
 
