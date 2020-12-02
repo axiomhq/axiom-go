@@ -227,7 +227,7 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
-		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
+		if val := resp.Header.Get("content-type"); !strings.HasPrefix(val, "application/json") {
 			return Error{
 				Message:    http.StatusText(statusCode),
 				statusCode: statusCode,
