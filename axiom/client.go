@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+// AxiomCloudURL is the url of the cloud hosted version of Axiom.
+const AxiomCloudURL = "https://cloud.axiom.co"
+
 // ErrUnauthenticated is raised when the access token isn't valid.
 var ErrUnauthenticated = errors.New("invalid authentication credentials")
 
@@ -128,6 +131,12 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 	}
 
 	return client, nil
+}
+
+// NewCloudClient is like NewClient but assumes the official Axiom Cloud url as
+// base url.
+func NewCloudClient(accessToken string, options ...Option) (*Client, error) {
+	return NewClient(AxiomCloudURL, accessToken, options...)
 }
 
 // Options applies Options to a client instance.

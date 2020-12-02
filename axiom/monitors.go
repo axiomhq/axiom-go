@@ -81,8 +81,7 @@ type Monitor struct {
 	NoDataCloseWait time.Duration `json:"noDataCloseWaitMinutes"`
 	// Frequency the monitor is executed by.
 	Frequency time.Duration `json:"frequencyMinutes"`
-	// Duration ...
-	// TODO(lukasmalkmus): uhm... Help @ronoc?
+	// Duration the monitor goes back in time and looks at the data it acts on.
 	Duration time.Duration `json:"durationMinutes"`
 	// Notifiers attached to the monitor.
 	Notifiers []string `json:"notifiers"`

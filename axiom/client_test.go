@@ -56,6 +56,15 @@ func TestNewClient(t *testing.T) {
 	assert.NotNil(t, client.httpClient)
 }
 
+func TestNewCloudClient(t *testing.T) {
+	client, err := NewCloudClient(accessToken)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	// Is default configuration present?
+	assert.Equal(t, AxiomCloudURL, client.baseURL.String())
+}
+
 func TestClient_Options_SetClient(t *testing.T) {
 	client, _ := NewClient(endpoint, accessToken)
 
