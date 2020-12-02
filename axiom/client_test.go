@@ -62,7 +62,7 @@ func TestNewCloudClient(t *testing.T) {
 	require.NotNil(t, client)
 
 	// Is default configuration present?
-	assert.Equal(t, AxiomCloudURL, client.baseURL.String())
+	assert.Equal(t, CloudURL, client.baseURL.String())
 }
 
 func TestClient_Options_SetClient(t *testing.T) {
