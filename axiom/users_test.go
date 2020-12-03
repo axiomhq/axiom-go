@@ -287,7 +287,11 @@ func TestUserRole_Unmarshal(t *testing.T) {
 }
 
 func TestUserRole_String(t *testing.T) {
-	for r := RoleReadOnly; r <= RoleAdmin; r++ {
+	// Check outer bounds.
+	assert.Contains(t, (RoleReadOnly - 1).String(), "UserRole(")
+	assert.Contains(t, (RoleOwner + 1).String(), "UserRole(")
+
+	for r := RoleReadOnly; r <= RoleOwner; r++ {
 		s := r.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "UserRole(")

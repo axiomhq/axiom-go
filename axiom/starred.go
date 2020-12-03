@@ -12,7 +12,7 @@ import (
 // QueryKind represents the role of a query.
 type QueryKind uint8
 
-// All available query roles.
+// All available query kinds.
 const (
 	QueryKindAnalytics QueryKind = iota + 1 // analytics
 	QueryKindStream                         // stream

@@ -321,6 +321,10 @@ func TestQueryKind_EncodeValues(t *testing.T) {
 }
 
 func TestQueryKind_String(t *testing.T) {
+	// Check outer bounds.
+	assert.Contains(t, (QueryKindAnalytics - 1).String(), "QueryKind(")
+	assert.Contains(t, (QueryKindStream + 1).String(), "QueryKind(")
+
 	for c := QueryKindAnalytics; c <= QueryKindStream; c++ {
 		s := c.String()
 		assert.NotEmpty(t, s)

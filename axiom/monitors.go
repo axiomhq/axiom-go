@@ -16,7 +16,7 @@ import (
 // the result of comparing a query result with a threshold.
 type Comparison uint8
 
-// All available comparisons.
+// All available monitor comparison modes.
 const (
 	Below Comparison = iota + 1
 	BelowOrEqual
@@ -55,7 +55,9 @@ func (c *Comparison) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Monitor ...
+// A Monitor continuesly runs a query on a dataset and evaluates its result
+// against a configured threshold. Upon reaching those it will invoke the
+// configured notifiers.
 type Monitor struct {
 	// ID is the unique id of the monitor.
 	ID string `json:"id"`

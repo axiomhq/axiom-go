@@ -251,9 +251,96 @@ func TestComparison_Unmarshal(t *testing.T) {
 }
 
 func TestComparison_String(t *testing.T) {
+	// Check outer bounds.
+	assert.Contains(t, (Below - 1).String(), "Comparison(")
+	assert.Contains(t, (AboveOrEqual + 1).String(), "Comparison(")
+
 	for c := Below; c <= AboveOrEqual; c++ {
 		s := c.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Comparison(")
 	}
+}
+
+func TestMonitor(t *testing.T) {
+	exp := Monitor{
+		ID:          "lrR66wmzYm9NKtq0rz",
+		Dataset:     "test",
+		Name:        "Test",
+		Description: "A test monitor",
+		Threshold:   21.25,
+		Comparison:  AboveOrEqual,
+	}
+
+	b, err := json.Marshal(exp)
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	var act Monitor
+	err = json.Unmarshal(b, &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, act)
+}
+
+func TestMonitor_MarshalJSON(t *testing.T) {
+	exp := `{
+		"id": "",
+		"dataset": "",
+		"name": "",
+		"description": "",
+		"disabledUntil": "0001-01-01T00:00:00Z",
+		"query": {
+			"startTime": "0001-01-01T00:00:00Z",
+			"endTime": "0001-01-01T00:00:00Z",
+			"aggregations": null,
+			"filter": {
+				"op": "",
+				"field": "",
+				"value": null,
+				"caseInsensitive": false,
+				"children": null
+			},
+			"groupBy": null,
+			"order": null,
+			"limit": 0,
+			"virtualFields": null,
+			"cursor": "",
+			"resolution": "auto"
+		},
+		"threshold": 0,
+		"comparison": "Comparison(0)",
+		"noDataCloseWaitMinutes": 1,
+		"frequencyMinutes": 2,
+		"durationMinutes": 3,
+		"notifiers": null,
+		"lastCheckTime": "0001-01-01T00:00:00Z",
+		"lastCheckState": null
+	}`
+
+	act, err := Monitor{
+		NoDataCloseWait: time.Minute,
+		Frequency:       2 * time.Minute,
+		Duration:        3 * time.Minute,
+	}.MarshalJSON()
+	require.NoError(t, err)
+	require.NotEmpty(t, act)
+
+	fmt.Println(string(act))
+
+	assert.JSONEq(t, exp, string(act))
+}
+
+func TestMonitor_UnmarshalJSON(t *testing.T) {
+	exp := Monitor{
+		NoDataCloseWait: time.Minute,
+		Frequency:       2 * time.Minute,
+		Duration:        3 * time.Minute,
+	}
+
+	var act Monitor
+	err := act.UnmarshalJSON([]byte(`{ "noDataCloseWaitMinutes": 1, "frequencyMinutes": 2, "durationMinutes": 3 }`))
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, act)
 }
