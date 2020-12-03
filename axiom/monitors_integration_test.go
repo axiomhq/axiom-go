@@ -55,6 +55,7 @@ func (s *MonitorsTestSuite) TestUpdate() {
 	monitor, err := s.client.Monitors.Update(s.suiteCtx, s.monitor.ID, axiom.Monitor{
 		Name:        "Updated Test Monitor",
 		Description: "A very good test monitor",
+		Comparison:  axiom.AboveOrEqual,
 		// TODO(lukasmalkmus): Probably add user and dataset.
 	})
 	s.Require().NoError(err)
