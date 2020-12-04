@@ -18,8 +18,6 @@ type Query struct {
 	// Aggregations performed as part of the query.
 	Aggregations []Aggregation `json:"aggregations"`
 	// Filter applied on the queried results.
-	// TODO(lukasmalkmus): Be more accurate! When is a filter applied in the
-	// query lifecycle?
 	Filter Filter `json:"filter"`
 	// GroupBy specifies a list of field names to group the query result by.
 	GroupBy []string `json:"groupBy"`
@@ -31,8 +29,8 @@ type Query struct {
 	// VirtualFields specifies a list of virtual fields that can be referenced
 	// by aggregations, filters and orders.
 	VirtualFields []VirtualField `json:"virtualFields"`
-	// Cursor is the query cursor.
-	// TODO(lukasmalkmus): What is a query cursor?
+	// Cursor is the query cursor. It should be set to the Cursor returned with
+	// a previous query result if it was partial.
 	Cursor string `json:"cursor"`
 }
 

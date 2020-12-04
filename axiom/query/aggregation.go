@@ -26,7 +26,7 @@ type Aggregation struct {
 	Op AggregationOp `json:"op"`
 	// Field the aggregation operation is performed on.
 	Field string `json:"field"`
-	// Argument to the aggregation.
-	// TODO(lukasmalkmus): What exactly is an argument to an aggregation?
+	// Argument to the aggregation. Only valid for some operations.
+	// TODO(lukasmalkmus): List operations which support an argument.
 	Argument interface{} `json:"argument"`
 }
