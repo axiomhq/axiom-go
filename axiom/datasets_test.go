@@ -555,7 +555,6 @@ func TestDatasetsService_Query(t *testing.T) {
 			RowsMatched:    142655,
 			NumGroups:      0,
 			IsPartial:      false,
-			CacheStatus:    1,
 			MinBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
 			MaxBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-27T12:06:38.966791794Z"),
 		},

@@ -32,9 +32,6 @@ type Status struct {
 	IsPartial bool `json:"isPartial"`
 	// IsEstimate describes if the query result is estimated.
 	IsEstimate bool `json:"isEstimate"`
-	// CacheStatus describes the effects the query had on cache.
-	// TODO(lukasmalkmus): Better docs: What do the returned values mean?
-	CacheStatus uint8 `json:"cacheStatus"`
 	// MinBlockTime is the timestamp of the oldest block examined.
 	MinBlockTime time.Time `json:"minBlockTime"`
 	// MaxBlockTime is the timestamp of the newest block examined.
@@ -56,7 +53,6 @@ func (s Status) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // ElapsedTime into a proper time.Duration value because the server returns it
 // in microseconds.
-// TODO(lukasmalkmus): For real @axiomdbteam? Why is that?
 func (s *Status) UnmarshalJSON(b []byte) error {
 	type localStatus *Status
 
@@ -105,10 +101,9 @@ type Interval struct {
 
 // EntryGroup is a group of queried event.
 type EntryGroup struct {
-	// ID of the group.
+	// ID is the unique the group.
 	ID uint64 `json:"id"`
-	// Group ...
-	// TODO(lukasmalkmus): What is this?
+	// Group maps the fieldnames to the unique values for the entry.
 	Group map[string]interface{} `json:"group"`
 	// Aggregations of the group.
 	Aggregations []EntryGroupAgg `json:"aggregations"`

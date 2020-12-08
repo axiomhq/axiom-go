@@ -28,9 +28,8 @@ type ContentType uint8
 const (
 	// JSON treats the data as JSON array.
 	JSON ContentType = iota + 1 // application/json
-	// NDJSON treats the data as newline delimited JSON objects. Preferred as it
-	// is faster than JSON array based ingestion.
-	// TODO(lukasmalkmus): Is this still true?
+	// NDJSON treats the data as newline delimited JSON objects. Preferred
+	// format.
 	NDJSON // application/x-ndjson
 	// CSV treats the data as CSV content.
 	CSV // text/csv
@@ -145,9 +144,9 @@ type IngestFailure struct {
 
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
-	// Name of the dataset to create. Restricted to 128 bytes and can not
-	// contain the "axiom-" prefix.
-	// TODO(lukasmalkmus): Clarify naming constraints.
+	// Name of the dataset to create. Restricted to 128 bytes of [a-zA-Z0-9] and
+	// special characters "-", "_" and ".". Special characters cannot be a
+	// prefix or suffix. The prefix cannot be "axiom-".
 	Name string `json:"name"`
 	// Description of the dataset to create.
 	Description string `json:"description"`
@@ -263,12 +262,12 @@ func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 // exist, it will be created. The given data will be flattened, thus there are
 // some restrictions on the field names (JSON object keys):
 //
-// * Not more than 200 bytes (not characters!)
-// * UTF-8 compatible
-// * "_time" and "_source" are reserved
+// * Not more than 200 bytes
+// * Valid UTF-8
+// * "_time" must conform to a valid timestamp or not be present at all
+// * If "_time" is not present, the server will assign a timestamp
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
 //   must be formatted accordingly
-// TODO(lukasmalkmus): Review the restrictions.
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
 	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
@@ -307,12 +306,12 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 // exist, it will be created. The given data will be flattened, thus there are
 // some restrictions on the field names (JSON object keys):
 //
-// * Not more than 200 bytes (not characters!)
-// * UTF-8 compatible
-// * "_time" and "_source" are reserved
+// * Not more than 200 bytes
+// * Valid UTF-8
+// * "_time" must conform to a valid timestamp or not be present at all
+// * If "_time" is not present, the server will assign a timestamp
 // * The ingestion content type must be one of JSON, NDJSON or CSV and the input
 //   must be formatted accordingly
-// TODO(lukasmalkmus): Review the restrictions.
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
 	if len(events) == 0 {
 		return &IngestStatus{}, nil
