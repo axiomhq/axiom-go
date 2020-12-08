@@ -31,14 +31,10 @@ func (s *UsersTestSuite) SetupSuite() {
 	s.user, err = s.client.Users.Create(s.suiteCtx, axiom.UserCreateRequest{
 		Name:  "John Doe",
 		Email: "john.doe@example.com",
-		Role:  axiom.RoleAdmin,
+		Role:  axiom.RoleReadOnly,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.user)
-
-	// TODO(lukasmalkmus): Have API return an initialized permissions slice
-	// (even when empty).
-	s.user.Permissions = []string{}
 }
 
 func (s *UsersTestSuite) TearDownSuite() {
@@ -53,7 +49,7 @@ func (s *UsersTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *UsersTestSuite) TestUpdate() {
+func (s *UsersTestSuite) Test() {
 	// TODO(lukasmalkmus): Enable this as soon as we can update other users, not
 	// just the authenticated one.
 
@@ -65,32 +61,28 @@ func (s *UsersTestSuite) TestUpdate() {
 
 	// s.user = user
 
+	// Let's update the user.
 	user, err := s.client.Users.Update(s.suiteCtx, s.testUser.ID, axiom.UserUpdateRequest{
 		Name: s.testUser.Name,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
-}
 
-func (s *UsersTestSuite) TestUpdateRole() {
-	s.T().Skip("Enable as soon as the API response has been fixed!")
-
-	user, err := s.client.Users.UpdateRole(s.suiteCtx, s.user.ID, axiom.RoleUser)
+	// Update the users role.
+	user, err = s.client.Users.UpdateRole(s.suiteCtx, s.user.ID, axiom.RoleUser)
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
 
 	s.user = user
-}
 
-func (s *UsersTestSuite) TestGet() {
-	user, err := s.client.Users.Get(s.ctx, s.user.ID)
+	// Get the user and make sure it matches what we have updated it to.
+	user, err = s.client.Users.Get(s.ctx, s.user.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
 
 	s.Equal(s.user, user)
-}
 
-func (s *UsersTestSuite) TestList() {
+	// List all users and make sure the created user is part of that list.
 	users, err := s.client.Users.List(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(users)

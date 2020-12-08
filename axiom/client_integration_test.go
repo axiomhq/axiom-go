@@ -48,16 +48,14 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
-	var err error
-	s.client, err = axiom.NewClient(deploymentURL, accessToken, axiom.SetUserAgent("axiom-test"))
-	s.Require().NoError(err)
-	s.Require().NotNil(s.client)
+	s.newClient()
 
 	if strictDecoding {
-		err = s.client.Options(axiom.SetStrictDecoding())
+		err := s.client.Options(axiom.SetStrictDecoding())
 		s.Require().NoError(err)
 	}
 
+	var err error
 	s.testUser, err = s.client.Users.Current(s.suiteCtx)
 	s.Require().NoError(err)
 	s.Require().NotNil(s.client)
@@ -75,4 +73,11 @@ func (s *IntegrationTestSuite) SetupTest() {
 func (s *IntegrationTestSuite) TearDownTest() {
 	s.NoError(s.ctx.Err())
 	s.cancel()
+}
+
+func (s *IntegrationTestSuite) newClient() {
+	var err error
+	s.client, err = axiom.NewClient(deploymentURL, accessToken, axiom.SetUserAgent("axiom-test"))
+	s.Require().NoError(err)
+	s.Require().NotNil(s.client)
 }

@@ -31,6 +31,9 @@ func (s *NotifiersTestSuite) SetupSuite() {
 	s.notifier, err = s.client.Notifiers.Create(s.suiteCtx, axiom.Notifier{
 		Name: "Test Notifier",
 		Type: axiom.Email,
+		Properties: map[string]interface{}{
+			"to": "john@example.com",
+		},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.notifier)
@@ -48,9 +51,8 @@ func (s *NotifiersTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *NotifiersTestSuite) TestUpdate() {
-	s.T().Skip("Enable as soon as the API param and body ID check has been fixed!")
-
+func (s *NotifiersTestSuite) Test() {
+	// Let's update the notifier.
 	notifier, err := s.client.Notifiers.Update(s.suiteCtx, s.notifier.ID, axiom.Notifier{
 		Name: "Updated Test Notifier",
 		Type: axiom.Pagerduty,
@@ -59,17 +61,16 @@ func (s *NotifiersTestSuite) TestUpdate() {
 	s.Require().NotNil(notifier)
 
 	s.notifier = notifier
-}
 
-func (s *NotifiersTestSuite) TestGet() {
-	notifier, err := s.client.Notifiers.Get(s.ctx, s.notifier.ID)
+	// Get the notifier and make sure it matches what we have updated it to.
+	notifier, err = s.client.Notifiers.Get(s.ctx, s.notifier.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(notifier)
 
 	s.Equal(s.notifier, notifier)
-}
 
-func (s *NotifiersTestSuite) TestList() {
+	// List all notifiers and make sure the created notifier is part of that
+	// list.
 	notifiers, err := s.client.Notifiers.List(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(notifiers)

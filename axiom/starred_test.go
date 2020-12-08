@@ -2,12 +2,13 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
-	"github.com/google/go-querystring/query"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +17,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 	exp := []*StarredQuery{
 		{
 			ID:      "NBYj9rO5p4F5CtYEy6",
-			Kind:    "analytics",
+			Kind:    Analytics,
 			Dataset: "nginx-logs",
 			Owner:   "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 			Name:    "avg(size) shown",
@@ -86,7 +87,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 	defer teardown()
 
 	res, err := client.StarredQueries.List(context.Background(), StarredQueriesListOptions{
-		Kind:    QueryKindAnalytics,
+		Kind:    Analytics,
 		Dataset: "nginx-logs",
 		Owner:   "team",
 		ListOptions: ListOptions{
@@ -102,7 +103,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 func TestStarredQueriesService_Get(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
-		Kind:    "analytics",
+		Kind:    Analytics,
 		Dataset: "nginx-logs",
 		Owner:   "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 		Name:    "avg(size) shown",
@@ -171,7 +172,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 func TestStarredQueriesService_Create(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
-		Kind:    "analytics",
+		Kind:    Analytics,
 		Dataset: "nginx-logs",
 		Owner:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Name:    "Everything",
@@ -213,7 +214,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 	defer teardown()
 
 	res, err := client.StarredQueries.Create(context.Background(), StarredQuery{
-		Kind:    "analytics",
+		Kind:    Analytics,
 		Dataset: "nginx-logs",
 		Name:    "Everything",
 		Query: map[string]interface{}{
@@ -233,7 +234,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 func TestStarredQueriesService_Update(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
-		Kind:    "analytics",
+		Kind:    Analytics,
 		Dataset: "nginx-logs",
 		Owner:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Name:    "A fancy query name",
@@ -275,7 +276,7 @@ func TestStarredQueriesService_Update(t *testing.T) {
 	defer teardown()
 
 	res, err := client.StarredQueries.Update(context.Background(), "NBYj9rO5p4F5CtYEy6", StarredQuery{
-		Kind:    "analytics",
+		Kind:    Analytics,
 		Dataset: "nginx-logs",
 		Name:    "A fancy query name",
 		Query: map[string]interface{}{
@@ -307,25 +308,57 @@ func TestStarredQueriesService_Delete(t *testing.T) {
 }
 
 func TestQueryKind_EncodeValues(t *testing.T) {
-	exp := "queryKind=analytics"
-
-	qs, err := query.Values(struct {
-		QueryKind QueryKind `url:"queryKind"`
+	tests := []struct {
+		input QueryKind
+		exp   string
 	}{
-		QueryKind: QueryKindAnalytics,
+		{Analytics, "analytics"},
+		{Stream, "stream"},
+		{0, "QueryKind(0)"}, // HINT(lukasmalkmus): Maybe we want to sort this out by raising an error?
+	}
+	for _, tt := range tests {
+		t.Run(tt.input.String(), func(t *testing.T) {
+			v := &url.Values{}
+			err := tt.input.EncodeValues("test", v)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.exp, v.Get("test"))
+		})
+	}
+}
+
+func TestQueryKind_Marshal(t *testing.T) {
+	exp := `{
+		"kind": "analytics"
+	}`
+
+	b, err := json.Marshal(struct {
+		Kind QueryKind `json:"kind"`
+	}{
+		Kind: Analytics,
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, qs.Encode())
+	require.NotEmpty(t, b)
 
-	assert.Equal(t, exp, qs.Encode())
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestQueryKind_Unmarshal(t *testing.T) {
+	var act struct {
+		Kind QueryKind `json:"kind"`
+	}
+	err := json.Unmarshal([]byte(`{ "kind": "analytics" }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, Analytics, act.Kind)
 }
 
 func TestQueryKind_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Contains(t, (QueryKindAnalytics - 1).String(), "QueryKind(")
-	assert.Contains(t, (QueryKindStream + 1).String(), "QueryKind(")
+	assert.Contains(t, (Analytics - 1).String(), "QueryKind(")
+	assert.Contains(t, (Stream + 1).String(), "QueryKind(")
 
-	for c := QueryKindAnalytics; c <= QueryKindStream; c++ {
+	for c := Analytics; c <= Stream; c++ {
 		s := c.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "QueryKind(")

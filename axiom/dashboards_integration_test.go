@@ -27,7 +27,6 @@ func TestDashboardsTestSuite(t *testing.T) {
 func (s *DashboardsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
-	// TODO(lukasmalkmus): Add a dashboard with a chart and layout.
 	var err error
 	s.dashboard, err = s.client.Dashboards.Create(s.suiteCtx, axiom.Dashboard{
 		Name:            "Test Dashboard",
@@ -56,27 +55,34 @@ func (s *DashboardsTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *DashboardsTestSuite) TestUpdate() {
-	s.T().Skip("Enable as soon as the API response has been fixed!")
-
+func (s *DashboardsTestSuite) Test() {
+	// Let's update the dashboard.
 	dashboard, err := s.client.Dashboards.Update(s.suiteCtx, s.dashboard.ID, axiom.Dashboard{
-		Description: "This is a very awesome test dashboard",
+		Name:            "Test Dashboard",
+		Description:     "This is a very awesome test dashboard",
+		Owner:           s.testUser.ID,
+		Charts:          []interface{}{},
+		Layout:          []interface{}{},
+		RefreshTime:     15 * time.Second,
+		SchemaVersion:   2,
+		TimeWindowStart: "qr-now-30m",
+		TimeWindowEnd:   "qr-now",
+		Version:         s.dashboard.Version,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(dashboard)
 
 	s.dashboard = dashboard
-}
 
-func (s *DashboardsTestSuite) TestGet() {
-	dashboard, err := s.client.Dashboards.Get(s.ctx, s.dashboard.ID)
+	// Get the dashboard and make sure it matches what we have updated it to.
+	dashboard, err = s.client.Dashboards.Get(s.ctx, s.dashboard.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(dashboard)
 
 	s.Equal(s.dashboard, dashboard)
-}
 
-func (s *DashboardsTestSuite) TestList() {
+	// List all dashboards and make sure the created dashboard is part of that
+	// list.
 	dashboards, err := s.client.Dashboards.List(s.ctx, axiom.ListOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(dashboards)

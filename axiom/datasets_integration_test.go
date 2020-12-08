@@ -98,9 +98,8 @@ func (s *DatasetsTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *DatasetsTestSuite) TestUpdate() {
-	s.T().Skip("Activate if awkward API validation (matching ID in param and body) has been fixed.")
-
+func (s *DatasetsTestSuite) Test() {
+	// Let's update the dataset.
 	dataset, err := s.client.Datasets.Update(s.ctx, s.dataset.ID, axiom.DatasetUpdateRequest{
 		Description: "This is a soon to be filled test dataset",
 	})
@@ -108,42 +107,23 @@ func (s *DatasetsTestSuite) TestUpdate() {
 	s.Require().NotNil(dataset)
 
 	s.dataset = dataset
-}
 
-func (s *DatasetsTestSuite) TestGet() {
-	dataset, err := s.client.Datasets.Get(s.ctx, s.dataset.ID)
+	// Get the dataset and make sure it matches what we have updated it to.
+	dataset, err = s.client.Datasets.Get(s.ctx, s.dataset.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(dataset)
 
 	s.Equal(s.dataset, dataset)
-}
 
-func (s *DatasetsTestSuite) TestList() {
+	// List all datasets and make sure the created dataset is part of that
+	// list.
 	datasets, err := s.client.Datasets.List(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(datasets)
 
 	s.Contains(datasets, s.dataset)
-}
 
-func (s *DatasetsTestSuite) TestInfoAndStats() {
-	s.T().Skip("Enable as soon as the API response has been fixed!")
-
-	datasetInfo, err := s.client.Datasets.Info(s.ctx, s.dataset.ID)
-	s.Require().NoError(err)
-	s.Require().NotNil(datasetInfo)
-
-	s.Equal(datasetInfo.Name, s.dataset.Name)
-	s.Equal(datasetInfo.NumEvents, 2)
-
-	datasetStats, err := s.client.Datasets.Stats(s.ctx)
-	s.Require().NoError(err)
-	s.Require().NotNil(datasetStats)
-
-	s.Contains(datasetStats, datasetInfo)
-}
-
-func (s *DatasetsTestSuite) TestIngest() {
+	// Let's ingest some data from a reader source...
 	var (
 		ingested bytes.Buffer
 		r        = io.TeeReader(strings.NewReader(ingestData), &ingested)
@@ -155,22 +135,44 @@ func (s *DatasetsTestSuite) TestIngest() {
 	s.EqualValues(ingestStatus.Ingested, 2)
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
-	s.EqualValues(ingestStatus.ProcessedBytes, ingested.Len())
-}
+	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
-func (s *DatasetsTestSuite) TestIngestEvents() {
-	ingestStatus, err := s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	// ... and a map.
+	ingestStatus, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
 	s.EqualValues(ingestStatus.Ingested, 2)
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
-}
 
-func (s *DatasetsTestSuite) TestQuery() {
-	s.T().Skip("Activate if we know why the result set is empty.")
+	// Make sure we don't overtake the server.
+	time.Sleep(5 * time.Second)
 
+	// Get the dataset info and make sure four events have been ingested.
+	datasetInfo, err := s.client.Datasets.Info(s.ctx, s.dataset.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(datasetInfo)
+
+	s.T().Skip("Figure this test out!")
+
+	s.Equal(s.dataset.Name, datasetInfo.Name)
+	s.EqualValues(4, datasetInfo.NumEvents)
+	s.NotEmpty(datasetInfo.Fields)
+
+	// Get the stats of all datasets and make sure our dataset info is included
+	// in that list.
+	datasetStats, err := s.client.Datasets.Stats(s.ctx)
+	s.Require().NoError(err)
+	s.Require().NotNil(datasetStats)
+
+	// HINT(lukasmalkmus): The dataset stats omit the fields. This fix makes
+	// sure we can still check if the rest of the record matches the info
+	// retrieved by id.
+	datasetInfo.Fields = nil
+	s.Contains(datasetStats.Datasets, datasetInfo)
+
+	// Run a query and make sure we see some results.
 	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
 		StartTime: time.Now().UTC().Add(-time.Minute),
 		EndTime:   time.Now().UTC(),
@@ -182,4 +184,25 @@ func (s *DatasetsTestSuite) TestQuery() {
 	s.EqualValues(4, queryResult.Status.RowsExamined)
 	s.EqualValues(4, queryResult.Status.RowsMatched)
 	s.Len(queryResult.Matches, 4)
+}
+
+func (s *DatasetsTestSuite) TestHistory() {
+	// HINT(lukasmalkmus): This test initializes a new client to make sure
+	// strict decoding is never set to this method. After this test, is gets
+	// set to its previous state.
+	// This is in place because the API returns a slightly different model with
+	// a lot of empty fields which are never set for a history query. Those are
+	// not part of the client side model for ease of use.
+	s.newClient()
+	defer func() {
+		if strictDecoding {
+			err := s.client.Options(axiom.SetStrictDecoding())
+			s.Require().NoError(err)
+		}
+	}()
+
+	// TODO: This is a hardcoded query id. We need to get it dynamically.
+	query, err := s.client.Datasets.History(s.ctx, "GHP2ufS7OYwMeBhXHj")
+	s.Require().NoError(err)
+	s.Require().NotNil(query)
 }

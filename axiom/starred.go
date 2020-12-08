@@ -2,6 +2,8 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -14,9 +16,36 @@ type QueryKind uint8
 
 // All available query kinds.
 const (
-	QueryKindAnalytics QueryKind = iota + 1 // analytics
-	QueryKindStream                         // stream
+	Analytics QueryKind = iota + 1 // analytics
+	Stream                         // stream
 )
+
+// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// QueryKind to its string representation because that's what the server
+// expects.
+func (qk QueryKind) MarshalJSON() ([]byte, error) {
+	return json.Marshal(qk.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// QueryKind from the string representation the server returns.
+func (qk *QueryKind) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch s {
+	case Analytics.String():
+		*qk = Analytics
+	case Stream.String():
+		*qk = Stream
+	default:
+		return fmt.Errorf("unknown query kind %q", s)
+	}
+
+	return nil
+}
 
 // EncodeValues implements query.Encoder. It is in place to encode the QueryKind
 // into an URL value because that's what the server expects.
@@ -30,11 +59,11 @@ type StarredQuery struct {
 	// ID is the unique id of the starred query.
 	ID string `json:"id"`
 	// Kind of the starred query.
-	Kind string `json:"kind"`
+	Kind QueryKind `json:"kind"`
 	// Dataset the starred query belongs to.
 	Dataset string `json:"dataset"`
 	// Owner is the ID of the starred queries owner. Can be a user or team ID.
-	Owner string `json:"who"` // TODO(lukasmalkmus): Name it "owner".
+	Owner string `json:"who"`
 	// Name is the display name of the starred query.
 	Name string `json:"name"`
 	// Query is the actual query.

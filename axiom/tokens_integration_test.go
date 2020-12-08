@@ -72,9 +72,8 @@ func (s *TokensTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *TokensTestSuite) TestUpdate() {
-	s.T().Skip("Enable as soon as the API response has been fixed!")
-
+func (s *TokensTestSuite) Update() {
+	// Let's update the token.
 	token, err := s.service.Update(s.suiteCtx, s.token.ID, axiom.Token{
 		Name:        "Test",
 		Description: "A very good test token",
@@ -83,26 +82,24 @@ func (s *TokensTestSuite) TestUpdate() {
 	s.Require().NotNil(token)
 
 	s.token = token
-}
 
-func (s *TokensTestSuite) TestGet() {
-	token, err := s.service.Get(s.ctx, s.token.ID)
+	// Get the token and make sure it matches what we have updated it to.
+	token, err = s.service.Get(s.ctx, s.token.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
 
 	s.Equal(s.token, token)
-}
 
-func (s *TokensTestSuite) TestView() {
+	// Let's get the raw token string and make sure it has the same scopes as
+	// the token entity.
 	rawToken, err := s.service.View(s.ctx, s.token.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(rawToken)
 
 	s.NotEmpty(rawToken.Token)
 	s.Equal(s.token.Scopes, rawToken.Scopes)
-}
 
-func (s *TokensTestSuite) TestList() {
+	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.service.List(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(tokens)

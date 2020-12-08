@@ -20,8 +20,8 @@ const (
 	RoleOwner                        // owner
 )
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
-// UserRole to its string representation because that's what the server expects.
+// MarshalJSON implements json.Marshaler. It is in place to marshal the UserRole
+// to its string representation because that's what the server expects.
 func (ur UserRole) MarshalJSON() ([]byte, error) {
 	return json.Marshal(ur.String())
 }

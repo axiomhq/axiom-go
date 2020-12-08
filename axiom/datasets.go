@@ -118,6 +118,22 @@ type DatasetStats struct {
 	CompressedBytesHuman string `json:"compressedBytesHuman"`
 }
 
+// HistoryQuery represents a query stored inside the query history.
+type HistoryQuery struct {
+	// ID is the unique id of the starred query.
+	ID string `json:"id"`
+	// Kind of the starred query.
+	Kind string `json:"kind"`
+	// Dataset the starred query belongs to.
+	Dataset string `json:"dataset"`
+	// Owner is the ID of the starred queries owner. Can be a user or team ID.
+	Owner string `json:"who"`
+	// Query is the actual query.
+	Query interface{} `json:"query"` // TODO(lukasmalkmus): Use proper types.
+	// Created is the time the starred query was created at.
+	Created time.Time `json:"created"`
+}
+
 // IngestStatus is the status after an event ingestion operation.
 type IngestStatus struct {
 	// Ingested is the amount of events that have been ingested.
@@ -251,6 +267,19 @@ func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 	path := s.basePath + "/" + id + "/info"
 
 	var res DatasetInfo
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// History retrieves the query stored inside the query history dataset
+// identified by its id.
+func (s *DatasetsService) History(ctx context.Context, id string) (*HistoryQuery, error) {
+	path := s.basePath + "/_history/" + id
+
+	var res HistoryQuery
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}

@@ -19,7 +19,7 @@ func TestVersionTestSuite(t *testing.T) {
 	suite.Run(t, new(VersionTestSuite))
 }
 
-func (s *VersionTestSuite) TestVersion() {
+func (s *VersionTestSuite) Test() {
 	version, err := s.client.Version.Get(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(version)

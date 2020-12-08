@@ -47,28 +47,25 @@ func (s *TeamsTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *TeamsTestSuite) TestUpdate() {
-	s.T().Skip("Enable as soon as the API param and body ID check has been fixed!")
-
+func (s *TeamsTestSuite) Test() {
+	// Let's update the team.
 	team, err := s.client.Teams.Update(s.suiteCtx, s.team.ID, axiom.Team{
 		Name: "Updated Test Team",
-		// TODO(lukasmalkmus): Probably add user an dataset.
+		// TODO(lukasmalkmus): Probably add user and dataset.
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(team)
 
 	s.team = team
-}
 
-func (s *TeamsTestSuite) TestGet() {
-	team, err := s.client.Teams.Get(s.ctx, s.team.ID)
+	// Get the team and make sure it matches what we have updated it to.
+	team, err = s.client.Teams.Get(s.ctx, s.team.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(team)
 
 	s.Equal(s.team, team)
-}
 
-func (s *TeamsTestSuite) TestList() {
+	// List all teams and make sure the created team is part of that list.
 	teams, err := s.client.Teams.List(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(teams)

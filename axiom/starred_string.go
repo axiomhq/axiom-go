@@ -8,8 +8,8 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[QueryKindAnalytics-1]
-	_ = x[QueryKindStream-2]
+	_ = x[Analytics-1]
+	_ = x[Stream-2]
 }
 
 const _QueryKind_name = "analyticsstream"

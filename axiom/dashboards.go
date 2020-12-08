@@ -109,6 +109,8 @@ func (s *DashboardsService) Create(ctx context.Context, req Dashboard) (*Dashboa
 }
 
 // Update the dashboard identified by the given id with the given properties.
+// When updating, the Version is mandantory and must be set to the current
+// version of the dashboard as returned by a Get() call.
 func (s *DashboardsService) Update(ctx context.Context, id string, req Dashboard) (*Dashboard, error) {
 	path := s.basePath + "/" + id
 

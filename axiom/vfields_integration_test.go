@@ -64,7 +64,8 @@ func (s *VirtualFieldsTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-func (s *VirtualFieldsTestSuite) TestUpdate() {
+func (s *VirtualFieldsTestSuite) Test() {
+	// Let's update the virtual field.
 	virtualField, err := s.client.VirtualFields.Update(s.suiteCtx, s.virtualField.ID, axiom.VirtualField{
 		Dataset:     s.datasetID,
 		Name:        "Failed Requests",
@@ -76,17 +77,17 @@ func (s *VirtualFieldsTestSuite) TestUpdate() {
 	s.Require().NotNil(virtualField)
 
 	s.virtualField = virtualField
-}
 
-func (s *VirtualFieldsTestSuite) TestGet() {
-	virtualField, err := s.client.VirtualFields.Get(s.ctx, s.virtualField.ID)
+	// Get the virtual field and make sure it matches what we have updated it
+	// to.
+	virtualField, err = s.client.VirtualFields.Get(s.ctx, s.virtualField.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(virtualField)
 
 	s.Equal(s.virtualField, virtualField)
-}
 
-func (s *VirtualFieldsTestSuite) TestList() {
+	// List all virtual fields and make sure the created virtual field is part
+	// of that list.
 	virtualFields, err := s.client.VirtualFields.List(s.ctx, axiom.VirtualFieldListOptions{
 		Dataset: s.datasetID,
 	})
