@@ -239,8 +239,7 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 		// Handle a properly JSON formatted Axiom API error response.
 		errResp := Error{statusCode: statusCode}
 		if err = dec.Decode(&errResp); err != nil {
-			errResp.Message = err.Error()
-			return errResp
+			return fmt.Errorf("error decoding %d error response: %w", statusCode, err)
 		}
 
 		return errResp

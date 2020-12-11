@@ -426,12 +426,12 @@ func TestDatasetsService_History(t *testing.T) {
 	exp := &HistoryQuery{
 		ID:      "GHP2ufS7OYwMeBhXHj",
 		Kind:    "analytics",
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		Owner:   "f83e245a-afdc-47ad-a765-4addd1994333",
-		Query: map[string]interface{}{
-			"startTime": "2020-11-18T13:00:00.000Z",
-			"endTime":   "2020-11-25T14:00:00.000Z",
-			"limit":     float64(100),
+		Query: query.Query{
+			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-18T13:00:00.000Z"),
+			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-25T14:00:00.000Z"),
+			Limit:     100,
 		},
 		Created: mustTimeParse(t, time.RFC3339, "2020-12-08T13:28:52.78954814Z"),
 	}
@@ -441,7 +441,7 @@ func TestDatasetsService_History(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"created": "2020-12-08T13:28:52.78954814Z",
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"id": "GHP2ufS7OYwMeBhXHj",
 			"kind": "analytics",
 			"query": {

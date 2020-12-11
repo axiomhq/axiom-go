@@ -17,6 +17,8 @@ import (
 type StarredQueriesTestSuite struct {
 	IntegrationTestSuite
 
+	datasetID string
+
 	starredQuery *axiom.StarredQuery
 }
 
@@ -27,10 +29,19 @@ func TestStarredQueriesTestSuite(t *testing.T) {
 func (s *StarredQueriesTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
-	var err error
+	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
+		Name:        "test",
+		Description: "This is a test dataset",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(dataset)
+
+	s.datasetID = dataset.ID
+
 	s.starredQuery, err = s.client.StarredQueries.Create(s.suiteCtx, axiom.StarredQuery{
-		Kind: axiom.Stream,
-		Name: "Test Query",
+		Kind:    axiom.Stream,
+		Dataset: dataset.ID,
+		Name:    "Test Query",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.starredQuery)
@@ -51,9 +62,9 @@ func (s *StarredQueriesTestSuite) TearDownSuite() {
 func (s *StarredQueriesTestSuite) Test() {
 	// Let's update the starredQuery.
 	starredQuery, err := s.client.StarredQueries.Update(s.suiteCtx, s.starredQuery.ID, axiom.StarredQuery{
-		Kind: axiom.Analytics,
-		Name: "Updated Test Query",
-		// TODO(lukasmalkmus): Probably add user and dataset.
+		Kind:    axiom.Analytics,
+		Dataset: s.datasetID,
+		Name:    "Updated Test Query",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(starredQuery)

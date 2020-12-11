@@ -23,14 +23,18 @@ type Dashboard struct {
 	Layout []interface{} `json:"layout"`
 	// RefreshTime is the duration after which the dashboards data is updated.
 	RefreshTime time.Duration `json:"refreshTime"`
-	// SchemaVersion ...
-	// TODO(lukasmalkmus): Better docs.
+	// SchemaVersion auto increments with ever change made to the dashboard.
 	SchemaVersion int `json:"schemaVersion"`
-	// TimeWindowStart ...
-	// TODO(lukasmalkmus): Better docs.
+	// TimeWindowStart is the start of the time window displayed by the
+	// dashboard. The format is special: It has the prefix "qr-now", followed
+	// by a string duration. If the dashboard has a time range of "last 30
+	// minutes", this will be: "qr-now-30m".
 	TimeWindowStart string `json:"timeWindowStart"`
-	// TimeWindowEnd ...
-	// TODO(lukasmalkmus): Better docs.
+	// TimeWindowEnd is the end of the time window displayed by the dashboard.
+	// The format is special: It has the prefix "qr-now", followed
+	// by a string duration. If the dashboard has a time range of "last 30
+	// minutes of yesterday", this will be: "qr-now-1d". But in most cases it
+	// will "qr-now".
 	TimeWindowEnd string `json:"timeWindowEnd"`
 	// Version of the dashboard.
 	Version string `json:"version"`

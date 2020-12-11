@@ -129,7 +129,7 @@ type HistoryQuery struct {
 	// Owner is the ID of the starred queries owner. Can be a user or team ID.
 	Owner string `json:"who"`
 	// Query is the actual query.
-	Query interface{} `json:"query"` // TODO(lukasmalkmus): Use proper types.
+	Query query.Query `json:"query"`
 	// Created is the time the starred query was created at.
 	Created time.Time `json:"created"`
 }

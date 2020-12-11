@@ -11,6 +11,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 func TestStarredQueriesService_List(t *testing.T) {
@@ -18,22 +20,18 @@ func TestStarredQueriesService_List(t *testing.T) {
 		{
 			ID:      "NBYj9rO5p4F5CtYEy6",
 			Kind:    Analytics,
-			Dataset: "nginx-logs",
+			Dataset: "test",
 			Owner:   "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 			Name:    "avg(size) shown",
-			Query: map[string]interface{}{
-				"aggregations": []interface{}{
-					map[string]interface{}{
-						"op":    "avg",
-						"field": "size",
+			Query: query.Query{
+				StartTime:  mustTimeParse(t, time.RFC3339, "2020-11-24T16:23:15.000Z"),
+				EndTime:    mustTimeParse(t, time.RFC3339, "2020-11-24T16:53:30.000Z"),
+				Resolution: 15 * time.Second,
+				Aggregations: []query.Aggregation{
+					{
+						Op:    "avg",
+						Field: "size",
 					},
-				},
-				"startTime":  "2020-11-24T16:23:15.000Z",
-				"endTime":    "2020-11-24T16:53:30.000Z",
-				"resolution": "15s",
-				"queryOptions": map[string]interface{}{
-					"displayNull":   "null",
-					"openIntervals": "shown",
 				},
 			},
 			Metadata: map[string]string{
@@ -48,14 +46,14 @@ func TestStarredQueriesService_List(t *testing.T) {
 
 		assert.Equal(t, "analytics", r.URL.Query().Get("kind"))
 		assert.Equal(t, "team", r.URL.Query().Get("who"))
-		assert.Equal(t, "nginx-logs", r.URL.Query().Get("dataset"))
+		assert.Equal(t, "test", r.URL.Query().Get("dataset"))
 		assert.Equal(t, "1", r.URL.Query().Get("limit"))
 		assert.Equal(t, "1", r.URL.Query().Get("offset"))
 
 		_, err := fmt.Fprint(w, `[
 			{
 				"kind": "analytics",
-				"dataset": "nginx-logs",
+				"dataset": "test",
 				"name": "avg(size) shown",
 				"who": "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 				"query": {
@@ -67,11 +65,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 					],
 					"startTime": "2020-11-24T16:23:15.000Z",
 					"endTime": "2020-11-24T16:53:30.000Z",
-					"resolution": "15s",
-					"queryOptions": {
-						"displayNull": "null",
-						"openIntervals": "shown"
-					}
+					"resolution": "15s"
 				},
 				"metadata": {
 					"quickRange": "30m"
@@ -88,8 +82,8 @@ func TestStarredQueriesService_List(t *testing.T) {
 
 	res, err := client.StarredQueries.List(context.Background(), StarredQueriesListOptions{
 		Kind:    Analytics,
-		Dataset: "nginx-logs",
-		Owner:   "team",
+		Dataset: "test",
+		Owner:   OwnedByTeam,
 		ListOptions: ListOptions{
 			Limit:  1,
 			Offset: 1,
@@ -104,22 +98,18 @@ func TestStarredQueriesService_Get(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
 		Kind:    Analytics,
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		Owner:   "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 		Name:    "avg(size) shown",
-		Query: map[string]interface{}{
-			"aggregations": []interface{}{
-				map[string]interface{}{
-					"op":    "avg",
-					"field": "size",
+		Query: query.Query{
+			StartTime:  mustTimeParse(t, time.RFC3339, "2020-11-24T16:23:15.000Z"),
+			EndTime:    mustTimeParse(t, time.RFC3339, "2020-11-24T16:53:30.000Z"),
+			Resolution: 15 * time.Second,
+			Aggregations: []query.Aggregation{
+				{
+					Op:    "avg",
+					Field: "size",
 				},
-			},
-			"startTime":  "2020-11-24T16:23:15.000Z",
-			"endTime":    "2020-11-24T16:53:30.000Z",
-			"resolution": "15s",
-			"queryOptions": map[string]interface{}{
-				"displayNull":   "null",
-				"openIntervals": "shown",
 			},
 		},
 		Metadata: map[string]string{
@@ -133,7 +123,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"name": "avg(size) shown",
 			"who": "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 			"query": {
@@ -145,11 +135,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 				],
 				"startTime": "2020-11-24T16:23:15.000Z",
 				"endTime": "2020-11-24T16:53:30.000Z",
-				"resolution": "15s",
-				"queryOptions": {
-					"displayNull": "null",
-					"openIntervals": "shown"
-				}
+				"resolution": "15s"
 			},
 			"metadata": {
 				"quickRange": "30m"
@@ -173,13 +159,13 @@ func TestStarredQueriesService_Create(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
 		Kind:    Analytics,
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		Owner:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Name:    "Everything",
-		Query: map[string]interface{}{
-			"startTime": "2020-11-18T13:00:00.000Z",
-			"endTime":   "2020-11-25T14:00:00.000Z",
-			"limit":     float64(1000),
+		Query: query.Query{
+			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-24T16:23:15.000Z"),
+			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-24T16:53:30.000Z"),
+			Limit:     1000,
 		},
 		Metadata: map[string]string{
 			"quickRange": "7d",
@@ -193,12 +179,12 @@ func TestStarredQueriesService_Create(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"name": "Everything",
 			"who": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			"query": {
-				"startTime": "2020-11-18T13:00:00.000Z",
-				"endTime": "2020-11-25T14:00:00.000Z",
+				"startTime": "2020-11-24T16:23:15.000Z",
+				"endTime": "2020-11-24T16:53:30.000Z",
 				"limit": 1000
 			},
 			"metadata": {
@@ -215,12 +201,12 @@ func TestStarredQueriesService_Create(t *testing.T) {
 
 	res, err := client.StarredQueries.Create(context.Background(), StarredQuery{
 		Kind:    Analytics,
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		Name:    "Everything",
-		Query: map[string]interface{}{
-			"startTime": "2020-11-18T13:00:00.000Z",
-			"endTime":   "2020-11-25T14:00:00.000Z",
-			"limit":     float64(1000),
+		Query: query.Query{
+			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-24T16:23:15.000Z"),
+			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-24T16:53:30.000Z"),
+			Limit:     1000,
 		},
 		Metadata: map[string]string{
 			"quickRange": "7d",
@@ -235,13 +221,13 @@ func TestStarredQueriesService_Update(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
 		Kind:    Analytics,
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		Owner:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Name:    "A fancy query name",
-		Query: map[string]interface{}{
-			"startTime": "2020-11-18T13:00:00.000Z",
-			"endTime":   "2020-11-25T14:00:00.000Z",
-			"limit":     float64(100),
+		Query: query.Query{
+			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-24T16:23:15.000Z"),
+			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-24T16:53:30.000Z"),
+			Limit:     100,
 		},
 		Metadata: map[string]string{
 			"quickRange": "7d",
@@ -255,12 +241,12 @@ func TestStarredQueriesService_Update(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"name": "A fancy query name",
 			"who": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			"query": {
-				"startTime": "2020-11-18T13:00:00.000Z",
-				"endTime": "2020-11-25T14:00:00.000Z",
+				"startTime": "2020-11-24T16:23:15.000Z",
+				"endTime": "2020-11-24T16:53:30.000Z",
 				"limit": 100
 			},
 			"metadata": {
@@ -277,12 +263,12 @@ func TestStarredQueriesService_Update(t *testing.T) {
 
 	res, err := client.StarredQueries.Update(context.Background(), "NBYj9rO5p4F5CtYEy6", StarredQuery{
 		Kind:    Analytics,
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		Name:    "A fancy query name",
-		Query: map[string]interface{}{
-			"startTime": "2020-11-18T13:00:00.000Z",
-			"endTime":   "2020-11-25T14:00:00.000Z",
-			"limit":     float64(100),
+		Query: query.Query{
+			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-24T16:23:15.000Z"),
+			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-24T16:53:30.000Z"),
+			Limit:     100,
 		},
 		Metadata: map[string]string{
 			"quickRange": "7d",

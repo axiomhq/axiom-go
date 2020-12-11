@@ -93,7 +93,7 @@ func TestTeamsService_Create(t *testing.T) {
 		ID:   "4miTfZKp29VByAQgTd",
 		Name: "Server Team",
 		Datasets: []string{
-			"nginx-logs",
+			"test",
 		},
 	}
 
@@ -106,7 +106,7 @@ func TestTeamsService_Create(t *testing.T) {
 			"name": "Server Team",
 			"members": null,
 			"datasets": [
-				"nginx-logs"
+				"test"
 			]
 		}`)
 		assert.NoError(t, err)
@@ -118,7 +118,7 @@ func TestTeamsService_Create(t *testing.T) {
 	res, err := client.Teams.Create(context.Background(), TeamCreateRequest{
 		Name: "Server Team",
 		Datasets: []string{
-			"nginx-logs",
+			"test",
 		},
 	})
 	require.NoError(t, err)

@@ -7,9 +7,27 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
-//go:generate ../bin/stringer -type=QueryKind -linecomment -output=starred_string.go
+//go:generate ../bin/stringer -type=OwnerKind,QueryKind -linecomment -output=starred_string.go
+
+// OwnerKind represents the kind of a starred queries owner.
+type OwnerKind uint8
+
+// All available query kinds.
+const (
+	OwnedByUser OwnerKind = iota
+	OwnedByTeam           // team
+)
+
+// EncodeValues implements query.Encoder. It is in place to encode the OwnerKind
+// into a string URL value because that's what the server expects.
+func (ok OwnerKind) EncodeValues(key string, v *url.Values) error {
+	v.Set(key, ok.String())
+	return nil
+}
 
 // QueryKind represents the role of a query.
 type QueryKind uint8
@@ -48,7 +66,7 @@ func (qk *QueryKind) UnmarshalJSON(b []byte) error {
 }
 
 // EncodeValues implements query.Encoder. It is in place to encode the QueryKind
-// into an URL value because that's what the server expects.
+// into a string URL value because that's what the server expects.
 func (qk QueryKind) EncodeValues(key string, v *url.Values) error {
 	v.Set(key, qk.String())
 	return nil
@@ -67,7 +85,7 @@ type StarredQuery struct {
 	// Name is the display name of the starred query.
 	Name string `json:"name"`
 	// Query is the actual query.
-	Query interface{} `json:"query"` // TODO(lukasmalkmus): Use proper types.
+	Query query.Query `json:"query"`
 	// Metadata associated with the query.
 	Metadata map[string]string `json:"metadata"`
 	// Created is the time the starred query was created at.
@@ -81,10 +99,9 @@ type StarredQueriesListOptions struct {
 	Kind QueryKind `url:"kind"`
 	// Dataset to list starred queries for.
 	Dataset string `url:"dataset,omitempty"`
-	// Owner to list starred queries for. Can be set to "team" to list a teams
-	// starred queries instead of personal ones.
-	// TODO(lukasmalkmus): Use proper types.
-	Owner string `url:"who,omitempty"`
+	// Owner will list the starred queries of a users teams instead of personal
+	// ones, if set to true.
+	Owner OwnerKind `url:"who,omitempty"`
 
 	ListOptions
 }

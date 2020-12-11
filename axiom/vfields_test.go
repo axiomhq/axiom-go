@@ -14,7 +14,7 @@ func TestVirtualFieldsService_List(t *testing.T) {
 	exp := []*VirtualField{
 		{
 			ID:          "PiGheBIFBc4Khn4dBZ",
-			Dataset:     "nginx-logs",
+			Dataset:     "test",
 			Name:        "Successful Requests",
 			Description: "Statuses <= x < 400",
 			Alias:       "status_success",
@@ -25,13 +25,13 @@ func TestVirtualFieldsService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
-		assert.Equal(t, "nginx-logs", r.URL.Query().Get("dataset"))
+		assert.Equal(t, "test", r.URL.Query().Get("dataset"))
 		assert.Equal(t, "1", r.URL.Query().Get("limit"))
 		assert.Equal(t, "1", r.URL.Query().Get("offset"))
 
 		_, err := fmt.Fprint(w, `[
 			{
-				"dataset": "nginx-logs",
+				"dataset": "test",
 				"name": "Successful Requests",
 				"description": "Statuses <= x < 400",
 				"alias": "status_success",
@@ -46,7 +46,7 @@ func TestVirtualFieldsService_List(t *testing.T) {
 	defer teardown()
 
 	res, err := client.VirtualFields.List(context.Background(), VirtualFieldListOptions{
-		Dataset: "nginx-logs",
+		Dataset: "test",
 		ListOptions: ListOptions{
 			Limit:  1,
 			Offset: 1,
@@ -60,7 +60,7 @@ func TestVirtualFieldsService_List(t *testing.T) {
 func TestVirtualFieldsService_Get(t *testing.T) {
 	exp := &VirtualField{
 		ID:          "PiGheBIFBc4Khn4dBZ",
-		Dataset:     "nginx-logs",
+		Dataset:     "test",
 		Name:        "Successful Requests",
 		Description: "Statuses <= x < 400",
 		Alias:       "status_success",
@@ -71,7 +71,7 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
 		_, err := fmt.Fprint(w, `{
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"name": "Successful Requests",
 			"description": "Statuses <= x < 400",
 			"alias": "status_success",
@@ -93,7 +93,7 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 func TestVirtualFieldsService_Create(t *testing.T) {
 	exp := &VirtualField{
 		ID:          "FmgciXxL3njoNgzWVR",
-		Dataset:     "nginx-logs",
+		Dataset:     "test",
 		Name:        "Failed Requests",
 		Description: "Statuses >= 400",
 		Alias:       "status_failed",
@@ -105,7 +105,7 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"name": "Failed Requests",
 			"description": "Statuses >= 400",
 			"alias": "status_failed",
@@ -119,7 +119,7 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 	defer teardown()
 
 	res, err := client.VirtualFields.Create(context.Background(), VirtualField{
-		Dataset:     "nginx-logs",
+		Dataset:     "test",
 		Name:        "Failed Requests",
 		Description: "Statuses >= 400",
 		Alias:       "status_failed",
@@ -133,7 +133,7 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 func TestVirtualFieldsService_Update(t *testing.T) {
 	exp := &VirtualField{
 		ID:          "FmgciXxL3njoNgzWVR",
-		Dataset:     "nginx-logs",
+		Dataset:     "test",
 		Name:        "Failed Requests",
 		Description: "Statuses > 399",
 		Alias:       "status_failed",
@@ -145,7 +145,7 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
 		_, err := fmt.Fprint(w, `{
-			"dataset": "nginx-logs",
+			"dataset": "test",
 			"name": "Failed Requests",
 			"description": "Statuses > 399",
 			"alias": "status_failed",
@@ -159,7 +159,7 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 	defer teardown()
 
 	res, err := client.VirtualFields.Update(context.Background(), "FmgciXxL3njoNgzWVR", VirtualField{
-		Dataset:     "nginx-logs",
+		Dataset:     "test",
 		Name:        "Failed Requests",
 		Description: "Statuses > 399",
 		Alias:       "status_failed",

@@ -26,8 +26,8 @@ const (
 	OpNotStartsWith FilterOp = "not-starts-with"
 	OpEndsWith      FilterOp = "ends-with"
 	OpNotEndsWith   FilterOp = "not-ends-with"
-	OpRegexp        FilterOp = "regexp"     // Uses `regexp.Compile` internally.
-	OpNotRegexp     FilterOp = "not-regexp" // Uses `regexp.Compile` internally.
+	OpRegexp        FilterOp = "regexp"
+	OpNotRegexp     FilterOp = "not-regexp"
 
 	// Works for strings and arrays.
 	OpContains    FilterOp = "contains"
@@ -45,7 +45,6 @@ type Filter struct {
 	// CaseInsensitive specifies if the filter is case insensitive or not. Only
 	// valid for OpStartsWith, OpNotStartsWith, OpEndsWith, OpNotEndsWith,
 	// OpContains and OpNotContains.
-	// TODO(lukasmalkmus): Why not "==" and "!="?
 	CaseInsensitive bool `json:"caseInsensitive"`
 	// Children specifies child filters for the filter. Only valid for OpAnd,
 	// OpOr and OpNot.
