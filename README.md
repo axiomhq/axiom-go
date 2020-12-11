@@ -82,7 +82,7 @@ func main() {
 }
 ```
 
-More examples can be found in the [example folder](example).
+More examples can be found in the [examples folder](examples).
 
 ## Contributing
 
