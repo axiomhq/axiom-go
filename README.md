@@ -8,28 +8,28 @@
 [![License][license_badge]][license]
 [![License Status][license_status_badge]][license_status]
 
-> Go language bindings for the [Axiom][1] API.
-
-  [1]: https://axiom.co
-
----
+--------
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
+1. [Installation](#Installation)
 1. [Usage](#usage)
+1. [Authentication](#authentication)
+1. [Documentation](#documentaion)
 1. [Contributing](#contributing)
 1. [License](#license)
 
 ## Introduction
+Axiom-Go is a Go client library for accessing the [Axiom](https://www.axiom.co/) API. 
 
-_Axiom Go_ provides a client library for the Axiom API.
+Currently, **Axiom-Go requires Go 1.11 or greater**
 
-## Usage
+-------
 
-### Installation
+## Installation
 
-#### Install using `go get`
+1. #### Install using `go get`
 
 With a working Go installation (>=1.15), run:
 
@@ -37,13 +37,13 @@ With a working Go installation (>=1.15), run:
 $ go get -u github.com/axiomhq/axiom-go/axiom
 ```
 
-Go 1.11 and higher _should_ be sufficient enough to use `go get` but it is not 
+*Go 1.11 and higher _should_ be sufficient enough to use `go get` but it is not 
 guaranteed that the source code does not use more recent additions to the
-standard library which break building.
+standard library which break building.*
 
-#### Install from source
+2.  #### Install from source
 
-This project uses native [go mod][2] support and requires a working Go 1.15
+This project uses native [go mod](https://golang.org/cmd/go/#hdr-Module_maintenance) support and requires a working Go 1.15
 installation.
 
 ```shell
@@ -52,9 +52,79 @@ $ cd axiom-go
 $ make # Run code generators, linters, sanitizers and test suits
 ```
 
-  [2]: https://golang.org/cmd/go/#hdr-Module_maintenance
+## usage
 
-### Usage
+The purpose of this how to use the Axiom-Go client library to access the [Axiom](https://www.axiom.co/) API. This example shows how to stream the contents of a JSON using the Axiom-Go Library. 
+
+We have several examples [on the website](https://docs.axiom.co/).
+
+`import "github.com/axiomhq/axiom-go/axiom"` // import path 
+
+------
+
+Insert the **"AXIOM_DEPLOYMENT_URL"** & **"AXIOM_ACCESS_TOKEN"** 
+
+```go
+
+func main() {
+	var (
+		deploymentURL = os.Getenv("AXM_DEPLOYMENT_URL")
+		accessToken   = os.Getenv("AXM_ACCESS_TOKEN")
+	)
+```
+----
+
+```go
+	// Open the file to ingest.
+	f, err := os.Open("logs.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	//  Wrap in a gzip enabled reader.
+	r, err := axiom.GZIPStreamer(f, gzip.BestSpeed)
+	if err != nil {
+		log.Fatal(err)
+    }
+```
+------
+Construct a new Axiom Client, then use the various services on the client to access different parts of the Axiom API. For example: 
+
+```go 
+    // Initialize the Axiom API client. 
+	client, err := axiom.NewClient(deploymentURL, accessToken)
+	if err != nil {
+		log.Fatal(err)
+    }
+```
+----
+
+ Ingest the Data ⚡
+
+ ```go
+	// Note the JSON content type and GZIP content encoding being set because the client does not auto sense them.
+
+	res, err := client.Datasets.Ingest(context.Background(), "test", r, axiom.JSON, axiom.GZIP, axiom.IngestOptions{})
+	if err != nil {
+		log.Fatal(err)
+    }
+```
+
+Make sure everything runs smoothly.
+
+```go
+	for _, fail := range res.Failures {
+		log.Print(fail.Error)
+	}
+}
+```
+
+For more sample code snippets, head over to the [example](https://github.com/axiomhq/axiom-go/tree/main/example/ingestfile) directory. 
+
+## Authentication
+
+The Axiom-Go Library 
 
 ```go
 package main
@@ -82,13 +152,24 @@ func main() {
 }
 ```
 
-More examples can be found in the [examples folder](examples).
+## Documentation
+You can find the Axiom and Axiom-Go documentation [on the website](https://docs.axiom.co/)
 
-## Contributing
+Check out the [Getting Started](https://docs.axiom.co/) page for a quick overview. 
 
-Feel free to submit PRs or to fill issues. Every kind of help is appreciated.
+The documentation is divided into several sections:
 
-Before committing, `make` should run without any issues.
+- [Tutorial](https://docs.axiom.co/getting-started/)
+- [Ingesting](https://docs.axiom.co/usage/ingest/)
+- [Analyzing](https://docs.axiom.co/usage/analyze/)
+- [Streaming](https://docs.axiom.co/usage/stream/)
+- [Alerting](https://docs.axiom.co/usage/alerts/)
+- [Integrations](https://docs.axiom.co/usage/integrations/)
+- [Where to Get Support](axiom.co/community)
+- [Contributing Guide](https://docs.axiom.co/how-to-contribute/)
+
+## Contributing 
+The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and more simplified to use. Kindly check our [contributing guide]() to how to propose bugfixes and improvements, and submitting pull requests to the project.
 
 ## License
 
@@ -118,3 +199,6 @@ See [LICENSE](LICENSE) for more information.
 [license_status_badge]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Faxiomhq%2Faxiom-go.svg
 [license_status_large]: https://app.fossa.com/projects/git%2Bgithub.com%2Faxiomhq%2Faxiom-go?ref=badge_large
 [license_status_large_badge]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Faxiomhq%2Faxiom-go.svg?type=large
+
+
+
