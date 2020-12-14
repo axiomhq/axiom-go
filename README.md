@@ -10,7 +10,6 @@
 
 --------
 
-
 ## Table of Contents
 
 1. [Introduction](#introduction)
@@ -159,12 +158,11 @@ The documentation is divided into several sections:
 - [Contributing Guide](https://docs.axiom.co/how-to-contribute/)
 
 ## Contributing 
-<<<<<<< HEAD
 
 The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and simpler to use. Kindly check our [contributing guide]() on how to propose bugfixes and improvements, and submitting pull requests to the project.
-=======
+
 The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and more simplified to use. Kindly check our [contributing guide](https://github.com/axiomhq/axiom-go/blob/documentation/Contributing.md) to how to propose bugfixes and improvements, and submitting pull requests to the project.
->>>>>>> 0bad6dd83a47f873c8dd32318854695e155a9a87
+
 
 ## License
 
