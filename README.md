@@ -37,9 +37,9 @@ With a working Go installation (>=1.15), run:
 $ go get -u github.com/axiomhq/axiom-go/axiom
 ```
 
-*Go 1.11 and higher _should_ be sufficient enough to use `go get` but it is not 
+**Go 1.11 and higher _should_ be sufficient enough to use `go get` but it is not 
 guaranteed that the source code does not use more recent additions to the
-standard library which break building.*
+standard library which break building.**
 
 2.  #### Install from source
 
