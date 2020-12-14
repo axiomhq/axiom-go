@@ -27,8 +27,6 @@ Axiom-Go is a Go client library for accessing the [Axiom](https://www.axiom.co/)
 
 Currently, **Axiom-Go requires Go 1.11 or greater**.
 
--------
-
 ## Installation
 
 1. #### Install using `go get`
@@ -39,9 +37,9 @@ With a working Go installation (>=1.15), run:
 $ go get -u github.com/axiomhq/axiom-go/axiom
 ```
 
-*Go 1.11 and higher _should_ be sufficient enough to use `go get` but it is not 
+> **Go 1.11 and higher should be sufficient enough to use `go get` but it is not 
 guaranteed that the source code does not use more recent additions to the
-standard library which break building.*
+standard library which break building.**
 
 2.  #### Install from source
 
@@ -123,7 +121,7 @@ Make sure everything runs smoothly.
 }
 ```
 
-For more sample code snippets, head over to the [example](https://github.com/axiomhq/axiom-go/tree/main/example/ingestfile) directory. 
+For more sample code snippets, head over to the [example](https://github.com/axiomhq/axiom-go/tree/documentation/examples/ingestfile) directory. 
 
 ## Authentication
 
@@ -161,8 +159,12 @@ The documentation is divided into several sections:
 - [Contributing Guide](https://docs.axiom.co/how-to-contribute/)
 
 ## Contributing 
+<<<<<<< HEAD
 
 The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and simpler to use. Kindly check our [contributing guide]() on how to propose bugfixes and improvements, and submitting pull requests to the project.
+=======
+The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and more simplified to use. Kindly check our [contributing guide](https://github.com/axiomhq/axiom-go/blob/documentation/Contributing.md) to how to propose bugfixes and improvements, and submitting pull requests to the project.
+>>>>>>> 0bad6dd83a47f873c8dd32318854695e155a9a87
 
 ## License
 
