@@ -1,4 +1,4 @@
-# Axiom Go
+# Axiom-Go
 
 [![GoDoc][godoc_badge]][godoc]
 [![Go Workflow][go_workflow_badge]][go_workflow]
@@ -9,6 +9,7 @@
 [![License Status][license_status_badge]][license_status]
 
 --------
+
 
 ## Table of Contents
 
@@ -21,9 +22,10 @@
 1. [License](#license)
 
 ## Introduction
+
 Axiom-Go is a Go client library for accessing the [Axiom](https://www.axiom.co/) API. 
 
-Currently, **Axiom-Go requires Go 1.11 or greater**
+Currently, **Axiom-Go requires Go 1.11 or greater**.
 
 -------
 
@@ -52,7 +54,7 @@ $ cd axiom-go
 $ make # Run code generators, linters, sanitizers and test suits
 ```
 
-## usage
+## Usage
 
 The purpose of this how to use the Axiom-Go client library to access the [Axiom](https://www.axiom.co/) API. This example shows how to stream the contents of a JSON using the Axiom-Go Library. 
 
@@ -62,7 +64,7 @@ We have several examples [on the website](https://docs.axiom.co/).
 
 ------
 
-Insert the **"AXIOM_DEPLOYMENT_URL"** & **"AXIOM_ACCESS_TOKEN"** 
+Set the `AXIOM_DEPLOYMENT_URL` & `AXIOM_ACCESS_TOKEN` environment variables.
 
 ```go
 
@@ -89,6 +91,7 @@ func main() {
     }
 ```
 ------
+
 Construct a new Axiom Client, then use the various services on the client to access different parts of the Axiom API. For example: 
 
 ```go 
@@ -124,19 +127,7 @@ For more sample code snippets, head over to the [example](https://github.com/axi
 
 ## Authentication
 
-The Axiom-Go Library 
-
 ```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/axiomhq/axiom-go/axiom"
-)
-
 func main() {
 	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 	if err != nil {
@@ -153,6 +144,7 @@ func main() {
 ```
 
 ## Documentation
+
 You can find the Axiom and Axiom-Go documentation [on the website](https://docs.axiom.co/)
 
 Check out the [Getting Started](https://docs.axiom.co/) page for a quick overview. 
@@ -169,7 +161,8 @@ The documentation is divided into several sections:
 - [Contributing Guide](https://docs.axiom.co/how-to-contribute/)
 
 ## Contributing 
-The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and more simplified to use. Kindly check our [contributing guide]() to how to propose bugfixes and improvements, and submitting pull requests to the project.
+
+The main aim of this repository is to continue developing and advancing Axiom-Go, making it faster and simpler to use. Kindly check our [contributing guide]() on how to propose bugfixes and improvements, and submitting pull requests to the project.
 
 ## License
 
@@ -199,6 +192,3 @@ See [LICENSE](LICENSE) for more information.
 [license_status_badge]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Faxiomhq%2Faxiom-go.svg
 [license_status_large]: https://app.fossa.com/projects/git%2Bgithub.com%2Faxiomhq%2Faxiom-go?ref=badge_large
 [license_status_large_badge]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Faxiomhq%2Faxiom-go.svg?type=large
-
-
-
