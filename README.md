@@ -124,7 +124,6 @@ For more sample code snippets, head over to the [example](https://github.com/axi
 
 ## Authentication
 
-The Axiom-Go Library 
 
 ```go
 package main
