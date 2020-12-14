@@ -124,18 +124,7 @@ For more sample code snippets, head over to the [example](https://github.com/axi
 
 ## Authentication
 
-
 ```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/axiomhq/axiom-go/axiom"
-)
-
 func main() {
 	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 	if err != nil {
