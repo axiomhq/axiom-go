@@ -120,7 +120,7 @@ Make sure everything runs smoothly.
 }
 ```
 
-For more sample code snippets, head over to the [example](https://github.com/axiomhq/axiom-go/tree/main/example/ingestfile) directory. 
+For more sample code snippets, head over to the [example](https://github.com/axiomhq/axiom-go/tree/documentation/examples/ingestfile) directory. 
 
 ## Authentication
 
