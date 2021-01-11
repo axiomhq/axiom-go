@@ -94,7 +94,7 @@ var runePool = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 func randString() string {
 	b := make([]rune, 12)
 	for i := range b {
-		b[i] = runePool[rand.Intn(len(runePool))] //nolint:gosec
+		b[i] = runePool[rand.Intn(len(runePool))] //nolint:gosec // We don't need secure randomness for tests :)
 	}
 	return string(b)
 }
