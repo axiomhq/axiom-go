@@ -49,14 +49,6 @@ jobs:
           go-version: "1.15"
 
       # The golangci-lint action takes care of caching by itself.
-      # - name: Cache dependencies
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ~/go/pkg/mod
-      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-go-
-
       - name: Lint
         uses: golangci/golangci-lint-action@v2
 
@@ -87,6 +79,8 @@ jobs:
         run: make test
 
       - uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
 
   release:
     name: Release
