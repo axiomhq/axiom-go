@@ -141,7 +141,7 @@ See [LICENSE](LICENSE) for more information.
 
 <!-- Badges -->
 
-[gopkg]: https://pkg.go.dev/axiomhq/axiom-go
+[gopkg]: https://pkg.go.dev/github.com/axiomhq/axiom-go
 [gopkg_badge]: https://img.shields.io/badge/doc-reference-007d9c?logo=go&logoColor=white&style=flat-square
 [go_workflow]: https://github.com/axiomhq/axiom-go/actions?query=workflow%3Ago
 [go_workflow_badge]: https://img.shields.io/github/workflow/status/axiomhq/axiom-go/go?style=flat-square&ghcache=unused
