@@ -131,7 +131,7 @@ project.
 
 ## License
 
-&copy; Axiom, Inc., 2020
+&copy; Axiom, Inc., 2021
 
 Distributed under MIT License (`The MIT License`).
 
