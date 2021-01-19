@@ -298,7 +298,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 				"op": "",
 				"field": "",
 				"value": null,
-				"caseInsensitive": false,
+				"caseSensitive": false,
 				"children": null
 			},
 			"groupBy": null,
@@ -325,8 +325,6 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 	}.MarshalJSON()
 	require.NoError(t, err)
 	require.NotEmpty(t, act)
-
-	fmt.Println(string(act))
 
 	assert.JSONEq(t, exp, string(act))
 }

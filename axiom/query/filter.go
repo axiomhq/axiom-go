@@ -42,10 +42,10 @@ type Filter struct {
 	Field string `json:"field"`
 	// Value to perform the filter operation against.
 	Value interface{} `json:"value"`
-	// CaseInsensitive specifies if the filter is case insensitive or not. Only
+	// CaseSensitive specifies if the filter is case sensitive or not. Only
 	// valid for OpStartsWith, OpNotStartsWith, OpEndsWith, OpNotEndsWith,
 	// OpContains and OpNotContains.
-	CaseInsensitive bool `json:"caseInsensitive"`
+	CaseSensitive bool `json:"caseSensitive"`
 	// Children specifies child filters for the filter. Only valid for OpAnd,
 	// OpOr and OpNot.
 	Children []Filter `json:"children"`
