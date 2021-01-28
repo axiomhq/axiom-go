@@ -36,6 +36,8 @@ func TestHook(t *testing.T) {
 		assert.JSONEq(t, exp, string(b))
 
 		atomic.AddUint64(&hasRun, 1)
+
+		_, _ = w.Write([]byte("{}"))
 	}
 
 	logger, teardown := setup(t, hf)
@@ -63,6 +65,8 @@ func TestHook_FlushFullBatch(t *testing.T) {
 			atomic.AddUint64(&lines, 1)
 		}
 		assert.NoError(t, s.Err())
+
+		_, _ = w.Write([]byte("{}"))
 	}
 
 	logger, teardown := setup(t, hf)
@@ -81,7 +85,7 @@ func TestHook_FlushFullBatch(t *testing.T) {
 	// Wait for timer based hook flush.
 	time.Sleep(1250 * time.Millisecond)
 
-	// Should have received the last event .
+	// Should have received the last event.
 	assert.EqualValues(t, 1025, atomic.LoadUint64(&lines))
 }
 

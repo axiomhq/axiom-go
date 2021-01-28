@@ -34,6 +34,8 @@ func TestCore(t *testing.T) {
 		assert.JSONEq(t, exp, string(b))
 
 		hasRun = true
+
+		_, _ = w.Write([]byte("{}"))
 	}
 
 	logger, teardown := setup(t, hf)
