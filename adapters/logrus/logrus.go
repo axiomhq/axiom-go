@@ -39,7 +39,7 @@ func IngestOptions(opts axiom.IngestOptions) Option {
 	}
 }
 
-// Hook implements an Axiom logging hook for use with logrus.
+// Hook implements a logrus.Hook used for shipping logs to Axiom.
 type Hook struct {
 	client      *axiom.Client
 	datasetName string
@@ -57,7 +57,7 @@ type Hook struct {
 // and authenticating with the given access token. An ingest token is
 // sufficient enough. The logs will be ingested into the specified dataset.
 // Additional options can be supplied to configure the Hook. A Hook needs to be
-// closed properly to make sure all logs are sent by calling Close()
+// closed properly to make sure all logs are sent by calling Close().
 func New(baseURL, accessToken, datasetName string, options ...Option) (*Hook, error) {
 	client, err := axiom.NewClient(baseURL, accessToken)
 	if err != nil {
