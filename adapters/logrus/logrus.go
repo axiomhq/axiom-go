@@ -192,6 +192,10 @@ func (h *Hook) run(ctx context.Context, closeCh chan struct{}) {
 }
 
 func (h *Hook) ingest(ctx context.Context, events []axiom.Event) {
+	if len(events) == 0 {
+		return
+	}
+
 	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, h.ingestOptions, events...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to ingest batch of %d events: %s\n", len(events), err)
