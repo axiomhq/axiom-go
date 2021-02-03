@@ -1,4 +1,4 @@
-package logrus
+package apex
 
 import (
 	"context"
@@ -7,44 +7,34 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/apex/log"
 
 	"github.com/axiomhq/axiom-go/axiom"
 )
 
-var _ logrus.Hook = (*Hook)(nil)
+var _ log.Handler = (*Handler)(nil)
 
 const (
 	batchSize    = 1024
 	sendInterval = time.Second
 )
 
-// An Option modifies the behaviour of the Axiom hook.
-type Option func(*Hook) error
-
-// Levels sets the logrus levels that the Axiom hook will create log entries
-// for.
-func Levels(levels ...logrus.Level) Option {
-	return func(h *Hook) error {
-		h.levels = levels
-		return nil
-	}
-}
+// An Option modifies the behaviour of the Axiom handler.
+type Option func(*Handler) error
 
 // IngestOptions specifies the ingestion options to use for ingesting the logs.
 func IngestOptions(opts axiom.IngestOptions) Option {
-	return func(h *Hook) error {
+	return func(h *Handler) error {
 		h.ingestOptions = opts
 		return nil
 	}
 }
 
-// Hook implements a logrus.Hook used for shipping logs to Axiom.
-type Hook struct {
+// Handler implements a log.Handler used for shipping logs to Axiom.
+type Handler struct {
 	client      *axiom.Client
 	datasetName string
 
-	levels        []logrus.Level
 	ingestOptions axiom.IngestOptions
 
 	eventCh   chan axiom.Event
@@ -53,12 +43,12 @@ type Hook struct {
 	closeOnce sync.Once
 }
 
-// New creates a new Hook configured to talk to the specified Axiom deployment
-// and authenticating with the given access token. An ingest token is
+// New creates a new Handler configured to talk to the specified Axiom
+// deployment and authenticating with the given access token. An ingest token is
 // sufficient enough. The logs will be ingested into the specified dataset.
-// Additional options can be supplied to configure the Hook. A Hook needs to be
-// closed properly to make sure all logs are sent by calling Close().
-func New(baseURL, accessToken, datasetName string, options ...Option) (*Hook, error) {
+// Additional options can be supplied to configure the Handler. A Handler needs
+// to be closed properly to make sure all logs are sent by calling Close().
+func New(baseURL, accessToken, datasetName string, options ...Option) (*Handler, error) {
 	client, err := axiom.NewClient(baseURL, accessToken)
 	if err != nil {
 		return nil, err
@@ -67,8 +57,8 @@ func New(baseURL, accessToken, datasetName string, options ...Option) (*Hook, er
 	return NewWithClient(client, datasetName)
 }
 
-// NewCloud is like New() but configures the Hook to talk to Axiom Cloud.
-func NewCloud(accessToken, datasetName string, options ...Option) (*Hook, error) {
+// NewCloud is like New() but configures the Handler to talk to Axiom Cloud.
+func NewCloud(accessToken, datasetName string, options ...Option) (*Handler, error) {
 	client, err := axiom.NewCloudClient(accessToken)
 	if err != nil {
 		return nil, err
@@ -79,32 +69,30 @@ func NewCloud(accessToken, datasetName string, options ...Option) (*Hook, error)
 
 // NewWithClient behaves like New() but utilizes an already configured
 // axiom.Client to talk to a deployment.
-func NewWithClient(client *axiom.Client, datasetName string, options ...Option) (*Hook, error) {
-	hook := &Hook{
+func NewWithClient(client *axiom.Client, datasetName string, options ...Option) (*Handler, error) {
+	handler := &Handler{
 		client:      client,
 		datasetName: datasetName,
-
-		levels: logrus.AllLevels,
 
 		eventCh: make(chan axiom.Event, 1),
 		closeCh: make(chan struct{}),
 	}
 
 	// Apply supplied options.
-	if err := hook.Options(options...); err != nil {
+	if err := handler.Options(options...); err != nil {
 		return nil, err
 	}
 
 	// Run background scheduler.
 	var ctx context.Context
-	ctx, hook.cancel = context.WithCancel(context.Background())
-	go hook.run(ctx, hook.closeCh)
+	ctx, handler.cancel = context.WithCancel(context.Background())
+	go handler.run(ctx, handler.closeCh)
 
-	return hook, nil
+	return handler, nil
 }
 
-// Options applies Options to the Hook.
-func (h *Hook) Options(options ...Option) error {
+// Options applies Options to the Handler.
+func (h *Handler) Options(options ...Option) error {
 	for _, option := range options {
 		if err := option(h); err != nil {
 			return err
@@ -113,10 +101,9 @@ func (h *Hook) Options(options ...Option) error {
 	return nil
 }
 
-// Close the hook and make sure all events are flushed. This should be
-// registered with `logrus.RegisterExitHandler(h.Close)`. Closing the hook
+// Close the handler and make sure all events are flushed. Closing the handler
 // renders it unusable for further use.
-func (h *Hook) Close() {
+func (h *Handler) Close() {
 	h.closeOnce.Do(func() {
 		close(h.eventCh)
 		h.cancel()
@@ -124,22 +111,17 @@ func (h *Hook) Close() {
 	})
 }
 
-// Levels implements logrus.Hook.
-func (h *Hook) Levels() []logrus.Level {
-	return h.levels
-}
-
-// Fire implements logrus.Hook.
-func (h *Hook) Fire(entry *logrus.Entry) error {
+// HandleLog implements log.Handler.
+func (h *Handler) HandleLog(entry *log.Entry) error {
 	event := axiom.Event{}
 
 	// Set fields first.
-	for k, v := range entry.Data {
+	for k, v := range entry.Fields {
 		event[k] = v
 	}
 
 	// Set timestamp, severity and actual message.
-	event[axiom.TimestampField] = entry.Time.Format(time.RFC3339Nano)
+	event[axiom.TimestampField] = entry.Timestamp.Format(time.RFC3339Nano)
 	event["severity"] = entry.Level.String()
 	event["message"] = entry.Message
 
@@ -148,7 +130,7 @@ func (h *Hook) Fire(entry *logrus.Entry) error {
 	return nil
 }
 
-func (h *Hook) run(ctx context.Context, closeCh chan struct{}) {
+func (h *Handler) run(ctx context.Context, closeCh chan struct{}) {
 	defer close(closeCh)
 
 	t := time.NewTicker(sendInterval)
@@ -191,7 +173,7 @@ func (h *Hook) run(ctx context.Context, closeCh chan struct{}) {
 	}
 }
 
-func (h *Hook) ingest(ctx context.Context, events []axiom.Event) {
+func (h *Handler) ingest(ctx context.Context, events []axiom.Event) {
 	if len(events) == 0 {
 		return
 	}

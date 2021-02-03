@@ -3,6 +3,7 @@ module github.com/axiomhq/axiom-go
 go 1.15
 
 require (
+	github.com/apex/log v1.9.0
 	github.com/golangci/golangci-lint v1.35.2
 	github.com/google/go-querystring v1.0.0
 	github.com/goreleaser/goreleaser v0.154.0
