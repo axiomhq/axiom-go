@@ -20,6 +20,8 @@ const (
 	endpoint = "http://axiom.local"
 	// accessToken is a placeholder access token.
 	accessToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	// orgID is a placeholder organization token.
+	orgID = "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY"
 )
 
 // SetStrictDecoding is a special testing only client option that failes JSON
@@ -33,7 +35,7 @@ func SetStrictDecoding() Option {
 }
 
 func TestNewClient(t *testing.T) {
-	client, err := NewClient(endpoint, accessToken)
+	client, err := NewClient(endpoint, accessToken, orgID)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -67,7 +69,7 @@ func TestNewCloudClient(t *testing.T) {
 }
 
 func TestClient_Options_SetClient(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client, _ := NewClient(endpoint, accessToken, orgID)
 
 	exp := &http.Client{
 		Timeout: 0,
@@ -81,7 +83,7 @@ func TestClient_Options_SetClient(t *testing.T) {
 }
 
 func TestClient_Options_SetUserAgent(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client, _ := NewClient(endpoint, accessToken, orgID)
 
 	exp := "axiom-go/1.0.0"
 	opt := SetUserAgent(exp)
@@ -93,7 +95,7 @@ func TestClient_Options_SetUserAgent(t *testing.T) {
 }
 
 func TestClient_newRequest_BadURL(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client, _ := NewClient(endpoint, accessToken, orgID)
 
 	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
@@ -110,7 +112,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 // empty string versus one that is not set at all. However in certain cases,
 // intermediate systems may treat these differently resulting in subtle errors.
 func TestClient_newRequest_EmptyBody(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client, _ := NewClient(endpoint, accessToken, orgID)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -233,7 +235,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	}))
 	srv := httptest.NewServer(r)
 
-	client, err := NewClient(srv.URL, accessToken, SetClient(srv.Client()), SetStrictDecoding())
+	client, err := NewClient(srv.URL, accessToken, orgID, SetClient(srv.Client()), SetStrictDecoding())
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

@@ -57,7 +57,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*zap.Logger, func()) {
 
 	srv := httptest.NewServer(h)
 
-	client, err := axiom.NewClient(srv.URL, "", axiom.SetClient(srv.Client()))
+	client, err := axiom.NewClient(srv.URL, "", "", axiom.SetClient(srv.Client()))
 	require.NoError(t, err)
 
 	core, err := adapter.NewWithClient(client, "test")

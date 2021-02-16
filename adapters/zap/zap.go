@@ -69,8 +69,8 @@ type WriteSyncer struct {
 // deployment and authenticating with the given access token. An ingest token is
 // sufficient enough. The logs will be ingested into the specified dataset.
 // Additional options can be supplied to configure the core.
-func New(baseURL, accessToken, datasetName string, options ...Option) (zapcore.Core, error) {
-	client, err := axiom.NewClient(baseURL, accessToken)
+func New(baseURL, accessToken, orgID, datasetName string, options ...Option) (zapcore.Core, error) {
+	client, err := axiom.NewClient(baseURL, accessToken, orgID)
 	if err != nil {
 		return nil, err
 	}
