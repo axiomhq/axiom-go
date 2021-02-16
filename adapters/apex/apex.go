@@ -48,8 +48,8 @@ type Handler struct {
 // sufficient enough. The logs will be ingested into the specified dataset.
 // Additional options can be supplied to configure the Handler. A Handler needs
 // to be closed properly to make sure all logs are sent by calling Close().
-func New(baseURL, accessToken, datasetName string, options ...Option) (*Handler, error) {
-	client, err := axiom.NewClient(baseURL, accessToken)
+func New(baseURL, accessToken, orgID, datasetName string, options ...Option) (*Handler, error) {
+	client, err := axiom.NewClient(baseURL, accessToken, orgID)
 	if err != nil {
 		return nil, err
 	}

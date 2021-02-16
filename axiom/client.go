@@ -79,6 +79,7 @@ type Client struct {
 	baseURL        *url.URL
 	userAgent      string
 	accessToken    string
+	orgID          string
 	strictDecoding bool
 
 	httpClient *http.Client
@@ -100,8 +101,9 @@ type Client struct {
 
 // NewClient returns a new Axiom API client. The access token must be a personal
 // or ingest token which can be created on the settings or user profile page of
-// a deployment.
-func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) {
+// a deployment. The organization ID must be of the organization the token was
+// issued for.
+func NewClient(baseURL, accessToken, orgID string, options ...Option) (*Client, error) {
 	u, err := url.ParseRequestURI(baseURL)
 	if err != nil {
 		return nil, err
@@ -110,6 +112,7 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 	client := &Client{
 		baseURL:     u,
 		userAgent:   "axiom-go",
+		orgID:       orgID,
 		accessToken: accessToken,
 
 		httpClient: DefaultHTTPClient(),
@@ -136,9 +139,9 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 }
 
 // NewCloudClient is like NewClient but assumes the official Axiom Cloud url as
-// base url.
+// base url and does not accept an organization ID.
 func NewCloudClient(accessToken string, options ...Option) (*Client, error) {
-	return NewClient(CloudURL, accessToken, options...)
+	return NewClient(CloudURL, accessToken, "", options...)
 }
 
 // Options applies Options to the Client.
@@ -197,8 +200,15 @@ func (c *Client) newRequest(ctx context.Context, method, endpoint string, body i
 		req.Header.Set("content-type", "application/octet-stream")
 	}
 
-	// Set Authorization header.
-	req.Header.Set("authorization", "Bearer "+c.accessToken)
+	// Set authorization header, if present.
+	if c.accessToken != "" {
+		req.Header.Set("authorization", "Bearer "+c.accessToken)
+	}
+
+	// Set organization id header, if present.
+	if c.orgID != "" {
+		req.Header.Set("x-axiom-org-id", c.orgID)
+	}
 
 	// Set other headers.
 	req.Header.Set("accept", "application/json")

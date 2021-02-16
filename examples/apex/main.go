@@ -14,11 +14,12 @@ func main() {
 	var (
 		deploymentURL = os.Getenv("AXM_DEPLOYMENT_URL")
 		accessToken   = os.Getenv("AXM_ACCESS_TOKEN")
+		orgID         = os.Getenv("AXM_ORG_ID")
 		dataset       = os.Getenv("AXM_DATASET")
 	)
 
 	// 1. Setup the Axiom handler for apex.
-	handler, err := adapter.New(deploymentURL, accessToken, dataset)
+	handler, err := adapter.New(deploymentURL, accessToken, orgID, dataset)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
