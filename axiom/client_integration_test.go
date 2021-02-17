@@ -86,7 +86,7 @@ func (s *IntegrationTestSuite) TearDownTest() {
 
 func (s *IntegrationTestSuite) newClient() {
 	var err error
-	s.client, err = axiom.NewClient(deploymentURL, accessToken, orgID, axiom.SetUserAgent("axiom-test"))
+	s.client, err = axiom.NewClient(deploymentURL, accessToken, axiom.SetUserAgent("axiom-test"))
 	s.Require().NoError(err)
 	s.Require().NotNil(s.client)
 }

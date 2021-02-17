@@ -15,7 +15,6 @@ func main() {
 	var (
 		deploymentURL = os.Getenv("AXM_DEPLOYMENT_URL")
 		accessToken   = os.Getenv("AXM_ACCESS_TOKEN")
-		orgID         = os.Getenv("AXM_ORG_ID")
 	)
 
 	// 1. Open the file to ingest.
@@ -32,7 +31,7 @@ func main() {
 	}
 
 	// 3. Initialize the Axiom API client.
-	client, err := axiom.NewClient(deploymentURL, accessToken, orgID)
+	client, err := axiom.NewClient(deploymentURL, accessToken)
 	if err != nil {
 		log.Fatal(err)
 	}

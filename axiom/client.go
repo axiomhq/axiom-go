@@ -54,6 +54,15 @@ func DefaultHTTPClient() *http.Client {
 // An Option modifies the behaviour of the API client.
 type Option func(c *Client) error
 
+// SetBaseURL sets the base URL used by the client. It overwrittes the one set
+// by the call to NewClient().
+func SetBaseURL(baseURL string) Option {
+	return func(c *Client) (err error) {
+		c.baseURL, err = url.ParseRequestURI(baseURL)
+		return err
+	}
+}
+
 // SetClient specifies a custom http client that should be used to make
 // requests.
 func SetClient(client *http.Client) Option {
@@ -101,9 +110,8 @@ type Client struct {
 
 // NewClient returns a new Axiom API client. The access token must be a personal
 // or ingest token which can be created on the settings or user profile page of
-// a deployment. The organization ID must be of the organization the token was
-// issued for.
-func NewClient(baseURL, accessToken, orgID string, options ...Option) (*Client, error) {
+// a deployment.
+func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) {
 	u, err := url.ParseRequestURI(baseURL)
 	if err != nil {
 		return nil, err
@@ -112,7 +120,6 @@ func NewClient(baseURL, accessToken, orgID string, options ...Option) (*Client, 
 	client := &Client{
 		baseURL:     u,
 		userAgent:   "axiom-go",
-		orgID:       orgID,
 		accessToken: accessToken,
 
 		httpClient: DefaultHTTPClient(),
@@ -139,9 +146,17 @@ func NewClient(baseURL, accessToken, orgID string, options ...Option) (*Client, 
 }
 
 // NewCloudClient is like NewClient but assumes the official Axiom Cloud url as
-// base url and does not accept an organization ID.
-func NewCloudClient(accessToken string, options ...Option) (*Client, error) {
-	return NewClient(CloudURL, accessToken, "", options...)
+// base url and accepts an organization ID. The organization ID must be of the
+// organization the token was issued for.
+func NewCloudClient(accessToken, orgID string, options ...Option) (*Client, error) {
+	client, err := NewClient(CloudURL, accessToken, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	client.orgID = orgID
+
+	return client, nil
 }
 
 // Options applies Options to the Client.

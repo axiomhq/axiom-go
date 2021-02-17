@@ -48,23 +48,23 @@ type Handler struct {
 // sufficient enough. The logs will be ingested into the specified dataset.
 // Additional options can be supplied to configure the Handler. A Handler needs
 // to be closed properly to make sure all logs are sent by calling Close().
-func New(baseURL, accessToken, orgID, datasetName string, options ...Option) (*Handler, error) {
-	client, err := axiom.NewClient(baseURL, accessToken, orgID)
+func New(baseURL, accessToken, datasetName string, options ...Option) (*Handler, error) {
+	client, err := axiom.NewClient(baseURL, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewWithClient(client, datasetName)
+	return NewWithClient(client, datasetName, options...)
 }
 
 // NewCloud is like New() but configures the Handler to talk to Axiom Cloud.
-func NewCloud(accessToken, datasetName string, options ...Option) (*Handler, error) {
-	client, err := axiom.NewCloudClient(accessToken)
+func NewCloud(accessToken, orgID, datasetName string, options ...Option) (*Handler, error) {
+	client, err := axiom.NewCloudClient(accessToken, orgID)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewWithClient(client, datasetName)
+	return NewWithClient(client, datasetName, options...)
 }
 
 // NewWithClient behaves like New() but utilizes an already configured
