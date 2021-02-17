@@ -98,7 +98,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*logrus.Logger, func()) {
 
 	srv := httptest.NewServer(h)
 
-	client, err := axiom.NewClient(srv.URL, "", "", axiom.SetClient(srv.Client()))
+	client, err := axiom.NewClient(srv.URL, "", axiom.SetClient(srv.Client()))
 	require.NoError(t, err)
 
 	hook, err := adapter.NewWithClient(client, "test")

@@ -9,7 +9,7 @@ import (
 )
 
 func Example() {
-	client, err := axiom.NewClient("https://my-axiom.example.com", "<ACCESS-TOKEN>", "<ORGANIZATION-ID>")
+	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 	if err != nil {
 		log.Fatal(err)
 	}

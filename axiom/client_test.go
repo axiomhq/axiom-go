@@ -20,8 +20,8 @@ const (
 	endpoint = "http://axiom.local"
 	// accessToken is a placeholder access token.
 	accessToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	// orgID is a placeholder organization token.
-	orgID = "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY"
+	// orgID is a placeholder organization id.
+	orgID = "awkward-identifier-c3po"
 )
 
 // SetStrictDecoding is a special testing only client option that failes JSON
@@ -35,7 +35,7 @@ func SetStrictDecoding() Option {
 }
 
 func TestNewClient(t *testing.T) {
-	client, err := NewClient(endpoint, accessToken, orgID)
+	client, err := NewClient(endpoint, accessToken)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -56,20 +56,35 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, endpoint, client.baseURL.String())
 	assert.NotEmpty(t, client.userAgent)
 	assert.NotEmpty(t, client.accessToken)
+	assert.Empty(t, client.orgID)
+	assert.False(t, client.strictDecoding)
 	assert.NotNil(t, client.httpClient)
 }
 
 func TestNewCloudClient(t *testing.T) {
-	client, err := NewCloudClient(accessToken)
+	client, err := NewCloudClient(accessToken, orgID)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
 	// Is default configuration present?
 	assert.Equal(t, CloudURL, client.baseURL.String())
+	assert.NotEmpty(t, client.orgID)
+}
+
+func TestClient_Options_SetBaseURL(t *testing.T) {
+	client, _ := NewClient(endpoint, accessToken)
+
+	exp := "http://localhost:80"
+	opt := SetBaseURL(exp)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, exp, client.baseURL.String())
 }
 
 func TestClient_Options_SetClient(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken, orgID)
+	client, _ := NewClient(endpoint, accessToken)
 
 	exp := &http.Client{
 		Timeout: 0,
@@ -83,7 +98,7 @@ func TestClient_Options_SetClient(t *testing.T) {
 }
 
 func TestClient_Options_SetUserAgent(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken, orgID)
+	client, _ := NewClient(endpoint, accessToken)
 
 	exp := "axiom-go/1.0.0"
 	opt := SetUserAgent(exp)
@@ -95,7 +110,7 @@ func TestClient_Options_SetUserAgent(t *testing.T) {
 }
 
 func TestClient_newRequest_BadURL(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken, orgID)
+	client, _ := NewClient(endpoint, accessToken)
 
 	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
@@ -112,7 +127,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 // empty string versus one that is not set at all. However in certain cases,
 // intermediate systems may treat these differently resulting in subtle errors.
 func TestClient_newRequest_EmptyBody(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken, orgID)
+	client, _ := NewClient(endpoint, accessToken)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -235,7 +250,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	}))
 	srv := httptest.NewServer(r)
 
-	client, err := NewClient(srv.URL, accessToken, orgID, SetClient(srv.Client()), SetStrictDecoding())
+	client, err := NewClient(srv.URL, accessToken, SetClient(srv.Client()), SetStrictDecoding())
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

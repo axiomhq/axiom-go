@@ -14,12 +14,11 @@ func main() {
 	var (
 		deploymentURL = os.Getenv("AXM_DEPLOYMENT_URL")
 		accessToken   = os.Getenv("AXM_ACCESS_TOKEN")
-		orgID         = os.Getenv("AXM_ORG_ID")
 		dataset       = os.Getenv("AXM_DATASET")
 	)
 
 	// 1. Setup the Axiom core for zap.
-	core, err := adapter.New(deploymentURL, accessToken, orgID, dataset)
+	core, err := adapter.New(deploymentURL, accessToken, dataset)
 	if err != nil {
 		log.Fatal(err)
 	}
