@@ -49,9 +49,9 @@ type IntegrationTestSuite struct {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NotEmpty(accessToken, "integration test needs a personal access token set")
-	s.Require().NotEmpty(deploymentURL, "integration test needs a deployment url set")
+	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization id or deployment url set")
 
-	s.T().Logf("strict decoding is set to %t", strictDecoding)
+	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
 
 	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.Require().NotNil(s.client)
 
-	s.T().Logf("using user %s", s.testUser.Name)
+	s.T().Logf("using account %q", s.testUser.Name)
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
@@ -85,8 +85,20 @@ func (s *IntegrationTestSuite) TearDownTest() {
 }
 
 func (s *IntegrationTestSuite) newClient() {
+	options := []axiom.Option{
+		axiom.SetUserAgent("axiom-go-integration-test"),
+	}
+
 	var err error
-	s.client, err = axiom.NewClient(deploymentURL, accessToken, axiom.SetUserAgent("axiom-test"))
+	if orgID != "" {
+		if deploymentURL != "" {
+			options = append(options, axiom.SetBaseURL(deploymentURL))
+		}
+		s.client, err = axiom.NewCloudClient(orgID, accessToken, options...)
+	} else {
+		s.client, err = axiom.NewClient(deploymentURL, accessToken, options...)
+	}
+
 	s.Require().NoError(err)
 	s.Require().NotNil(s.client)
 }

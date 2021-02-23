@@ -31,7 +31,7 @@ func (s *VirtualFieldsTestSuite) SetupSuite() {
 
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test-" + randString(),
-		Description: "This is a test dataset",
+		Description: "This is a test dataset for virtual fields integration tests.",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(dataset)
