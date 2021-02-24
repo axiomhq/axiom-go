@@ -30,7 +30,7 @@ func (s *VirtualFieldsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
-		Name:        "test-" + randString(),
+		Name:        "test-axiom-go-virtual-fields-" + randString(),
 		Description: "This is a test dataset for virtual fields integration tests.",
 	})
 	s.Require().NoError(err)
