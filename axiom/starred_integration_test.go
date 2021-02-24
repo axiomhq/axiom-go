@@ -30,7 +30,7 @@ func (s *StarredQueriesTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
-		Name:        "test-" + randString(),
+		Name:        "test-axiom-go-starred-queries-" + randString(),
 		Description: "This is a test dataset for starred queries integration tests.",
 	})
 	s.Require().NoError(err)

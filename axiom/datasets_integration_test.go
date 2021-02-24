@@ -79,7 +79,7 @@ func (s *DatasetsTestSuite) SetupSuite() {
 
 	var err error
 	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
-		Name:        "test-" + randString(),
+		Name:        "test-axiom-go-dataset-" + randString(),
 		Description: "This is a test dataset for datasets integration tests.",
 	})
 	s.Require().NoError(err)
