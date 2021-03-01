@@ -187,18 +187,10 @@ type DatasetUpdateRequest struct {
 	Description string `json:"description"`
 }
 
-// DatasetTrimRequest is a request used to trim a dataset. At least one field
-// must be specified. If more than one options is specified, it is made sure
-// that all options are applied: If a dataset is trimmed down by 12h and 1GB it
-// won't exceed 1GB or 12h. But if more events need to be deleted in order to
-// hit the 1GB goal, the timestamp of the oldest event can be younger than
-// specified.
-type DatasetTrimRequest struct {
-	// MaxDuration specifies the duration after ingestion at which events are
-	// deleted from the dataset.
-	MaxDuration time.Duration `json:"maxDuration,omitempty"`
-	// MaxSize specifies the desired dataset size in bytes.
-	MaxSize uint64 `json:"maxSize,omitempty"`
+type datasetTrimRequest struct {
+	// MaxDuration marks the oldest timestamp an event can have before getting
+	// deleted.
+	MaxDuration string `json:"maxDuration"`
 }
 
 // IngestOptions specifies the parameters for the Ingest and IngestEvents method
@@ -301,8 +293,14 @@ func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 	return &res, nil
 }
 
-// Trim the dataset identified by its id to a given time or size.
-func (s *DatasetsService) Trim(ctx context.Context, id string, req DatasetTrimRequest) (*TrimResult, error) {
+// Trim the dataset identified by its id to a given length. The max duration
+// given will mark the oldest timestamp an event can have. Older ones will be
+// deleted from the dataset.
+func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.Duration) (*TrimResult, error) {
+	req := datasetTrimRequest{
+		MaxDuration: maxDuration.String(),
+	}
+
 	path := s.basePath + "/" + id + "/trim"
 
 	var res TrimResult
