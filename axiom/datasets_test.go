@@ -389,23 +389,28 @@ func TestDatasetsService_Info(t *testing.T) {
 			"fields": [
 				{
 					"name": "_sysTime",
-					"type": "integer"
+					"type": "integer",
+            		"typeHint": ""
 				},
 				{
 					"name": "_time",
-					"type": "integer"
+					"type": "integer",
+            		"typeHint": ""
 				},
 				{
 					"name": "path",
-					"type": "string"
+					"type": "string",
+            		"typeHint": ""
 				},
 				{
 					"name": "size",
-					"type": "integer"
+					"type": "integer",
+            		"typeHint": ""
 				},
 				{
 					"name": "status",
-					"type": "integer"
+					"type": "integer",
+					"typeHint": ""
 				}
 			],
 			"created": "2020-11-18T21:30:20.623322799Z"

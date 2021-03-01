@@ -71,6 +71,8 @@ type Field struct {
 	Name string `json:"name"`
 	// Type is the datatype of the field.
 	Type string `json:"type"`
+	// TypeHint is a hint regarding the datatype of the field.
+	TypeHint string `json:"typeHint"`
 }
 
 // DatasetInfo represents the details of the information stored inside an Axiom
