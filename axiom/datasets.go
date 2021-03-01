@@ -125,6 +125,12 @@ type DatasetStats struct {
 	CompressedBytesHuman string `json:"compressedBytesHuman"`
 }
 
+// TrimResult is the result of a trim operation.
+type TrimResult struct {
+	// BlocksDeleted is the amount of blocks deleted by the trim operation.
+	BlocksDeleted int `json:"numDeleted"`
+}
+
 // HistoryQuery represents a query stored inside the query history.
 type HistoryQuery struct {
 	// ID is the unique id of the starred query.
@@ -179,6 +185,20 @@ type DatasetCreateRequest struct {
 type DatasetUpdateRequest struct {
 	// Description of the dataset to update.
 	Description string `json:"description"`
+}
+
+// DatasetTrimRequest is a request used to trim a dataset. At least one field
+// must be specified. If more than one options is specified, it is made sure
+// that all options are applied: If a dataset is trimmed down by 12h and 1GB it
+// won't exceed 1GB or 12h. But if more events need to be deleted in order to
+// hit the 1GB goal, the timestamp of the oldest event can be younger than
+// specified.
+type DatasetTrimRequest struct {
+	// MaxDuration specifies the duration after ingestion at which events are
+	// deleted from the dataset.
+	MaxDuration time.Duration `json:"maxDuration,omitempty"`
+	// MaxSize specifies the desired dataset size in bytes.
+	MaxSize uint64 `json:"maxSize,omitempty"`
 }
 
 // IngestOptions specifies the parameters for the Ingest and IngestEvents method
@@ -275,6 +295,18 @@ func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, er
 
 	var res DatasetInfo
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Trim the dataset identified by its id to a given time or size.
+func (s *DatasetsService) Trim(ctx context.Context, id string, req DatasetTrimRequest) (*TrimResult, error) {
+	path := s.basePath + "/" + id + "/trim"
+
+	var res TrimResult
+	if err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
 		return nil, err
 	}
 

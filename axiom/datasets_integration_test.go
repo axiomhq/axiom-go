@@ -185,6 +185,16 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(4, queryResult.Status.RowsExamined)
 	s.EqualValues(4, queryResult.Status.RowsMatched)
 	s.Len(queryResult.Matches, 4)
+
+	// Trim the dataset down to a minimum.
+	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, axiom.DatasetTrimRequest{
+		MaxDuration: time.Second,
+		MaxSize:     1024,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(trimResult)
+
+	s.EqualValues(1, trimResult.BlocksDeleted)
 }
 
 func (s *DatasetsTestSuite) TestHistory() {

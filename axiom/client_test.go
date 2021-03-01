@@ -241,6 +241,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 		assert.NotEmpty(t, r.Header.Get("authorization"), "no authorization header present on the request")
 		assert.Equal(t, r.Header.Get("accept"), "application/json", "bad accept header present on the request")
 		assert.Equal(t, r.Header.Get("user-agent"), "axiom-go", "bad user-agent header present on the request")
+		assert.Equal(t, r.Header.Get("x-axiom-org-id"), orgID, "bad x-axiom-org-id header present on the request")
 
 		if r.ContentLength > 0 {
 			assert.NotEmpty(t, r.Header.Get("Content-Type"), "no Content-Type header present on the request")
@@ -250,7 +251,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	}))
 	srv := httptest.NewServer(r)
 
-	client, err := NewClient(srv.URL, accessToken, SetClient(srv.Client()), SetStrictDecoding())
+	client, err := NewCloudClient(accessToken, orgID, SetBaseURL(srv.URL), SetClient(srv.Client()), SetStrictDecoding())
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

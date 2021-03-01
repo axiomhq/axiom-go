@@ -427,6 +427,32 @@ func TestDatasetsService_Info(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestDatasetsService_Trim(t *testing.T) {
+	exp := &TrimResult{
+		BlocksDeleted: 1,
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"numDeleted": 1
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/trim", hf)
+	defer teardown()
+
+	res, err := client.Datasets.Trim(context.Background(), "test", DatasetTrimRequest{
+		MaxDuration: time.Hour,
+		MaxSize:     1024 * 1024,
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 func TestDatasetsService_History(t *testing.T) {
 	exp := &HistoryQuery{
 		ID:      "GHP2ufS7OYwMeBhXHj",
@@ -467,6 +493,7 @@ func TestDatasetsService_History(t *testing.T) {
 
 	assert.Equal(t, exp, res)
 }
+
 func TestDatasetsService_Ingest(t *testing.T) {
 	exp := &IngestStatus{
 		Ingested:       2,
