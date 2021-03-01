@@ -444,10 +444,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/datasets/test/trim", hf)
 	defer teardown()
 
-	res, err := client.Datasets.Trim(context.Background(), "test", DatasetTrimRequest{
-		MaxDuration: time.Hour,
-		MaxSize:     1024 * 1024,
-	})
+	res, err := client.Datasets.Trim(context.Background(), "test", time.Hour)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
