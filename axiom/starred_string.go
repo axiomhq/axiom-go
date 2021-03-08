@@ -12,9 +12,9 @@ func _() {
 	_ = x[OwnedByTeam-1]
 }
 
-const _OwnerKind_name = "OwnedByUserteam"
+const _OwnerKind_name = "userteam"
 
-var _OwnerKind_index = [...]uint8{0, 11, 15}
+var _OwnerKind_index = [...]uint8{0, 4, 8}
 
 func (i OwnerKind) String() string {
 	if i >= OwnerKind(len(_OwnerKind_index)-1) {

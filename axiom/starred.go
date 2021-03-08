@@ -18,8 +18,8 @@ type OwnerKind uint8
 
 // All available query kinds.
 const (
-	OwnedByUser OwnerKind = iota
-	OwnedByTeam           // team
+	OwnedByUser OwnerKind = iota // user
+	OwnedByTeam                  // team
 )
 
 // EncodeValues implements query.Encoder. It is in place to encode the OwnerKind
@@ -99,8 +99,8 @@ type StarredQueriesListOptions struct {
 	Kind QueryKind `url:"kind"`
 	// Dataset to list starred queries for.
 	Dataset string `url:"dataset,omitempty"`
-	// Owner will list the starred queries of a users teams instead of personal
-	// ones, if set to true.
+	// Owner specifies if the starred queries of a users teams or personal ones
+	// are listed.
 	Owner OwnerKind `url:"who,omitempty"`
 
 	ListOptions
