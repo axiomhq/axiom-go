@@ -206,6 +206,9 @@ type IngestOptions struct {
 	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
 	// in https://pkg.go.dev/time/?tab=doc#Parse.
 	TimestampFormat string `url:"timestamp-format,omitempty"`
+	// CSVDelimiter is the delimiter that separates CSV fields. Only valid when
+	// the content to be ingested is CSV formatted.
+	CSVDelimiter string `url:"csv-delimiter,omitempty"`
 }
 
 // DatasetsService handles communication with the dataset related operations of
