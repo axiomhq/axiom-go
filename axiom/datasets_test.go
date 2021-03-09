@@ -453,7 +453,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 func TestDatasetsService_History(t *testing.T) {
 	exp := &HistoryQuery{
 		ID:      "GHP2ufS7OYwMeBhXHj",
-		Kind:    "analytics",
+		Kind:    Analytics,
 		Dataset: "test",
 		Owner:   "f83e245a-afdc-47ad-a765-4addd1994333",
 		Query: query.Query{

@@ -139,7 +139,7 @@ type HistoryQuery struct {
 	// ID is the unique id of the starred query.
 	ID string `json:"id"`
 	// Kind of the starred query.
-	Kind string `json:"kind"`
+	Kind QueryKind `json:"kind"`
 	// Dataset the starred query belongs to.
 	Dataset string `json:"dataset"`
 	// Owner is the ID of the starred queries owner. Can be a user or team ID.
