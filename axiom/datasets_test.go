@@ -760,9 +760,10 @@ func TestGZIPStreamer(t *testing.T) {
 
 func TestDetectContentType(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
-		want  ContentType
+		name    string
+		input   string
+		want    ContentType
+		wantErr string
 	}{
 		{
 			name:  JSON.String(),
@@ -787,12 +788,26 @@ func TestDetectContentType(t *testing.T) {
 				2000,Mercury,Cougar,2.38`,
 			want: CSV,
 		},
+		{
+			name:    "eof",
+			input:   "",
+			wantErr: "couldn't find beginning of supported ingestion format",
+		},
+		{
+			name:    "invalid",
+			input:   "123",
+			wantErr: "cannot determine content type",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, got, err := DetectContentType(strings.NewReader(tt.input))
-			require.NoError(t, err)
-			assert.Equal(t, tt.want.String(), got.String())
+			if tt.want > 0 {
+				require.NoError(t, err)
+				assert.Equal(t, tt.want.String(), got.String())
+			} else {
+				assert.EqualError(t, err, tt.wantErr)
+			}
 		})
 	}
 }

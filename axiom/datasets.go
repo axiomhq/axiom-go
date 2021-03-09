@@ -486,7 +486,7 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 			typ = JSON
 		} else if c == '{' {
 			typ = NDJSON
-		} else if !unicode.IsSpace(c) {
+		} else if unicode.IsLetter(c) { // We assume a CSV table starts with a letter.
 			typ = CSV
 		} else if unicode.IsSpace(c) {
 			continue
