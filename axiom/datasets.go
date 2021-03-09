@@ -1,6 +1,8 @@
 package axiom
 
 import (
+	"bufio"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -8,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"time"
+	"unicode"
 
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
@@ -460,4 +463,51 @@ func GZIPStreamer(r io.Reader, level int) (io.Reader, error) {
 	}()
 
 	return pr, nil
+}
+
+// DetectContentType detects the content type of an io.Reader's data. The
+// returned io.Reader must be used instead of the passed one. Compressed content
+// is not detected.
+func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
+	var (
+		br  = bufio.NewReader(r)
+		typ ContentType
+	)
+	for {
+		var (
+			c   rune
+			err error
+		)
+		if c, _, err = br.ReadRune(); err == io.EOF {
+			return nil, 0, errors.New("couldn't find beginning of supported ingestion format")
+		} else if err != nil {
+			return nil, 0, err
+		} else if c == '[' {
+			typ = JSON
+		} else if c == '{' {
+			typ = NDJSON
+		} else if !unicode.IsSpace(c) {
+			typ = CSV
+		} else if unicode.IsSpace(c) {
+			continue
+		} else {
+			return nil, 0, errors.New("cannot determine content type")
+		}
+
+		if err = br.UnreadRune(); err != nil {
+			return nil, 0, err
+		}
+		break
+	}
+
+	// Create a new reader and prepend what we have already consumed in order to
+	// figure out the content type.
+	buf, err := br.Peek(br.Buffered())
+	if err != nil {
+		return nil, 0, err
+	}
+	alreadyRead := bytes.NewReader(buf)
+	r = io.MultiReader(alreadyRead, r)
+
+	return r, typ, nil
 }

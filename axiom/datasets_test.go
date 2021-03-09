@@ -758,17 +758,54 @@ func TestGZIPStreamer(t *testing.T) {
 	assert.Equal(t, exp, string(act))
 }
 
+func TestDetectContentType(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  ContentType
+	}{
+		{
+			name:  JSON.String(),
+			input: `[{"a":"b"}, {"c":"d"}]`,
+			want:  JSON,
+		},
+		{
+			name:  NDJSON.String(),
+			input: `{"a":"b"}`,
+			want:  NDJSON,
+		},
+		{
+			name: NDJSON.String(),
+			input: `{"a":"b"}
+				{"c":"d"}`,
+			want: NDJSON,
+		},
+		{
+			name: CSV.String(),
+			input: `Year,Make,Model,Length
+				1997,Ford,E350,2.35
+				2000,Mercury,Cougar,2.38`,
+			want: CSV,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, got, err := DetectContentType(strings.NewReader(tt.input))
+			require.NoError(t, err)
+			assert.Equal(t, tt.want.String(), got.String())
+		})
+	}
+}
+
 func assertValidJSON(t *testing.T, r io.Reader) bool {
 	dec := json.NewDecoder(r)
 	for dec.More() {
 		var v interface{}
-		err := dec.Decode(&v)
-		if !assert.NoError(t, err) {
+		if err := dec.Decode(&v); !assert.NoError(t, err) {
 			return false
 		} else if !assert.NotEmpty(t, v) {
 			return false
 		}
 	}
-
 	return true
 }
