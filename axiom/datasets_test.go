@@ -505,6 +505,10 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
+		assert.Equal(t, "time", r.URL.Query().Get("timestamp-field"))
+		assert.Equal(t, "2/Jan/2006:15:04:05 +0000", r.URL.Query().Get("timestamp-format"))
+		assert.Equal(t, ";", r.URL.Query().Get("csv-delimiter"))
+
 		_, err := fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -542,7 +546,11 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		}
 	]`)
 
-	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, Identity, IngestOptions{})
+	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, Identity, IngestOptions{
+		TimestampField:  "time",
+		TimestampFormat: "2/Jan/2006:15:04:05 +0000",
+		CSVDelimiter:    ";", // Obviously not valid for JSON, but perfectly fine to test for its presence in this test.
+	})
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
