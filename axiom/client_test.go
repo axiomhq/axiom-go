@@ -44,6 +44,7 @@ func TestNewClient(t *testing.T) {
 	assert.NotNil(t, client.Datasets)
 	assert.NotNil(t, client.Monitors)
 	assert.NotNil(t, client.Notifiers)
+	assert.NotNil(t, client.Organizations)
 	assert.NotNil(t, client.StarredQueries)
 	assert.NotNil(t, client.Teams)
 	assert.NotNil(t, client.Tokens.Ingest)
