@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Team represents a team
+// Team represents a team.
 type Team struct {
 	// ID is the unique id of the team.
 	ID string `json:"id"`
