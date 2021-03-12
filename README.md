@@ -105,21 +105,9 @@ For more sample code snippets, head over to the [examples](examples) directory.
 ## Documentation
 
 You can find the Axiom and Axiom Go documentation
-[on the website](https://docs.axiom.co/)
+[on the docs website](https://docs.axiom.co/).
 
-Check out the [Getting Started](https://docs.axiom.co/) page for a quick
-overview.
-
-The documentation is divided into several sections:
-
-- [Tutorial](https://docs.axiom.co/usage/getting-started/)
-- [Ingesting](https://docs.axiom.co/usage/ingest/)
-- [Analyzing](https://docs.axiom.co/usage/analyze/)
-- [Streaming](https://docs.axiom.co/usage/stream/)
-- [Alerting](https://docs.axiom.co/usage/alerts/)
-- [Integrations](https://docs.axiom.co/usage/integrations/)
-- [Where to Get Support](https://axiom.co/community)
-- [Contributing Guide](https://docs.axiom.co/how-to-contribute/)
+- [Where to Get Support](https://axiom.co/support)
 
 ## Contributing
 
