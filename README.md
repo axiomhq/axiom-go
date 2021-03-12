@@ -112,7 +112,7 @@ overview.
 
 The documentation is divided into several sections:
 
-- [Tutorial](https://docs.axiom.co/getting-started/)
+- [Tutorial](https://docs.axiom.co/usage/getting-started/)
 - [Ingesting](https://docs.axiom.co/usage/ingest/)
 - [Analyzing](https://docs.axiom.co/usage/analyze/)
 - [Streaming](https://docs.axiom.co/usage/stream/)
