@@ -107,6 +107,17 @@ For more sample code snippets, head over to the [examples](examples) directory.
 You can find the Axiom and Axiom Go documentation
 [on the docs website](https://docs.axiom.co/).
 
+The documentation is divided into several sections:
+
+- [Getting Started](https://docs.axiom.co/usage/getting-started/)
+- [Ingesting Data](https://docs.axiom.co/usage/ingest/)
+- [Analyzing Data](https://docs.axiom.co/usage/analyze/)
+- [Streaming Data](https://docs.axiom.co/usage/stream/)
+- [Runing Axiom on Kubernetes](https://docs.axiom.co/install/kubernetes/)
+- [Run Axiom on your Desktop](https://docs.axiom.co/install/demo/)
+- [Manage deployments with Axiom CLI](https://docs.axiom.co/reference/CLI/)
+- [Ingest using Elastic Beats](https://docs.axiom.co/data-shippers/elastic-beats/)
+- [Ingesting via Elasticsearch API](https://docs.axiom.co/data-shippers/api/)
 - [Where to Get Support](https://axiom.co/support)
 
 ## Contributing
