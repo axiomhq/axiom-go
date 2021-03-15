@@ -37,6 +37,7 @@ func TestStatus_MarshalJSON(t *testing.T) {
 		"rowsMatched": 0,
 		"numGroups": 0,
 		"isPartial": false,
+		"continuationToken": "",
 		"isEstimate": false,
 		"minBlockTime": "0001-01-01T00:00:00Z",
 		"maxBlockTime": "0001-01-01T00:00:00Z"
