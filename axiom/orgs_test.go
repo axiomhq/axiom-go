@@ -48,7 +48,7 @@ func TestOrganizationsService_List(t *testing.T) {
 			},
 			Created:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			Modified: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-			Version:  1615469248501218883,
+			Version:  "1615469248501218883",
 		},
 	}
 
@@ -90,7 +90,7 @@ func TestOrganizationsService_List(t *testing.T) {
 				},
 				"metaCreated": "1970-01-01T00:00:00Z",
 				"metaModified": "2021-03-11T13:27:28.501218883Z",
-				"metaVersion": 1615469248501218883
+				"metaVersion": "1615469248501218883"
 			}
 		]`)
 		assert.NoError(t, err)
@@ -141,7 +141,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 		},
 		Created:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Modified: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-		Version:  1615469248501218883,
+		Version:  "1615469248501218883",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -181,7 +181,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 			},
 			"metaCreated": "1970-01-01T00:00:00Z",
 			"metaModified": "2021-03-11T13:27:28.501218883Z",
-			"metaVersion": 1615469248501218883
+			"metaVersion": "1615469248501218883"
 		}`)
 		assert.NoError(t, err)
 	}
@@ -292,7 +292,7 @@ func TestOrganizationsService_Update(t *testing.T) {
 		},
 		Created:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Modified: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-		Version:  1615469248501218883,
+		Version:  "1615469248501218883",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -333,7 +333,7 @@ func TestOrganizationsService_Update(t *testing.T) {
 			},
 			"metaCreated": "1970-01-01T00:00:00Z",
 			"metaModified": "2021-03-11T13:27:28.501218883Z",
-			"metaVersion": 1615469248501218883
+			"metaVersion": "1615469248501218883"
 		}`)
 		assert.NoError(t, err)
 	}

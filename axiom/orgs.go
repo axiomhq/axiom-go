@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-//go:generate ../bin/stringer -type=Plan -linecomment -output=organizations_string.go
+//go:generate ../bin/stringer -type=Plan -linecomment -output=orgs_string.go
 
 // Plan represents the plan of a deployment or organization.
 type Plan uint8
@@ -149,7 +149,7 @@ type Organization struct {
 	// Modified is the time the Organization was modified.
 	Modified time.Time `json:"metaModified"`
 	// Version of the organization.
-	Version int64 `json:"metaVersion"`
+	Version string `json:"metaVersion"`
 }
 
 // OrganizationUpdateRequest is a request used to update an organization.
