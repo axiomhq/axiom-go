@@ -104,6 +104,9 @@ type Status struct {
 	NumGroups uint32 `json:"numGroups"`
 	// IsPartial describes if the query result is a partial result.
 	IsPartial bool `json:"isPartial"`
+	// ContinuationToken is populated when IsPartial is true and must be passed
+	// to the next query request to retrieve the next result set.
+	ContinuationToken string `json:"continuationToken"`
 	// IsEstimate describes if the query result is estimated.
 	IsEstimate bool `json:"isEstimate"`
 	// MinBlockTime is the timestamp of the oldest block examined.
