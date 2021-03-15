@@ -677,6 +677,7 @@ func TestDatasetsService_Query(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/json", r.Header.Get("content-type"))
 
+		assert.Equal(t, "123abc", r.URL.Query().Get("continuation-token"))
 		assert.Equal(t, "1s", r.URL.Query().Get("streaming-duration"))
 		assert.Equal(t, "true", r.URL.Query().Get("no-cache"))
 
@@ -739,6 +740,7 @@ func TestDatasetsService_Query(t *testing.T) {
 		StartTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
 		EndTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
 	}, query.Options{
+		ContinuationToken: "123abc",
 		StreamingDuration: time.Second,
 		NoCache:           true,
 	})
