@@ -74,6 +74,7 @@ fmt: ## Format and simplify the source code using `gofmt`
 
 .PHONY: generate
 generate: $(STRINGER) \
+	axiom/query/result_string.go \
 	axiom/datasets_string.go \
 	axiom/monitors_string.go \
 	axiom/notifiers_string.go \

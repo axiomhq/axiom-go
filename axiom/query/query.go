@@ -19,16 +19,20 @@ type Query struct {
 	Aggregations []Aggregation `json:"aggregations"`
 	// Filter applied on the queried results.
 	Filter Filter `json:"filter"`
-	// GroupBy specifies a list of field names to group the query result by.
+	// GroupBy is a list of field names to group the query result by.
 	GroupBy []string `json:"groupBy"`
-	// Order specifies a list of order rules that specify the order of the query
+	// Order is a list of order rules that specify the order of the query
 	// result.
 	Order []Order `json:"order"`
 	// Limit the amount of results returned from the query.
 	Limit uint32 `json:"limit"`
-	// VirtualFields specifies a list of virtual fields that can be referenced
-	// by aggregations, filters and orders.
+	// VirtualFields is a list of virtual fields that can be referenced by
+	// aggregations, filters and orders.
 	VirtualFields []VirtualField `json:"virtualFields"`
+	// Projections is a list of projections that can be referenced by
+	// aggregations, filters and orders. Leaving it empty projects all available
+	// fields to the query result.
+	Projections []Projection `json:"project"`
 	// Cursor is the query cursor. It should be set to the Cursor returned with
 	// a previous query result if it was partial.
 	Cursor string `json:"cursor"`
@@ -100,4 +104,12 @@ type VirtualField struct {
 	Alias string `json:"alias"`
 	// Expression which specifies the virtual fields value.
 	Expression string `json:"expr"`
+}
+
+// A Projection is a field that is projected to the query result.
+type Projection struct {
+	// Field to project to the query result.
+	Field string `json:"field"`
+	// Alias to reference the projected field by. Optional.
+	Alias string `json:"alias"`
 }
