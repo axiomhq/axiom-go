@@ -2,8 +2,81 @@ package query
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
+
+//go:generate ../../bin/stringer -type=MessageCode,MessagePriority -linecomment -output=result_string.go
+
+// MessageCode represents the code of a message associated with a query.
+type MessageCode uint8
+
+// All available message codes.
+const (
+	VirtualFieldFinalizeError MessageCode = iota + 1 // virtual_field_finalize_error
+	MissingColumn                                    // missing_column
+)
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// MessageCode from the string representation the server returns.
+func (mc *MessageCode) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch s {
+	case VirtualFieldFinalizeError.String():
+		*mc = VirtualFieldFinalizeError
+	case MissingColumn.String():
+		*mc = MissingColumn
+	default:
+		return fmt.Errorf("unknown message code %q", s)
+	}
+
+	return nil
+}
+
+// MessagePriority represents the priority of a message associated with a query.
+type MessagePriority uint8
+
+// All available message priorities.
+const (
+	Trace MessagePriority = iota + 1 // trace
+	Debug                            // debug
+	Info                             // info
+	Warn                             // warn
+	Error                            // error
+	Fatal                            // fatal
+)
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// MessagePriority from the string representation the server returns.
+func (mp *MessagePriority) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch s {
+	case Trace.String():
+		*mp = Trace
+	case Debug.String():
+		*mp = Debug
+	case Info.String():
+		*mp = Info
+	case Warn.String():
+		*mp = Warn
+	case Error.String():
+		*mp = Error
+	case Fatal.String():
+		*mp = Fatal
+	default:
+		return fmt.Errorf("unknown message priority %q", s)
+	}
+
+	return nil
+}
 
 // Result is the result of a query.
 type Result struct {
@@ -36,6 +109,8 @@ type Status struct {
 	MinBlockTime time.Time `json:"minBlockTime"`
 	// MaxBlockTime is the timestamp of the newest block examined.
 	MaxBlockTime time.Time `json:"maxBlockTime"`
+	// Messages associated with the query.
+	Messages []Message `json:"messages"`
 }
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the
@@ -65,6 +140,18 @@ func (s *Status) UnmarshalJSON(b []byte) error {
 	s.ElapsedTime = s.ElapsedTime * time.Microsecond
 
 	return nil
+}
+
+// Message is a message associated with a query result.
+type Message struct {
+	// Priority of the message.
+	Priority MessagePriority `json:"priority"`
+	// Count describes how often a message of this type was raised by the query.
+	Count uint `json:"count"`
+	// Code of the message.
+	Code MessageCode `json:"code"`
+	// Text is a human readable text representation of the message.
+	Text string `json:"msg"`
 }
 
 // Entry is an event that matched a query and is thus part of the result set.
