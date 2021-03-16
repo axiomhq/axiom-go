@@ -252,6 +252,7 @@ func TestComparison_Unmarshal(t *testing.T) {
 
 func TestComparison_String(t *testing.T) {
 	// Check outer bounds.
+	assert.Equal(t, Comparison(0).String(), "Comparison(0)")
 	assert.Contains(t, (Below - 1).String(), "Comparison(")
 	assert.Contains(t, (AboveOrEqual + 1).String(), "Comparison(")
 
@@ -305,6 +306,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 			"order": null,
 			"limit": 0,
 			"virtualFields": null,
+			"project": null,
 			"cursor": "",
 			"resolution": "auto"
 		},

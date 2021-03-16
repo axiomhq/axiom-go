@@ -263,6 +263,7 @@ func TestType_Unmarshal(t *testing.T) {
 
 func TestType_String(t *testing.T) {
 	// Check outer bounds.
+	assert.Equal(t, Type(0).String(), "Type(0)")
 	assert.Contains(t, (Pagerduty - 1).String(), "Type(")
 	assert.Contains(t, (Webhook + 1).String(), "Type(")
 

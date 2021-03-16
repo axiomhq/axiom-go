@@ -341,6 +341,7 @@ func TestQueryKind_Unmarshal(t *testing.T) {
 
 func TestQueryKind_String(t *testing.T) {
 	// Check outer bounds.
+	assert.Equal(t, QueryKind(0).String(), "QueryKind(0)")
 	assert.Contains(t, (Analytics - 1).String(), "QueryKind(")
 	assert.Contains(t, (Stream + 1).String(), "QueryKind(")
 
