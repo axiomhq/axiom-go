@@ -7,7 +7,6 @@ VERBOSE		=
 
 # GO TOOLS
 GOLANGCI_LINT	:= bin/golangci-lint
-GORELEASER		:= bin/goreleaser
 GOTESTSUM		:= bin/gotestsum
 STRINGER		:= bin/stringer
 
@@ -17,7 +16,6 @@ DIST_DIR		:= dist
 
 # FLAGS
 GO_TEST_FLAGS		:= -race -coverprofile=$(COVERPROFILE)
-GORELEASER_FLAGS	:= --snapshot --rm-dist
 
 # DEPENDENCIES
 GOMODDEPS = go.mod go.sum
@@ -97,7 +95,7 @@ test: $(GOTESTSUM) ## Run all unit tests. Run with VERBOSE=1 to get verbose test
 	@$(GOTESTSUM) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: tools
-tools: $(GOLANGCI_LINT) $(GORELEASER) $(GOTESTSUM) $(STRINGER) ## Install all tools into the projects local $GOBIN directory
+tools: $(GOLANGCI_LINT) $(GOTESTSUM) $(STRINGER) ## Install all tools into the projects local $GOBIN directory
 
 .PHONY: help
 help:
@@ -119,10 +117,6 @@ $(COVERPROFILE):
 $(GOLANGCI_LINT): dep.stamp $(call go-pkg-sourcefiles, github.com/golangci/golangci-lint/cmd/golangci-lint)
 	@echo ">> installing golangci-lint"
 	@$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint
-
-$(GORELEASER): dep.stamp $(call go-pkg-sourcefiles, github.com/goreleaser/goreleaser)
-	@echo ">> installing goreleaser"
-	@$(GO) install github.com/goreleaser/goreleaser
 
 $(GOTESTSUM): dep.stamp $(call go-pkg-sourcefiles, gotest.tools/gotestsum)
 	@echo ">> installing gotestsum"
