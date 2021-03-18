@@ -10,11 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[VirtualFieldFinalizeError-1]
 	_ = x[MissingColumn-2]
+	_ = x[LicenseLimitForQueryWarning-3]
 }
 
-const _MessageCode_name = "virtual_field_finalize_errormissing_column"
+const _MessageCode_name = "virtual_field_finalize_errormissing_columnlicense_limit_for_query_warning"
 
-var _MessageCode_index = [...]uint8{0, 28, 42}
+var _MessageCode_index = [...]uint8{0, 28, 42, 73}
 
 func (i MessageCode) String() string {
 	i -= 1

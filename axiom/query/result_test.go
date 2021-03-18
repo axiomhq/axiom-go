@@ -78,9 +78,9 @@ func TestMessageCode_String(t *testing.T) {
 	// Check outer bounds.
 	assert.Equal(t, MessageCode(0).String(), "MessageCode(0)")
 	assert.Contains(t, (VirtualFieldFinalizeError - 1).String(), "MessageCode(")
-	assert.Contains(t, (MissingColumn + 1).String(), "MessageCode(")
+	assert.Contains(t, (LicenseLimitForQueryWarning + 1).String(), "MessageCode(")
 
-	for typ := VirtualFieldFinalizeError; typ <= MissingColumn; typ++ {
+	for typ := VirtualFieldFinalizeError; typ <= LicenseLimitForQueryWarning; typ++ {
 		s := typ.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "MessageCode(")
