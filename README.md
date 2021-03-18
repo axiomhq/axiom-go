@@ -30,16 +30,11 @@ Currently, **Axiom Go requires Go 1.12 or greater**.
 
 ### Install using `go get`
 
-With a working Go installation, run:
-
 ```shell
 $ go get github.com/axiomhq/axiom-go/axiom
 ```
 
 ### Install from source
-
-This project uses native
-[go mod](https://golang.org/cmd/go/#hdr-Module_maintenance) support.
 
 ```shell
 $ git clone https://github.com/axiomhq/axiom-go.git
