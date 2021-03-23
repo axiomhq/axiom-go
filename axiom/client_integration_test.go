@@ -85,22 +85,32 @@ func (s *IntegrationTestSuite) TearDownTest() {
 }
 
 func (s *IntegrationTestSuite) newClient() {
+	var err error
+	s.client, err = newClient(orgID, deploymentURL, accessToken)
+
+	s.Require().NoError(err)
+	s.Require().NotNil(s.client)
+}
+
+func newClient(orgID, deploymentURL, accessToken string) (*axiom.Client, error) {
 	options := []axiom.Option{
 		axiom.SetUserAgent("axiom-go-integration-test"),
 	}
 
-	var err error
+	var (
+		client *axiom.Client
+		err    error
+	)
 	if orgID != "" {
 		if deploymentURL != "" {
 			options = append(options, axiom.SetBaseURL(deploymentURL))
 		}
-		s.client, err = axiom.NewCloudClient(orgID, accessToken, options...)
+		client, err = axiom.NewCloudClient(orgID, accessToken, options...)
 	} else {
-		s.client, err = axiom.NewClient(deploymentURL, accessToken, options...)
+		client, err = axiom.NewClient(deploymentURL, accessToken, options...)
 	}
 
-	s.Require().NoError(err)
-	s.Require().NotNil(s.client)
+	return client, err
 }
 
 var runePool = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

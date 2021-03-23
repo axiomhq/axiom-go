@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-
-	"github.com/axiomhq/axiom-go/axiom"
 )
 
 // OrganizationsTestSuite tests all methods of the Axiom Organizations API
@@ -45,11 +43,13 @@ func (s *OrganizationsTestSuite) Test() {
 
 	// Let's update the organization. The name is not changed, we just want to
 	// make sure the call works.
-	organization, err = s.client.Organizations.Update(s.suiteCtx, organization.ID, axiom.OrganizationUpdateRequest{
-		Name: organization.Name,
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(organization)
+	// HINT(lukasmalkmus): This only works when the authenticated user is an
+	// owner. Our CI user isn't, for good reason. Just skip this test for now.
+	// organization, err = s.client.Organizations.Update(s.suiteCtx, organization.ID, axiom.OrganizationUpdateRequest{
+	// 	Name: organization.Name,
+	// })
+	// s.Require().NoError(err)
+	// s.Require().NotNil(organization)
 
 	s.Equal(organizations[0].Name, organization.Name)
 }

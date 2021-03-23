@@ -308,6 +308,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 			"virtualFields": null,
 			"project": null,
 			"cursor": "",
+			"continuationToken": "",
 			"resolution": "auto"
 		},
 		"threshold": 0,

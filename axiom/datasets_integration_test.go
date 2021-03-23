@@ -191,7 +191,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(trimResult)
 
-	// HINT(lukasmalkmus): There is no block to trim, yet.
+	// HINT(lukasmalkmus): There are no blocks to trim, yet.
 	// s.EqualValues(1, trimResult.BlocksDeleted)
 }
 

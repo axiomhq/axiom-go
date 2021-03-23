@@ -138,6 +138,15 @@ type Organization struct {
 	PlanExpires time.Time `json:"planExpires"`
 	// Trialed describes if the plan is trialed or not.
 	Trialed bool `json:"trialed"`
+	// PreviousPlan is the previous plan the deployment or organization was on.
+	PreviousPlan Plan `json:"previousPlan"`
+	// PreviousPlanCreated is the time the previous plan was created.
+	PreviousPlanCreated time.Time `json:"previousPlanCreated"`
+	// PreviousPlanExpired is the time the previous plan expired.
+	PreviousPlanExpired time.Time `json:"previousPlanExpired"`
+	// LastUsageSync is the last time the usage instance usage statistics were
+	// synchronized.
+	LastUsageSync time.Time `json:"lastUsageSync"`
 	// Role the requesting user has on the deployment or the organization.
 	Role UserRole `json:"role"`
 	// PrimaryEmail of the user that issued the request.
