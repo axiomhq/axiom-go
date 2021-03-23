@@ -39,14 +39,12 @@ type TokenCreateRequest struct {
 	Scopes []string `json:"scopes"`
 }
 
-// TokensService handles communication with the token related operations of the
-// Axiom API.
-//
-// Axiom API Reference: /api/v1/tokens/{ingest,personal}
-type TokensService service
+// tokensService implements the methods sharred between the ingest and personal
+// token services.
+type tokensService service
 
 // List all available tokens.
-func (s *TokensService) List(ctx context.Context) ([]*Token, error) {
+func (s *tokensService) List(ctx context.Context) ([]*Token, error) {
 	var res []*Token
 	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
@@ -56,7 +54,7 @@ func (s *TokensService) List(ctx context.Context) ([]*Token, error) {
 }
 
 // Get a token by id.
-func (s *TokensService) Get(ctx context.Context, id string) (*Token, error) {
+func (s *tokensService) Get(ctx context.Context, id string) (*Token, error) {
 	path := s.basePath + "/" + id
 
 	var res Token
@@ -68,7 +66,7 @@ func (s *TokensService) Get(ctx context.Context, id string) (*Token, error) {
 }
 
 // View a raw token secret by id.
-func (s *TokensService) View(ctx context.Context, id string) (*RawToken, error) {
+func (s *tokensService) View(ctx context.Context, id string) (*RawToken, error) {
 	path := s.basePath + "/" + id + "/token"
 
 	var res RawToken
@@ -80,7 +78,7 @@ func (s *TokensService) View(ctx context.Context, id string) (*RawToken, error) 
 }
 
 // Create a token with the given properties.
-func (s *TokensService) Create(ctx context.Context, req TokenCreateRequest) (*Token, error) {
+func (s *tokensService) Create(ctx context.Context, req TokenCreateRequest) (*Token, error) {
 	var res Token
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
@@ -90,7 +88,7 @@ func (s *TokensService) Create(ctx context.Context, req TokenCreateRequest) (*To
 }
 
 // Update the token identified by the given id with the given properties.
-func (s *TokensService) Update(ctx context.Context, id string, req Token) (*Token, error) {
+func (s *tokensService) Update(ctx context.Context, id string, req Token) (*Token, error) {
 	path := s.basePath + "/" + id
 
 	var res Token
@@ -102,7 +100,7 @@ func (s *TokensService) Update(ctx context.Context, id string, req Token) (*Toke
 }
 
 // Delete the token identified by the given id.
-func (s *TokensService) Delete(ctx context.Context, id string) error {
+func (s *tokensService) Delete(ctx context.Context, id string) error {
 	path := s.basePath + "/" + id
 
 	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
@@ -111,3 +109,26 @@ func (s *TokensService) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// IngestTokensService handles communication with the ingest token related
+// operations of the Axiom API.
+//
+// Axiom API Reference: /api/v1/tokens/ingest
+type IngestTokensService = tokensService
+
+// Validate the token that is used for authentication.
+func (s *IngestTokensService) Validate(ctx context.Context) error {
+	path := s.basePath + "/validate"
+
+	if err := s.client.call(ctx, http.MethodGet, path, nil, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PersonalTokensService handles communication with the personal token related
+// operations of the Axiom API.
+//
+// Axiom API Reference: /api/v1/tokens/personal
+type PersonalTokensService = tokensService
