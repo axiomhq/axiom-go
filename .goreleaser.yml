@@ -1,4 +1,4 @@
-project_name: axiom
+project_name: axiom-go
 
 builds:
   - skip: true

@@ -21,14 +21,20 @@ const CloudURL = "https://cloud.axiom.co"
 var ErrUnauthenticated = errors.New("invalid authentication credentials")
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
+// Either one of the two fields is populated. However, calling the Error()
+// method is preferred.
 type Error struct {
-	Message string `json:"error"`
+	ErrorMessage string `json:"error"`
+	Message      string `json:"message"`
 
 	statusCode int
 }
 
 // Error implements the error interface.
 func (e Error) Error() string {
+	if e.ErrorMessage != "" {
+		return fmt.Sprintf("API error %d: %s", e.statusCode, e.ErrorMessage)
+	}
 	return fmt.Sprintf("API error %d: %s", e.statusCode, e.Message)
 }
 
@@ -101,8 +107,8 @@ type Client struct {
 	StarredQueries *StarredQueriesService
 	Teams          *TeamsService
 	Tokens         struct {
-		Ingest   *TokensService
-		Personal *TokensService
+		Ingest   *IngestTokensService
+		Personal *PersonalTokensService
 	}
 	Users         *UsersService
 	Version       *VersionService
@@ -133,8 +139,8 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
 	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
-	client.Tokens.Ingest = &TokensService{client, "/api/v1/tokens/ingest"}
-	client.Tokens.Personal = &TokensService{client, "/api/v1/tokens/personal"}
+	client.Tokens.Ingest = &IngestTokensService{client, "/api/v1/tokens/ingest"}
+	client.Tokens.Personal = &PersonalTokensService{client, "/api/v1/tokens/personal"}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}
 	client.VirtualFields = &VirtualFieldsService{client, "/api/v1/vfields"}
@@ -273,7 +279,7 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 
 		// In case something went wrong, include the raw response and hope for
 		// the best.
-		if errResp.Message == "" {
+		if errResp.Message == "" && errResp.Error() == "" {
 			s := strings.ReplaceAll(buf.String(), "\n", " ")
 			errResp.Message = s
 		}

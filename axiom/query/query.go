@@ -36,6 +36,9 @@ type Query struct {
 	// Cursor is the query cursor. It should be set to the Cursor returned with
 	// a previous query result if it was partial.
 	Cursor string `json:"cursor"`
+	// ContinuationToken is used to get more results of a previous query. It is
+	// not valid for starred queries or otherwise stored queries.
+	ContinuationToken string `json:"continuationToken"`
 }
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the

@@ -19,7 +19,7 @@ const (
 	// endpoint is a test url that won't be called.
 	endpoint = "http://axiom.local"
 	// accessToken is a placeholder access token.
-	accessToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	accessToken = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
 	// orgID is a placeholder organization id.
 	orgID = "awkward-identifier-c3po"
 )
@@ -261,6 +261,5 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 func mustTimeParse(t *testing.T, layout, value string) time.Time {
 	ts, err := time.Parse(layout, value)
 	require.NoError(t, err)
-	require.False(t, ts.IsZero())
 	return ts
 }
