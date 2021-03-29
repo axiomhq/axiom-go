@@ -449,7 +449,7 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 	return &res, nil
 }
 
-// GZIPStreamer returns an io.Reader that gzip compresses the data in reads from
+// GZIPStreamer returns an io.Reader that gzip compresses the data it reads from
 // the provided reader using the specified compression level.
 func GZIPStreamer(r io.Reader, level int) (io.Reader, error) {
 	pr, pw := io.Pipe()
