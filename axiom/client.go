@@ -57,11 +57,14 @@ func DefaultHTTPClient() *http.Client {
 	}
 }
 
-// An Option modifies the behaviour of the API client.
+// An Option modifies the behaviour of the API client. If not otherwise
+// specified by a specific option, they are safe to use even after API methods
+// have been called. However, they are not safe to use while the client is
+// performing an operation.
 type Option func(c *Client) error
 
 // SetBaseURL sets the base URL used by the client. It overwrittes the one set
-// by the call to NewClient().
+// by the call to NewClient() or NewCloudClient().
 func SetBaseURL(baseURL string) Option {
 	return func(c *Client) (err error) {
 		c.baseURL, err = url.ParseRequestURI(baseURL)
@@ -77,6 +80,16 @@ func SetClient(client *http.Client) Option {
 			return nil
 		}
 		c.httpClient = client
+		return nil
+	}
+}
+
+// SetOrgID specifies the organization ID to use. When a personal access token
+// is used, this method can be used to switch between organizations without
+// creating a new client instance.
+func SetOrgID(orgID string) Option {
+	return func(c *Client) error {
+		c.orgID = orgID
 		return nil
 	}
 }
@@ -116,7 +129,7 @@ type Client struct {
 }
 
 // NewClient returns a new Axiom API client. The access token must be a personal
-// or ingest token which can be created on the settings or user profile page of
+// or ingest token which can be created on the user profile or settings page of
 // a deployment.
 func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) {
 	u, err := url.ParseRequestURI(baseURL)
@@ -153,18 +166,12 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 	return client, nil
 }
 
-// NewCloudClient is like NewClient but assumes the official Axiom Cloud url as
-// base url and accepts an organization ID. The organization ID must be of the
-// organization the token was issued for.
+// NewCloudClient is like NewClient but assumes the official Axiom Cloud URL as
+// base URL and accepts an organization ID. When using an ingest token, the
+// organization ID must match the organization the token was issued for.
 func NewCloudClient(accessToken, orgID string, options ...Option) (*Client, error) {
-	client, err := NewClient(CloudURL, accessToken, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	client.orgID = orgID
-
-	return client, nil
+	options = append(options, SetOrgID(orgID))
+	return NewClient(CloudURL, accessToken, options...)
 }
 
 // Options applies Options to the Client.
