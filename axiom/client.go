@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"golang.org/x/net/http2"
 )
 
 // CloudURL is the url of the cloud hosted version of Axiom.
@@ -46,15 +48,19 @@ type service struct {
 }
 
 // DefaultHTTPClient returns the default HTTP client used for making requests.
-func DefaultHTTPClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout: 5 * time.Second,
-			}).DialContext,
-			TLSHandshakeTimeout: 5 * time.Second,
-		},
+func DefaultHTTPClient() (*http.Client, error) {
+	transport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 5 * time.Second,
 	}
+
+	if err := http2.ConfigureTransport(transport); err != nil {
+		return nil, err
+	}
+
+	return &http.Client{Transport: transport}, nil
 }
 
 // An Option modifies the behaviour of the API client. If not otherwise
@@ -137,12 +143,17 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 		return nil, err
 	}
 
+	httpClient, err := DefaultHTTPClient()
+	if err != nil {
+		return nil, err
+	}
+
 	client := &Client{
 		baseURL:     u,
 		userAgent:   "axiom-go",
 		accessToken: accessToken,
 
-		httpClient: DefaultHTTPClient(),
+		httpClient: httpClient,
 	}
 
 	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
