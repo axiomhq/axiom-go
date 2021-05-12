@@ -17,8 +17,14 @@ import (
 // CloudURL is the url of the cloud hosted version of Axiom.
 const CloudURL = "https://cloud.axiom.co"
 
-// ErrUnauthenticated is raised when the access token isn't valid.
-var ErrUnauthenticated = errors.New("invalid authentication credentials")
+var (
+	// ErrUnauthenticated is raised when the access token isn't valid.
+	ErrUnauthenticated = errors.New("invalid authentication credentials")
+
+	// ErrUnprivilegedToken is raised when a client tries to call a non-ingest
+	// endpoint with an ingest-only token configured.
+	ErrUnprivilegedToken = errors.New("using ingest token for non-ingest operation")
+)
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
 // Either one of the two fields is populated. However, calling the Error()
@@ -63,6 +69,14 @@ func DefaultHTTPClient() *http.Client {
 // have been called. However, they are not safe to use while the client is
 // performing an operation.
 type Option func(c *Client) error
+
+// SetAccessToken specifies the access token to use.
+func SetAccessToken(accessToken string) Option {
+	return func(c *Client) error {
+		c.accessToken = accessToken
+		return nil
+	}
+}
 
 // SetBaseURL sets the base URL used by the client. It overwrittes the one set
 // by the call to NewClient() or NewCloudClient().
@@ -198,8 +212,12 @@ func (c *Client) call(ctx context.Context, method, path string, body, v interfac
 // newRequest creates an API request. If specified, the value pointed to by
 // body will be included as the request body. If it isn't an io.Reader, it will
 // be included as a JSON encoded request body.
-func (c *Client) newRequest(ctx context.Context, method, endpoint string, body interface{}) (*http.Request, error) {
-	rel, err := url.ParseRequestURI(endpoint)
+func (c *Client) newRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
+	if IsIngestToken(c.accessToken) && path != "/api/v1/tokens/ingest" {
+		return nil, ErrUnprivilegedToken
+	}
+
+	rel, err := url.ParseRequestURI(path)
 	if err != nil {
 		return nil, err
 	}

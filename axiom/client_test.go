@@ -214,6 +214,17 @@ func TestClient_do_Unauthenticated(t *testing.T) {
 	require.Equal(t, err, ErrUnauthenticated)
 }
 
+func TestClient_do_UnprivilegedToken(t *testing.T) {
+	client, teardown := setup(t, "/", nil)
+	defer teardown()
+
+	err := client.Options(SetAccessToken("xait-123"))
+	require.NoError(t, err)
+
+	_, err = client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.Equal(t, err, ErrUnprivilegedToken)
+}
+
 func TestClient_do_RedirectLoop(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
