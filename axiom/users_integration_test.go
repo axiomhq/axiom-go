@@ -40,7 +40,9 @@ func (s *UsersTestSuite) SetupSuite() {
 func (s *UsersTestSuite) TearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	// HINT(lukasmalkmus): Sometimes, deleting a user can take very long under
+	// special circumstances. Account for that.
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	err := s.client.Users.Delete(ctx, s.user.ID)
