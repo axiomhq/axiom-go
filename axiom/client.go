@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -25,6 +26,8 @@ var (
 	// endpoint with an ingest-only token configured.
 	ErrUnprivilegedToken = errors.New("using ingest token for non-ingest operation")
 )
+
+var ingestPathRe = regexp.MustCompile("^/api/v1/datasets/.+/ingest$")
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
 // Either one of the two fields is populated. However, calling the Error()
@@ -213,7 +216,7 @@ func (c *Client) call(ctx context.Context, method, path string, body, v interfac
 // body will be included as the request body. If it isn't an io.Reader, it will
 // be included as a JSON encoded request body.
 func (c *Client) newRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
-	if IsIngestToken(c.accessToken) && path != "/api/v1/tokens/ingest" {
+	if IsIngestToken(c.accessToken) && !ingestPathRe.MatchString(path) {
 		return nil, ErrUnprivilegedToken
 	}
 

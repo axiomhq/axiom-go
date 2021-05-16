@@ -225,6 +225,24 @@ func TestClient_do_UnprivilegedToken(t *testing.T) {
 	require.Equal(t, err, ErrUnprivilegedToken)
 }
 
+func TestClient_do_ingestWithIngestOnlyToken(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/ingest", hf)
+	defer teardown()
+
+	err := client.Options(SetAccessToken("xait-123"))
+	require.NoError(t, err)
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/api/v1/datasets/test/ingest", nil)
+	require.Equal(t, err, nil)
+
+	err = client.do(req, nil)
+	require.NoError(t, err)
+}
+
 func TestClient_do_RedirectLoop(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -240,6 +258,47 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 	require.Error(t, err)
 
 	assert.IsType(t, err, new(url.Error))
+}
+
+func TestIngestPathRegex(t *testing.T) {
+	tests := []struct {
+		input string
+		match bool
+	}{
+		{
+			input: "/api/v1/datasets/test/ingest",
+			match: true,
+		},
+		{
+			input: "/api/v1/datasets/test/elastic",
+			match: false,
+		},
+		{
+			input: "/api/v1/tokens/ingest/validate",
+			match: false,
+		},
+		{
+			input: "/api/v1/datasets/test",
+			match: false,
+		},
+		{
+			input: "/api/v1/datasets/test/",
+			match: false,
+		},
+		{
+			input: "/api/v1/tokens/personal/validate",
+			match: false,
+		},
+		{
+			input: "/api/v1/tokens/validate",
+			match: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.match, ingestPathRe.MatchString(tt.input))
+		})
+	}
 }
 
 // setup sets up a test HTTP server along with a client that is configured to
