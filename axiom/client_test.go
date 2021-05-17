@@ -225,22 +225,30 @@ func TestClient_do_UnprivilegedToken(t *testing.T) {
 	require.Equal(t, err, ErrUnprivilegedToken)
 }
 
-func TestClient_do_ingestWithIngestOnlyToken(t *testing.T) {
+func TestClient_do_validIngestOnlyTokenPaths(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	client, teardown := setup(t, "/api/v1/datasets/test/ingest", hf)
-	defer teardown()
+	tests := []string{
+		"/api/v1/datasets/test/ingest",
+		"/api/v1/tokens/ingest/validate",
+	}
+	for _, tt := range tests {
+		t.Run(tt, func(t *testing.T) {
+			client, teardown := setup(t, tt, hf)
+			defer teardown()
 
-	err := client.Options(SetAccessToken("xait-123"))
-	require.NoError(t, err)
+			err := client.Options(SetAccessToken("xait-123"))
+			require.NoError(t, err)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/api/v1/datasets/test/ingest", nil)
-	require.Equal(t, err, nil)
+			req, err := client.newRequest(context.Background(), http.MethodGet, tt, nil)
+			require.Equal(t, err, nil)
 
-	err = client.do(req, nil)
-	require.NoError(t, err)
+			err = client.do(req, nil)
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestClient_do_RedirectLoop(t *testing.T) {
@@ -270,11 +278,11 @@ func TestIngestPathRegex(t *testing.T) {
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets/test/elastic",
-			match: false,
+			input: "/api/v1/tokens/ingest/validate",
+			match: true,
 		},
 		{
-			input: "/api/v1/tokens/ingest/validate",
+			input: "/api/v1/datasets/test/elastic",
 			match: false,
 		},
 		{
@@ -296,7 +304,7 @@ func TestIngestPathRegex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			assert.Equal(t, tt.match, ingestPathRe.MatchString(tt.input))
+			assert.Equal(t, tt.match, validIngestTokenPathRe.MatchString(tt.input))
 		})
 	}
 }
