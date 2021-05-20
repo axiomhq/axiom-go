@@ -36,6 +36,9 @@ type Query struct {
 	// Cursor is the query cursor. It should be set to the Cursor returned with
 	// a previous query result if it was partial.
 	Cursor string `json:"cursor"`
+	// IncludeCursor will return the Cursor as part of the query result, if set
+	// to true.
+	IncludeCursor bool `json:"includeCursor"`
 	// ContinuationToken is used to get more results of a previous query. It is
 	// not valid for starred queries or otherwise stored queries.
 	ContinuationToken string `json:"continuationToken"`
