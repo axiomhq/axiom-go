@@ -15,9 +15,8 @@ func TestVirtualFieldsService_List(t *testing.T) {
 		{
 			ID:          "PiGheBIFBc4Khn4dBZ",
 			Dataset:     "test",
-			Name:        "Successful Requests",
-			Description: "Statuses <= x < 400",
-			Alias:       "status_success",
+			Name:        "status_success",
+			Description: "Successful Requests",
 			Expression:  "response <= 200 && response < 400",
 		},
 	}
@@ -32,9 +31,8 @@ func TestVirtualFieldsService_List(t *testing.T) {
 		_, err := fmt.Fprint(w, `[
 			{
 				"dataset": "test",
-				"name": "Successful Requests",
-				"description": "Statuses <= x < 400",
-				"alias": "status_success",
+				"name": "status_success",
+				"description": "Successful Requests",
 				"expression": "response <= 200 && response < 400",
 				"id": "PiGheBIFBc4Khn4dBZ"
 			}
@@ -61,9 +59,8 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 	exp := &VirtualField{
 		ID:          "PiGheBIFBc4Khn4dBZ",
 		Dataset:     "test",
-		Name:        "Successful Requests",
-		Description: "Statuses <= x < 400",
-		Alias:       "status_success",
+		Name:        "status_success",
+		Description: "Successful Requests",
 		Expression:  "response <= 200 && response < 400",
 	}
 
@@ -72,9 +69,8 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"dataset": "test",
-			"name": "Successful Requests",
-			"description": "Statuses <= x < 400",
-			"alias": "status_success",
+			"name": "status_success",
+			"description": "Successful Requests",
 			"expression": "response <= 200 && response < 400",
 			"id": "PiGheBIFBc4Khn4dBZ"
 		}`)
@@ -94,9 +90,8 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 	exp := &VirtualField{
 		ID:          "FmgciXxL3njoNgzWVR",
 		Dataset:     "test",
-		Name:        "Failed Requests",
-		Description: "Statuses >= 400",
-		Alias:       "status_failed",
+		Name:        "status_failed",
+		Description: "Failed Requests",
 		Expression:  "response >= 400",
 	}
 
@@ -106,9 +101,8 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"dataset": "test",
-			"name": "Failed Requests",
-			"description": "Statuses >= 400",
-			"alias": "status_failed",
+			"name": "status_failed",
+			"description": "Failed Requests",
 			"expression": "response >= 400",
 			"id": "FmgciXxL3njoNgzWVR"
 		}`)
@@ -120,9 +114,8 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 
 	res, err := client.VirtualFields.Create(context.Background(), VirtualField{
 		Dataset:     "test",
-		Name:        "Failed Requests",
-		Description: "Statuses >= 400",
-		Alias:       "status_failed",
+		Name:        "status_failed",
+		Description: "Failed Requests",
 		Expression:  "response >= 400",
 	})
 	require.NoError(t, err)
@@ -134,9 +127,8 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 	exp := &VirtualField{
 		ID:          "FmgciXxL3njoNgzWVR",
 		Dataset:     "test",
-		Name:        "Failed Requests",
-		Description: "Statuses > 399",
-		Alias:       "status_failed",
+		Name:        "status_failed",
+		Description: "Failed Requests",
 		Expression:  "response > 399",
 	}
 
@@ -146,9 +138,8 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 
 		_, err := fmt.Fprint(w, `{
 			"dataset": "test",
-			"name": "Failed Requests",
-			"description": "Statuses > 399",
-			"alias": "status_failed",
+			"name": "status_failed",
+			"description": "Failed Requests",
 			"expression": "response > 399",
 			"id": "FmgciXxL3njoNgzWVR"
 		}`)
@@ -160,9 +151,8 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 
 	res, err := client.VirtualFields.Update(context.Background(), "FmgciXxL3njoNgzWVR", VirtualField{
 		Dataset:     "test",
-		Name:        "Failed Requests",
-		Description: "Statuses > 399",
-		Alias:       "status_failed",
+		Name:        "status_failed",
+		Description: "Failed Requests",
 		Expression:  "response > 399",
 	})
 	require.NoError(t, err)

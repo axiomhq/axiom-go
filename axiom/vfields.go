@@ -11,12 +11,10 @@ type VirtualField struct {
 	ID string `json:"id"`
 	// Dataset the virtual field belongs to.
 	Dataset string `json:"dataset"`
-	// Name is the display name of the virtual field.
+	// Name the virtual field is referenced by.
 	Name string `json:"name"`
 	// Description of the virtual field.
 	Description string `json:"description"`
-	// Alias the virtual field is referenced by.
-	Alias string `json:"alias"`
 	// Expression that evaluates the virtual fields value.
 	Expression string `json:"expression"`
 }
