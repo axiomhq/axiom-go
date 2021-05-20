@@ -13,7 +13,7 @@
 //
 //	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 //
-// 	Get the version of the configured deployment:
+// Get the version of the configured deployment:
 //	version, err := client.Version.Get(ctx)
 //
 // Some API methods have additional parameters that can be passed:
