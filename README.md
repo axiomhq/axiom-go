@@ -45,7 +45,7 @@ $ make # Run code generators, linters, sanitizers and test suits
 ## Authentication
 
 The Client is initialized with the url of the deployment and an access token.
-The access token can be a personal token retreived from the users profile page
+The access token can be a personal token retrieved from the users profile page
 or an ingest token retrieved from the settings of the Axiom deployment.
 
 The personal access token grants access to all resources available to the user
