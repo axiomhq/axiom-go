@@ -48,6 +48,8 @@ type IntegrationTestSuite struct {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
+	s.T().Cleanup(s.tearDownSuite)
+
 	s.Require().NotEmpty(accessToken, "integration test needs a personal access token set")
 	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization id or deployment url set")
 
@@ -70,7 +72,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Logf("using account %q", s.testUser.Name)
 }
 
-func (s *IntegrationTestSuite) TearDownSuite() {
+func (s *IntegrationTestSuite) tearDownSuite() {
 	s.NoError(s.suiteCtx.Err())
 	s.suiteCancel()
 }

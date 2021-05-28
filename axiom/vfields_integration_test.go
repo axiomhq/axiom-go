@@ -29,6 +29,8 @@ func TestVirtualFieldsTestSuite(t *testing.T) {
 func (s *VirtualFieldsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-virtual-fields-" + randString(),
 		Description: "This is a test dataset for virtual fields integration tests.",
@@ -49,7 +51,7 @@ func (s *VirtualFieldsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.virtualField)
 }
 
-func (s *VirtualFieldsTestSuite) TearDownSuite() {
+func (s *VirtualFieldsTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -60,8 +62,6 @@ func (s *VirtualFieldsTestSuite) TearDownSuite() {
 
 	err = s.client.Datasets.Delete(ctx, s.datasetID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *VirtualFieldsTestSuite) Test() {

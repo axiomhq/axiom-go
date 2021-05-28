@@ -30,6 +30,8 @@ func TestMonitorsTestSuite(t *testing.T) {
 func (s *MonitorsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-monitors-" + randString(),
 		Description: "This is a test dataset for monitors integration tests.",
@@ -54,7 +56,7 @@ func (s *MonitorsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.monitor)
 }
 
-func (s *MonitorsTestSuite) TearDownSuite() {
+func (s *MonitorsTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -65,8 +67,6 @@ func (s *MonitorsTestSuite) TearDownSuite() {
 
 	err = s.client.Datasets.Delete(ctx, s.datasetID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *MonitorsTestSuite) Test() {

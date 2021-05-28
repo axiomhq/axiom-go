@@ -27,6 +27,8 @@ func TestNotifiersTestSuite(t *testing.T) {
 func (s *NotifiersTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	var err error
 	s.notifier, err = s.client.Notifiers.Create(s.suiteCtx, axiom.Notifier{
 		Name: "Test Notifier",
@@ -39,7 +41,7 @@ func (s *NotifiersTestSuite) SetupSuite() {
 	s.Require().NotNil(s.notifier)
 }
 
-func (s *NotifiersTestSuite) TearDownSuite() {
+func (s *NotifiersTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -47,8 +49,6 @@ func (s *NotifiersTestSuite) TearDownSuite() {
 
 	err := s.client.Notifiers.Delete(ctx, s.notifier.ID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *NotifiersTestSuite) Test() {

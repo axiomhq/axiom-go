@@ -27,6 +27,8 @@ func TestUsersTestSuite(t *testing.T) {
 func (s *UsersTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	var err error
 	s.user, err = s.client.Users.Create(s.suiteCtx, axiom.UserCreateRequest{
 		Name:  "John Doe",
@@ -37,7 +39,7 @@ func (s *UsersTestSuite) SetupSuite() {
 	s.Require().NotNil(s.user)
 }
 
-func (s *UsersTestSuite) TearDownSuite() {
+func (s *UsersTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	// HINT(lukasmalkmus): Sometimes, deleting a user can take very long under
@@ -47,8 +49,6 @@ func (s *UsersTestSuite) TearDownSuite() {
 
 	err := s.client.Users.Delete(ctx, s.user.ID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *UsersTestSuite) Test() {

@@ -29,6 +29,8 @@ func TestStarredQueriesTestSuite(t *testing.T) {
 func (s *StarredQueriesTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-starred-queries-" + randString(),
 		Description: "This is a test dataset for starred queries integration tests.",
@@ -47,7 +49,7 @@ func (s *StarredQueriesTestSuite) SetupSuite() {
 	s.Require().NotNil(s.starredQuery)
 }
 
-func (s *StarredQueriesTestSuite) TearDownSuite() {
+func (s *StarredQueriesTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -58,8 +60,6 @@ func (s *StarredQueriesTestSuite) TearDownSuite() {
 
 	err = s.client.Datasets.Delete(ctx, s.datasetID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *StarredQueriesTestSuite) Test() {

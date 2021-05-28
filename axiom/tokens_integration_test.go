@@ -29,6 +29,8 @@ func TestTokensTestSuite(t *testing.T) {
 func (s *TokensTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	var err error
 	s.token, err = s.client.Tokens.Ingest.Create(s.suiteCtx, axiom.TokenCreateRequest{
 		Name:        "Test",
@@ -38,7 +40,7 @@ func (s *TokensTestSuite) SetupSuite() {
 	s.Require().NotNil(s.token)
 }
 
-func (s *TokensTestSuite) TearDownSuite() {
+func (s *TokensTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -46,8 +48,6 @@ func (s *TokensTestSuite) TearDownSuite() {
 
 	err := s.client.Tokens.Ingest.Delete(ctx, s.token.ID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *TokensTestSuite) Update() {

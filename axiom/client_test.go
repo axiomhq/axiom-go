@@ -116,7 +116,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
 
-	if assert.IsType(t, err, new(url.Error)) {
+	if assert.IsType(t, new(url.Error), err) {
 		urlErr := err.(*url.Error)
 		assert.Equal(t, urlErr.Op, "parse")
 	}

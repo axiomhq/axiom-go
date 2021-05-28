@@ -27,6 +27,8 @@ func TestDashboardsTestSuite(t *testing.T) {
 func (s *DashboardsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	var err error
 	s.dashboard, err = s.client.Dashboards.Create(s.suiteCtx, axiom.Dashboard{
 		Name:            "Test Dashboard",
@@ -43,7 +45,7 @@ func (s *DashboardsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.dashboard)
 }
 
-func (s *DashboardsTestSuite) TearDownSuite() {
+func (s *DashboardsTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -51,8 +53,6 @@ func (s *DashboardsTestSuite) TearDownSuite() {
 
 	err := s.client.Dashboards.Delete(ctx, s.dashboard.ID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *DashboardsTestSuite) Test() {

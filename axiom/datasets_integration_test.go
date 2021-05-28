@@ -77,6 +77,8 @@ func TestDatasetsTestSuite(t *testing.T) {
 func (s *DatasetsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	var err error
 	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-dataset-" + randString(),
@@ -86,7 +88,7 @@ func (s *DatasetsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.dataset)
 }
 
-func (s *DatasetsTestSuite) TearDownSuite() {
+func (s *DatasetsTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -94,8 +96,6 @@ func (s *DatasetsTestSuite) TearDownSuite() {
 
 	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *DatasetsTestSuite) Test() {

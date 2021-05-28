@@ -27,6 +27,8 @@ func TestTeamsTestSuite(t *testing.T) {
 func (s *TeamsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
+	s.T().Cleanup(s.tearDownSuite)
+
 	var err error
 	s.team, err = s.client.Teams.Create(s.suiteCtx, axiom.TeamCreateRequest{
 		Name: "Test Team",
@@ -35,7 +37,7 @@ func (s *TeamsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.team)
 }
 
-func (s *TeamsTestSuite) TearDownSuite() {
+func (s *TeamsTestSuite) tearDownSuite() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -43,8 +45,6 @@ func (s *TeamsTestSuite) TearDownSuite() {
 
 	err := s.client.Teams.Delete(ctx, s.team.ID)
 	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
 }
 
 func (s *TeamsTestSuite) Test() {
