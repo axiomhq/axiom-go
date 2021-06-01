@@ -304,6 +304,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 			},
 			"groupBy": null,
 			"order": null,
+			"includeCursor": false,
 			"limit": 0,
 			"virtualFields": null,
 			"project": null,
