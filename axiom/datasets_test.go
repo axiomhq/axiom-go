@@ -201,7 +201,8 @@ func TestDatasetsService_List(t *testing.T) {
 			ID:          "test",
 			Name:        "test",
 			Description: "",
-			Created:     mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
+			CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
+			CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
 		},
 	}
 
@@ -212,6 +213,7 @@ func TestDatasetsService_List(t *testing.T) {
 			{
 				"id": "test",
 				"name": "test",
+				"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 				"created": "2020-11-17T22:29:00.521238198Z"
 			}
 		]`)
@@ -232,7 +234,8 @@ func TestDatasetsService_Get(t *testing.T) {
 		ID:          "test",
 		Name:        "test",
 		Description: "This is a test description",
-		Created:     mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
+		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
+		CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -242,6 +245,7 @@ func TestDatasetsService_Get(t *testing.T) {
 			"id": "test",
 			"name": "test",
 			"description": "This is a test description",
+			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-17T22:29:00.521238198Z"
 		}`)
 		assert.NoError(t, err)
@@ -261,7 +265,8 @@ func TestDatasetsService_Create(t *testing.T) {
 		ID:          "test",
 		Name:        "test",
 		Description: "This is a test description",
-		Created:     mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
+		CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -272,6 +277,7 @@ func TestDatasetsService_Create(t *testing.T) {
 			"id": "test",
 			"name": "test",
 			"description": "This is a test description",
+			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
 		assert.NoError(t, err)
@@ -294,7 +300,8 @@ func TestDatasetsService_Update(t *testing.T) {
 		ID:          "test",
 		Name:        "test",
 		Description: "This is the new description",
-		Created:     mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
+		CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -305,6 +312,7 @@ func TestDatasetsService_Update(t *testing.T) {
 			"id": "test",
 			"name": "test",
 			"description": "This is the new description",
+			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
 		assert.NoError(t, err)
@@ -455,7 +463,7 @@ func TestDatasetsService_History(t *testing.T) {
 		ID:      "GHP2ufS7OYwMeBhXHj",
 		Kind:    Analytics,
 		Dataset: "test",
-		Owner:   "f83e245a-afdc-47ad-a765-4addd1994333",
+		Owner:   "f83e245a-afdc-47ad-a765-4addd1994321",
 		Query: query.Query{
 			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-18T13:00:00.000Z"),
 			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-25T14:00:00.000Z"),
@@ -477,7 +485,7 @@ func TestDatasetsService_History(t *testing.T) {
 				"endTime": "2020-11-25T14:00:00.000Z",
 				"limit": 100
 			},
-			"who": "f83e245a-afdc-47ad-a765-4addd1994333"
+			"who": "f83e245a-afdc-47ad-a765-4addd1994321"
 		}`)
 		assert.NoError(t, err)
 	}
