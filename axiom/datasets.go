@@ -64,8 +64,10 @@ type Dataset struct {
 	Name string `json:"name"`
 	// Description of the dataset.
 	Description string `json:"description"`
-	// Created is the time the dataset was created at.
-	Created time.Time `json:"created"`
+	// CreatedBy is the ID of the user who created the dataset.
+	CreatedBy string `json:"who"`
+	// CreatedAt is the time the dataset was created at.
+	CreatedAt time.Time `json:"created"`
 }
 
 // Field represents a field of an Axiom dataset.
