@@ -1,0 +1,69 @@
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  GOVERSION: "1.16"
+
+jobs:
+  gen-diff:
+    name: Codegen diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - run: make generate
+      - run: git diff --exit-code
+
+  lint:
+    name: Lint
+    needs: gen-diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVERSION }}
+      - uses: golangci/golangci-lint-action@v2
+
+  test:
+    name: Test
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - name: Test (Unit)
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: make test
+      - name: Test (Integration)
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          AXM_ACCESS_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
+          AXM_DEPLOYMENT_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
+        run: make test-integration
+      - uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+      - uses: creekorful/goreportcard-action@v1.0
