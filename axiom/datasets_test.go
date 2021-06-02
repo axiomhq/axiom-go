@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -768,7 +767,7 @@ func TestGZIPStreamer(t *testing.T) {
 		require.NoError(t, closeErr)
 	}()
 
-	act, err := ioutil.ReadAll(gzr)
+	act, err := io.ReadAll(gzr)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, string(act))

@@ -3,7 +3,7 @@ package zap_test
 import (
 	"compress/gzip"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -28,7 +28,7 @@ func TestCore(t *testing.T) {
 		gzr, err := gzip.NewReader(r.Body)
 		require.NoError(t, err)
 
-		b, err := ioutil.ReadAll(gzr)
+		b, err := io.ReadAll(gzr)
 		assert.NoError(t, err)
 
 		assert.JSONEq(t, exp, string(b))
