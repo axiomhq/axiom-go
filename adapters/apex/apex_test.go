@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -31,7 +31,7 @@ func TestHook(t *testing.T) {
 		gzr, err := gzip.NewReader(r.Body)
 		require.NoError(t, err)
 
-		b, err := ioutil.ReadAll(gzr)
+		b, err := io.ReadAll(gzr)
 		assert.NoError(t, err)
 
 		JSONEq(t, exp, string(b), []string{axiom.TimestampField})

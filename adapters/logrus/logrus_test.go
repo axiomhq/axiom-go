@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"compress/gzip"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -30,7 +31,7 @@ func TestHook(t *testing.T) {
 		gzr, err := gzip.NewReader(r.Body)
 		require.NoError(t, err)
 
-		b, err := ioutil.ReadAll(gzr)
+		b, err := io.ReadAll(gzr)
 		assert.NoError(t, err)
 
 		assert.JSONEq(t, exp, string(b))
