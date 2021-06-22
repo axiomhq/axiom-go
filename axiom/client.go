@@ -345,7 +345,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
 
-	// Set organization id header, if present.
+	// Set organization ID header, if present.
 	if c.orgID != "" {
 		req.Header.Set("X-Axiom-Org-Id", c.orgID)
 	}

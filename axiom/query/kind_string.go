@@ -10,11 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[Analytics-1]
 	_ = x[Stream-2]
+	_ = x[APL-3]
 }
 
-const _Kind_name = "analyticsstream"
+const _Kind_name = "analyticsstreamapl"
 
-var _Kind_index = [...]uint8{0, 9, 15}
+var _Kind_index = [...]uint8{0, 9, 15, 18}
 
 func (i Kind) String() string {
 	i -= 1

@@ -54,7 +54,7 @@ func (t *Type) UnmarshalJSON(b []byte) error {
 
 // A Notifier alerts users by using the configured service to reach out to them.
 type Notifier struct {
-	// ID is the unique id of the notifier.
+	// ID is the unique ID of the notifier.
 	ID string `json:"id"`
 	// Name is the display name of the notifier.
 	Name string `json:"name"`

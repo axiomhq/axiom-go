@@ -52,7 +52,7 @@ func (ur *UserRole) UnmarshalJSON(b []byte) error {
 
 // User represents an user.
 type User struct {
-	// ID is the unique id of the user.
+	// ID is the unique ID of the user.
 	ID string `json:"id"`
 	// Name of the user.
 	Name string `json:"name"`
@@ -66,7 +66,7 @@ type User struct {
 
 // AuthenticatedUser represents an authenticated Axiom user.
 type AuthenticatedUser struct {
-	// ID is the unique id of the user.
+	// ID is the unique ID of the user.
 	ID string `json:"id"`
 	// Name of the user.
 	Name string `json:"name"`

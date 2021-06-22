@@ -15,6 +15,7 @@ type Kind uint8
 const (
 	Analytics Kind = iota + 1 // analytics
 	Stream                    // stream
+	APL                       // apl
 )
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the Kind to
@@ -36,6 +37,8 @@ func (k *Kind) UnmarshalJSON(b []byte) error {
 		*k = Analytics
 	case Stream.String():
 		*k = Stream
+	case APL.String():
+		*k = APL
 	default:
 		return fmt.Errorf("unknown query kind %q", s)
 	}
@@ -43,7 +46,7 @@ func (k *Kind) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// EncodeValues implements query.Encoder. It is in place to encode the Kind
+// EncodeValues implements `query.Encoder`. It is in place to encode the Kind
 // into a string URL value because that's what the server expects.
 func (k Kind) EncodeValues(key string, v *url.Values) error {
 	v.Set(key, k.String())

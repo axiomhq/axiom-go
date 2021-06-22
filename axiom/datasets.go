@@ -12,6 +12,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
@@ -142,22 +143,6 @@ type TrimResult struct {
 	BlocksDeleted int `json:"numDeleted"`
 }
 
-// HistoryQuery represents a query stored inside the query history.
-type HistoryQuery struct {
-	// ID is the unique id of the starred query.
-	ID string `json:"id"`
-	// Kind of the starred query.
-	Kind query.Kind `json:"kind"`
-	// Dataset the starred query belongs to.
-	Dataset string `json:"dataset"`
-	// Owner is the ID of the starred queries owner. Can be a user or team ID.
-	Owner string `json:"who"`
-	// Query is the actual query.
-	Query query.Query `json:"query"`
-	// CreatedAt is the time the history query was created.
-	CreatedAt time.Time `json:"created"`
-}
-
 // IngestStatus is the status after an event ingestion operation.
 type IngestStatus struct {
 	// Ingested is the amount of events that have been ingested.
@@ -204,8 +189,17 @@ type datasetTrimRequest struct {
 	MaxDuration string `json:"maxDuration"`
 }
 
-// IngestOptions specifies the parameters for the Ingest and IngestEvents method
-// of the Datasets service.
+type aplQueryRequest struct {
+	// Raw is the raw APL query string.
+	Raw string `json:"apl"`
+	// StartTime of the query. Optional.
+	StartTime time.Time `json:"startTime"`
+	// EndTime of the query. Optional.
+	EndTime time.Time `json:"endTime"`
+}
+
+// IngestOptions specifies the optional parameters for the Ingest and
+// IngestEvents method of the Datasets service.
 type IngestOptions struct {
 	// TimestampField defines a custom field to extract the ingestion timestamp
 	// from. Defaults to `_time`.
@@ -321,10 +315,10 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 // History retrieves the query stored inside the query history dataset
 // identified by its id.
-func (s *DatasetsService) History(ctx context.Context, id string) (*HistoryQuery, error) {
+func (s *DatasetsService) History(ctx context.Context, id string) (*query.History, error) {
 	path := s.basePath + "/_history/" + id
 
-	var res HistoryQuery
+	var res query.History
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
@@ -447,6 +441,35 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 
 	var (
 		res  query.Result
+		resp *response
+	)
+	if resp, err = s.client.do(req, &res); err != nil {
+		return nil, err
+	}
+	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
+
+	return &res, nil
+}
+
+// APLQuery executes the given query specified using the Axiom Processing
+// Language (APL).
+func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Options) (*apl.Result, error) {
+	path, err := addOptions(s.basePath+"/_apl", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.newRequest(ctx, http.MethodPost, path, aplQueryRequest{
+		Raw:       raw,
+		StartTime: opts.StartTime,
+		EndTime:   opts.EndTime,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		res  apl.Result
 		resp *response
 	)
 	if resp, err = s.client.do(req, &res); err != nil {

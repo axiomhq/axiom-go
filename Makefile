@@ -72,6 +72,7 @@ fmt: ## Format and simplify the source code using `gofmt`
 
 .PHONY: generate
 generate: $(STRINGER) \
+	axiom/apl/format_string.go \
 	axiom/query/kind_string.go \
 	axiom/query/result_string.go \
 	axiom/datasets_string.go \

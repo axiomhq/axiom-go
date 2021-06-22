@@ -20,8 +20,8 @@ const (
 	OwnedByTeam                  // team
 )
 
-// EncodeValues implements query.Encoder. It is in place to encode the OwnerKind
-// into a string URL value because that's what the server expects.
+// EncodeValues implements `query.Encoder`. It is in place to encode the
+// OwnerKind into a string URL value because that's what the server expects.
 func (ok OwnerKind) EncodeValues(key string, v *url.Values) error {
 	v.Set(key, ok.String())
 	return nil
@@ -29,7 +29,7 @@ func (ok OwnerKind) EncodeValues(key string, v *url.Values) error {
 
 // StarredQuery represents a starred query of a dataset.
 type StarredQuery struct {
-	// ID is the unique id of the starred query.
+	// ID is the unique ID of the starred query.
 	ID string `json:"id"`
 	// Kind of the starred query.
 	Kind query.Kind `json:"kind"`
