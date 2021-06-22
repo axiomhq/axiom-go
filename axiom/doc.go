@@ -3,6 +3,7 @@
 // Usage:
 //
 //   import "github.com/axiomhq/axiom-go/axiom"
+//   import "github.com/axiomhq/axiom-go/axiom/apl" // When constructing APL queries
 //   import "github.com/axiomhq/axiom-go/axiom/query" // When constructing queries
 //
 // Construct a new Axiom client, then use the various services on the client to

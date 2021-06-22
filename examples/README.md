@@ -29,6 +29,8 @@ To quickstart, export the environment variables below.
 
 * [ingestfile](ingestfile/main.go): How to ingest the contents of a file into
   Axiom and compress them on the fly.
+* [query](query/main.go): How to query a dataset using the Kusto-like Axiom
+  Processing Language (APL).
 
 ## Adapter usage
 

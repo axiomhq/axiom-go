@@ -7,7 +7,7 @@ import (
 
 // VirtualField represents a virtual field of a dataset.
 type VirtualField struct {
-	// ID is the unique id of the virtual field.
+	// ID is the unique ID of the virtual field.
 	ID string `json:"id"`
 	// Dataset the virtual field belongs to.
 	Dataset string `json:"dataset"`

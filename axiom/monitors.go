@@ -59,7 +59,7 @@ func (c *Comparison) UnmarshalJSON(b []byte) error {
 // against a configured threshold. Upon reaching those it will invoke the
 // configured notifiers.
 type Monitor struct {
-	// ID is the unique id of the monitor.
+	// ID is the unique ID of the monitor.
 	ID string `json:"id"`
 	// Dataset the monitor belongs to.
 	Dataset string `json:"dataset"`

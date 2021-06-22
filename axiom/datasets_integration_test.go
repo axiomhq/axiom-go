@@ -5,6 +5,7 @@ package axiom_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
@@ -170,7 +172,7 @@ func (s *DatasetsTestSuite) Test() {
 			break
 		}
 	}
-	s.True(contains, "stats do not contain the dataset we created for this test")
+	s.True(contains, "stats do not contain the dataset created for this test")
 
 	// Run a query and make sure we see some results.
 	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
@@ -185,11 +187,26 @@ func (s *DatasetsTestSuite) Test() {
 	// This needs to pass in order for the history query test to have an input.
 	s.Require().NotEmpty(queryResult.SavedQueryID)
 
-	// FIXME(lukasmalkmus): For some reason we get "2" here?!
-	// s.EqualValues(1, queryResult.Status.BlocksExamined)
+	// s.EqualValues(1, queryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
 	s.EqualValues(4, queryResult.Status.RowsExamined)
 	s.EqualValues(4, queryResult.Status.RowsMatched)
 	s.Len(queryResult.Matches, 4)
+
+	// Run another query but using APL.
+	rawAPLQuery := fmt.Sprintf("['%s']", s.dataset.ID)
+	aplQueryResult, err := s.client.Datasets.APLQuery(s.ctx, rawAPLQuery, apl.Options{
+		Save: true,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(aplQueryResult)
+
+	// This needs to pass in order for the history query test to have an input.
+	s.Require().NotEmpty(aplQueryResult.SavedQueryID)
+
+	// s.EqualValues(1, aplQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
+	s.EqualValues(4, aplQueryResult.Status.RowsExamined)
+	s.EqualValues(4, aplQueryResult.Status.RowsMatched)
+	s.Len(aplQueryResult.Matches, 4)
 
 	// HINT(lukasmalkmus): This test initializes a new client to make sure
 	// strict decoding is never set on this method. After this test, it gets
@@ -198,18 +215,29 @@ func (s *DatasetsTestSuite) Test() {
 	// a lot of empty fields which are never set for a history query. Those are
 	// not part of the client side model for ease of use.
 	s.newClient()
-	defer func() {
-		if strictDecoding {
-			optsErr := s.client.Options(axiom.SetStrictDecoding())
-			s.Require().NoError(optsErr)
-		}
-	}()
 
-	query, err := s.client.Datasets.History(s.ctx, queryResult.SavedQueryID)
+	// Give the server some time to store the queries.
+	time.Sleep(time.Second)
+
+	historyQuery, err := s.client.Datasets.History(s.ctx, queryResult.SavedQueryID)
 	s.Require().NoError(err)
-	s.Require().NotNil(query)
+	s.Require().NotNil(historyQuery)
 
-	s.Equal(queryResult.SavedQueryID, query.ID)
+	s.Equal(queryResult.SavedQueryID, historyQuery.ID)
+	s.Equal(query.Analytics, historyQuery.Kind)
+
+	historyQuery, err = s.client.Datasets.History(s.ctx, aplQueryResult.SavedQueryID)
+	s.Require().NoError(err)
+	s.Require().NotNil(historyQuery)
+
+	s.Equal(aplQueryResult.SavedQueryID, historyQuery.ID)
+	s.Equal(query.APL, historyQuery.Kind)
+
+	// Revert to strict decoding.
+	if strictDecoding {
+		optsErr := s.client.Options(axiom.SetStrictDecoding())
+		s.Require().NoError(optsErr)
+	}
 
 	// Trim the dataset down to a minimum.
 	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)

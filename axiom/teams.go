@@ -7,7 +7,7 @@ import (
 
 // Team represents a team.
 type Team struct {
-	// ID is the unique id of the team.
+	// ID is the unique ID of the team.
 	ID string `json:"id"`
 	// Name of the team.
 	Name string `json:"name"`

@@ -9,7 +9,7 @@ import (
 // for ingestion into one or more datasets or personal tokens for access to the
 // whole Axiom API.
 type Token struct {
-	// ID is the unique id of the token.
+	// ID is the unique ID of the token.
 	ID string `json:"id"`
 	// Name of the token.
 	Name string `json:"name"`

@@ -124,7 +124,7 @@ func (l *License) UnmarshalJSON(b []byte) error {
 // Organization represents an organization. For selfhost deployments, there is
 // only one main organization, therefor it is referred to as deployment.
 type Organization struct {
-	// ID is the unique id of the organization.
+	// ID is the unique ID of the organization.
 	ID string `json:"id"`
 	// Name of the organization.
 	Name string `json:"name"`

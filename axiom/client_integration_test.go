@@ -46,7 +46,7 @@ type IntegrationTestSuite struct {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NotEmpty(accessToken, "integration test needs a personal access token set")
-	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization id or deployment url set")
+	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization ID or deployment url set")
 
 	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
 

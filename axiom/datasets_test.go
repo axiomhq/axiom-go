@@ -11,11 +11,184 @@ import (
 	"testing"
 	"time"
 
+	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const actQueryResp = `{
+		"status": {
+			"elapsedTime": 542114,
+			"blocksExamined": 4,
+			"rowsExamined": 142655,
+			"rowsMatched": 142655,
+			"numGroups": 0,
+			"isPartial": false,
+			"cacheStatus": 1,
+			"minBlockTime": "2020-11-19T11:06:31.569475746Z",
+			"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
+		},
+		"matches": [
+			{
+				"_time": "2020-11-19T11:06:31.569475746Z",
+				"_sysTime": "2020-11-19T11:06:31.581384524Z",
+				"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
+				"data": {
+					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes": 0,
+					"referrer": "-",
+					"remote_ip": "93.180.71.3",
+					"remote_user": "-",
+					"request": "GET /downloads/product_1 HTTP/1.1",
+					"response": 304,
+					"time": "17/May/2015:08:05:32 +0000"
+				}
+			},
+			{
+				"_time": "2020-11-19T11:06:31.569479846Z",
+				"_sysTime": "2020-11-19T11:06:31.581384524Z",
+				"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
+				"data": {
+					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes": 0,
+					"referrer": "-",
+					"remote_ip": "93.180.71.3",
+					"remote_user": "-",
+					"request": "GET /downloads/product_1 HTTP/1.1",
+					"response": 304,
+					"time": "17/May/2015:08:05:23 +0000"
+				}
+			}
+		],
+		"buckets": {
+			"series": [],
+			"totals": []
+		}
+	}`
+
+const actAPLQueryResp = `{
+		"request": {
+			"startTime": "2021-07-20T16:34:57.911170243Z",
+			"endTime": "2021-08-19T16:34:57.885821616Z",
+			"resolution": "",
+			"aggregations": null,
+			"groupBy": null,
+			"order": null,
+			"limit": 1000,
+			"virtualFields": null,
+			"project": null,
+			"cursor": "",
+			"includeCursor": false
+		},
+		"status": {
+			"elapsedTime": 542114,
+			"blocksExamined": 4,
+			"rowsExamined": 142655,
+			"rowsMatched": 142655,
+			"numGroups": 0,
+			"isPartial": false,
+			"cacheStatus": 1,
+			"minBlockTime": "2020-11-19T11:06:31.569475746Z",
+			"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
+		},
+		"matches": [
+			{
+				"_time": "2020-11-19T11:06:31.569475746Z",
+				"_sysTime": "2020-11-19T11:06:31.581384524Z",
+				"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
+				"data": {
+					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes": 0,
+					"referrer": "-",
+					"remote_ip": "93.180.71.3",
+					"remote_user": "-",
+					"request": "GET /downloads/product_1 HTTP/1.1",
+					"response": 304,
+					"time": "17/May/2015:08:05:32 +0000"
+				}
+			},
+			{
+				"_time": "2020-11-19T11:06:31.569479846Z",
+				"_sysTime": "2020-11-19T11:06:31.581384524Z",
+				"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
+				"data": {
+					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes": 0,
+					"referrer": "-",
+					"remote_ip": "93.180.71.3",
+					"remote_user": "-",
+					"request": "GET /downloads/product_1 HTTP/1.1",
+					"response": 304,
+					"time": "17/May/2015:08:05:23 +0000"
+				}
+			}
+		],
+		"buckets": {
+			"series": [],
+			"totals": []
+		}
+	}`
+
+var expQueryRes = &query.Result{
+	Status: query.Status{
+		ElapsedTime:    542114 * time.Microsecond,
+		BlocksExamined: 4,
+		RowsExamined:   142655,
+		RowsMatched:    142655,
+		NumGroups:      0,
+		IsPartial:      false,
+		MinBlockTime:   parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
+		MaxBlockTime:   parseTimeOrPanic(time.RFC3339Nano, "2020-11-27T12:06:38.966791794Z"),
+	},
+	Matches: []query.Entry{
+		{
+			Time:    parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
+			SysTime: parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
+			RowID:   "c776x1uafkpu-4918f6cb9000095-0",
+			Data: map[string]interface{}{
+				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+				"bytes":       float64(0),
+				"referrer":    "-",
+				"remote_ip":   "93.180.71.3",
+				"remote_user": "-",
+				"request":     "GET /downloads/product_1 HTTP/1.1",
+				"response":    float64(304),
+				"time":        "17/May/2015:08:05:32 +0000",
+			},
+		},
+		{
+			Time:    parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.569479846Z"),
+			SysTime: parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
+			RowID:   "c776x1uafnvq-4918f6cb9000095-1",
+			Data: map[string]interface{}{
+				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+				"bytes":       float64(0),
+				"referrer":    "-",
+				"remote_ip":   "93.180.71.3",
+				"remote_user": "-",
+				"request":     "GET /downloads/product_1 HTTP/1.1",
+				"response":    float64(304),
+				"time":        "17/May/2015:08:05:23 +0000",
+			},
+		},
+	},
+	Buckets: query.Timeseries{
+		Series: []query.Interval{},
+		Totals: []query.EntryGroup{},
+	},
+	SavedQueryID: "fyTFUldK4Z5219rWaz",
+}
+
+var expAPLQueryRes = &apl.Result{
+	Request: &query.Query{
+		StartTime: parseTimeOrPanic(time.RFC3339Nano, "2021-07-20T16:34:57.911170243Z"),
+		EndTime:   parseTimeOrPanic(time.RFC3339Nano, "2021-08-19T16:34:57.885821616Z"),
+		Limit:     1000,
+	},
+	Result: expQueryRes,
+}
 
 func TestDatasetsService_Stats(t *testing.T) {
 	exp := &DatasetStats{
@@ -549,7 +722,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 }
 
 func TestDatasetsService_History(t *testing.T) {
-	exp := &HistoryQuery{
+	exp := &query.History{
 		ID:      "GHP2ufS7OYwMeBhXHj",
 		Kind:    query.Analytics,
 		Dataset: "test",
@@ -722,115 +895,17 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 // server response.
 
 func TestDatasetsService_Query(t *testing.T) {
-	exp := &query.Result{
-		Status: query.Status{
-			ElapsedTime:    542114 * time.Microsecond,
-			BlocksExamined: 4,
-			RowsExamined:   142655,
-			RowsMatched:    142655,
-			NumGroups:      0,
-			IsPartial:      false,
-			MinBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
-			MaxBlockTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-27T12:06:38.966791794Z"),
-		},
-		Matches: []query.Entry{
-			{
-				Time:    mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
-				SysTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
-				RowID:   "c776x1uafkpu-4918f6cb9000095-0",
-				Data: map[string]interface{}{
-					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-					"bytes":       float64(0),
-					"referrer":    "-",
-					"remote_ip":   "93.180.71.3",
-					"remote_user": "-",
-					"request":     "GET /downloads/product_1 HTTP/1.1",
-					"response":    float64(304),
-					"time":        "17/May/2015:08:05:32 +0000",
-				},
-			},
-			{
-				Time:    mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.569479846Z"),
-				SysTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
-				RowID:   "c776x1uafnvq-4918f6cb9000095-1",
-				Data: map[string]interface{}{
-					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-					"bytes":       float64(0),
-					"referrer":    "-",
-					"remote_ip":   "93.180.71.3",
-					"remote_user": "-",
-					"request":     "GET /downloads/product_1 HTTP/1.1",
-					"response":    float64(304),
-					"time":        "17/May/2015:08:05:23 +0000",
-				},
-			},
-		},
-		Buckets: query.Timeseries{
-			Series: []query.Interval{},
-			Totals: []query.EntryGroup{},
-		},
-		SavedQueryID: "fyTFUldK4Z5219rWaz",
-	}
-
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		assert.Equal(t, "1s", r.URL.Query().Get("streaming-duration"))
-		assert.Equal(t, "true", r.URL.Query().Get("no-cache"))
-		assert.Equal(t, query.Analytics.String(), r.URL.Query().Get("saveAsKind"))
+		assert.Equal(t, "true", r.URL.Query().Get("nocache"))
+		assert.Equal(t, "analytics", r.URL.Query().Get("saveAsKind"))
 
 		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
-		_, err := fmt.Fprint(w, `{
-			"status": {
-				"elapsedTime": 542114,
-				"blocksExamined": 4,
-				"rowsExamined": 142655,
-				"rowsMatched": 142655,
-				"numGroups": 0,
-				"isPartial": false,
-				"cacheStatus": 1,
-				"minBlockTime": "2020-11-19T11:06:31.569475746Z",
-				"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
-			},
-			"matches": [
-				{
-					"_time": "2020-11-19T11:06:31.569475746Z",
-					"_sysTime": "2020-11-19T11:06:31.581384524Z",
-					"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
-					"data": {
-						"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-						"bytes": 0,
-						"referrer": "-",
-						"remote_ip": "93.180.71.3",
-						"remote_user": "-",
-						"request": "GET /downloads/product_1 HTTP/1.1",
-						"response": 304,
-						"time": "17/May/2015:08:05:32 +0000"
-					}
-				},
-				{
-					"_time": "2020-11-19T11:06:31.569479846Z",
-					"_sysTime": "2020-11-19T11:06:31.581384524Z",
-					"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
-					"data": {
-						"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-						"bytes": 0,
-						"referrer": "-",
-						"remote_ip": "93.180.71.3",
-						"remote_user": "-",
-						"request": "GET /downloads/product_1 HTTP/1.1",
-						"response": 304,
-						"time": "17/May/2015:08:05:23 +0000"
-					}
-				}
-			],
-			"buckets": {
-				"series": [],
-				"totals": []
-			}
-		}`)
+		_, err := fmt.Fprint(w, actQueryResp)
 		assert.NoError(t, err)
 	}
 
@@ -847,7 +922,42 @@ func TestDatasetsService_Query(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, exp, res)
+	assert.Equal(t, expQueryRes, res)
+}
+
+func TestDatasetsService_APLQuery(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+
+		assert.Equal(t, "true", r.URL.Query().Get("saveAsKind"))
+		assert.Equal(t, "legacy", r.URL.Query().Get("format"))
+
+		var req aplQueryRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if assert.NoError(t, err) {
+			assert.Equal(t, "['test'] | where response == 304", req.Raw)
+			assert.NotEmpty(t, req.StartTime)
+			assert.Empty(t, req.EndTime)
+		}
+
+		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
+
+		_, err = fmt.Fprint(w, actAPLQueryResp)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/_apl", hf)
+	defer teardown()
+
+	res, err := client.Datasets.APLQuery(context.Background(),
+		"['test'] | where response == 304", apl.Options{
+			StartTime: time.Now().Add(-5 * time.Minute),
+			Save:      true,
+		})
+	require.NoError(t, err)
+
+	assert.Equal(t, expAPLQueryRes, res)
 }
 
 func TestGZIPStreamer(t *testing.T) {
@@ -934,4 +1044,12 @@ func assertValidJSON(t *testing.T, r io.Reader) bool {
 		}
 	}
 	return true
+}
+
+func parseTimeOrPanic(layout, value string) time.Time { //nolint:unparam // Fine for a helper method.
+	t, err := time.Parse(layout, value)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }
