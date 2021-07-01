@@ -31,15 +31,15 @@ Currently, **Axiom Go requires Go 1.12 or greater**.
 ### Install using `go get`
 
 ```shell
-$ go get github.com/axiomhq/axiom-go/axiom
+ go get github.com/axiomhq/axiom-go/axiom
 ```
 
 ### Install from source
 
 ```shell
-$ git clone https://github.com/axiomhq/axiom-go.git
-$ cd axiom-go
-$ make # Run code generators, linters, sanitizers and test suits
+ git clone https://github.com/axiomhq/axiom-go.git
+ cd axiom-go
+ make # Run code generators, linters, sanitizers and test suits
 ```
 
 ## Authentication
