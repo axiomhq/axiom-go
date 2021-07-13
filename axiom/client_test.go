@@ -278,6 +278,10 @@ func TestIngestPathRegex(t *testing.T) {
 			match: true,
 		},
 		{
+			input: "/api/v1/datasets/test/ingest?timestamp-field=time",
+			match: true,
+		},
+		{
 			input: "/api/v1/tokens/ingest/validate",
 			match: true,
 		},

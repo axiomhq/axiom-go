@@ -27,7 +27,7 @@ var (
 	ErrUnprivilegedToken = errors.New("using ingest token for non-ingest operation")
 )
 
-var validIngestTokenPathRe = regexp.MustCompile("^/api/v1/(datasets/.+/ingest|tokens/ingest/validate)$")
+var validIngestTokenPathRe = regexp.MustCompile("^/api/v1/(datasets/.+/ingest|tokens/ingest/validate)")
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
 // Either one of the two fields is populated. However, calling the Error()
