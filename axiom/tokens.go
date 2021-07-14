@@ -101,13 +101,7 @@ func (s *tokensService) Update(ctx context.Context, id string, req Token) (*Toke
 
 // Delete the token identified by the given id.
 func (s *tokensService) Delete(ctx context.Context, id string) error {
-	path := s.basePath + "/" + id
-
-	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }
 
 // IngestTokensService handles communication with the ingest token related
@@ -118,13 +112,7 @@ type IngestTokensService = tokensService
 
 // Validate the token that is used for authentication.
 func (s *IngestTokensService) Validate(ctx context.Context) error {
-	path := s.basePath + "/validate"
-
-	if err := s.client.call(ctx, http.MethodGet, path, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return s.client.call(ctx, http.MethodGet, s.basePath+"/validate", nil, nil)
 }
 
 // PersonalTokensService handles communication with the personal token related

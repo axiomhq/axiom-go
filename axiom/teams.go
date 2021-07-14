@@ -77,11 +77,5 @@ func (s *TeamsService) Update(ctx context.Context, id string, req Team) (*Team, 
 
 // Delete the team identified by the given id.
 func (s *TeamsService) Delete(ctx context.Context, id string) error {
-	path := s.basePath + "/" + id
-
-	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }
