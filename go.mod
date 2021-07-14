@@ -8,7 +8,7 @@ require (
 	github.com/google/go-querystring v1.1.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.17.0
-	golang.org/x/tools v0.1.3
+	go.uber.org/zap v1.18.1
+	golang.org/x/tools v0.1.5
 	gotest.tools/gotestsum v1.6.4
 )
