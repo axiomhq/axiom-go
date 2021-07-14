@@ -128,11 +128,5 @@ func (s *DashboardsService) Update(ctx context.Context, id string, req Dashboard
 
 // Delete the dashboard identified by the given id.
 func (s *DashboardsService) Delete(ctx context.Context, id string) error {
-	path := s.basePath + "/" + id
-
-	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }

@@ -174,11 +174,5 @@ func (s *UsersService) UpdateRole(ctx context.Context, id string, role UserRole)
 
 // Delete the user identified by the given id.
 func (s *UsersService) Delete(ctx context.Context, id string) error {
-	path := s.basePath + "/" + id
-
-	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }

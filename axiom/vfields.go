@@ -87,11 +87,5 @@ func (s *VirtualFieldsService) Update(ctx context.Context, id string, req Virtua
 
 // Delete the virtual field identified by the given id.
 func (s *VirtualFieldsService) Delete(ctx context.Context, id string) error {
-	path := s.basePath + "/" + id
-
-	if err := s.client.call(ctx, http.MethodDelete, path, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }
