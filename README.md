@@ -137,8 +137,8 @@ See [LICENSE](LICENSE) for more information.
 
 [gopkg]: https://pkg.go.dev/github.com/axiomhq/axiom-go
 [gopkg_badge]: https://img.shields.io/badge/doc-reference-007d9c?logo=go&logoColor=white&style=flat-square
-[go_workflow]: https://github.com/axiomhq/axiom-go/actions?query=workflow%3Ago
-[go_workflow_badge]: https://img.shields.io/github/workflow/status/axiomhq/axiom-go/go?style=flat-square&ghcache=unused
+[go_workflow]: https://github.com/axiomhq/axiom-go/actions/workflows/push.yml
+[go_workflow_badge]: https://img.shields.io/github/workflow/status/axiomhq/axiom-go/push?style=flat-square&ghcache=unused
 [coverage]: https://codecov.io/gh/axiomhq/axiom-go
 [coverage_badge]: https://img.shields.io/codecov/c/github/axiomhq/axiom-go.svg?style=flat-square&ghcache=unused
 [report]: https://goreportcard.com/report/github.com/axiomhq/axiom-go
