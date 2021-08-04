@@ -13,8 +13,8 @@ import (
 
 func main() {
 	var (
-		deploymentURL = os.Getenv("AXM_DEPLOYMENT_URL")
-		accessToken   = os.Getenv("AXM_ACCESS_TOKEN")
+		deploymentURL = os.Getenv("AXIOM_URL")
+		accessToken   = os.Getenv("AXIOM_TOKEN")
 	)
 
 	// 1. Open the file to ingest.

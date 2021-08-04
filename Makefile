@@ -86,7 +86,7 @@ lint: $(GOLANGCI_LINT) ## Lint the source code
 	@$(GOLANGCI_LINT) run
 
 .PHONY: test-integration
-test-integration: $(GOTESTSUM) ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXM_ACCESS_TOKEN and AXM_DEPLOYMENT_URL to be set.
+test-integration: $(GOTESTSUM) ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
 	@echo ">> running integration tests"
 	@$(GOTESTSUM) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) -tags=integration ./...
 

@@ -25,11 +25,11 @@ var (
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	flag.StringVar(&accessToken, "access-token", os.Getenv("AXM_ACCESS_TOKEN"), "Personal Access Token of the test user")
-	flag.StringVar(&orgID, "org-id", os.Getenv("AXM_ORG_ID"), "Organization ID of the organization the test user belongs to")
-	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXM_DEPLOYMENT_URL"), "URL of the deployment to test against")
-	flag.StringVar(&historyQueryID, "history-query-id", os.Getenv("AXM_HISTORY_QUERY_ID"), "ID of the query to get from history")
-	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXM_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
+	flag.StringVar(&accessToken, "access-token", os.Getenv("AXIOM_TOKEN"), "Personal Access Token of the test user")
+	flag.StringVar(&orgID, "org-id", os.Getenv("AXIOM_ORG_ID"), "Organization ID of the organization the test user belongs to")
+	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
+	flag.StringVar(&historyQueryID, "history-query-id", os.Getenv("AXIOM_HISTORY_QUERY_ID"), "ID of the query to get from history")
+	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXIOM_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
 }
 
 // IntegrationTestSuite implements a base test suite for integration tests.
