@@ -12,9 +12,9 @@ import (
 
 func main() {
 	var (
-		deploymentURL = os.Getenv("AXM_DEPLOYMENT_URL")
-		accessToken   = os.Getenv("AXM_ACCESS_TOKEN")
-		dataset       = os.Getenv("AXM_DATASET")
+		deploymentURL = os.Getenv("AXIOM_URL")
+		accessToken   = os.Getenv("AXIOM_TOKEN")
+		dataset       = os.Getenv("AXIOM_DATASET")
 	)
 
 	// 1. Setup the Axiom handler for apex.
