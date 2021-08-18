@@ -31,7 +31,7 @@ func (s *MonitorsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
-		Name:        "test-axiom-go-monitors-" + randString(),
+		Name:        "test-axiom-go-monitors-" + datasetSuffix,
 		Description: "This is a test dataset for monitors integration tests.",
 	})
 	s.Require().NoError(err)

@@ -3,10 +3,10 @@ name: Release
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 env:
-  GOVERSION: "1.16"
+  GOVERSION: "1.17"
 
 jobs:
   release:
@@ -30,4 +30,4 @@ jobs:
         with:
           args: release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

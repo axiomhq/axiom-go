@@ -5,18 +5,20 @@ on:
     branches:
       - main
 
-env:
-  GOVERSION: "1.16"
-
 jobs:
   gen-diff:
     name: Codegen diff
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go:
+          - 1.16
+          - 1.17
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GOVERSION }}
+          go-version: ${{ matrix.go }}
       - uses: actions/cache@v2
         with:
           path: |
@@ -31,22 +33,38 @@ jobs:
     name: Lint
     needs: gen-diff
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go:
+          - 1.16
+          - 1.17
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GOVERSION }}
+          go-version: ${{ matrix.go }}
       - uses: golangci/golangci-lint-action@v2
+        with:
+          skip-go-installation: true
 
   test:
     name: Test
     needs: lint
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go:
+          - 1.16
+          - 1.17
+        include:
+          - go: 1.17
+            update-coverage: true
+      max-parallel: 1
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GOVERSION }}
+          go-version: ${{ matrix.go }}
       - uses: actions/cache@v2
         with:
           path: |
@@ -62,7 +80,10 @@ jobs:
         env:
           AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
           AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
+          AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
         run: make test-integration
-      - uses: codecov/codecov-action@v1
+      - name: Update Coverage
+        if: ${{ matrix.update-coverage }}
+        uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true

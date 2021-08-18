@@ -53,7 +53,7 @@ func (s *UsersTestSuite) TearDownSuite() {
 
 func (s *UsersTestSuite) Test() {
 	// Let's update the user.
-	// TODO(lukasmalkmus): Cannot update other users at this point. So we just
+	// HINT(lukasmalkmus): Cannot update other users at this point. So we just
 	// update the test suites user (ourselves) with the same data to make sure
 	// the method call passes.
 	user, err := s.client.Users.Update(s.suiteCtx, s.testUser.ID, axiom.UserUpdateRequest{
