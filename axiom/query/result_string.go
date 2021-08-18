@@ -11,11 +11,12 @@ func _() {
 	_ = x[VirtualFieldFinalizeError-1]
 	_ = x[MissingColumn-2]
 	_ = x[LicenseLimitForQueryWarning-3]
+	_ = x[DefaultLimitWarning-4]
 }
 
-const _MessageCode_name = "virtual_field_finalize_errormissing_columnlicense_limit_for_query_warning"
+const _MessageCode_name = "virtual_field_finalize_errormissing_columnlicense_limit_for_query_warningdefault_limit_warning"
 
-var _MessageCode_index = [...]uint8{0, 28, 42, 73}
+var _MessageCode_index = [...]uint8{0, 28, 42, 73, 94}
 
 func (i MessageCode) String() string {
 	i -= 1
