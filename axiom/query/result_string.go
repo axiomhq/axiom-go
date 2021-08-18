@@ -8,20 +8,20 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
+	_ = x[UnknownMessageCode-0]
 	_ = x[VirtualFieldFinalizeError-1]
 	_ = x[MissingColumn-2]
 	_ = x[LicenseLimitForQueryWarning-3]
 	_ = x[DefaultLimitWarning-4]
 }
 
-const _MessageCode_name = "virtual_field_finalize_errormissing_columnlicense_limit_for_query_warningdefault_limit_warning"
+const _MessageCode_name = "UnknownMessageCodevirtual_field_finalize_errormissing_columnlicense_limit_for_query_warningdefault_limit_warning"
 
-var _MessageCode_index = [...]uint8{0, 28, 42, 73, 94}
+var _MessageCode_index = [...]uint8{0, 18, 46, 60, 91, 112}
 
 func (i MessageCode) String() string {
-	i -= 1
 	if i >= MessageCode(len(_MessageCode_index)-1) {
-		return "MessageCode(" + strconv.FormatInt(int64(i+1), 10) + ")"
+		return "MessageCode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _MessageCode_name[_MessageCode_index[i]:_MessageCode_index[i+1]]
 }
