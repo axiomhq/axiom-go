@@ -2,8 +2,8 @@
 //
 // Usage:
 //
-// 	import "github.com/axiomhq/axiom-go/axiom"
-// 	import "github.com/axiomhq/axiom-go/axiom/query" // When constructing queries
+//   import "github.com/axiomhq/axiom-go/axiom"
+//   import "github.com/axiomhq/axiom-go/axiom/query" // When constructing queries
 //
 // Construct a new Axiom client, then use the various services on the client to
 // access different parts of the Axiom API. A valid deployment URL and an access
@@ -11,16 +11,22 @@
 // token. The ingest token however, will just allow ingestion into the datasets
 // targeted by the ingest token:
 //
-//	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+//   client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 //
 // Get the version of the configured deployment:
-//	version, err := client.Version.Get(ctx)
+//
+//   version, err := client.Version.Get(ctx)
+//
+// There is an alternate constructor to connect to Axiom Cloud, by providing
+// just the access token and organization identifier:
+//
+//   client, err := axiom.NewCloudClient("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", "my-org-id")
 //
 // Some API methods have additional parameters that can be passed:
 //
-//	dashboards, err := client.Dashboards.List(ctx, axiom.ListOptions{
-//		Limit: 5,
-//	})
+//	 dashboards, err := client.Dashboards.List(ctx, axiom.ListOptions{
+//       Limit: 5,
+//	 })
 //
 // NOTE: Every client method mapping to an API method takes a context.Context
 // (https://godoc.org/context) as its first parameter to pass cancelation

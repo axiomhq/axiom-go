@@ -336,12 +336,13 @@ func (s *DatasetsService) History(ctx context.Context, id string) (*HistoryQuery
 // exist, it will be created. The given data will be flattened, thus there are
 // some restrictions on the field names (JSON object keys):
 //
-// * Not more than 200 bytes
-// * Valid UTF-8
-// * "_time" must conform to a valid timestamp or not be present at all
-// * If "_time" is not present, the server will assign a timestamp
-// * The ingestion content type must be one of JSON, NDJSON or CSV and the input
-//   must be formatted accordingly
+//   - Not more than 200 bytes
+//   - Valid UTF-8
+//   - "_time" must conform to a valid timestamp or not be present at all
+//   - If "_time" is not present, the server will assign a timestamp
+//   - The ingestion content type must be one of JSON, NDJSON or CSV and the input
+//     must be formatted accordingly
+//
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
 	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
@@ -380,12 +381,13 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 // dataset doesn't exist, it will be created. The given data will be flattened,
 // thus there are some restrictions on the field names (JSON object keys):
 //
-// * Not more than 200 bytes
-// * Valid UTF-8
-// * "_time" must conform to a valid timestamp or not be present at all
-// * If "_time" is not present, the server will assign a timestamp
-// * The ingestion content type must be one of JSON, NDJSON or CSV and the input
-//   must be formatted accordingly
+//   - Not more than 200 bytes
+//   - Valid UTF-8
+//   - "_time" must conform to a valid timestamp or not be present at all
+//   - If "_time" is not present, the server will assign a timestamp
+//   - The ingestion content type must be one of JSON, NDJSON or CSV and the input
+//     must be formatted accordingly
+//
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
 	if len(events) == 0 {
 		return &IngestStatus{}, nil
