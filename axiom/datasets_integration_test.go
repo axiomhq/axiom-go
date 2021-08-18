@@ -79,7 +79,7 @@ func (s *DatasetsTestSuite) SetupSuite() {
 
 	var err error
 	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
-		Name:        "test-axiom-go-dataset-" + randString(),
+		Name:        "test-axiom-go-datasets-" + datasetSuffix,
 		Description: "This is a test dataset for datasets integration tests.",
 	})
 	s.Require().NoError(err)
@@ -191,8 +191,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(trimResult)
 
-	// HINT(lukasmalkmus): There are no blocks to trim, yet.
-	// s.EqualValues(1, trimResult.BlocksDeleted)
+	// HINT(lukasmalkmus): There are no blocks to trim in this test.
+	s.EqualValues(0, trimResult.BlocksDeleted)
 }
 
 func (s *DatasetsTestSuite) TestHistory() {

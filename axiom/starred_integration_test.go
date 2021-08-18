@@ -30,7 +30,7 @@ func (s *StarredQueriesTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	dataset, err := s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
-		Name:        "test-axiom-go-starred-queries-" + randString(),
+		Name:        "test-axiom-go-starred-queries-" + datasetSuffix,
 		Description: "This is a test dataset for starred queries integration tests.",
 	})
 	s.Require().NoError(err)
@@ -65,7 +65,6 @@ func (s *StarredQueriesTestSuite) TearDownSuite() {
 func (s *StarredQueriesTestSuite) Test() {
 	// Let's update the starredQuery.
 	starredQuery, err := s.client.StarredQueries.Update(s.suiteCtx, s.starredQuery.ID, axiom.StarredQuery{
-		Kind:    axiom.Analytics,
 		Dataset: s.datasetID,
 		Name:    "Updated Test Query",
 	})
@@ -80,8 +79,7 @@ func (s *StarredQueriesTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(starredQuery)
 
-	// TODO(lukasmalkmus): This needs a server-side fix.
-	// s.Equal(s.starredQuery, starredQuery)
+	s.Equal(s.starredQuery, starredQuery)
 
 	// List all starred queries and make sure the created starred query is part
 	// of that list.

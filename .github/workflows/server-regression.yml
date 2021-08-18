@@ -1,11 +1,11 @@
-name: Server regression
+name: Server Regression
 
 on:
   schedule:
-    - cron: "0 12 * * *"
+    - cron: "0 0 * * *"
 
 env:
-  GOVERSION: "1.16"
+  GOVERSION: "1.17"
 
 jobs:
   test:
@@ -26,4 +26,5 @@ jobs:
       - env:
           AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
           AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
+          AXIOM_DATASET_SUFFIX: ${{ github.run_id }}
         run: make test-integration

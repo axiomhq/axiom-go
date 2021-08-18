@@ -24,22 +24,22 @@
 Axiom Go is a Go client library for accessing the [Axiom](https://www.axiom.co/)
 API.
 
-Currently, **Axiom Go requires Go 1.12 or greater**.
+Currently, **Axiom Go requires Go 1.16 or greater**.
 
 ## Installation
 
 ### Install using `go get`
 
 ```shell
- go get github.com/axiomhq/axiom-go/axiom
+go get github.com/axiomhq/axiom-go/axiom
 ```
 
 ### Install from source
 
 ```shell
- git clone https://github.com/axiomhq/axiom-go.git
- cd axiom-go
- make # Run code generators, linters, sanitizers and test suits
+git clone https://github.com/axiomhq/axiom-go.git
+cd axiom-go
+make # Run code generators, linters, sanitizers and test suits
 ```
 
 ## Authentication
