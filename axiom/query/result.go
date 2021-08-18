@@ -13,10 +13,11 @@ type MessageCode uint8
 
 // All available message codes.
 const (
-	VirtualFieldFinalizeError   MessageCode = iota + 1 // virtual_field_finalize_error
-	MissingColumn                                      // missing_column
-	LicenseLimitForQueryWarning                        // license_limit_for_query_warning
-	DefaultLimitWarning                                // default_limit_warning
+	UnknownMessageCode          MessageCode = iota
+	VirtualFieldFinalizeError               // virtual_field_finalize_error
+	MissingColumn                           // missing_column
+	LicenseLimitForQueryWarning             // license_limit_for_query_warning
+	DefaultLimitWarning                     // default_limit_warning
 )
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
@@ -32,8 +33,12 @@ func (mc *MessageCode) UnmarshalJSON(b []byte) error {
 		*mc = VirtualFieldFinalizeError
 	case MissingColumn.String():
 		*mc = MissingColumn
+	case LicenseLimitForQueryWarning.String():
+		*mc = LicenseLimitForQueryWarning
+	case DefaultLimitWarning.String():
+		*mc = DefaultLimitWarning
 	default:
-		return fmt.Errorf("unknown message code %q", s)
+		*mc = UnknownMessageCode
 	}
 
 	return nil
