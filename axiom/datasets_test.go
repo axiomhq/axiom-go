@@ -334,7 +334,7 @@ func TestDatasetsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
@@ -369,7 +369,7 @@ func TestDatasetsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
@@ -551,7 +551,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 func TestDatasetsService_History(t *testing.T) {
 	exp := &HistoryQuery{
 		ID:      "GHP2ufS7OYwMeBhXHj",
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Owner:   "f83e245a-afdc-47ad-a765-4addd1994321",
 		Query: query.Query{
@@ -601,7 +601,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		assert.Equal(t, "time", r.URL.Query().Get("timestamp-field"))
 		assert.Equal(t, "2/Jan/2006:15:04:05 +0000", r.URL.Query().Get("timestamp-format"))
@@ -666,8 +666,8 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/x-ndjson", r.Header.Get("content-type"))
-		assert.Equal(t, "gzip", r.Header.Get("content-encoding"))
+		assert.Equal(t, "application/x-ndjson", r.Header.Get("Content-Type"))
+		assert.Equal(t, "gzip", r.Header.Get("Content-Encoding"))
 
 		gzr, err := gzip.NewReader(r.Body)
 		require.NoError(t, err)
@@ -769,14 +769,18 @@ func TestDatasetsService_Query(t *testing.T) {
 			Series: []query.Interval{},
 			Totals: []query.EntryGroup{},
 		},
+		SavedQueryID: "fyTFUldK4Z5219rWaz",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		assert.Equal(t, "1s", r.URL.Query().Get("streaming-duration"))
 		assert.Equal(t, "true", r.URL.Query().Get("no-cache"))
+		assert.Equal(t, query.Analytics.String(), r.URL.Query().Get("saveAsKind"))
+
+		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
 		_, err := fmt.Fprint(w, `{
 			"status": {
@@ -839,6 +843,7 @@ func TestDatasetsService_Query(t *testing.T) {
 	}, query.Options{
 		StreamingDuration: time.Second,
 		NoCache:           true,
+		SaveKind:          query.Analytics,
 	})
 	require.NoError(t, err)
 

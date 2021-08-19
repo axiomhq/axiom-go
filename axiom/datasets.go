@@ -147,7 +147,7 @@ type HistoryQuery struct {
 	// ID is the unique id of the starred query.
 	ID string `json:"id"`
 	// Kind of the starred query.
-	Kind QueryKind `json:"kind"`
+	Kind query.Kind `json:"kind"`
 	// Dataset the starred query belongs to.
 	Dataset string `json:"dataset"`
 	// Owner is the ID of the starred queries owner. Can be a user or team ID.
@@ -356,7 +356,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 
 	switch typ {
 	case JSON, NDJSON, CSV:
-		req.Header.Set("content-type", typ.String())
+		req.Header.Set("Content-Type", typ.String())
 	default:
 		return nil, ErrUnknownContentType
 	}
@@ -364,13 +364,13 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 	switch enc {
 	case Identity:
 	case GZIP:
-		req.Header.Set("content-encoding", enc.String())
+		req.Header.Set("Content-Encoding", enc.String())
 	default:
 		return nil, ErrUnknownContentEncoding
 	}
 
 	var res IngestStatus
-	if err = s.client.do(req, &res); err != nil {
+	if _, err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}
 
@@ -422,11 +422,11 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 		return nil, err
 	}
 
-	req.Header.Set("content-type", NDJSON.String())
-	req.Header.Set("content-encoding", GZIP.String())
+	req.Header.Set("Content-Type", NDJSON.String())
+	req.Header.Set("Content-Encoding", GZIP.String())
 
 	var res IngestStatus
-	if err = s.client.do(req, &res); err != nil {
+	if _, err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}
 
@@ -445,10 +445,14 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 		return nil, err
 	}
 
-	var res query.Result
-	if err = s.client.do(req, &res); err != nil {
+	var (
+		res  query.Result
+		resp *response
+	)
+	if resp, err = s.client.do(req, &res); err != nil {
 		return nil, err
 	}
+	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 
 	return &res, nil
 }

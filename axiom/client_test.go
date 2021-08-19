@@ -153,7 +153,7 @@ func TestClient_do(t *testing.T) {
 	require.NoError(t, err)
 
 	var body foo
-	err = client.do(req, &body)
+	_, err = client.do(req, &body)
 	require.NoError(t, err)
 
 	assert.Equal(t, foo{"a"}, body)
@@ -174,7 +174,7 @@ func TestClient_do_ioWriter(t *testing.T) {
 	require.NoError(t, err)
 
 	var buf bytes.Buffer
-	err = client.do(req, &buf)
+	_, err = client.do(req, &buf)
 	require.NoError(t, err)
 
 	assert.Equal(t, content, buf.String())
@@ -195,7 +195,8 @@ func TestClient_do_HTTPError(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	err = client.do(req, nil)
+	resp, err := client.do(req, nil)
+	require.NotNil(t, resp)
 	require.NoError(t, err)
 }
 
@@ -210,7 +211,7 @@ func TestClient_do_Unauthenticated(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	err = client.do(req, nil)
+	_, err = client.do(req, nil)
 	require.Equal(t, err, ErrUnauthenticated)
 }
 
@@ -245,7 +246,7 @@ func TestClient_do_validIngestOnlyTokenPaths(t *testing.T) {
 			req, err := client.newRequest(context.Background(), http.MethodGet, tt, nil)
 			require.Equal(t, err, nil)
 
-			err = client.do(req, nil)
+			_, err = client.do(req, nil)
 			require.NoError(t, err)
 		})
 	}
@@ -262,7 +263,7 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	err = client.do(req, nil)
+	_, err = client.do(req, nil)
 	require.Error(t, err)
 
 	assert.IsType(t, err, new(url.Error))
@@ -321,10 +322,10 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 
 	r := http.NewServeMux()
 	r.HandleFunc(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.NotEmpty(t, r.Header.Get("authorization"), "no authorization header present on the request")
-		assert.Equal(t, r.Header.Get("accept"), "application/json", "bad accept header present on the request")
-		assert.Equal(t, r.Header.Get("user-agent"), "axiom-go", "bad user-agent header present on the request")
-		assert.Equal(t, r.Header.Get("x-axiom-org-id"), orgID, "bad x-axiom-org-id header present on the request")
+		assert.NotEmpty(t, r.Header.Get("Authorization"), "no authorization header present on the request")
+		assert.Equal(t, r.Header.Get("Accept"), "application/json", "bad accept header present on the request")
+		assert.Equal(t, r.Header.Get("User-Agent"), "axiom-go", "bad user-agent header present on the request")
+		assert.Equal(t, r.Header.Get("X-Axiom-Org-Id"), orgID, "bad x-axiom-org-id header present on the request")
 
 		if r.ContentLength > 0 {
 			assert.NotEmpty(t, r.Header.Get("Content-Type"), "no Content-Type header present on the request")

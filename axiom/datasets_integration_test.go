@@ -176,29 +176,20 @@ func (s *DatasetsTestSuite) Test() {
 	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
 		StartTime: time.Now().UTC().Add(-time.Minute),
 		EndTime:   time.Now().UTC(),
-	}, query.Options{})
+	}, query.Options{
+		SaveKind: query.Analytics,
+	})
 	s.Require().NoError(err)
 	s.Require().NotNil(queryResult)
+
+	// This needs to pass in order for the history query test to have an input.
+	s.Require().NotEmpty(queryResult.SavedQueryID)
 
 	// FIXME(lukasmalkmus): For some reason we get "2" here?!
 	// s.EqualValues(1, queryResult.Status.BlocksExamined)
 	s.EqualValues(4, queryResult.Status.RowsExamined)
 	s.EqualValues(4, queryResult.Status.RowsMatched)
 	s.Len(queryResult.Matches, 4)
-
-	// Trim the dataset down to a minimum.
-	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
-	s.Require().NoError(err)
-	s.Require().NotNil(trimResult)
-
-	// HINT(lukasmalkmus): There are no blocks to trim in this test.
-	s.EqualValues(0, trimResult.BlocksDeleted)
-}
-
-func (s *DatasetsTestSuite) TestHistory() {
-	s.T().Skip("We need a fixed dataset on the deployment which is being tested!")
-
-	s.Require().NotEmpty(historyQueryID, "integration test needs a history query id")
 
 	// HINT(lukasmalkmus): This test initializes a new client to make sure
 	// strict decoding is never set on this method. After this test, it gets
@@ -209,12 +200,22 @@ func (s *DatasetsTestSuite) TestHistory() {
 	s.newClient()
 	defer func() {
 		if strictDecoding {
-			err := s.client.Options(axiom.SetStrictDecoding())
-			s.Require().NoError(err)
+			optsErr := s.client.Options(axiom.SetStrictDecoding())
+			s.Require().NoError(optsErr)
 		}
 	}()
 
-	query, err := s.client.Datasets.History(s.ctx, historyQueryID)
+	query, err := s.client.Datasets.History(s.ctx, queryResult.SavedQueryID)
 	s.Require().NoError(err)
 	s.Require().NotNil(query)
+
+	s.Equal(queryResult.SavedQueryID, query.ID)
+
+	// Trim the dataset down to a minimum.
+	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
+	s.Require().NoError(err)
+	s.Require().NotNil(trimResult)
+
+	// HINT(lukasmalkmus): There are no blocks to trim in this test.
+	s.EqualValues(0, trimResult.BlocksDeleted)
 }

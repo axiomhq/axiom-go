@@ -18,7 +18,6 @@ var (
 	orgID          string
 	deploymentURL  string
 	datasetSuffix  string
-	historyQueryID string
 	strictDecoding = true
 )
 
@@ -27,7 +26,6 @@ func init() {
 	flag.StringVar(&orgID, "org-id", os.Getenv("AXIOM_ORG_ID"), "Organization ID of the organization the test user belongs to")
 	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
 	flag.StringVar(&datasetSuffix, "dataset-suffix", os.Getenv("AXIOM_DATASET_SUFFIX"), "Dataset suffix to append to test datasets")
-	flag.StringVar(&historyQueryID, "history-query-id", os.Getenv("AXIOM_HISTORY_QUERY_ID"), "ID of the query to get from history")
 	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXIOM_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
 }
 

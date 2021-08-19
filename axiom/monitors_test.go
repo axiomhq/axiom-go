@@ -129,7 +129,7 @@ func TestMonitorsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "lrR66wmzYm9NKtq0rz",
@@ -175,7 +175,7 @@ func TestMonitorsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "lrR66wmzYm9NKtq0rz",

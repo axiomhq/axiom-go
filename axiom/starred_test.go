@@ -2,10 +2,8 @@ package axiom
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"testing"
 	"time"
 
@@ -19,7 +17,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 	exp := []*StarredQuery{
 		{
 			ID:      "NBYj9rO5p4F5CtYEy6",
-			Kind:    Analytics,
+			Kind:    query.Analytics,
 			Dataset: "test",
 			Owner:   "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 			Name:    "avg(size) shown",
@@ -81,7 +79,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 	defer teardown()
 
 	res, err := client.StarredQueries.List(context.Background(), StarredQueriesListOptions{
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Owner:   OwnedByTeam,
 		ListOptions: ListOptions{
@@ -97,7 +95,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 func TestStarredQueriesService_Get(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Owner:   "610455ff-2b16-4e8a-a3c5-70adde1538ff",
 		Name:    "avg(size) shown",
@@ -158,7 +156,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 func TestStarredQueriesService_Create(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Owner:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Name:    "Everything",
@@ -175,7 +173,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
@@ -200,7 +198,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 	defer teardown()
 
 	res, err := client.StarredQueries.Create(context.Background(), StarredQuery{
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Name:    "Everything",
 		Query: query.Query{
@@ -220,7 +218,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 func TestStarredQueriesService_Update(t *testing.T) {
 	exp := &StarredQuery{
 		ID:      "NBYj9rO5p4F5CtYEy6",
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Owner:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 		Name:    "A fancy query name",
@@ -237,7 +235,7 @@ func TestStarredQueriesService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"kind": "analytics",
@@ -262,7 +260,7 @@ func TestStarredQueriesService_Update(t *testing.T) {
 	defer teardown()
 
 	res, err := client.StarredQueries.Update(context.Background(), "NBYj9rO5p4F5CtYEy6", StarredQuery{
-		Kind:    Analytics,
+		Kind:    query.Analytics,
 		Dataset: "test",
 		Name:    "A fancy query name",
 		Query: query.Query{
@@ -291,63 +289,4 @@ func TestStarredQueriesService_Delete(t *testing.T) {
 
 	err := client.StarredQueries.Delete(context.Background(), "NBYj9rO5p4F5CtYEy6")
 	require.NoError(t, err)
-}
-
-func TestQueryKind_EncodeValues(t *testing.T) {
-	tests := []struct {
-		input QueryKind
-		exp   string
-	}{
-		{Analytics, "analytics"},
-		{Stream, "stream"},
-		{0, "QueryKind(0)"}, // HINT(lukasmalkmus): Maybe we want to sort this out by raising an error?
-	}
-	for _, tt := range tests {
-		t.Run(tt.input.String(), func(t *testing.T) {
-			v := &url.Values{}
-			err := tt.input.EncodeValues("test", v)
-			require.NoError(t, err)
-
-			assert.Equal(t, tt.exp, v.Get("test"))
-		})
-	}
-}
-
-func TestQueryKind_Marshal(t *testing.T) {
-	exp := `{
-		"kind": "analytics"
-	}`
-
-	b, err := json.Marshal(struct {
-		Kind QueryKind `json:"kind"`
-	}{
-		Kind: Analytics,
-	})
-	require.NoError(t, err)
-	require.NotEmpty(t, b)
-
-	assert.JSONEq(t, exp, string(b))
-}
-
-func TestQueryKind_Unmarshal(t *testing.T) {
-	var act struct {
-		Kind QueryKind `json:"kind"`
-	}
-	err := json.Unmarshal([]byte(`{ "kind": "analytics" }`), &act)
-	require.NoError(t, err)
-
-	assert.Equal(t, Analytics, act.Kind)
-}
-
-func TestQueryKind_String(t *testing.T) {
-	// Check outer bounds.
-	assert.Equal(t, QueryKind(0).String(), "QueryKind(0)")
-	assert.Contains(t, (Analytics - 1).String(), "QueryKind(")
-	assert.Contains(t, (Stream + 1).String(), "QueryKind(")
-
-	for c := Analytics; c <= Stream; c++ {
-		s := c.String()
-		assert.NotEmpty(t, s)
-		assert.NotContains(t, s, "QueryKind(")
-	}
 }
