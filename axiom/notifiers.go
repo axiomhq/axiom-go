@@ -64,10 +64,10 @@ type Notifier struct {
 	Properties interface{} `json:"properties"`
 	// DisabledUntil is the time until the notifier is being executed again.
 	DisabledUntil time.Time `json:"disabledUntil"`
-	// Created is the time the notifer was created at.
-	Created time.Time `json:"metaCreated"`
-	// Modified is the time the notifer was updated at.
-	Modified time.Time `json:"metaModified"`
+	// CreatedAt is the time the notifer was created.
+	CreatedAt time.Time `json:"metaCreated"`
+	// ModifiedAt is the time the notifer was last modified.
+	ModifiedAt time.Time `json:"metaModified"`
 	// Version of the notifier.
 	Version int64 `json:"metaVersion"`
 }

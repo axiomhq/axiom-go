@@ -56,6 +56,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.newClient()
 
+	if datasetSuffix == "" {
+		datasetSuffix = "local"
+	}
+
 	if strictDecoding {
 		err := s.client.Options(axiom.SetStrictDecoding())
 		s.Require().NoError(err)
