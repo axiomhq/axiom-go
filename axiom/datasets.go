@@ -74,10 +74,14 @@ type Dataset struct {
 type Field struct {
 	// Name is the unique name of the field.
 	Name string `json:"name"`
+	// Description is the description of the field.
+	Description string `json:"description"`
 	// Type is the datatype of the field.
 	Type string `json:"type"`
-	// TypeHint is a hint regarding the datatype of the field.
-	TypeHint string `json:"typeHint"`
+	// Unit is the unit of the field.
+	Unit string `json:"unit"`
+	// Hidden describes if the field is hidden or not.
+	Hidden bool `json:"hidden"`
 }
 
 // DatasetInfo represents the details of the information stored inside an Axiom
@@ -107,8 +111,10 @@ type DatasetInfo struct {
 	MaxTime time.Time `json:"maxTime"`
 	// Fields are the fields of the dataset.
 	Fields []Field `json:"fields"`
-	// Created is the time the dataset was created at.
-	Created time.Time `json:"created"`
+	// CreatedBy is the ID of the user who created the dataset.
+	CreatedBy string `json:"who"`
+	// CreatedAt is the time the dataset was created.
+	CreatedAt time.Time `json:"created"`
 }
 
 // DatasetStats are the stats of
@@ -148,8 +154,8 @@ type HistoryQuery struct {
 	Owner string `json:"who"`
 	// Query is the actual query.
 	Query query.Query `json:"query"`
-	// Created is the time the starred query was created at.
-	Created time.Time `json:"created"`
+	// CreatedAt is the time the history query was created.
+	CreatedAt time.Time `json:"created"`
 }
 
 // IngestStatus is the status after an event ingestion operation.

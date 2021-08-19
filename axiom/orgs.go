@@ -153,10 +153,10 @@ type Organization struct {
 	PrimaryEmail string `json:"primaryEmail"`
 	// License of the deployment or organization.
 	License License `json:"license"`
-	// Created is the time the Organization was created.
-	Created time.Time `json:"metaCreated"`
-	// Modified is the time the Organization was modified.
-	Modified time.Time `json:"metaModified"`
+	// CreatedAt is the time the Organization was created.
+	CreatedAt time.Time `json:"metaCreated"`
+	// ModifiedAt is the time the Organization was last modified.
+	ModifiedAt time.Time `json:"metaModified"`
 	// Version of the organization.
 	Version string `json:"metaVersion"`
 }

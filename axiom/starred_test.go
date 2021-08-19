@@ -37,7 +37,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 			Metadata: map[string]string{
 				"quickRange": "30m",
 			},
-			Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-24T16:53:38.267775284Z"),
+			CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-24T16:53:38.267775284Z"),
 		},
 	}
 
@@ -115,7 +115,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 		Metadata: map[string]string{
 			"quickRange": "30m",
 		},
-		Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-24T16:53:38.267775284Z"),
+		CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-24T16:53:38.267775284Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +170,7 @@ func TestStarredQueriesService_Create(t *testing.T) {
 		Metadata: map[string]string{
 			"quickRange": "7d",
 		},
-		Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-25T17:34:07.659355723Z"),
+		CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-25T17:34:07.659355723Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +232,7 @@ func TestStarredQueriesService_Update(t *testing.T) {
 		Metadata: map[string]string{
 			"quickRange": "7d",
 		},
-		Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-25T17:34:07.659355723Z"),
+		CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-25T17:34:07.659355723Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {

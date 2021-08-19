@@ -88,8 +88,8 @@ type StarredQuery struct {
 	Query query.Query `json:"query"`
 	// Metadata associated with the query.
 	Metadata map[string]string `json:"metadata"`
-	// Created is the time the starred query was created at.
-	Created time.Time `json:"created"`
+	// CreatedAt is the time the starred query was created.
+	CreatedAt time.Time `json:"created"`
 }
 
 // StarredQueriesListOptions specifies the parameters for the List method of the
