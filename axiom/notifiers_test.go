@@ -26,9 +26,9 @@ func TestNotifiersService_List(t *testing.T) {
 					"c6c7381b-b24d-4107-b82e-d6cd26a490a1",
 				},
 			},
-			Created:  mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
-			Modified: mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
-			Version:  1606859972584410925,
+			CreatedAt:  mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
+			ModifiedAt: mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
+			Version:    1606859972584410925,
 		},
 		{
 			ID:   "d5I2Yv3Pg2Jx9Ne2Ay",
@@ -39,9 +39,9 @@ func TestNotifiersService_List(t *testing.T) {
 					"752e2388-8f6d-467a-88cc-cfba5ec407f4",
 				},
 			},
-			Created:  mustTimeParse(t, time.RFC3339, "2020-12-02T08:35:57.537528976Z"),
-			Modified: mustTimeParse(t, time.RFC3339, "2020-12-02T08:35:57.537528976Z"),
-			Version:  1606898157537528976,
+			CreatedAt:  mustTimeParse(t, time.RFC3339, "2020-12-02T08:35:57.537528976Z"),
+			ModifiedAt: mustTimeParse(t, time.RFC3339, "2020-12-02T08:35:57.537528976Z"),
+			Version:    1606898157537528976,
 		},
 	}
 
@@ -106,9 +106,9 @@ func TestNotifiersService_Get(t *testing.T) {
 				"c6c7381b-b24d-4107-b82e-d6cd26a490a1",
 			},
 		},
-		Created:  mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
-		Modified: mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
-		Version:  1606859972584410925,
+		CreatedAt:  mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
+		ModifiedAt: mustTimeParse(t, time.RFC3339, "2020-12-01T21:59:32.584410925Z"),
+		Version:    1606859972584410925,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -145,12 +145,12 @@ func TestNotifiersService_Get(t *testing.T) {
 
 func TestNotifiersService_Create(t *testing.T) {
 	exp := &Notifier{
-		ID:       "ByiW67mUsS9FqZu0K0",
-		Name:     "Test",
-		Type:     Pagerduty,
-		Created:  mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
-		Modified: mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
-		Version:  1607013727326658202,
+		ID:         "ByiW67mUsS9FqZu0K0",
+		Name:       "Test",
+		Type:       Pagerduty,
+		CreatedAt:  mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
+		ModifiedAt: mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
+		Version:    1607013727326658202,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -184,12 +184,12 @@ func TestNotifiersService_Create(t *testing.T) {
 
 func TestNotifiersService_Update(t *testing.T) {
 	exp := &Notifier{
-		ID:       "ByiW67mUsS9FqZu0K0",
-		Name:     "Test",
-		Type:     Webhook,
-		Created:  mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
-		Modified: mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
-		Version:  1607013727326658202,
+		ID:         "ByiW67mUsS9FqZu0K0",
+		Name:       "Test",
+		Type:       Webhook,
+		CreatedAt:  mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
+		ModifiedAt: mustTimeParse(t, time.RFC3339, "2020-12-03T16:42:07.326658202Z"),
+		Version:    1607013727326658202,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {

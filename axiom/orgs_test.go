@@ -50,9 +50,9 @@ func TestOrganizationsService_List(t *testing.T) {
 				},
 				Error: "",
 			},
-			Created:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-			Modified: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-			Version:  "1615469248501218883",
+			CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+			ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
+			Version:    "1615469248501218883",
 		},
 	}
 
@@ -151,9 +151,9 @@ func TestOrganizationsService_Get(t *testing.T) {
 			},
 			Error: "",
 		},
-		Created:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-		Modified: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-		Version:  "1615469248501218883",
+		CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
+		Version:    "1615469248501218883",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -310,9 +310,9 @@ func TestOrganizationsService_Update(t *testing.T) {
 			},
 			Error: "",
 		},
-		Created:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-		Modified: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-		Version:  "1615469248501218883",
+		CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
+		Version:    "1615469248501218883",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {

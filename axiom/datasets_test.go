@@ -33,27 +33,43 @@ func TestDatasetsService_Stats(t *testing.T) {
 				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
 				Fields: []Field{
 					{
-						Name: "_sysTime",
-						Type: "integer",
+						Name:        "_sysTime",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "_time",
-						Type: "integer",
+						Name:        "_time",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "path",
-						Type: "string",
+						Name:        "path",
+						Description: "",
+						Type:        "string",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "size",
-						Type: "integer",
+						Name:        "size",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "status",
-						Type: "integer",
+						Name:        "status",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 				},
-				Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+				CreatedBy: "f83e245a-afdc-47ad-a765-4addd1994321",
+				CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 			},
 			{
 				Name:                 "test1",
@@ -68,27 +84,43 @@ func TestDatasetsService_Stats(t *testing.T) {
 				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
 				Fields: []Field{
 					{
-						Name: "_sysTime",
-						Type: "integer",
+						Name:        "_sysTime",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "_time",
-						Type: "integer",
+						Name:        "_time",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "path",
-						Type: "string",
+						Name:        "path",
+						Description: "",
+						Type:        "string",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "size",
-						Type: "integer",
+						Name:        "size",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 					{
-						Name: "status",
-						Type: "integer",
+						Name:        "status",
+						Description: "",
+						Type:        "integer",
+						Unit:        "",
+						Hidden:      false,
 					},
 				},
-				Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+				CreatedBy: "f83e245a-afdc-47ad-a765-4addd1994321",
+				CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 			},
 		},
 		NumBlocks:            2,
@@ -118,25 +150,41 @@ func TestDatasetsService_Stats(t *testing.T) {
 					"fields": [
 						{
 							"name": "_sysTime",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "_time",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "path",
-							"type": "string"
+							"type": "string",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "size",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "status",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						}
 					],
+					"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 					"created": "2020-11-18T21:30:20.623322799Z"
 				},
 				{
@@ -153,25 +201,41 @@ func TestDatasetsService_Stats(t *testing.T) {
 					"fields": [
 						{
 							"name": "_sysTime",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "_time",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "path",
-							"type": "string"
+							"type": "string",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "size",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						},
 						{
 							"name": "status",
-							"type": "integer"
+							"type": "integer",
+							"unit": "",
+            				"hidden": false,
+            				"description": ""
 						}
 					],
+					"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 					"created": "2020-11-18T21:30:20.623322799Z"
 				}
 			],
@@ -356,27 +420,43 @@ func TestDatasetsService_Info(t *testing.T) {
 		MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
 		Fields: []Field{
 			{
-				Name: "_sysTime",
-				Type: "integer",
+				Name:        "_sysTime",
+				Description: "",
+				Type:        "integer",
+				Unit:        "",
+				Hidden:      false,
 			},
 			{
-				Name: "_time",
-				Type: "integer",
+				Name:        "_time",
+				Description: "",
+				Type:        "integer",
+				Unit:        "",
+				Hidden:      false,
 			},
 			{
-				Name: "path",
-				Type: "string",
+				Name:        "path",
+				Description: "",
+				Type:        "string",
+				Unit:        "",
+				Hidden:      false,
 			},
 			{
-				Name: "size",
-				Type: "integer",
+				Name:        "size",
+				Description: "",
+				Type:        "integer",
+				Unit:        "",
+				Hidden:      false,
 			},
 			{
-				Name: "status",
-				Type: "integer",
+				Name:        "status",
+				Description: "",
+				Type:        "integer",
+				Unit:        "",
+				Hidden:      false,
 			},
 		},
-		Created: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		CreatedBy: "f83e245a-afdc-47ad-a765-4addd1994321",
+		CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -397,29 +477,40 @@ func TestDatasetsService_Info(t *testing.T) {
 				{
 					"name": "_sysTime",
 					"type": "integer",
-            		"typeHint": ""
+            		"unit": "",
+            		"hidden": false,
+            		"description": ""
 				},
 				{
 					"name": "_time",
 					"type": "integer",
-            		"typeHint": ""
+            		"unit": "",
+            		"hidden": false,
+            		"description": ""
 				},
 				{
 					"name": "path",
 					"type": "string",
-            		"typeHint": ""
+            		"unit": "",
+            		"hidden": false,
+            		"description": ""
 				},
 				{
 					"name": "size",
 					"type": "integer",
-            		"typeHint": ""
+            		"unit": "",
+            		"hidden": false,
+            		"description": ""
 				},
 				{
 					"name": "status",
 					"type": "integer",
-					"typeHint": ""
+					"unit": "",
+            		"hidden": false,
+            		"description": ""
 				}
 			],
+			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
 		assert.NoError(t, err)
@@ -468,7 +559,7 @@ func TestDatasetsService_History(t *testing.T) {
 			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-25T14:00:00.000Z"),
 			Limit:     100,
 		},
-		Created: mustTimeParse(t, time.RFC3339, "2020-12-08T13:28:52.78954814Z"),
+		CreatedAt: mustTimeParse(t, time.RFC3339, "2020-12-08T13:28:52.78954814Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {

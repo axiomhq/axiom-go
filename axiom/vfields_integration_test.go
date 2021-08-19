@@ -40,10 +40,9 @@ func (s *VirtualFieldsTestSuite) SetupSuite() {
 
 	s.virtualField, err = s.client.VirtualFields.Create(s.suiteCtx, axiom.VirtualField{
 		Dataset:     dataset.ID,
-		Name:        "Failed Requests",
-		Description: "Statuses >= 400",
-		Alias:       "status_failed",
-		Expression:  "response >= 400",
+		Name:        "status_failed",
+		Description: "Failed Requests",
+		Expression:  "response > 399",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.virtualField)
@@ -68,10 +67,9 @@ func (s *VirtualFieldsTestSuite) Test() {
 	// Let's update the virtual field.
 	virtualField, err := s.client.VirtualFields.Update(s.suiteCtx, s.virtualField.ID, axiom.VirtualField{
 		Dataset:     s.datasetID,
-		Name:        "Failed Requests",
-		Description: "Statuses > 399",
-		Alias:       "status_failed",
-		Expression:  "response > 399",
+		Name:        "status_bad",
+		Description: "Bad Requests",
+		Expression:  "response == 400",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(virtualField)
