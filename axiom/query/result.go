@@ -93,6 +93,10 @@ type Result struct {
 	Matches []Entry `json:"matches"`
 	// Buckets are the time series buckets.
 	Buckets Timeseries `json:"buckets"`
+	// SavedQueryID is the ID of the query that generated this result when it
+	// was saved on the server. This is only set when the query was send with
+	// the `SaveKind` option specified.
+	SavedQueryID string `json:"-"`
 }
 
 // Status is the status of a query result.

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 // StarredQueriesTestSuite tests all methods of the Axiom StarredQueries API against a
@@ -39,7 +40,7 @@ func (s *StarredQueriesTestSuite) SetupSuite() {
 	s.datasetID = dataset.ID
 
 	s.starredQuery, err = s.client.StarredQueries.Create(s.suiteCtx, axiom.StarredQuery{
-		Kind:    axiom.Stream,
+		Kind:    query.Stream,
 		Dataset: dataset.ID,
 		Name:    "Test Query",
 	})
@@ -84,7 +85,7 @@ func (s *StarredQueriesTestSuite) Test() {
 	// List all starred queries and make sure the created starred query is part
 	// of that list.
 	starredQueries, err := s.client.StarredQueries.List(s.ctx, axiom.StarredQueriesListOptions{
-		Kind: axiom.Analytics,
+		Kind: query.Analytics,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(starredQueries)

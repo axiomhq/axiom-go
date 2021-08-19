@@ -54,6 +54,11 @@ type service struct {
 	basePath string
 }
 
+// response wraps the default http.Response type. It never has an open body.
+type response struct {
+	*http.Response
+}
+
 // DefaultHTTPClient returns the default HTTP client used for making requests.
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
@@ -208,8 +213,10 @@ func (c *Client) call(ctx context.Context, method, path string, body, v interfac
 	req, err := c.newRequest(ctx, method, path, body)
 	if err != nil {
 		return err
+	} else if _, err = c.do(req, v); err != nil {
+		return err
 	}
-	return c.do(req, v)
+	return nil
 }
 
 // newRequest creates an API request. If specified, the value pointed to by
@@ -247,24 +254,24 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 
 	// Set Content-Type.
 	if body != nil && !isReader {
-		req.Header.Set("content-type", "application/json")
+		req.Header.Set("Content-Type", "application/json")
 	} else if body != nil {
-		req.Header.Set("content-type", "application/octet-stream")
+		req.Header.Set("Content-Type", "application/octet-stream")
 	}
 
 	// Set authorization header, if present.
 	if c.accessToken != "" {
-		req.Header.Set("authorization", "Bearer "+c.accessToken)
+		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
 
 	// Set organization id header, if present.
 	if c.orgID != "" {
-		req.Header.Set("x-axiom-org-id", c.orgID)
+		req.Header.Set("X-Axiom-Org-Id", c.orgID)
 	}
 
 	// Set other headers.
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("user-agent", c.userAgent)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", c.userAgent)
 
 	return req, nil
 }
@@ -272,22 +279,24 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 // do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
-func (c *Client) do(req *http.Request, v interface{}) error {
-	resp, err := c.httpClient.Do(req)
+func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
+	httpResp, err := c.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer resp.Body.Close()
+	defer httpResp.Body.Close()
+
+	resp := &response{httpResp}
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		// Handle special errors.
 		if statusCode == http.StatusForbidden {
-			return ErrUnauthenticated
+			return resp, ErrUnauthenticated
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
-		if val := resp.Header.Get("content-type"); !strings.HasPrefix(val, "application/json") {
-			return Error{
+		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
+			return resp, Error{
 				Message:    http.StatusText(statusCode),
 				statusCode: statusCode,
 			}
@@ -303,7 +312,7 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 		// Handle a properly JSON formatted Axiom API error response.
 		errResp := Error{statusCode: statusCode}
 		if err = dec.Decode(&errResp); err != nil {
-			return fmt.Errorf("error decoding %d error response: %w", statusCode, err)
+			return resp, fmt.Errorf("error decoding %d error response: %w", statusCode, err)
 		}
 
 		// In case something went wrong, include the raw response and hope for
@@ -313,21 +322,21 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 			errResp.Message = s
 		}
 
-		return errResp
+		return resp, errResp
 	}
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
 			_, err = io.Copy(w, resp.Body)
-			return err
+			return resp, err
 		}
 
 		dec := json.NewDecoder(resp.Body)
 		if c.strictDecoding {
 			dec.DisallowUnknownFields()
 		}
-		return dec.Decode(v)
+		return resp, dec.Decode(v)
 	}
 
-	return nil
+	return resp, nil
 }

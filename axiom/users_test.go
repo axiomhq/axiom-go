@@ -157,7 +157,7 @@ func TestUsersService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
@@ -192,7 +192,7 @@ func TestUsersService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
@@ -225,7 +225,7 @@ func TestUsersService_UpdateRole(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
