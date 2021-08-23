@@ -12,10 +12,13 @@ import (
 )
 
 func main() {
-	var (
-		deploymentURL = os.Getenv("AXIOM_URL")
-		accessToken   = os.Getenv("AXIOM_TOKEN")
-	)
+	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud
+	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost
+
+	dataset := os.Getenv("AXIOM_DATASET")
+	if dataset == "" {
+		log.Fatal("AXIOM_DATASET is required")
+	}
 
 	// 1. Open the file to ingest.
 	f, err := os.Open("logs.json")
@@ -31,7 +34,7 @@ func main() {
 	}
 
 	// 3. Initialize the Axiom API client.
-	client, err := axiom.NewClient(deploymentURL, accessToken)
+	client, err := axiom.NewClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,7 +42,7 @@ func main() {
 	// 4. Ingest ⚡
 	// Note the JSON content type and GZIP content encoding being set because
 	// the client does not auto sense them.
-	res, err := client.Datasets.Ingest(context.Background(), "test", r, axiom.JSON, axiom.GZIP, axiom.IngestOptions{})
+	res, err := client.Datasets.Ingest(context.Background(), dataset, r, axiom.JSON, axiom.GZIP, axiom.IngestOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
