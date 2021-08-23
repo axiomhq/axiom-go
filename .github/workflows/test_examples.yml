@@ -1,0 +1,58 @@
+name: Test Examples
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GOVERSION: "1.17"
+
+jobs:
+  run:
+    name: Run
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example:
+          - apex
+          - ingestfile
+          - logrus
+          - zap
+        include:
+          - example: ingestfile
+            setup: |
+              echo '[{"foo":"bar"}]' >> logs.json
+      max-parallel: 1
+    env:
+      AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
+      AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
+      AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - name: Setup
+        run: |
+          go get -u github.com/axiomhq/cli/cmd/axiom
+          axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go examples test"
+      - name: Example Setup
+        if: matrix.setup
+        run: ${{ matrix.setup}}
+      - run: go run ./examples/${{ matrix.example }}/main.go
+      - name: Cleanup
+        if: ${{ always() }}
+        run: axiom dataset delete -f $AXIOM_DATASET
