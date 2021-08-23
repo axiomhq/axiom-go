@@ -3,7 +3,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"go.uber.org/zap"
 
@@ -11,14 +10,11 @@ import (
 )
 
 func main() {
-	var (
-		deploymentURL = os.Getenv("AXIOM_URL")
-		accessToken   = os.Getenv("AXIOM_TOKEN")
-		dataset       = os.Getenv("AXIOM_DATASET")
-	)
+	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud
+	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost
 
 	// 1. Setup the Axiom core for zap.
-	core, err := adapter.New(deploymentURL, accessToken, dataset)
+	core, err := adapter.New()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,7 +24,8 @@ func main() {
 
 	// 3. Have all logs flushed before the application exits.
 	defer func() {
-		// Make sure to handle this error, just in case syncing fails.
+		// Make sure to handle this error in production, just in case syncing
+		// fails.
 		_ = logger.Sync()
 	}()
 

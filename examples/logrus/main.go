@@ -3,7 +3,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/sirupsen/logrus"
 
@@ -11,14 +10,11 @@ import (
 )
 
 func main() {
-	var (
-		deploymentURL = os.Getenv("AXIOM_URL")
-		accessToken   = os.Getenv("AXIOM_TOKEN")
-		dataset       = os.Getenv("AXIOM_DATASET")
-	)
+	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud
+	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost
 
 	// 1. Setup the Axiom hook for logrus.
-	hook, err := adapter.New(deploymentURL, accessToken, dataset)
+	hook, err := adapter.New()
 	if err != nil {
 		log.Fatal(err)
 	}
