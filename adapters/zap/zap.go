@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -33,68 +35,83 @@ var encoderConfig = zapcore.EncoderConfig{
 	EncodeCaller:   zapcore.ShortCallerEncoder,
 }
 
+// ErrMissingDatasetName is raised when a dataset name is not provided. Set it
+// manually using the SetDataset option or export `AXIOM_DATASET`.
+var ErrMissingDatasetName = errors.New("missing dataset name")
+
 // An Option modifies the behaviour of the Axiom WriteSyncer.
 type Option func(*WriteSyncer) error
 
-// LevelEnabler sets the level enabler that the Axiom WriteSyncer will us to
+// SetClient specifies the Axiom client to use for ingesting the logs.
+func SetClient(client *axiom.Client) Option {
+	return func(ws *WriteSyncer) error {
+		ws.client = client
+		return nil
+	}
+}
+
+// SetClientOptions specifies the Axiom client options to pass to
+// `axiom.NewClient()`. `axiom.NewClient()` is only called if no client was
+// specified by the `SetClient` option.
+func SetClientOptions(options []axiom.Option) Option {
+	return func(ws *WriteSyncer) error {
+		ws.clientOptions = options
+		return nil
+	}
+}
+
+// SetDataset specifies the dataset to ingest the logs into. Can also be
+// specified using the `AXIOM_DATASET` environment variable.
+func SetDataset(datasetName string) Option {
+	return func(ws *WriteSyncer) error {
+		ws.datasetName = datasetName
+		return nil
+	}
+}
+
+// SetIngestOptions specifies the ingestion options to use for ingesting the
+// logs.
+func SetIngestOptions(opts axiom.IngestOptions) Option {
+	return func(ws *WriteSyncer) error {
+		ws.ingestOptions = opts
+		return nil
+	}
+}
+
+// SetLevelEnabler sets the level enabler that the Axiom WriteSyncer will us to
 // determine if logs will be shipped to Axiom.
-func LevelEnabler(levelEnabler zapcore.LevelEnabler) Option {
-	return func(c *WriteSyncer) error {
-		c.levelEnabler = levelEnabler
+func SetLevelEnabler(levelEnabler zapcore.LevelEnabler) Option {
+	return func(ws *WriteSyncer) error {
+		ws.levelEnabler = levelEnabler
 		return nil
 	}
 }
 
-// IngestOptions specifies the ingestion options to use for ingesting the logs.
-func IngestOptions(opts axiom.IngestOptions) Option {
-	return func(c *WriteSyncer) error {
-		c.ingestOptions = opts
-		return nil
-	}
-}
-
-// WriteSyncer implements a zapcore.WriteSyncer used for shipping logs to Axiom.
+// WriteSyncer implements a `zapcore.WriteSyncer` used for shipping logs to
+// Axiom.
 type WriteSyncer struct {
 	client      *axiom.Client
 	datasetName string
 
-	levelEnabler  zapcore.LevelEnabler
+	clientOptions []axiom.Option
 	ingestOptions axiom.IngestOptions
+	levelEnabler  zapcore.LevelEnabler
 
 	buf    bytes.Buffer
 	bufMtx sync.Mutex
 }
 
-// New creates a new zapcore.Core configured to talk to the specified Axiom
-// deployment and authenticating with the given access token. An ingest token is
-// sufficient enough. The logs will be ingested into the specified dataset.
-// Additional options can be supplied to configure the core.
-func New(baseURL, accessToken, datasetName string, options ...Option) (zapcore.Core, error) {
-	client, err := axiom.NewClient(baseURL, accessToken)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewWithClient(client, datasetName, options...)
-}
-
-// NewCloud is like New() but configures the core to talk to Axiom Cloud.
-func NewCloud(accessToken, orgID, datasetName string, options ...Option) (zapcore.Core, error) {
-	client, err := axiom.NewCloudClient(accessToken, orgID)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewWithClient(client, datasetName, options...)
-}
-
-// NewWithClient behaves like New() but utilizes an already configured
-// axiom.Client to talk to a deployment.
-func NewWithClient(client *axiom.Client, datasetName string, options ...Option) (zapcore.Core, error) {
+// New creates a new `zapcore.Core` configured to ingest logs to the Axiom
+// deployment and dataset as specified by the environment. Refer to
+// `axiom.NewClient()` for more details on how configuring the Axiom deployment
+// works or pass the `SetClient()` option to pass a custom client or
+// `SetClientOptions()` to control the Axiom client creation. To specify the
+// dataset set `AXIOM_DATASET` or use the `SetDataset()` option.
+//
+// An ingest token is sufficient enough. Additional options can be supplied to
+// configure the `zapcore.Core`.
+func New(options ...Option) (zapcore.Core, error) {
 	ws := &WriteSyncer{
-		client:      client,
-		datasetName: datasetName,
-
 		levelEnabler: zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 			return true
 		}),
@@ -104,6 +121,22 @@ func NewWithClient(client *axiom.Client, datasetName string, options ...Option) 
 	for _, option := range options {
 		if err := option(ws); err != nil {
 			return nil, err
+		}
+	}
+
+	// Create client, if not set.
+	if ws.client == nil {
+		var err error
+		if ws.client, err = axiom.NewClient(ws.clientOptions...); err != nil {
+			return nil, err
+		}
+	}
+
+	// When the dataset name is not set, use `AXIOM_DATASET`.
+	if ws.datasetName == "" {
+		ws.datasetName = os.Getenv("AXIOM_DATASET")
+		if ws.datasetName == "" {
+			return nil, ErrMissingDatasetName
 		}
 	}
 

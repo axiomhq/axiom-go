@@ -2,6 +2,7 @@ package apex
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -19,22 +20,55 @@ const (
 	sendInterval = time.Second
 )
 
+// ErrMissingDatasetName is raised when a dataset name is not provided. Set it
+// manually using the SetDataset option or export `AXIOM_DATASET`.
+var ErrMissingDatasetName = errors.New("missing dataset name")
+
 // An Option modifies the behaviour of the Axiom handler.
 type Option func(*Handler) error
 
-// IngestOptions specifies the ingestion options to use for ingesting the logs.
-func IngestOptions(opts axiom.IngestOptions) Option {
+// SetClient specifies the Axiom client to use for ingesting the logs.
+func SetClient(client *axiom.Client) Option {
+	return func(h *Handler) error {
+		h.client = client
+		return nil
+	}
+}
+
+// SetClientOptions specifies the Axiom client options to pass to
+// `axiom.NewClient()`. `axiom.NewClient()` is only called if no client was
+// specified by the `SetClient` option.
+func SetClientOptions(options []axiom.Option) Option {
+	return func(h *Handler) error {
+		h.clientOptions = options
+		return nil
+	}
+}
+
+// SetDataset specifies the dataset to ingest the logs into. Can also be
+// specified using the `AXIOM_DATASET` environment variable.
+func SetDataset(datasetName string) Option {
+	return func(h *Handler) error {
+		h.datasetName = datasetName
+		return nil
+	}
+}
+
+// SetIngestOptions specifies the ingestion options to use for ingesting the
+// logs.
+func SetIngestOptions(opts axiom.IngestOptions) Option {
 	return func(h *Handler) error {
 		h.ingestOptions = opts
 		return nil
 	}
 }
 
-// Handler implements a log.Handler used for shipping logs to Axiom.
+// Handler implements a `log.Handler` used for shipping logs to Axiom.
 type Handler struct {
 	client      *axiom.Client
 	datasetName string
 
+	clientOptions []axiom.Option
 	ingestOptions axiom.IngestOptions
 
 	eventCh   chan axiom.Event
@@ -43,44 +77,43 @@ type Handler struct {
 	closeOnce sync.Once
 }
 
-// New creates a new Handler configured to talk to the specified Axiom
-// deployment and authenticating with the given access token. An ingest token is
-// sufficient enough. The logs will be ingested into the specified dataset.
-// Additional options can be supplied to configure the Handler. A Handler needs
-// to be closed properly to make sure all logs are sent by calling Close().
-func New(baseURL, accessToken, datasetName string, options ...Option) (*Handler, error) {
-	client, err := axiom.NewClient(baseURL, accessToken)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewWithClient(client, datasetName, options...)
-}
-
-// NewCloud is like New() but configures the Handler to talk to Axiom Cloud.
-func NewCloud(accessToken, orgID, datasetName string, options ...Option) (*Handler, error) {
-	client, err := axiom.NewCloudClient(accessToken, orgID)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewWithClient(client, datasetName, options...)
-}
-
-// NewWithClient behaves like New() but utilizes an already configured
-// axiom.Client to talk to a deployment.
-func NewWithClient(client *axiom.Client, datasetName string, options ...Option) (*Handler, error) {
+// New creates a new `Handler` configured to ingest logs to the Axiom deployment
+// and dataset as specified by the environment. Refer to `axiom.NewClient()` for
+// more details on how configuring the Axiom deployment works or pass the
+// `SetClient()` option to pass a custom client or `SetClientOptions()` to
+// control the Axiom client creation. To specify the dataset set `AXIOM_DATASET`
+// or use the `SetDataset()` option.
+//
+// An ingest token is sufficient enough. Additional options can be supplied to
+// configure the `Handler`. A handler needs to be closed properly to make sure
+// all logs are sent by calling `Close()`.
+func New(options ...Option) (*Handler, error) {
 	handler := &Handler{
-		client:      client,
-		datasetName: datasetName,
-
 		eventCh: make(chan axiom.Event, 1),
 		closeCh: make(chan struct{}),
 	}
 
 	// Apply supplied options.
-	if err := handler.Options(options...); err != nil {
-		return nil, err
+	for _, option := range options {
+		if err := option(handler); err != nil {
+			return nil, err
+		}
+	}
+
+	// Create client, if not set.
+	if handler.client == nil {
+		var err error
+		if handler.client, err = axiom.NewClient(handler.clientOptions...); err != nil {
+			return nil, err
+		}
+	}
+
+	// When the dataset name is not set, use `AXIOM_DATASET`.
+	if handler.datasetName == "" {
+		handler.datasetName = os.Getenv("AXIOM_DATASET")
+		if handler.datasetName == "" {
+			return nil, ErrMissingDatasetName
+		}
 	}
 
 	// Run background scheduler.
@@ -89,16 +122,6 @@ func NewWithClient(client *axiom.Client, datasetName string, options ...Option) 
 	go handler.run(ctx, handler.closeCh)
 
 	return handler, nil
-}
-
-// Options applies Options to the Handler.
-func (h *Handler) Options(options ...Option) error {
-	for _, option := range options {
-		if err := option(h); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // Close the handler and make sure all events are flushed. Closing the handler
