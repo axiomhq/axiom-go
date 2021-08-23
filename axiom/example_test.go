@@ -9,7 +9,10 @@ import (
 )
 
 func Example() {
-	client, err := axiom.NewClient("https://my-axiom.example.com", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+	// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` for Axiom Cloud
+	// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost
+
+	client, err := axiom.NewClient()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -19,7 +20,16 @@ import (
 const CloudURL = "https://cloud.axiom.co"
 
 var (
-	// ErrUnauthenticated is raised when the access token isn't valid.
+	// ErrMissingAccessToken is raised when an access token is not provided. Set
+	// it manually using the SetAccessToken option or export `AXIOM_TOKEN`.
+	ErrMissingAccessToken = errors.New("missing access token")
+
+	// ErrMissingOrganizationID is raised when an organization ID is not
+	// provided. Set it manually using the SetOrgID option or export
+	// `AXIOM_ORG_ID`.
+	ErrMissingOrganizationID = errors.New("missing organization id")
+
+	// ErrUnauthenticated is raised when the access token is not valid.
 	ErrUnauthenticated = errors.New("invalid authentication credentials")
 
 	// ErrUnprivilegedToken is raised when a client tries to call a non-ingest
@@ -78,20 +88,12 @@ func DefaultHTTPClient() *http.Client {
 // performing an operation.
 type Option func(c *Client) error
 
-// SetAccessToken specifies the access token to use.
+// SetAccessToken specifies the access token to use. Can also be specified using
+// the `AXIOM_TOKEN` environment variable.
 func SetAccessToken(accessToken string) Option {
 	return func(c *Client) error {
 		c.accessToken = accessToken
 		return nil
-	}
-}
-
-// SetBaseURL sets the base URL used by the client. It overwrittes the one set
-// by the call to NewClient() or NewCloudClient().
-func SetBaseURL(baseURL string) Option {
-	return func(c *Client) (err error) {
-		c.baseURL, err = url.ParseRequestURI(baseURL)
-		return err
 	}
 }
 
@@ -107,13 +109,45 @@ func SetClient(client *http.Client) Option {
 	}
 }
 
-// SetOrgID specifies the organization ID to use. When a personal access token
-// is used, this method can be used to switch between organizations without
-// creating a new client instance.
+// SetCloudConfig specifies all properties needed in order to successfully
+// connect to Axiom Cloud.
+func SetCloudConfig(accessToken, orgID string) Option {
+	return func(c *Client) error {
+		return c.Options(
+			SetAccessToken(accessToken),
+			SetOrgID(orgID),
+		)
+	}
+}
+
+// SetOrgID specifies the organization ID to use when connecting to Axiom Cloud.
+// When a personal access token is used, this method can be used to switch
+// between organizations without creating a new client instance. Can also be
+// specified using the `AXIOM_ORG_ID` environment variable.
 func SetOrgID(orgID string) Option {
 	return func(c *Client) error {
 		c.orgID = orgID
 		return nil
+	}
+}
+
+// SetSelfhostConfig specifies all properties needed in order to successfully
+// connect to an Axiom Selfhost deployment.
+func SetSelfhostConfig(deploymentURL, accessToken string) Option {
+	return func(c *Client) error {
+		return c.Options(
+			SetURL(deploymentURL),
+			SetAccessToken(accessToken),
+		)
+	}
+}
+
+// SetURL sets the base URL used by the client. Can also be specified using the
+// `AXIOM_URL` environment variable.
+func SetURL(baseURL string) Option {
+	return func(c *Client) (err error) {
+		c.baseURL, err = url.ParseRequestURI(baseURL)
+		return err
 	}
 }
 
@@ -127,13 +161,13 @@ func SetUserAgent(userAgent string) Option {
 
 // Client provides the Axiom HTTP API operations.
 type Client struct {
-	baseURL        *url.URL
-	userAgent      string
-	accessToken    string
-	orgID          string
-	strictDecoding bool
+	baseURL     *url.URL
+	accessToken string
+	orgID       string
 
-	httpClient *http.Client
+	httpClient     *http.Client
+	userAgent      string
+	strictDecoding bool
 
 	Dashboards     *DashboardsService
 	Datasets       *DatasetsService
@@ -151,19 +185,28 @@ type Client struct {
 	VirtualFields *VirtualFieldsService
 }
 
-// NewClient returns a new Axiom API client. The access token must be a personal
-// or ingest token which can be created on the user profile or settings page of
-// a deployment.
-func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) {
-	u, err := url.ParseRequestURI(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
+// NewClient returns a new Axiom API client. It automatically takes its
+// configuration from the environment.
+//
+// To connect to Axiom Cloud:
+//
+//   - AXIOM_TOKEN
+//   - AXIOM_ORG_ID
+//
+// To connect to an Axiom Selfhost:
+//
+//   - AXIOM_URL
+//   - AXIOM_TOKEN
+//
+// The configuration can be set manually using `Option` functions prefixed with
+// `Set`. Refer to `SetCloudConfig()` and `SetSelfhostConfig()`. Individual
+// properties can be overwritten as well.
+//
+// The access token must be a personal or ingest token which can be created on
+// the user profile or settings page on Axiom.
+func NewClient(options ...Option) (*Client, error) {
 	client := &Client{
-		baseURL:     u,
-		userAgent:   "axiom-go",
-		accessToken: accessToken,
+		userAgent: "axiom-go",
 
 		httpClient: DefaultHTTPClient(),
 	}
@@ -186,15 +229,8 @@ func NewClient(baseURL, accessToken string, options ...Option) (*Client, error) 
 		return nil, err
 	}
 
-	return client, nil
-}
-
-// NewCloudClient is like NewClient but assumes the official Axiom Cloud URL as
-// base URL and accepts an organization ID. When using an ingest token, the
-// organization ID must match the organization the token was issued for.
-func NewCloudClient(accessToken, orgID string, options ...Option) (*Client, error) {
-	options = append(options, SetOrgID(orgID))
-	return NewClient(CloudURL, accessToken, options...)
+	// Make sure to populate remaining fields from the environment or fail.
+	return client, client.populateClientFromEnvironment()
 }
 
 // Options applies Options to the Client.
@@ -205,6 +241,51 @@ func (c *Client) Options(options ...Option) error {
 		}
 	}
 	return nil
+}
+
+// populateClientFromEnvironment populates the client with values from the
+// environment. It omits properties that have already been set by user options.
+func (c *Client) populateClientFromEnvironment() (err error) {
+	var (
+		deploymentURL  = os.Getenv("AXIOM_URL")
+		organizationID = os.Getenv("AXIOM_ORG_ID")
+		accessToken    = os.Getenv("AXIOM_TOKEN")
+
+		options   = make([]Option, 0)
+		addOption = func(option Option) {
+			options = append(options, option)
+		}
+	)
+
+	// When the base url is not set, use `AXIOM_URL` or default to the Axiom
+	// Cloud url.
+	if c.baseURL == nil {
+		if deploymentURL == "" {
+			deploymentURL = CloudURL
+		}
+		addOption(SetURL(deploymentURL))
+	}
+
+	// When the base url is set to the Axiom Cloud url but no organization ID is
+	// set, use `AXIOM_ORG_ID`.
+	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
+	cloudURLSetByEnvironment := deploymentURL == CloudURL
+	if (cloudURLSetByOption || cloudURLSetByEnvironment) && c.orgID == "" {
+		if organizationID == "" {
+			return ErrMissingOrganizationID
+		}
+		addOption(SetOrgID(organizationID))
+	}
+
+	// When the access token is not set, use `AXIOM_TOKEN`.
+	if c.accessToken == "" {
+		if accessToken == "" {
+			return ErrMissingAccessToken
+		}
+		addOption(SetAccessToken(accessToken))
+	}
+
+	return c.Options(options...)
 }
 
 // call creates a new API request and executes it. The response body is JSON
@@ -219,9 +300,9 @@ func (c *Client) call(ctx context.Context, method, path string, body, v interfac
 	return nil
 }
 
-// newRequest creates an API request. If specified, the value pointed to by
-// body will be included as the request body. If it isn't an io.Reader, it will
-// be included as a JSON encoded request body.
+// newRequest creates an API request. If specified, the value pointed to by body
+// will be included as the request body. If it is not an io.Reader, it will be
+// included as a JSON encoded request body.
 func (c *Client) newRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
 	if IsIngestToken(c.accessToken) && !validIngestTokenPathRe.MatchString(path) {
 		return nil, ErrUnprivilegedToken
