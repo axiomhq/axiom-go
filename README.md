@@ -57,10 +57,8 @@ for.
 ## Usage
 
 ```go
-var (
-	deploymentURL = os.Getenv("AXIOM_URL")
-	accessToken   = os.Getenv("AXIOM_TOKEN")
-)
+// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` for Axiom Cloud
+// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost
 
 // 1. Open the file to ingest.
 f, err := os.Open("logs.json")
@@ -76,7 +74,7 @@ if err != nil {
 }
 
 // 3. Initialize the Axiom API client.
-client, err := axiom.NewClient(deploymentURL, accessToken)
+client, err := axiom.NewClient()
 if err != nil {
 	log.Fatal(err)
 }
