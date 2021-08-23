@@ -1,4 +1,4 @@
-package zap_test
+package zap
 
 import (
 	"compress/gzip"
@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -13,9 +14,26 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/zap"
 	"github.com/axiomhq/axiom-go/axiom"
 )
+
+// TestNew makes sure New() picks up the `AXIOM_DATASET` environment variable.
+func TestNew(t *testing.T) {
+	os.Clearenv()
+
+	os.Setenv("AXIOM_TOKEN", "xait-test")
+	os.Setenv("AXIOM_ORG_ID", "123")
+
+	core, err := New()
+	require.EqualError(t, err, ErrMissingDatasetName.Error())
+	require.Nil(t, core)
+
+	os.Setenv("AXIOM_DATASET", "test")
+
+	core, err = New()
+	require.NoError(t, err)
+	require.NotNil(t, core)
+}
 
 func TestCore(t *testing.T) {
 	now := time.Now()
@@ -57,10 +75,17 @@ func setup(t *testing.T, h http.HandlerFunc) (*zap.Logger, func()) {
 
 	srv := httptest.NewServer(h)
 
-	client, err := axiom.NewClient(srv.URL, "", axiom.SetClient(srv.Client()))
+	client, err := axiom.NewClient(
+		axiom.SetURL(srv.URL),
+		axiom.SetAccessToken("xait-test"),
+		axiom.SetClient(srv.Client()),
+	)
 	require.NoError(t, err)
 
-	core, err := adapter.NewWithClient(client, "test")
+	core, err := New(
+		SetClient(client),
+		SetDataset("test"),
+	)
 	require.NoError(t, err)
 
 	logger := zap.New(core)

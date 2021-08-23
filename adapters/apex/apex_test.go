@@ -1,4 +1,4 @@
-package apex_test
+package apex
 
 import (
 	"bufio"
@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -16,11 +17,31 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/apex"
 	"github.com/axiomhq/axiom-go/axiom"
 )
 
-func TestHook(t *testing.T) {
+// TestNew makes sure New() picks up the `AXIOM_DATASET` environment variable.
+func TestNew(t *testing.T) {
+	os.Clearenv()
+
+	os.Setenv("AXIOM_TOKEN", "xait-test")
+	os.Setenv("AXIOM_ORG_ID", "123")
+
+	handler, err := New()
+	require.EqualError(t, err, ErrMissingDatasetName.Error())
+	require.Nil(t, handler)
+
+	os.Setenv("AXIOM_DATASET", "test")
+
+	handler, err = New()
+	require.NoError(t, err)
+	require.NotNil(t, handler)
+	handler.Close()
+
+	assert.Equal(t, "test", handler.datasetName)
+}
+
+func TestHandler(t *testing.T) {
 	now := time.Now()
 
 	exp := fmt.Sprintf(`{"_time":"%s","severity":"info","key":"value","message":"my message"}`,
@@ -34,7 +55,7 @@ func TestHook(t *testing.T) {
 		b, err := io.ReadAll(gzr)
 		assert.NoError(t, err)
 
-		JSONEq(t, exp, string(b), []string{axiom.TimestampField})
+		JSONEqExp(t, exp, string(b), []string{axiom.TimestampField})
 
 		atomic.AddUint64(&hasRun, 1)
 
@@ -54,7 +75,7 @@ func TestHook(t *testing.T) {
 	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
 }
 
-func TestHook_FlushFullBatch(t *testing.T) {
+func TestHandler_FlushFullBatch(t *testing.T) {
 	var lines uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		gzr, err := gzip.NewReader(r.Body)
@@ -98,10 +119,17 @@ func setup(t *testing.T, h http.HandlerFunc) (*log.Logger, func()) {
 
 	srv := httptest.NewServer(h)
 
-	client, err := axiom.NewClient(srv.URL, "", axiom.SetClient(srv.Client()))
+	client, err := axiom.NewClient(
+		axiom.SetURL(srv.URL),
+		axiom.SetAccessToken("xait-test"),
+		axiom.SetClient(srv.Client()),
+	)
 	require.NoError(t, err)
 
-	handler, err := adapter.NewWithClient(client, "test")
+	handler, err := New(
+		SetClient(client),
+		SetDataset("test"),
+	)
 	require.NoError(t, err)
 
 	logger := &log.Logger{
@@ -112,8 +140,8 @@ func setup(t *testing.T, h http.HandlerFunc) (*log.Logger, func()) {
 	return logger, func() { handler.Close(); srv.Close() }
 }
 
-// JSONEq is like assert.JSONEq() but excludes the given fields.
-func JSONEq(t assert.TestingT, expected string, actual string, excludedFields []string, msgAndArgs ...interface{}) bool {
+// JSONEqExp is like assert.JSONEq() but excludes the given fields.
+func JSONEqExp(t assert.TestingT, expected string, actual string, excludedFields []string, msgAndArgs ...interface{}) bool {
 	type tHelper interface {
 		Helper()
 	}
