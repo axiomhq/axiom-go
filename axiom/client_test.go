@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -16,7 +17,6 @@ import (
 )
 
 const (
-	// endpoint is a test url that won't be called.
 	endpoint = "http://axiom.local"
 	// accessToken is a placeholder access token.
 	accessToken = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
@@ -35,60 +35,159 @@ func SetStrictDecoding() Option {
 }
 
 func TestNewClient(t *testing.T) {
-	client, err := NewClient(endpoint, accessToken)
-	require.NoError(t, err)
-	require.NotNil(t, client)
+	tests := []struct {
+		name        string
+		environment map[string]string
+		options     []Option
+		err         error
+	}{
+		{
+			name: "no environment no options",
+			err:  ErrMissingOrganizationID,
+		},
+		{
+			name: "no environment orgID option",
+			options: []Option{
+				SetOrgID(orgID),
+			},
+			err: ErrMissingAccessToken,
+		},
+		{
+			name: "orgID environment no options",
+			environment: map[string]string{
+				"AXIOM_ORG_ID": orgID,
+			},
+			err: ErrMissingAccessToken,
+		},
+		{
+			name: "no environment accessToken and orgID option",
+			options: []Option{
+				SetAccessToken(accessToken),
+				SetOrgID(orgID),
+			},
+		},
+		{
+			name: "accessToken and orgID environment no options",
+			environment: map[string]string{
+				"AXIOM_TOKEN":  accessToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+		},
+		{
+			name: "accessToken environment orgID option",
+			environment: map[string]string{
+				"AXIOM_TOKEN": accessToken,
+			},
+			options: []Option{
+				SetOrgID(orgID),
+			},
+		},
+		{
+			name: "orgID environment accessToken option",
+			environment: map[string]string{
+				"AXIOM_ORG_ID": orgID,
+			},
+			options: []Option{
+				SetAccessToken(accessToken),
+			},
+		},
+		{
+			name: "no environment url and accessToken option",
+			options: []Option{
+				SetURL(endpoint),
+				SetAccessToken(accessToken),
+			},
+		},
+		{
+			name: "url and accessToken environment no options",
+			environment: map[string]string{
+				"AXIOM_URL":   endpoint,
+				"AXIOM_TOKEN": accessToken,
+			},
+		},
+		{
+			name: "accessToken and orgID environment cloudUrl option",
+			environment: map[string]string{
+				"AXIOM_TOKEN":  accessToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+			options: []Option{
+				SetURL(CloudURL),
+			},
+		},
+		{
+			name: "cloudUrl accessToken and orgID environment no options",
+			environment: map[string]string{
+				"AXIOM_URL":    CloudURL,
+				"AXIOM_TOKEN":  accessToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+		},
+		{
+			name: "cloudUrl and accessToken environment orgID option",
+			environment: map[string]string{
+				"AXIOM_URL":   CloudURL,
+				"AXIOM_TOKEN": accessToken,
+			},
+			options: []Option{
+				SetOrgID(orgID),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Clearenv()
 
-	// Are endpoints/resources present?
-	assert.NotNil(t, client.Dashboards)
-	assert.NotNil(t, client.Datasets)
-	assert.NotNil(t, client.Monitors)
-	assert.NotNil(t, client.Notifiers)
-	assert.NotNil(t, client.Organizations)
-	assert.NotNil(t, client.StarredQueries)
-	assert.NotNil(t, client.Teams)
-	assert.NotNil(t, client.Tokens.Ingest)
-	assert.NotNil(t, client.Tokens.Personal)
-	assert.NotNil(t, client.Users)
-	assert.NotNil(t, client.Version)
-	assert.NotNil(t, client.VirtualFields)
+			for k, v := range tt.environment {
+				os.Setenv(k, v)
+			}
 
-	// Is default configuration present?
-	assert.Equal(t, endpoint, client.baseURL.String())
-	assert.NotEmpty(t, client.userAgent)
-	assert.NotEmpty(t, client.accessToken)
-	assert.Empty(t, client.orgID)
-	assert.False(t, client.strictDecoding)
-	assert.NotNil(t, client.httpClient)
+			client, err := NewClient(tt.options...)
+
+			if tt.err != nil {
+				assert.EqualError(t, err, tt.err.Error())
+			} else {
+				// Are endpoints/resources present?
+				assert.NotNil(t, client.Dashboards)
+				assert.NotNil(t, client.Datasets)
+				assert.NotNil(t, client.Monitors)
+				assert.NotNil(t, client.Notifiers)
+				assert.NotNil(t, client.Organizations)
+				assert.NotNil(t, client.StarredQueries)
+				assert.NotNil(t, client.Teams)
+				assert.NotNil(t, client.Tokens.Ingest)
+				assert.NotNil(t, client.Tokens.Personal)
+				assert.NotNil(t, client.Users)
+				assert.NotNil(t, client.Version)
+				assert.NotNil(t, client.VirtualFields)
+
+				// Is default configuration present?
+				assert.Equal(t, accessToken, client.accessToken)
+				assert.NotEmpty(t, client.userAgent)
+				assert.False(t, client.strictDecoding)
+				assert.NotNil(t, client.httpClient)
+			}
+		})
+	}
 }
 
-func TestNewCloudClient(t *testing.T) {
-	client, err := NewCloudClient(accessToken, orgID)
-	require.NoError(t, err)
-	require.NotNil(t, client)
+func TestClient_Options_SetAccessToken(t *testing.T) {
+	client := newClient(t)
 
-	// Is default configuration present?
-	assert.Equal(t, CloudURL, client.baseURL.String())
-	assert.NotEmpty(t, client.orgID)
-}
-
-func TestClient_Options_SetBaseURL(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
-
-	exp := "http://localhost:80"
-	opt := SetBaseURL(exp)
+	exp := accessToken
+	opt := SetAccessToken(exp)
 
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, client.baseURL.String())
+	assert.Equal(t, exp, client.accessToken)
 }
 
 func TestClient_Options_SetClient(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client := newClient(t)
 
 	exp := &http.Client{
-		Timeout: 0,
+		Timeout: time.Second,
 	}
 	opt := SetClient(exp)
 
@@ -98,8 +197,56 @@ func TestClient_Options_SetClient(t *testing.T) {
 	assert.Equal(t, exp, client.httpClient)
 }
 
+func TestClient_Options_SetCloudConfig(t *testing.T) {
+	client := newClient(t)
+
+	opt := SetCloudConfig(accessToken, orgID)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, accessToken, client.accessToken)
+	assert.Equal(t, orgID, client.orgID)
+}
+
+func TestClient_Options_SetOrgID(t *testing.T) {
+	client := newClient(t)
+
+	exp := orgID
+	opt := SetOrgID(exp)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, exp, client.orgID)
+}
+
+func TestClient_Options_SetSelfhostConfig(t *testing.T) {
+	client := newClient(t)
+
+	opt := SetSelfhostConfig(endpoint, accessToken)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, endpoint, client.baseURL.String())
+	assert.Equal(t, accessToken, client.accessToken)
+}
+
+func TestClient_Options_SetURL(t *testing.T) {
+	client := newClient(t)
+
+	exp := endpoint
+	opt := SetURL(exp)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, exp, client.baseURL.String())
+}
+
 func TestClient_Options_SetUserAgent(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client := newClient(t)
 
 	exp := "axiom-go/1.0.0"
 	opt := SetUserAgent(exp)
@@ -111,7 +258,7 @@ func TestClient_Options_SetUserAgent(t *testing.T) {
 }
 
 func TestClient_newRequest_BadURL(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client := newClient(t)
 
 	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
@@ -128,7 +275,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 // empty string versus one that is not set at all. However in certain cases,
 // intermediate systems may treat these differently resulting in subtle errors.
 func TestClient_newRequest_EmptyBody(t *testing.T) {
-	client, _ := NewClient(endpoint, accessToken)
+	client := newClient(t)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -335,10 +482,32 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	}))
 	srv := httptest.NewServer(r)
 
-	client, err := NewCloudClient(accessToken, orgID, SetBaseURL(srv.URL), SetClient(srv.Client()), SetStrictDecoding())
+	client, err := NewClient(
+		SetURL(srv.URL),
+		SetAccessToken(accessToken),
+		SetOrgID(orgID),
+		SetClient(srv.Client()),
+		SetStrictDecoding(),
+	)
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }
+}
+
+// newClient returns a new client with stub properties for testing methods that
+// don't actually make a http call.
+func newClient(t *testing.T) *Client {
+	t.Helper()
+
+	os.Clearenv()
+
+	client, err := NewClient(
+		SetURL(endpoint),
+		SetAccessToken(accessToken),
+	)
+	require.NoError(t, err)
+
+	return client
 }
 
 func mustTimeParse(t *testing.T, layout, value string) time.Time {

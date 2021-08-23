@@ -86,30 +86,16 @@ func (s *IntegrationTestSuite) TearDownTest() {
 }
 
 func (s *IntegrationTestSuite) newClient() {
-	var err error
-	s.client, err = newClient(orgID, deploymentURL, accessToken)
-
+	var (
+		userAgent = "axiom-go-integration-test/" + datasetSuffix
+		err       error
+	)
+	s.client, err = axiom.NewClient(
+		axiom.SetURL(deploymentURL),
+		axiom.SetAccessToken(accessToken),
+		axiom.SetOrgID(orgID),
+		axiom.SetUserAgent(userAgent),
+	)
 	s.Require().NoError(err)
 	s.Require().NotNil(s.client)
-}
-
-func newClient(orgID, deploymentURL, accessToken string) (*axiom.Client, error) {
-	options := []axiom.Option{
-		axiom.SetUserAgent("axiom-go-integration-test"),
-	}
-
-	var (
-		client *axiom.Client
-		err    error
-	)
-	if orgID != "" {
-		if deploymentURL != "" {
-			options = append(options, axiom.SetBaseURL(deploymentURL))
-		}
-		client, err = axiom.NewCloudClient(orgID, accessToken, options...)
-	} else {
-		client, err = axiom.NewClient(deploymentURL, accessToken, options...)
-	}
-
-	return client, err
 }

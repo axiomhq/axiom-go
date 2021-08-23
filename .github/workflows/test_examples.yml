@@ -30,8 +30,8 @@ jobs:
               echo '[{"foo":"bar"}]' >> logs.json
       max-parallel: 1
     env:
-      AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
       AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
+      AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v2

@@ -86,13 +86,18 @@ func (s *TokensTestSuite) Update() {
 
 	// Create a separate client that uses the ingest token as authentication
 	// token and test the Validate() method.
-	oldClient := s.client
-	s.client, err = newClient(orgID, deploymentURL, rawToken.Token)
-	s.Require().NoError(err)
-	s.Require().NotNil(s.client)
+	oldClient, oldAccessToken := s.client, accessToken
+	accessToken = rawToken.Token
+	s.newClient()
+	defer func() {
+		s.client, accessToken = oldClient, oldAccessToken
+
+		if strictDecoding {
+			optsErr := s.client.Options(axiom.SetStrictDecoding())
+			s.Require().NoError(optsErr)
+		}
+	}()
 
 	err = s.client.Tokens.Ingest.Validate(s.ctx)
 	s.Require().NoError(err)
-
-	s.client = oldClient
 }
