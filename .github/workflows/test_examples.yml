@@ -47,7 +47,7 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
       - name: Setup
         run: |
-          go get -u github.com/axiomhq/cli/cmd/axiom
+          go install github.com/axiomhq/cli/cmd/axiom@latest
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go examples test"
       - name: Example Setup
         if: matrix.setup
