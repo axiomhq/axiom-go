@@ -10,6 +10,8 @@ GOLANGCI_LINT	:= bin/golangci-lint
 GOTESTSUM		:= bin/gotestsum
 STRINGER		:= bin/stringer
 
+GOTOOLS := $(shell cat tools.go | grep "_ \"" | awk '{ print $$2 }' | tr -d '"')
+
 # MISC
 COVERPROFILE	:= coverage.out
 DIST_DIR		:= dist
@@ -38,12 +40,12 @@ all: dep generate fmt lint test ## Run dep, generate, fmt, lint and test
 .PHONY: clean
 clean: ## Remove build and test artifacts
 	@echo ">> cleaning up artifacts"
-	@rm -rf $(COVERPROFILE) $(DIST_DIR)
+	@rm -rf bin $(DIST_DIR) $(COVERPROFILE) dep.stamp
 
-.PHONY: cover
-cover: $(COVERPROFILE) ## Calculate the code coverage score
+.PHONY: coverage
+coverage: $(COVERPROFILE) ## Calculate the code coverage score
 	@echo ">> calculating code coverage"
-	@$(GO) tool cover -func=$(COVERPROFILE) | tail -n1
+	@$(GO) tool cover -func=$(COVERPROFILE) | grep total | awk '{print $$3}'
 
 .PHONY: dep-clean
 dep-clean: ## Remove obsolete dependencies
@@ -55,6 +57,9 @@ dep-upgrade: ## Upgrade all direct dependencies to their latest version
 	@echo ">> upgrading dependencies"
 	@$(GO) get -d $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
 	@make dep
+
+.PHONY: dep-upgrade-tools
+dep-upgrade-tools: $(GOTOOLS) ## Upgrade all tool dependencies to their latest version and install them
 
 .PHONY: dep
 dep: dep-clean dep.stamp ## Install and verify dependencies and remove obsolete ones
@@ -128,3 +133,8 @@ $(GOTESTSUM): dep.stamp $(call go-pkg-sourcefiles, gotest.tools/gotestsum)
 $(STRINGER): dep.stamp $(call go-pkg-sourcefiles, golang.org/x/tools/cmd/stringer)
 	@echo ">> installing stringer"
 	@$(GO) install golang.org/x/tools/cmd/stringer
+
+$(GOTOOLS): dep.stamp $(call go-pkg-sourcefiles, $@)
+	@echo ">> installing $@"
+	@$(GO) get -d $@
+	@$(GO) install $@
