@@ -1,6 +1,7 @@
 package axiom_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,4 +26,56 @@ func TestIsPersonalToken(t *testing.T) {
 	assert.True(t, axiom.IsPersonalToken(personalTokenStr))
 	assert.False(t, axiom.IsPersonalToken(ingestTokenStr))
 	assert.False(t, axiom.IsPersonalToken(unspecifiedTokenStr))
+}
+
+func TestIsValidToken(t *testing.T) {
+	assert.True(t, axiom.IsValidToken(ingestTokenStr))
+	assert.True(t, axiom.IsValidToken(personalTokenStr))
+	assert.False(t, axiom.IsValidToken(unspecifiedTokenStr))
+}
+
+func TestValidateEnvironment(t *testing.T) {
+	tests := []struct {
+		name        string
+		environment map[string]string
+		err         error
+	}{
+		{
+			name: "no environment",
+			err:  axiom.ErrMissingOrganizationID,
+		},
+		{
+			name: "bad environment",
+			environment: map[string]string{
+				"AXIOM_ORG_ID": "mycompany-1234",
+			},
+			err: axiom.ErrMissingAccessToken,
+		},
+		{
+			name: "cloud environment",
+			environment: map[string]string{
+				"AXIOM_TOKEN":  personalTokenStr,
+				"AXIOM_ORG_ID": "mycompany-1234",
+			},
+		},
+		{
+			name: "selfhost environment",
+			environment: map[string]string{
+				"AXIOM_URL":   "https://axiom.internal.mycompany.org",
+				"AXIOM_TOKEN": personalTokenStr,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Clearenv()
+
+			for k, v := range tt.environment {
+				os.Setenv(k, v)
+			}
+
+			err := axiom.ValidateEnvironment()
+			assert.Equal(t, tt.err, err)
+		})
+	}
 }

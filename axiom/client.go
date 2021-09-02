@@ -20,6 +20,9 @@ import (
 const CloudURL = "https://cloud.axiom.co"
 
 var (
+	// ErrInvalidToken is returned when the access token is invalid.
+	ErrInvalidToken = errors.New("invalid access token")
+
 	// ErrMissingAccessToken is raised when an access token is not provided. Set
 	// it manually using the SetAccessToken option or export `AXIOM_TOKEN`.
 	ErrMissingAccessToken = errors.New("missing access token")
@@ -92,6 +95,9 @@ type Option func(c *Client) error
 // the `AXIOM_TOKEN` environment variable.
 func SetAccessToken(accessToken string) Option {
 	return func(c *Client) error {
+		if !IsValidToken(accessToken) {
+			return ErrInvalidToken
+		}
 		c.accessToken = accessToken
 		return nil
 	}
