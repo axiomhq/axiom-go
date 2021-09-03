@@ -108,7 +108,9 @@ func (s *tokensService) Delete(ctx context.Context, id string) error {
 // operations of the Axiom API.
 //
 // Axiom API Reference: /api/v1/tokens/ingest
-type IngestTokensService = tokensService
+type IngestTokensService struct {
+	tokensService
+}
 
 // Validate the token that is used for authentication.
 func (s *IngestTokensService) Validate(ctx context.Context) error {
@@ -119,4 +121,6 @@ func (s *IngestTokensService) Validate(ctx context.Context) error {
 // operations of the Axiom API.
 //
 // Axiom API Reference: /api/v1/tokens/personal
-type PersonalTokensService = tokensService
+type PersonalTokensService struct {
+	tokensService
+}

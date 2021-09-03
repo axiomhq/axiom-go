@@ -40,7 +40,7 @@ var (
 	ErrUnprivilegedToken = errors.New("using ingest token for non-ingest operation")
 )
 
-var validIngestTokenPathRe = regexp.MustCompile("^/api/v1/(datasets/.+/ingest|tokens/ingest/validate)")
+var validIngestTokenPathRe = regexp.MustCompile(`^/api/v1/(datasets/.+/ingest($|(\?.+)?)|tokens/ingest/validate$)`)
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
 // Either one of the two fields is populated. However, calling the Error()
@@ -224,8 +224,8 @@ func NewClient(options ...Option) (*Client, error) {
 	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
 	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
-	client.Tokens.Ingest = &IngestTokensService{client, "/api/v1/tokens/ingest"}
-	client.Tokens.Personal = &PersonalTokensService{client, "/api/v1/tokens/personal"}
+	client.Tokens.Ingest = &IngestTokensService{tokensService{client, "/api/v1/tokens/ingest"}}
+	client.Tokens.Personal = &PersonalTokensService{tokensService{client, "/api/v1/tokens/personal"}}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}
 	client.VirtualFields = &VirtualFieldsService{client, "/api/v1/vfields"}
@@ -247,6 +247,18 @@ func (c *Client) Options(options ...Option) error {
 		}
 	}
 	return nil
+}
+
+// ValidateCredentials makes sure the client can properly authenticate against
+// the configured Axiom deployment.
+func (c *Client) ValidateCredentials(ctx context.Context) error {
+	if IsIngestToken(c.accessToken) {
+		return c.Tokens.Ingest.Validate(ctx)
+	} else if IsPersonalToken(c.accessToken) {
+		_, err := c.Users.Current(ctx)
+		return err
+	}
+	return ErrInvalidToken
 }
 
 // populateClientFromEnvironment populates the client with values from the
