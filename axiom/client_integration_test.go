@@ -86,6 +86,11 @@ func (s *IntegrationTestSuite) TearDownTest() {
 	s.cancel()
 }
 
+func (s *IntegrationTestSuite) Test() {
+	err := s.client.ValidateCredentials(s.ctx)
+	s.Require().NoError(err)
+}
+
 func (s *IntegrationTestSuite) newClient() {
 	var (
 		userAgent = "axiom-go-integration-test/" + datasetSuffix
