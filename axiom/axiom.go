@@ -1,6 +1,9 @@
 package axiom
 
-import "strings"
+import (
+	"context"
+	"strings"
+)
 
 // IsIngestToken returns true if the given acces token is an ingest token. If
 // false is returned, that does not imply that the token is a personal token.
@@ -20,9 +23,20 @@ func IsValidToken(token string) bool {
 }
 
 // ValidateEnvironment returns nil if the environment variables, needed to
-// configure a new Client, are present and valid. Otherwise, it returns an
-// appropriate error.
+// configure a new Client, are present and syntactically valid. Otherwise, it
+// returns an appropriate error.
 func ValidateEnvironment() error {
 	var client Client
 	return client.populateClientFromEnvironment()
+}
+
+// ValidateCredentials returns nil if the environment variables that configure a
+// Client are valid. Otherwise, it returns an appropriate error. This function
+// establishes a connection to the configured Axiom deployment.
+func ValidateCredentials(ctx context.Context) error {
+	client, err := NewClient()
+	if err != nil {
+		return err
+	}
+	return client.ValidateCredentials(ctx)
 }

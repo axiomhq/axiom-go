@@ -19,7 +19,7 @@ var (
 	orgID          string
 	deploymentURL  string
 	datasetSuffix  string
-	strictDecoding = true
+	strictDecoding bool
 )
 
 func init() {
