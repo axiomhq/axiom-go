@@ -116,9 +116,27 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
+			name: "accessToken and orgID environment enhanced cloudUrl option",
+			environment: map[string]string{
+				"AXIOM_TOKEN":  accessToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+			options: []Option{
+				SetURL(CloudURL + "/"),
+			},
+		},
+		{
 			name: "cloudUrl accessToken and orgID environment no options",
 			environment: map[string]string{
 				"AXIOM_URL":    CloudURL,
+				"AXIOM_TOKEN":  accessToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+		},
+		{
+			name: "enhanced cloudUrl, accessToken and orgID environment no options",
+			environment: map[string]string{
+				"AXIOM_URL":    CloudURL + "/",
 				"AXIOM_TOKEN":  accessToken,
 				"AXIOM_ORG_ID": orgID,
 			},
@@ -143,32 +161,39 @@ func TestNewClient(t *testing.T) {
 			}
 
 			client, err := NewClient(tt.options...)
-
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			} else {
-				// Are endpoints/resources present?
-				assert.NotNil(t, client.Dashboards)
-				assert.NotNil(t, client.Datasets)
-				assert.NotNil(t, client.Monitors)
-				assert.NotNil(t, client.Notifiers)
-				assert.NotNil(t, client.Organizations)
-				assert.NotNil(t, client.StarredQueries)
-				assert.NotNil(t, client.Teams)
-				assert.NotNil(t, client.Tokens.Ingest)
-				assert.NotNil(t, client.Tokens.Personal)
-				assert.NotNil(t, client.Users)
-				assert.NotNil(t, client.Version)
-				assert.NotNil(t, client.VirtualFields)
-
-				// Is default configuration present?
 				assert.Equal(t, accessToken, client.accessToken)
-				assert.NotEmpty(t, client.userAgent)
-				assert.False(t, client.strictDecoding)
-				assert.NotNil(t, client.httpClient)
 			}
 		})
 	}
+}
+
+func TestNewClient_Valid(t *testing.T) {
+	client := newClient(t)
+
+	// Are endpoints/resources present?
+	assert.NotNil(t, client.Dashboards)
+	assert.NotNil(t, client.Datasets)
+	assert.NotNil(t, client.Monitors)
+	assert.NotNil(t, client.Notifiers)
+	assert.NotNil(t, client.Organizations)
+	assert.NotNil(t, client.StarredQueries)
+	assert.NotNil(t, client.Teams)
+	assert.NotNil(t, client.Tokens.Ingest)
+	assert.NotNil(t, client.Tokens.Personal)
+	assert.NotNil(t, client.Users)
+	assert.NotNil(t, client.Version)
+	assert.NotNil(t, client.VirtualFields)
+
+	// Is default configuration present?
+	assert.Equal(t, endpoint, client.baseURL.String())
+	assert.Equal(t, accessToken, client.accessToken)
+	assert.Empty(t, client.orgID)
+	assert.NotNil(t, client.httpClient)
+	assert.NotEmpty(t, client.userAgent)
+	assert.False(t, client.strictDecoding)
 }
 
 func TestClient_Options_SetAccessToken(t *testing.T) {
