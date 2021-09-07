@@ -4,7 +4,7 @@ import (
 	"net/url"
 )
 
-//go:generate ../../bin/stringer -type=Format -linecomment -output=format_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Format -linecomment -output=format_string.go
 
 // Format represents the format of an APL query.
 type Format uint8

@@ -1,15 +1,12 @@
 # TOOLCHAIN
-GO		:= CGO_ENABLED=0 GOBIN=$(CURDIR)/bin go
+GO		:= CGO_ENABLED=0 go
+CGO		:= CGO_ENABLED=1 go
 GOFMT	:= $(GO)fmt
 
 # ENVIRONMENT
-VERBOSE		=
+VERBOSE	=
 
 # GO TOOLS
-GOLANGCI_LINT	:= bin/golangci-lint
-GOTESTSUM		:= bin/gotestsum
-STRINGER		:= bin/stringer
-
 GOTOOLS := $(shell cat tools.go | grep "_ \"" | awk '{ print $$2 }' | tr -d '"')
 
 # MISC
@@ -17,7 +14,7 @@ COVERPROFILE	:= coverage.out
 DIST_DIR		:= dist
 
 # FLAGS
-GO_TEST_FLAGS		:= -race -coverprofile=$(COVERPROFILE)
+GO_TEST_FLAGS	:= -race -coverprofile=$(COVERPROFILE)
 
 # DEPENDENCIES
 GOMODDEPS = go.mod go.sum
@@ -29,10 +26,8 @@ ifdef VERBOSE
 endif
 
 # FUNCTIONS
-# func go-list-pkg-sources(package)
-go-list-pkg-sources = $(GO) list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $(1)
-# func go-pkg-sourcefiles(package)
-go-pkg-sourcefiles = $(shell $(call go-list-pkg-sources,$(strip $1)))
+# func go-run-tool(name)
+go-run-tool = $(CGO) run -mod=mod $(shell echo $(GOTOOLS) | tr ' ' '\n' | grep -w $1)
 
 .PHONY: all
 all: dep generate fmt lint test ## Run dep, generate, fmt, lint and test
@@ -40,7 +35,7 @@ all: dep generate fmt lint test ## Run dep, generate, fmt, lint and test
 .PHONY: clean
 clean: ## Remove build and test artifacts
 	@echo ">> cleaning up artifacts"
-	@rm -rf bin $(DIST_DIR) $(COVERPROFILE) dep.stamp
+	@rm -rf $(DIST_DIR) $(COVERPROFILE) dep.stamp
 
 .PHONY: coverage
 coverage: $(COVERPROFILE) ## Calculate the code coverage score
@@ -76,7 +71,7 @@ fmt: ## Format and simplify the source code using `gofmt`
 	@! $(GOFMT) -s -w $(shell find . -path -prune -o -name '*.go' -print) | grep '^'
 
 .PHONY: generate
-generate: $(STRINGER) \
+generate: \
 	axiom/apl/format_string.go \
 	axiom/query/kind_string.go \
 	axiom/query/result_string.go \
@@ -88,22 +83,19 @@ generate: $(STRINGER) \
 	axiom/users_string.go ## Generate code using `go generate`
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT) ## Lint the source code
+lint: ## Lint the source code
 	@echo ">> linting code"
-	@$(GOLANGCI_LINT) run
+	@$(call go-run-tool, golangci-lint) run
 
 .PHONY: test-integration
-test-integration: $(GOTESTSUM) ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
+test-integration: ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
 	@echo ">> running integration tests"
-	@$(GOTESTSUM) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) -tags=integration ./...
+	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) -tags=integration ./...
 
 .PHONY: test
-test: $(GOTESTSUM) ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
+test: ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
 	@echo ">> running tests"
-	@$(GOTESTSUM) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
-
-.PHONY: tools
-tools: $(GOLANGCI_LINT) $(GOTESTSUM) $(STRINGER) ## Install all tools into the projects local $GOBIN directory
+	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: help
 help:
@@ -119,22 +111,3 @@ axiom/%_string.go: axiom/%.go
 
 $(COVERPROFILE):
 	@make test
-
-# GO TOOLS
-
-$(GOLANGCI_LINT): dep.stamp $(call go-pkg-sourcefiles, github.com/golangci/golangci-lint/cmd/golangci-lint)
-	@echo ">> installing golangci-lint"
-	@$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint
-
-$(GOTESTSUM): dep.stamp $(call go-pkg-sourcefiles, gotest.tools/gotestsum)
-	@echo ">> installing gotestsum"
-	@$(GO) install gotest.tools/gotestsum
-
-$(STRINGER): dep.stamp $(call go-pkg-sourcefiles, golang.org/x/tools/cmd/stringer)
-	@echo ">> installing stringer"
-	@$(GO) install golang.org/x/tools/cmd/stringer
-
-$(GOTOOLS): dep.stamp $(call go-pkg-sourcefiles, $@)
-	@echo ">> installing $@"
-	@$(GO) get -d $@
-	@$(GO) install $@

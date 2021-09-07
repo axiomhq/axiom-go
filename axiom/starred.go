@@ -9,7 +9,7 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
-//go:generate ../bin/stringer -type=OwnerKind -linecomment -output=starred_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=OwnerKind -linecomment -output=starred_string.go
 
 // OwnerKind represents the kind of a starred queries owner.
 type OwnerKind uint8

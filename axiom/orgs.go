@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-//go:generate ../bin/stringer -type=Plan -linecomment -output=orgs_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Plan -linecomment -output=orgs_string.go
 
 // Plan represents the plan of a deployment or organization.
 type Plan uint8

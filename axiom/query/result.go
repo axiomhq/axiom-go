@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//go:generate ../../bin/stringer -type=MessageCode,MessagePriority -linecomment -output=result_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=MessageCode,MessagePriority -linecomment -output=result_string.go
 
 // MessageCode represents the code of a message associated with a query.
 type MessageCode uint8

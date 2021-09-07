@@ -16,6 +16,3 @@ dist
 
 # Go mod timestamp for Makefile
 /dep.stamp
-
-# Local $GOBIN directory for tools
-/bin/

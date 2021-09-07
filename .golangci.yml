@@ -4,7 +4,6 @@ run:
     - .git
     - .github
     - .vscode
-    - bin
     - dist
   build-tags:
     - integration

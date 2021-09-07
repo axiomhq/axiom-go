@@ -16,7 +16,7 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
-//go:generate ../bin/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
 
 // TimestampField is the default field the server looks for a time to use as
 // ingestion time. If not present, the server will set the ingestion time by
