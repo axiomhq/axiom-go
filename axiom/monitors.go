@@ -10,7 +10,7 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
-//go:generate ../bin/stringer -type=Comparison -output=monitors_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Comparison -output=monitors_string.go
 
 // Comparison represents a comparison operation for a monitor. A monitor acts on
 // the result of comparing a query result with a threshold.
