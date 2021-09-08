@@ -1,26 +1,29 @@
 # TOOLCHAIN
-GO		:= CGO_ENABLED=0 go
-CGO		:= CGO_ENABLED=1 go
-GOFMT	:= $(GO)fmt
+GO	  := CGO_ENABLED=0 go
+CGO	  := CGO_ENABLED=1 go
+GOFMT := $(GO)fmt
 
 # ENVIRONMENT
-VERBOSE	=
+VERBOSE =
 
 # GO TOOLS
 GOTOOLS := $(shell cat tools.go | grep "_ \"" | awk '{ print $$2 }' | tr -d '"')
 
 # MISC
-COVERPROFILE	:= coverage.out
-DIST_DIR		:= dist
+COVERPROFILE := coverage.out
+DIST_DIR	 := dist
+
+# TAGS
+GO_TEST_TAGS := netgo
 
 # FLAGS
-GO_TEST_FLAGS	:= -race -coverprofile=$(COVERPROFILE)
+GO_TEST_FLAGS = -race -coverprofile=$(COVERPROFILE) -tags='$(GO_TEST_TAGS)'
 
 # DEPENDENCIES
 GOMODDEPS = go.mod go.sum
 
 # Enable verbose test output if explicitly set.
-GOTESTSUM_FLAGS	=
+GOTESTSUM_FLAGS =
 ifdef VERBOSE
 	GOTESTSUM_FLAGS += --format=standard-verbose
 endif
@@ -89,8 +92,9 @@ lint: ## Lint the source code
 
 .PHONY: test-integration
 test-integration: ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
+	$(eval GO_TEST_TAGS += integration)
 	@echo ">> running integration tests"
-	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) -tags=integration ./...
+	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: test
 test: ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
