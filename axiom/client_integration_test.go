@@ -94,14 +94,21 @@ func (s *IntegrationTestSuite) Test() {
 func (s *IntegrationTestSuite) newClient() {
 	var (
 		userAgent = "axiom-go-integration-test/" + datasetSuffix
+		options   = []axiom.Option{axiom.SetNoEnv(), axiom.SetUserAgent(userAgent)}
 		err       error
 	)
-	s.client, err = axiom.NewClient(
-		axiom.SetURL(deploymentURL),
-		axiom.SetAccessToken(accessToken),
-		axiom.SetOrgID(orgID),
-		axiom.SetUserAgent(userAgent),
-	)
+
+	if deploymentURL != "" {
+		options = append(options, axiom.SetURL(deploymentURL))
+	}
+	if accessToken != "" {
+		options = append(options, axiom.SetAccessToken(accessToken))
+	}
+	if orgID != "" {
+		options = append(options, axiom.SetOrgID(orgID))
+	}
+
+	s.client, err = axiom.NewClient(options...)
 	s.Require().NoError(err)
 	s.Require().NotNil(s.client)
 }
