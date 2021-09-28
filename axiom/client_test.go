@@ -151,6 +151,17 @@ func TestNewClient(t *testing.T) {
 				SetOrgID(orgID),
 			},
 		},
+		{
+			name: "accessToken and orgID environment noEnv option",
+			environment: map[string]string{
+				"AXIOM_TOKEN":  accessToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+			options: []Option{
+				SetNoEnv(),
+			},
+			err: ErrMissingOrganizationID,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -165,6 +176,7 @@ func TestNewClient(t *testing.T) {
 				assert.EqualError(t, err, tt.err.Error())
 			} else {
 				assert.Equal(t, accessToken, client.accessToken)
+				assert.NotEmpty(t, client.baseURL)
 			}
 		})
 	}

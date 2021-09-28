@@ -35,6 +35,8 @@ func TestIsValidToken(t *testing.T) {
 }
 
 func TestValidateEnvironment(t *testing.T) {
+	defer os.Clearenv()
+
 	tests := []struct {
 		name        string
 		environment map[string]string

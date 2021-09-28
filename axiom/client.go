@@ -126,6 +126,15 @@ func SetCloudConfig(accessToken, orgID string) Option {
 	}
 }
 
+// SetNoEnv prevents the client from deriving its configuration from the
+// environment.
+func SetNoEnv() Option {
+	return func(c *Client) error {
+		c.noEnv = true
+		return nil
+	}
+}
+
 // SetOrgID specifies the organization ID to use when connecting to Axiom Cloud.
 // When a personal access token is used, this method can be used to switch
 // between organizations without creating a new client instance. Can also be
@@ -174,6 +183,7 @@ type Client struct {
 	httpClient     *http.Client
 	userAgent      string
 	strictDecoding bool
+	noEnv          bool
 
 	Dashboards     *DashboardsService
 	Datasets       *DatasetsService
@@ -278,7 +288,7 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 	// When the base url is not set, use `AXIOM_URL` or default to the Axiom
 	// Cloud url.
 	if c.baseURL == nil {
-		if deploymentURL == "" {
+		if deploymentURL == "" || c.noEnv {
 			deploymentURL = CloudURL
 		}
 		addOption(SetURL(deploymentURL))
@@ -289,7 +299,7 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
 	cloudURLSetByEnvironment := deploymentURL == CloudURL
 	if (cloudURLSetByOption || cloudURLSetByEnvironment) && c.orgID == "" {
-		if organizationID == "" {
+		if organizationID == "" || c.noEnv {
 			return ErrMissingOrganizationID
 		}
 		addOption(SetOrgID(organizationID))
@@ -297,7 +307,7 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 
 	// When the access token is not set, use `AXIOM_TOKEN`.
 	if c.accessToken == "" {
-		if accessToken == "" {
+		if accessToken == "" || c.noEnv {
 			return ErrMissingAccessToken
 		}
 		addOption(SetAccessToken(accessToken))
