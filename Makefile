@@ -11,7 +11,6 @@ GOTOOLS := $(shell cat tools.go | grep "_ \"" | awk '{ print $$2 }' | tr -d '"')
 
 # MISC
 COVERPROFILE := coverage.out
-DIST_DIR	 := dist
 
 # TAGS
 GO_TEST_TAGS := netgo
@@ -38,7 +37,7 @@ all: dep generate fmt lint test ## Run dep, generate, fmt, lint and test
 .PHONY: clean
 clean: ## Remove build and test artifacts
 	@echo ">> cleaning up artifacts"
-	@rm -rf $(DIST_DIR) $(COVERPROFILE) dep.stamp
+	@rm -rf $(COVERPROFILE) dep.stamp
 
 .PHONY: coverage
 coverage: $(COVERPROFILE) ## Calculate the code coverage score
