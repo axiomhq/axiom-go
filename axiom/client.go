@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -19,46 +18,7 @@ import (
 // CloudURL is the url of the cloud hosted version of Axiom.
 const CloudURL = "https://cloud.axiom.co"
 
-var (
-	// ErrInvalidToken is returned when the access token is invalid.
-	ErrInvalidToken = errors.New("invalid access token")
-
-	// ErrMissingAccessToken is raised when an access token is not provided. Set
-	// it manually using the SetAccessToken option or export `AXIOM_TOKEN`.
-	ErrMissingAccessToken = errors.New("missing access token")
-
-	// ErrMissingOrganizationID is raised when an organization ID is not
-	// provided. Set it manually using the SetOrgID option or export
-	// `AXIOM_ORG_ID`.
-	ErrMissingOrganizationID = errors.New("missing organization id")
-
-	// ErrUnauthenticated is raised when the access token is not valid.
-	ErrUnauthenticated = errors.New("invalid authentication credentials")
-
-	// ErrUnprivilegedToken is raised when a client tries to call a non-ingest
-	// endpoint with an ingest-only token configured.
-	ErrUnprivilegedToken = errors.New("using ingest token for non-ingest operation")
-)
-
 var validIngestTokenPathRe = regexp.MustCompile("^/api/v1/(datasets/.+/ingest|tokens/ingest/validate)$")
-
-// Error is the generic error response returned on non 2xx HTTP status codes.
-// Either one of the two fields is populated. However, calling the Error()
-// method is preferred.
-type Error struct {
-	ErrorMessage string `json:"error"`
-	Message      string `json:"message"`
-
-	statusCode int
-}
-
-// Error implements the error interface.
-func (e Error) Error() string {
-	if e.ErrorMessage != "" {
-		return fmt.Sprintf("API error %d: %s", e.statusCode, e.ErrorMessage)
-	}
-	return fmt.Sprintf("API error %d: %s", e.statusCode, e.Message)
-}
 
 // service is the base service used by all Axiom API services.
 //nolint:structcheck // https://github.com/golangci/golangci-lint/issues/1517
@@ -82,95 +42,6 @@ func DefaultHTTPClient() *http.Client {
 			TLSHandshakeTimeout: 5 * time.Second,
 			ForceAttemptHTTP2:   true,
 		},
-	}
-}
-
-// An Option modifies the behaviour of the API client. If not otherwise
-// specified by a specific option, they are safe to use even after API methods
-// have been called. However, they are not safe to use while the client is
-// performing an operation.
-type Option func(c *Client) error
-
-// SetAccessToken specifies the access token to use. Can also be specified using
-// the `AXIOM_TOKEN` environment variable.
-func SetAccessToken(accessToken string) Option {
-	return func(c *Client) error {
-		if !IsValidToken(accessToken) {
-			return ErrInvalidToken
-		}
-		c.accessToken = accessToken
-		return nil
-	}
-}
-
-// SetClient specifies a custom http client that should be used to make
-// requests.
-func SetClient(client *http.Client) Option {
-	return func(c *Client) error {
-		if client == nil {
-			return nil
-		}
-		c.httpClient = client
-		return nil
-	}
-}
-
-// SetCloudConfig specifies all properties needed in order to successfully
-// connect to Axiom Cloud.
-func SetCloudConfig(accessToken, orgID string) Option {
-	return func(c *Client) error {
-		return c.Options(
-			SetAccessToken(accessToken),
-			SetOrgID(orgID),
-		)
-	}
-}
-
-// SetNoEnv prevents the client from deriving its configuration from the
-// environment.
-func SetNoEnv() Option {
-	return func(c *Client) error {
-		c.noEnv = true
-		return nil
-	}
-}
-
-// SetOrgID specifies the organization ID to use when connecting to Axiom Cloud.
-// When a personal access token is used, this method can be used to switch
-// between organizations without creating a new client instance. Can also be
-// specified using the `AXIOM_ORG_ID` environment variable.
-func SetOrgID(orgID string) Option {
-	return func(c *Client) error {
-		c.orgID = orgID
-		return nil
-	}
-}
-
-// SetSelfhostConfig specifies all properties needed in order to successfully
-// connect to an Axiom Selfhost deployment.
-func SetSelfhostConfig(deploymentURL, accessToken string) Option {
-	return func(c *Client) error {
-		return c.Options(
-			SetURL(deploymentURL),
-			SetAccessToken(accessToken),
-		)
-	}
-}
-
-// SetURL sets the base URL used by the client. Can also be specified using the
-// `AXIOM_URL` environment variable.
-func SetURL(baseURL string) Option {
-	return func(c *Client) (err error) {
-		c.baseURL, err = url.ParseRequestURI(baseURL)
-		return err
-	}
-}
-
-// SetUserAgent sets the user agent used by the client.
-func SetUserAgent(userAgent string) Option {
-	return func(c *Client) error {
-		c.userAgent = userAgent
-		return nil
 	}
 }
 
@@ -398,16 +269,11 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	resp := &response{httpResp}
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
-		// Handle special errors.
-		if statusCode == http.StatusForbidden {
-			return resp, ErrUnauthenticated
-		}
-
 		// Handle a generic HTTP error if the response is not JSON formatted.
 		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
 			return resp, Error{
-				Message:    http.StatusText(statusCode),
-				statusCode: statusCode,
+				Status:  statusCode,
+				Message: http.StatusText(statusCode),
 			}
 		}
 
@@ -419,16 +285,29 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		)
 
 		// Handle a properly JSON formatted Axiom API error response.
-		errResp := Error{statusCode: statusCode}
+		errResp := Error{Status: statusCode}
 		if err = dec.Decode(&errResp); err != nil {
 			return resp, fmt.Errorf("error decoding %d error response: %w", statusCode, err)
 		}
 
 		// In case something went wrong, include the raw response and hope for
 		// the best.
-		if errResp.Message == "" && errResp.Error() == "" {
+		if errResp.Message == "" && errResp.ErrorMessage == "" {
 			s := strings.ReplaceAll(buf.String(), "\n", " ")
 			errResp.Message = s
+			return resp, errResp
+		}
+
+		// In case everything went fine till this point, handle special errors
+		// and wrap them with our errors so user can check for them using
+		// `errors.Is()`.
+		switch statusCode {
+		case http.StatusForbidden:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthenticated)
+		case http.StatusNotFound:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrNotFound)
+		case http.StatusConflict:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrExists)
 		}
 
 		return resp, errResp
