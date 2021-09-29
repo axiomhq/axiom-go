@@ -35,6 +35,8 @@ func SetStrictDecoding() Option {
 }
 
 func TestNewClient(t *testing.T) {
+	defer os.Clearenv()
+
 	tests := []struct {
 		name        string
 		environment map[string]string
@@ -366,9 +368,15 @@ func TestClient_do_ioWriter(t *testing.T) {
 
 func TestClient_do_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
+		code := http.StatusBadRequest
+
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(code)
+
 		httpErr := Error{
-			Message: http.StatusText(http.StatusBadRequest),
+			Message: "This is a Bad Request error",
 		}
+
 		err := json.NewEncoder(w).Encode(httpErr)
 		assert.NoError(t, err)
 	}
@@ -381,12 +389,26 @@ func TestClient_do_HTTPError(t *testing.T) {
 
 	resp, err := client.do(req, nil)
 	require.NotNil(t, resp)
-	require.NoError(t, err)
+	require.Error(t, err)
+
+	if assert.IsType(t, Error{}, err) {
+		assert.EqualError(t, err, "API error 400: This is a Bad Request error")
+	}
 }
 
 func TestClient_do_Unauthenticated(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusForbidden)
+		code := http.StatusForbidden
+
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(code)
+
+		httpErr := Error{
+			Message: "You are not allowed here!",
+		}
+
+		err := json.NewEncoder(w).Encode(httpErr)
+		assert.NoError(t, err)
 	}
 
 	client, teardown := setup(t, "/", hf)
@@ -396,7 +418,7 @@ func TestClient_do_Unauthenticated(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.do(req, nil)
-	require.Equal(t, err, ErrUnauthenticated)
+	require.ErrorIs(t, err, ErrUnauthenticated)
 }
 
 func TestClient_do_UnprivilegedToken(t *testing.T) {
@@ -407,7 +429,24 @@ func TestClient_do_UnprivilegedToken(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.newRequest(context.Background(), http.MethodGet, "/", nil)
-	require.Equal(t, err, ErrUnprivilegedToken)
+	require.ErrorIs(t, err, ErrUnprivilegedToken)
+}
+
+func TestClient_do_RedirectLoop(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	_, err = client.do(req, nil)
+	require.Error(t, err)
+
+	assert.IsType(t, err, new(url.Error))
 }
 
 func TestClient_do_validIngestOnlyTokenPaths(t *testing.T) {
@@ -428,29 +467,12 @@ func TestClient_do_validIngestOnlyTokenPaths(t *testing.T) {
 			require.NoError(t, err)
 
 			req, err := client.newRequest(context.Background(), http.MethodGet, tt, nil)
-			require.Equal(t, err, nil)
+			require.Nil(t, err)
 
 			_, err = client.do(req, nil)
 			require.NoError(t, err)
 		})
 	}
-}
-
-func TestClient_do_RedirectLoop(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/", http.StatusFound)
-	}
-
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
-
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
-	require.NoError(t, err)
-
-	_, err = client.do(req, nil)
-	require.Error(t, err)
-
-	assert.IsType(t, err, new(url.Error))
 }
 
 func TestIngestPathRegex(t *testing.T) {
@@ -521,6 +543,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 		SetOrgID(orgID),
 		SetClient(srv.Client()),
 		SetStrictDecoding(),
+		SetNoEnv(),
 	)
 	require.NoError(t, err)
 
@@ -532,11 +555,10 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 func newClient(t *testing.T) *Client {
 	t.Helper()
 
-	os.Clearenv()
-
 	client, err := NewClient(
 		SetURL(endpoint),
 		SetAccessToken(accessToken),
+		SetNoEnv(),
 	)
 	require.NoError(t, err)
 
