@@ -27,7 +27,7 @@ jobs:
         include:
           - example: ingestfile
             setup: |
-              echo '[{"foo":"bar"}]' >> logs.json
+              echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
       max-parallel: 1
     env:
       AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
@@ -52,7 +52,10 @@ jobs:
       - name: Example Setup
         if: matrix.setup
         run: ${{ matrix.setup}}
-      - run: go run ./examples/${{ matrix.example }}/main.go
+      - run: |
+          go run ./examples/${{ matrix.example }}/main.go
+          sleep 5
+          go run ./examples/query/main.go | grep "This is awesome"
       - name: Cleanup
         if: ${{ always() }}
         run: axiom dataset delete -f $AXIOM_DATASET

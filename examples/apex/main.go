@@ -2,8 +2,7 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	stdlibLog "log"
 
 	"github.com/apex/log"
 
@@ -11,13 +10,13 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud
-	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost
+	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud.
+	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
 
 	// 1. Setup the Axiom handler for apex.
 	handler, err := adapter.New()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		stdlibLog.Fatal(err)
 	}
 
 	// 2. Have all logs flushed before the application exits.
