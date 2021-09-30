@@ -197,3 +197,18 @@ func TestTokensService_Delete(t *testing.T) {
 	err := client.Tokens.Personal.Delete(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
 	require.NoError(t, err)
 }
+
+func TestIngestTokensService_Validate(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, r.Header.Get("Authorization"), "Bearer "+accessToken)
+
+		w.WriteHeader(http.StatusOK)
+	}
+
+	client, teardown := setup(t, "/api/v1/tokens/ingest/validate", hf)
+	defer teardown()
+
+	err := client.Tokens.Ingest.Validate(context.Background())
+	require.NoError(t, err)
+}
