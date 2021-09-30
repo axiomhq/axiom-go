@@ -104,6 +104,14 @@ func (s *tokensService) Delete(ctx context.Context, id string) error {
 	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }
 
+// APITokensService handles communication with the api token related operations
+// of the Axiom API.
+//
+// Axiom API Reference: /api/v1/tokens/api
+type APITokensService struct {
+	tokensService
+}
+
 // IngestTokensService handles communication with the ingest token related
 // operations of the Axiom API.
 //
