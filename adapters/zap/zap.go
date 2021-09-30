@@ -134,15 +134,14 @@ func New(options ...Option) (zapcore.Core, error) {
 
 	// When the dataset name is not set, use `AXIOM_DATASET`.
 	if ws.datasetName == "" {
-		ws.datasetName = os.Getenv("AXIOM_DATASET")
-		if ws.datasetName == "" {
+		if ws.datasetName = os.Getenv("AXIOM_DATASET"); ws.datasetName == "" {
 			return nil, ErrMissingDatasetName
 		}
 	}
 
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
+	enc := zapcore.NewJSONEncoder(encoderConfig)
 
-	return zapcore.NewCore(encoder, ws, ws.levelEnabler), nil
+	return zapcore.NewCore(enc, ws, ws.levelEnabler), nil
 }
 
 // Write implements zapcore.WriteSyncer.
@@ -155,8 +154,8 @@ func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 
 // Sync implements zapcore.WriteSyncer.
 func (ws *WriteSyncer) Sync() error {
-	// Best effort context timeout. A Sync() should never take that long.
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	// Best effort context timeout. A `Sync()` should never take that long.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	ws.bufMtx.Lock()

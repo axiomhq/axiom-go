@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud
-	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost
+	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud.
+	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
 
 	dataset := os.Getenv("AXIOM_DATASET")
 	if dataset == "" {
@@ -36,6 +36,6 @@ func main() {
 
 	// 3. Print the queried results.
 	for _, match := range res.Result.Matches {
-		log.Print(match.Data)
+		fmt.Println(match.Data)
 	}
 }
