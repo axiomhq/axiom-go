@@ -35,7 +35,7 @@ type StarredQuery struct {
 	Kind query.Kind `json:"kind"`
 	// Dataset the starred query belongs to.
 	Dataset string `json:"dataset"`
-	// Owner is the ID of the starred queries owner. Can be a user or team ID.
+	// Owner is the team or user ID of the starred queries owner.
 	Owner string `json:"who"`
 	// Name is the display name of the starred query.
 	Name string `json:"name"`

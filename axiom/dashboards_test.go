@@ -12,6 +12,51 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var expDashboard = &Dashboard{
+	ID:          "buTFUddK4X5845Qwzv",
+	Name:        "Test",
+	Description: "A test dashboard",
+	Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
+	Charts: []interface{}{
+		map[string]interface{}{
+			"id":        "5b28c014-8247-4271-a310-7c5953574614",
+			"name":      "Total",
+			"type":      "TimeSeries",
+			"datasetId": "test",
+			"query": map[string]interface{}{
+				"aggregations": []interface{}{
+					map[string]interface{}{
+						"op":    "count",
+						"field": "",
+					},
+				},
+				"resolution": "15s",
+			},
+			"modified": float64(1605882074936),
+		},
+	},
+	Layout: []interface{}{
+		map[string]interface{}{
+			"w":      float64(6),
+			"h":      float64(4),
+			"x":      float64(0),
+			"y":      float64(0),
+			"i":      "5b28c014-8247-4271-a310-7c5953574614",
+			"minW":   float64(4),
+			"minH":   float64(4),
+			"moved":  false,
+			"static": false,
+		},
+	},
+	RefreshTime:      15 * time.Second,
+	SchemaVersion:    2,
+	TimeWindowStart:  "qr-now-30m",
+	TimeWindowEnd:    "qr-now",
+	Against:          -time.Hour,
+	AgainstTimestamp: parseTimeOrPanic(dashboardAgainstTimestampFormat, "13 Oct 2021, 16:09"),
+	Version:          "1605882077469288241",
+}
+
 func TestDashboardsService_List(t *testing.T) {
 	exp := []*Dashboard{
 		{
@@ -50,11 +95,13 @@ func TestDashboardsService_List(t *testing.T) {
 					"static": false,
 				},
 			},
-			RefreshTime:     15 * time.Second,
-			SchemaVersion:   2,
-			TimeWindowStart: "qr-now-30m",
-			TimeWindowEnd:   "qr-now",
-			Version:         "1605882077469288241",
+			RefreshTime:      15 * time.Second,
+			SchemaVersion:    2,
+			TimeWindowStart:  "qr-now-30m",
+			TimeWindowEnd:    "qr-now",
+			Against:          -time.Hour,
+			AgainstTimestamp: mustTimeParse(t, dashboardAgainstTimestampFormat, "13 Oct 2021, 16:09"),
+			Version:          "1605882077469288241",
 		},
 	}
 
@@ -105,6 +152,8 @@ func TestDashboardsService_List(t *testing.T) {
 				"timeWindowStart": "qr-now-30m",
 				"timeWindowEnd": "qr-now",
 				"id": "buTFUddK4X5845Qwzv",
+				"against": "-1h",
+				"againstTimestamp": "13 Oct 2021, 16:09",
 				"version": "1605882077469288241"
 			}
 		]`)
@@ -124,49 +173,6 @@ func TestDashboardsService_List(t *testing.T) {
 }
 
 func TestDashboardsService_Get(t *testing.T) {
-	exp := &Dashboard{
-		ID:          "buTFUddK4X5845Qwzv",
-		Name:        "Test",
-		Description: "A test dashboard",
-		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-		Charts: []interface{}{
-			map[string]interface{}{
-				"id":        "5b28c014-8247-4271-a310-7c5953574614",
-				"name":      "Total",
-				"type":      "TimeSeries",
-				"datasetId": "test",
-				"query": map[string]interface{}{
-					"aggregations": []interface{}{
-						map[string]interface{}{
-							"op":    "count",
-							"field": "",
-						},
-					},
-					"resolution": "15s",
-				},
-				"modified": float64(1605882074936),
-			},
-		},
-		Layout: []interface{}{
-			map[string]interface{}{
-				"w":      float64(6),
-				"h":      float64(4),
-				"x":      float64(0),
-				"y":      float64(0),
-				"i":      "5b28c014-8247-4271-a310-7c5953574614",
-				"minW":   float64(4),
-				"minH":   float64(4),
-				"moved":  false,
-				"static": false,
-			},
-		},
-		RefreshTime:     15 * time.Second,
-		SchemaVersion:   2,
-		TimeWindowStart: "qr-now-30m",
-		TimeWindowEnd:   "qr-now",
-		Version:         "1605882077469288241",
-	}
-
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
@@ -210,6 +216,8 @@ func TestDashboardsService_Get(t *testing.T) {
 			"timeWindowStart": "qr-now-30m",
 			"timeWindowEnd": "qr-now",
 			"id": "buTFUddK4X5845Qwzv",
+			"against": "-1h",
+			"againstTimestamp": "13 Oct 2021, 16:09",
 			"version": "1605882077469288241"
 		}`)
 		assert.NoError(t, err)
@@ -221,53 +229,10 @@ func TestDashboardsService_Get(t *testing.T) {
 	res, err := client.Dashboards.Get(context.Background(), "test")
 	require.NoError(t, err)
 
-	assert.Equal(t, exp, res)
+	assert.Equal(t, expDashboard, res)
 }
 
 func TestDashboardsService_Create(t *testing.T) {
-	exp := &Dashboard{
-		ID:          "buTFUddK4X5845Qwzv",
-		Name:        "Test",
-		Description: "A test dashboard",
-		Owner:       "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-		Charts: []interface{}{
-			map[string]interface{}{
-				"id":        "5b28c014-8247-4271-a310-7c5953574614",
-				"name":      "Total",
-				"type":      "TimeSeries",
-				"datasetId": "test",
-				"query": map[string]interface{}{
-					"aggregations": []interface{}{
-						map[string]interface{}{
-							"op":    "count",
-							"field": "",
-						},
-					},
-					"resolution": "15s",
-				},
-				"modified": float64(1605882074936),
-			},
-		},
-		Layout: []interface{}{
-			map[string]interface{}{
-				"w":      float64(6),
-				"h":      float64(4),
-				"x":      float64(0),
-				"y":      float64(0),
-				"i":      "5b28c014-8247-4271-a310-7c5953574614",
-				"minW":   float64(4),
-				"minH":   float64(4),
-				"moved":  false,
-				"static": false,
-			},
-		},
-		RefreshTime:     15 * time.Second,
-		SchemaVersion:   2,
-		TimeWindowStart: "qr-now-30m",
-		TimeWindowEnd:   "qr-now",
-		Version:         "1605882077469288241",
-	}
-
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
@@ -312,6 +277,8 @@ func TestDashboardsService_Create(t *testing.T) {
 			"timeWindowStart": "qr-now-30m",
 			"timeWindowEnd": "qr-now",
 			"id": "buTFUddK4X5845Qwzv",
+			"against": "-1h",
+			"againstTimestamp": "13 Oct 2021, 16:09",
 			"version": "1605882077469288241"
 		}`)
 		assert.NoError(t, err)
@@ -355,14 +322,16 @@ func TestDashboardsService_Create(t *testing.T) {
 				"static": false,
 			},
 		},
-		RefreshTime:     15 * time.Second,
-		SchemaVersion:   2,
-		TimeWindowStart: "qr-now-30m",
-		TimeWindowEnd:   "qr-now",
+		RefreshTime:      15 * time.Second,
+		SchemaVersion:    2,
+		TimeWindowStart:  "qr-now-30m",
+		TimeWindowEnd:    "qr-now",
+		Against:          -time.Hour,
+		AgainstTimestamp: mustTimeParse(t, dashboardAgainstTimestampFormat, "13 Oct 2021, 16:09"),
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, exp, res)
+	assert.Equal(t, expDashboard, res)
 }
 
 func TestDashboardsService_Update(t *testing.T) {
@@ -402,11 +371,13 @@ func TestDashboardsService_Update(t *testing.T) {
 				"static": false,
 			},
 		},
-		RefreshTime:     15 * time.Second,
-		SchemaVersion:   2,
-		TimeWindowStart: "qr-now-30m",
-		TimeWindowEnd:   "qr-now",
-		Version:         "1605882077469288241",
+		RefreshTime:      15 * time.Second,
+		SchemaVersion:    2,
+		TimeWindowStart:  "qr-now-30m",
+		TimeWindowEnd:    "qr-now",
+		Against:          -time.Hour,
+		AgainstTimestamp: mustTimeParse(t, dashboardAgainstTimestampFormat, "13 Oct 2021, 16:09"),
+		Version:          "1605882077469288241",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -453,6 +424,8 @@ func TestDashboardsService_Update(t *testing.T) {
 			"timeWindowStart": "qr-now-30m",
 			"timeWindowEnd": "qr-now",
 			"id": "buTFUddK4X5845Qwzv",
+			"against": "-1h",
+			"againstTimestamp": "13 Oct 2021, 16:09",
 			"version": "1605882077469288241"
 		}`)
 		assert.NoError(t, err)
@@ -496,10 +469,12 @@ func TestDashboardsService_Update(t *testing.T) {
 				"static": false,
 			},
 		},
-		RefreshTime:     15 * time.Second,
-		SchemaVersion:   2,
-		TimeWindowStart: "qr-now-30m",
-		TimeWindowEnd:   "qr-now",
+		RefreshTime:      15 * time.Second,
+		SchemaVersion:    2,
+		TimeWindowStart:  "qr-now-30m",
+		TimeWindowEnd:    "qr-now",
+		Against:          -time.Hour,
+		AgainstTimestamp: mustTimeParse(t, dashboardAgainstTimestampFormat, "13 Oct 2021, 16:09"),
 	})
 	require.NoError(t, err)
 
@@ -522,12 +497,14 @@ func TestDashboardsService_Delete(t *testing.T) {
 
 func TestDashboard(t *testing.T) {
 	exp := Dashboard{
-		ID:            "buTFUddK4X5845Qwzv",
-		Name:          "Test",
-		Description:   "A test dashboard",
-		RefreshTime:   time.Second,
-		SchemaVersion: 2,
-		Version:       "1605882077469288241",
+		ID:               "buTFUddK4X5845Qwzv",
+		Name:             "Test",
+		Description:      "A test dashboard",
+		RefreshTime:      time.Second,
+		SchemaVersion:    2,
+		Against:          -time.Hour,
+		AgainstTimestamp: mustTimeParse(t, dashboardAgainstTimestampFormat, "13 Oct 2021, 16:09"),
+		Version:          "1605882077469288241",
 	}
 
 	b, err := json.Marshal(exp)
@@ -553,6 +530,8 @@ func TestDashboard_MarshalJSON(t *testing.T) {
 		"timeWindowStart": "",
 		"timeWindowEnd": "",
 		"id": "",
+		"against": "",
+		"againstTimestamp": "",
 		"version": ""
 	}`
 

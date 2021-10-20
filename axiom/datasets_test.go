@@ -1056,7 +1056,7 @@ func assertValidJSON(t *testing.T, r io.Reader) bool {
 	return true
 }
 
-func parseTimeOrPanic(layout, value string) time.Time { //nolint:unparam // Fine for a helper method.
+func parseTimeOrPanic(layout, value string) time.Time {
 	t, err := time.Parse(layout, value)
 	if err != nil {
 		panic(err)
