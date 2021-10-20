@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const dashboardAgainstTimestampFormat = "02 Jan 2006, 15:04"
+
 // Dashboard represents a dashboard.
 type Dashboard struct {
 	// ID is the unique ID of the dashboard.
@@ -15,7 +17,7 @@ type Dashboard struct {
 	Name string `json:"name"`
 	// Description of the dashboard.
 	Description string `json:"description"`
-	// Owner is the ID of the dashboard owner.
+	// Owner is the team or user ID of the dashboards owner.
 	Owner string `json:"owner"`
 	// Charts contains the raw data composing the dashboards charts.
 	Charts []interface{} `json:"charts"`
@@ -26,44 +28,88 @@ type Dashboard struct {
 	// SchemaVersion auto increments with ever change made to the dashboard.
 	SchemaVersion int `json:"schemaVersion"`
 	// TimeWindowStart is the start of the time window displayed by the
-	// dashboard. The format is special: It has the prefix "qr-now", followed
-	// by a string duration. If the dashboard has a time range of "last 30
-	// minutes", this will be: "qr-now-30m".
+	// dashboard.
 	TimeWindowStart string `json:"timeWindowStart"`
 	// TimeWindowEnd is the end of the time window displayed by the dashboard.
-	// The format is special: It has the prefix "qr-now", followed
-	// by a string duration. If the dashboard has a time range of "last 30
-	// minutes of yesterday", this will be: "qr-now-1d". But in most cases it
-	// will "qr-now".
 	TimeWindowEnd string `json:"timeWindowEnd"`
+	// Against specifies the time offset to compare the dashboards time window,
+	// as specified by `TimeWindowStart` and `TimeWindowEnd`, against. This
+	// field and `AgainstTimestamp` mutual exclude each other.
+	Against time.Duration `json:"against"`
+	// AgainstTimestamp is a timestamp that specifies the time offset to compare
+	// the dashboards time window, as specified by `TimeWindowStart` and
+	// `TimeWindowEnd`, against.  This field and `Against` mutual exclude each
+	// other.
+	AgainstTimestamp time.Time `json:"againstTimestamp"`
 	// Version of the dashboard.
 	Version string `json:"version"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
-// RefreshTime to seconds because that's what the server expects.
+// MarshalJSON implements json.Marshaler. It is in place to marshal some fields
+// to different representations for transport because that's what the server
+// expects.
 func (d Dashboard) MarshalJSON() ([]byte, error) {
-	type localDash Dashboard
+	type LocalDash Dashboard
+	localDash := struct {
+		LocalDash
+
+		Against          string `json:"against"`
+		AgainstTimestamp string `json:"againstTimestamp"`
+	}{
+		LocalDash: LocalDash(d),
+	}
 
 	// Set to the value in seconds.
-	d.RefreshTime = time.Duration(d.RefreshTime.Seconds())
+	localDash.RefreshTime = time.Duration(d.RefreshTime.Seconds())
 
-	return json.Marshal(localDash(d))
+	if d.Against != 0 {
+		localDash.Against = d.Against.String()
+	}
+
+	// Format using the custom time format.
+	if !d.AgainstTimestamp.IsZero() {
+		localDash.AgainstTimestamp = d.AgainstTimestamp.Format(dashboardAgainstTimestampFormat)
+	}
+
+	return json.Marshal(localDash)
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
-// RefreshTime into a proper time.Duration value because the server returns it
-// in seconds.
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal some
+// fields from their transport representation into proper Go types because the
+// server returns them differently.
 func (d *Dashboard) UnmarshalJSON(b []byte) error {
-	type localDash *Dashboard
+	type LocalDash Dashboard
+	localDash := struct {
+		*LocalDash
 
-	if err := json.Unmarshal(b, localDash(d)); err != nil {
+		Against          string `json:"against"`
+		AgainstTimestamp string `json:"againstTimestamp"`
+	}{
+		LocalDash: (*LocalDash)(d),
+	}
+
+	if err := json.Unmarshal(b, &localDash); err != nil {
 		return err
 	}
 
 	// Set to a proper time.Duration value interpreting the server response
 	// value in seconds.
 	d.RefreshTime = d.RefreshTime * time.Second
+
+	var err error
+	if localDash.Against != "" {
+		if d.Against, err = time.ParseDuration(localDash.Against); err != nil {
+			return err
+		}
+	}
+
+	// Set to a proper time.Duration value parsing the server response value as
+	// a custom time format.
+	if ts := localDash.AgainstTimestamp; ts != "" {
+		if d.AgainstTimestamp, err = time.Parse(dashboardAgainstTimestampFormat, ts); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

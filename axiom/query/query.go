@@ -70,7 +70,7 @@ func (q Query) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
-// Resolutionstring value to a proper time.Duration because that's what the
+// Resolution string value to a proper time.Duration because that's what the
 // server returns.
 func (q *Query) UnmarshalJSON(b []byte) error {
 	type LocalQuery Query
