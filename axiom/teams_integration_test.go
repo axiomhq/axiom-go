@@ -29,7 +29,7 @@ func (s *TeamsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
-	s.team, err = s.client.Teams.Create(s.suiteCtx, axiom.TeamCreateRequest{
+	s.team, err = s.client.Teams.Create(s.suiteCtx, axiom.TeamCreateUpdateRequest{
 		Name: "Test Team",
 	})
 	s.Require().NoError(err)
@@ -50,9 +50,12 @@ func (s *TeamsTestSuite) TearDownSuite() {
 
 func (s *TeamsTestSuite) Test() {
 	// Let's update the team.
-	team, err := s.client.Teams.Update(s.suiteCtx, s.team.ID, axiom.Team{
+	team, err := s.client.Teams.Update(s.suiteCtx, s.team.ID, axiom.TeamCreateUpdateRequest{
 		Name: "Updated Test Team",
-		// TODO(lukasmalkmus): Probably add user and dataset.
+		Members: []string{
+			s.testUser.ID,
+		},
+		// TODO(lukasmalkmus): Probably add dataset.
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(team)

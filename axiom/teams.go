@@ -17,11 +17,13 @@ type Team struct {
 	Datasets []string `json:"datasets"`
 }
 
-// TeamCreateRequest is a request used to create a team.
-type TeamCreateRequest struct {
+// TeamCreateUpdateRequest is a request used to create or update a team.
+type TeamCreateUpdateRequest struct {
 	// Name of the team.
 	Name string `json:"name"`
-	// Datasets of the team.
+	// Members are the IDs of the teams members.
+	Members []string `json:"members"`
+	// Datasets are the IDs of the teams assigned datasets.
 	Datasets []string `json:"datasets"`
 }
 
@@ -54,7 +56,7 @@ func (s *TeamsService) Get(ctx context.Context, id string) (*Team, error) {
 }
 
 // Create a team with the given properties.
-func (s *TeamsService) Create(ctx context.Context, req TeamCreateRequest) (*Team, error) {
+func (s *TeamsService) Create(ctx context.Context, req TeamCreateUpdateRequest) (*Team, error) {
 	var res Team
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
@@ -64,7 +66,7 @@ func (s *TeamsService) Create(ctx context.Context, req TeamCreateRequest) (*Team
 }
 
 // Update the team identified by the given id with the given properties.
-func (s *TeamsService) Update(ctx context.Context, id string, req Team) (*Team, error) {
+func (s *TeamsService) Update(ctx context.Context, id string, req TeamCreateUpdateRequest) (*Team, error) {
 	path := s.basePath + "/" + id
 
 	var res Team
