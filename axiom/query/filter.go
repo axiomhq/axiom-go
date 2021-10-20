@@ -1,38 +1,110 @@
 package query
 
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
+
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=FilterOp -linecomment -output=filter_string.go
+
 // A FilterOp can be applied on queries to filter based on different conditions.
-type FilterOp string
+type FilterOp uint8
 
 // All available query filter operations.
 const (
-	OpAnd FilterOp = "and"
-	OpOr  FilterOp = "or"
-	OpNot FilterOp = "not"
+	UnknownFilterOp FilterOp = iota //
+
+	OpAnd // and
+	OpOr  // or
+	OpNot // not
 
 	// Works for strings and numbers.
-	OpEqual     FilterOp = "=="
-	OpNotEqual  FilterOp = "!="
-	OpExists    FilterOp = "exists"
-	OpNotExists FilterOp = "not-exists"
+	OpEqual     // ==
+	OpNotEqual  // !=
+	OpExists    // exists
+	OpNotExists // not-exists
 
 	// Only works for numbers.
-	OpGreaterThan      FilterOp = ">"
-	OpGreaterThanEqual FilterOp = ">="
-	OpLessThan         FilterOp = "<"
-	OpLessThanEqual    FilterOp = "<="
+	OpGreaterThan      // >
+	OpGreaterThanEqual // >=
+	OpLessThan         // <
+	OpLessThanEqual    // <=
 
 	// Only works for strings.
-	OpStartsWith    FilterOp = "starts-with"
-	OpNotStartsWith FilterOp = "not-starts-with"
-	OpEndsWith      FilterOp = "ends-with"
-	OpNotEndsWith   FilterOp = "not-ends-with"
-	OpRegexp        FilterOp = "regexp"
-	OpNotRegexp     FilterOp = "not-regexp"
+	OpStartsWith    // starts-with
+	OpNotStartsWith // not-starts-with
+	OpEndsWith      // ends-with
+	OpNotEndsWith   // not-ends-with
+	OpRegexp        // regexp
+	OpNotRegexp     // not-regexp
 
 	// Works for strings and arrays.
-	OpContains    FilterOp = "contains"
-	OpNotContains FilterOp = "not-contains"
+	OpContains    // contains
+	OpNotContains // not-contains
 )
+
+// MarshalJSON implements json.Marshaler. It is in place to marshal the FilterOp
+// to its string representation because that's what the server expects.
+func (op FilterOp) MarshalJSON() ([]byte, error) {
+	return json.Marshal(op.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// FilterOp from the string representation the server returns.
+func (op *FilterOp) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch strings.ToLower(s) {
+	case UnknownFilterOp.String():
+		*op = UnknownFilterOp
+	case OpAnd.String():
+		*op = OpAnd
+	case OpOr.String():
+		*op = OpOr
+	case OpNot.String():
+		*op = OpNot
+	case OpEqual.String():
+		*op = OpEqual
+	case OpNotEqual.String():
+		*op = OpNotEqual
+	case OpExists.String():
+		*op = OpExists
+	case OpNotExists.String():
+		*op = OpNotExists
+	case OpGreaterThan.String():
+		*op = OpGreaterThan
+	case OpGreaterThanEqual.String():
+		*op = OpGreaterThanEqual
+	case OpLessThan.String():
+		*op = OpLessThan
+	case OpLessThanEqual.String():
+		*op = OpLessThanEqual
+	case OpStartsWith.String():
+		*op = OpStartsWith
+	case OpNotStartsWith.String():
+		*op = OpNotStartsWith
+	case OpEndsWith.String():
+		*op = OpEndsWith
+	case OpNotEndsWith.String():
+		*op = OpNotEndsWith
+	case OpRegexp.String():
+		*op = OpRegexp
+	case OpNotRegexp.String():
+		*op = OpNotRegexp
+	case OpContains.String():
+		*op = OpContains
+	case OpNotContains.String():
+		*op = OpNotContains
+	default:
+		return fmt.Errorf("unknown filter operation %q", s)
+	}
+
+	return nil
+}
 
 // Filter applied as part of a query.
 type Filter struct {

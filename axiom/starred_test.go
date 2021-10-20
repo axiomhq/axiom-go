@@ -27,7 +27,7 @@ func TestStarredQueriesService_List(t *testing.T) {
 				Resolution: 15 * time.Second,
 				Aggregations: []query.Aggregation{
 					{
-						Op:    "avg",
+						Op:    query.OpAvg,
 						Field: "size",
 					},
 				},
@@ -105,7 +105,7 @@ func TestStarredQueriesService_Get(t *testing.T) {
 			Resolution: 15 * time.Second,
 			Aggregations: []query.Aggregation{
 				{
-					Op:    "avg",
+					Op:    query.OpAvg,
 					Field: "size",
 				},
 			},
