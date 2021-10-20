@@ -19,6 +19,7 @@ const (
 	Trial                      // trial
 	Pro                        // pro
 	Enterprise                 // enterprise
+	Comped                     // comped
 )
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the Plan to
@@ -44,6 +45,8 @@ func (plan *Plan) UnmarshalJSON(b []byte) error {
 		*plan = Pro
 	case Enterprise.String():
 		*plan = Enterprise
+	case Comped.String():
+		*plan = Comped
 	default:
 		return fmt.Errorf("unknown plan %q", s)
 	}
