@@ -115,7 +115,7 @@ func TestTeamsService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/teams", hf)
 	defer teardown()
 
-	res, err := client.Teams.Create(context.Background(), TeamCreateRequest{
+	res, err := client.Teams.Create(context.Background(), TeamCreateUpdateRequest{
 		Name: "Server Team",
 		Datasets: []string{
 			"test",
@@ -153,7 +153,7 @@ func TestTeamsService_Update(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/teams/4miTfZKp29VByAQgTd", hf)
 	defer teardown()
 
-	res, err := client.Teams.Update(context.Background(), "4miTfZKp29VByAQgTd", Team{
+	res, err := client.Teams.Update(context.Background(), "4miTfZKp29VByAQgTd", TeamCreateUpdateRequest{
 		Members: []string{
 			"7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 		},
