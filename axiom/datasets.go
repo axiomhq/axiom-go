@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -429,6 +430,11 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 
 // Query executes the given query on the dataset identified by its id.
 func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, opts query.Options) (*query.Result, error) {
+	if opts.SaveKind == query.APL {
+		return nil, fmt.Errorf("invalid query kind %q: must be %q or %q",
+			opts.SaveKind, query.Analytics, query.Stream)
+	}
+
 	path, err := addOptions(s.basePath+"/"+id+"/query", opts)
 	if err != nil {
 		return nil, err
