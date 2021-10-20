@@ -17,10 +17,11 @@ type Query struct {
 	Resolution time.Duration `json:"resolution"`
 	// Aggregations performed as part of the query.
 	Aggregations []Aggregation `json:"aggregations"`
+	// GroupBy is a list of field names to group the query result by. Only valid
+	// when at least one aggregation is specified.
+	GroupBy []string `json:"groupBy"`
 	// Filter applied on the queried results.
 	Filter Filter `json:"filter"`
-	// GroupBy is a list of field names to group the query result by.
-	GroupBy []string `json:"groupBy"`
 	// Order is a list of order rules that specify the order of the query
 	// result.
 	Order []Order `json:"order"`
@@ -96,7 +97,8 @@ func (q *Query) UnmarshalJSON(b []byte) error {
 
 // Order specifies the order a queries result will be in.
 type Order struct {
-	// Field to order on.
+	// Field to order on. Must be present in `GroupBy` or used by an
+	// aggregation.
 	Field string `json:"field"`
 	// Desc specifies if the field is ordered ascending or descending.
 	Desc bool `json:"desc"`

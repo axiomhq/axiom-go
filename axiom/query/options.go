@@ -10,6 +10,6 @@ type Options struct {
 	NoCache bool `url:"nocache,omitempty"`
 	// SaveKind saves the query on the server with the given query kind. The ID
 	// of the saved query is returned with the query result as part of the
-	// response.
+	// response. `query.APL` is not a valid kind for this field.
 	SaveKind Kind `url:"saveAsKind,omitempty"`
 }
