@@ -12,11 +12,12 @@ func _() {
 	_ = x[Trial-2]
 	_ = x[Pro-3]
 	_ = x[Enterprise-4]
+	_ = x[Comped-5]
 }
 
-const _Plan_name = "freetrialproenterprise"
+const _Plan_name = "freetrialproenterprisecomped"
 
-var _Plan_index = [...]uint8{0, 4, 9, 12, 22}
+var _Plan_index = [...]uint8{0, 4, 9, 12, 22, 28}
 
 func (i Plan) String() string {
 	i -= 1

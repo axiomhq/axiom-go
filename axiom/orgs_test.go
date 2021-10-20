@@ -442,3 +442,42 @@ func TestLicense_UnmarshalJSON(t *testing.T) {
 
 	assert.Equal(t, exp, act)
 }
+
+func TestPlan_Marshal(t *testing.T) {
+	exp := `{
+		"plan": "free"
+	}`
+
+	b, err := json.Marshal(struct {
+		Plan Plan `json:"plan"`
+	}{
+		Plan: Free,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestPlan_Unmarshal(t *testing.T) {
+	var act struct {
+		Plan Plan `json:"plan"`
+	}
+	err := json.Unmarshal([]byte(`{ "plan": "free" }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, Free, act.Plan)
+}
+
+func TestPlan_String(t *testing.T) {
+	// Check outer bounds.
+	assert.Equal(t, Plan(0).String(), "Plan(0)")
+	assert.Contains(t, (Free - 1).String(), "Plan(")
+	assert.Contains(t, (Comped + 1).String(), "Plan(")
+
+	for c := Free; c <= Comped; c++ {
+		s := c.String()
+		assert.NotEmpty(t, s)
+		assert.NotContains(t, s, "Plan(")
+	}
+}
