@@ -21,8 +21,8 @@ import (
 
 const ingestData = `[
 	{
-		"time": "17/May/2015:08:05:32 +0000",
-		"remote_ip": "93.180.71.3",
+		"time": "17/May/2015:08:05:30 +0000",
+		"remote_ip": "93.180.71.1",
 		"remote_user": "-",
 		"request": "GET /downloads/product_1 HTTP/1.1",
 		"response": 304,
@@ -31,8 +31,8 @@ const ingestData = `[
 		"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
 	},
 	{
-		"time": "17/May/2015:08:05:32 +0000",
-		"remote_ip": "93.180.71.3",
+		"time": "17/May/2015:08:05:31 +0000",
+		"remote_ip": "93.180.71.2",
 		"remote_user": "-",
 		"request": "GET /downloads/product_1 HTTP/1.1",
 		"response": 304,
@@ -45,7 +45,7 @@ const ingestData = `[
 var ingestEvents = []axiom.Event{
 	{
 		"time":        "17/May/2015:08:05:32 +0000",
-		"remote_ip":   "93.180.71.3",
+		"remote_ip":   "93.180.71.1",
 		"remote_user": "-",
 		"request":     "GET /downloads/product_1 HTTP/1.1",
 		"response":    304,
@@ -54,8 +54,8 @@ var ingestEvents = []axiom.Event{
 		"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
 	},
 	{
-		"time":        "17/May/2015:08:05:32 +0000",
-		"remote_ip":   "93.180.71.3",
+		"time":        "17/May/2015:08:05:33 +0000",
+		"remote_ip":   "93.180.71.2",
 		"remote_user": "-",
 		"request":     "GET /downloads/product_1 HTTP/1.1",
 		"response":    304,
@@ -150,7 +150,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Empty(ingestStatus.Failures)
 
 	// Make sure we don't overtake the server.
-	time.Sleep(2 * time.Second)
+	time.Sleep(15 * time.Second)
 
 	// Get the dataset info and make sure four events have been ingested.
 	datasetInfo, err := s.client.Datasets.Info(s.ctx, s.dataset.ID)
@@ -208,6 +208,57 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(4, aplQueryResult.Status.RowsExamined)
 	s.EqualValues(4, aplQueryResult.Status.RowsMatched)
 	s.Len(aplQueryResult.Matches, 4)
+
+	// Run a more complex query.
+	complexQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
+		StartTime: time.Now().UTC().Add(-time.Minute),
+		EndTime:   time.Now().UTC(),
+		Aggregations: []query.Aggregation{
+			{
+				Alias: "count",
+				Op:    query.OpCount,
+				// Field: "*",
+			},
+		},
+		GroupBy: []string{"success", "remote_ip"},
+		Filter: query.Filter{
+			Op:    query.OpEqual,
+			Field: "response",
+			Value: 304,
+		},
+		Order: []query.Order{
+			{
+				Field: "success",
+				Desc:  true,
+			},
+			{
+				Field: "remote_ip",
+				Desc:  false,
+			},
+		},
+		VirtualFields: []query.VirtualField{
+			{
+				Alias:      "success",
+				Expression: "response < 400",
+			},
+		},
+		Projections: []query.Projection{
+			{
+				Field: "remote_ip",
+				Alias: "ip",
+			},
+		},
+	}, query.Options{})
+	s.Require().NoError(err)
+	s.Require().NotNil(complexQueryResult)
+
+	s.EqualValues(4, complexQueryResult.Status.RowsExamined)
+	s.EqualValues(4, complexQueryResult.Status.RowsMatched)
+	if s.Len(complexQueryResult.Buckets.Totals, 2) {
+		agg := complexQueryResult.Buckets.Totals[0].Aggregations[0]
+		s.Equal(query.OpCount, agg.Op)
+		s.EqualValues(2, agg.Value)
+	}
 
 	// HINT(lukasmalkmus): This test initializes a new client to make sure
 	// strict decoding is never set on this method. After this test, it gets

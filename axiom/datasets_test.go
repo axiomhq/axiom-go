@@ -925,6 +925,16 @@ func TestDatasetsService_Query(t *testing.T) {
 	assert.Equal(t, expQueryRes, res)
 }
 
+func TestDatasetsService_Query_InvalidSaveKind(t *testing.T) {
+	client, teardown := setup(t, "/api/v1/datasets/test/query", nil)
+	defer teardown()
+
+	_, err := client.Datasets.Query(context.Background(), "test", query.Query{}, query.Options{
+		SaveKind: query.APL,
+	})
+	require.EqualError(t, err, `invalid query kind "apl": must be "analytics" or "stream"`)
+}
+
 func TestDatasetsService_APLQuery(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
