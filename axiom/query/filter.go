@@ -13,7 +13,7 @@ type FilterOp uint8
 
 // All available query filter operations.
 const (
-	UnknownFilterOp FilterOp = iota //
+	emptyFilterOp FilterOp = iota //
 
 	OpAnd // and
 	OpOr  // or
@@ -44,6 +44,55 @@ const (
 	OpNotContains // not-contains
 )
 
+func filterOpFromString(s string) (op FilterOp, err error) {
+	switch strings.ToLower(s) {
+	case emptyFilterOp.String():
+		op = emptyFilterOp
+	case OpAnd.String():
+		op = OpAnd
+	case OpOr.String():
+		op = OpOr
+	case OpNot.String():
+		op = OpNot
+	case OpEqual.String():
+		op = OpEqual
+	case OpNotEqual.String():
+		op = OpNotEqual
+	case OpExists.String():
+		op = OpExists
+	case OpNotExists.String():
+		op = OpNotExists
+	case OpGreaterThan.String():
+		op = OpGreaterThan
+	case OpGreaterThanEqual.String():
+		op = OpGreaterThanEqual
+	case OpLessThan.String():
+		op = OpLessThan
+	case OpLessThanEqual.String():
+		op = OpLessThanEqual
+	case OpStartsWith.String():
+		op = OpStartsWith
+	case OpNotStartsWith.String():
+		op = OpNotStartsWith
+	case OpEndsWith.String():
+		op = OpEndsWith
+	case OpNotEndsWith.String():
+		op = OpNotEndsWith
+	case OpRegexp.String():
+		op = OpRegexp
+	case OpNotRegexp.String():
+		op = OpNotRegexp
+	case OpContains.String():
+		op = OpContains
+	case OpNotContains.String():
+		op = OpNotContains
+	default:
+		err = fmt.Errorf("unknown filter operation %q", s)
+	}
+
+	return op, err
+}
+
 // MarshalJSON implements json.Marshaler. It is in place to marshal the FilterOp
 // to its string representation because that's what the server expects.
 func (op FilterOp) MarshalJSON() ([]byte, error) {
@@ -52,58 +101,15 @@ func (op FilterOp) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // FilterOp from the string representation the server returns.
-func (op *FilterOp) UnmarshalJSON(b []byte) error {
+func (op *FilterOp) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch strings.ToLower(s) {
-	case UnknownFilterOp.String():
-		*op = UnknownFilterOp
-	case OpAnd.String():
-		*op = OpAnd
-	case OpOr.String():
-		*op = OpOr
-	case OpNot.String():
-		*op = OpNot
-	case OpEqual.String():
-		*op = OpEqual
-	case OpNotEqual.String():
-		*op = OpNotEqual
-	case OpExists.String():
-		*op = OpExists
-	case OpNotExists.String():
-		*op = OpNotExists
-	case OpGreaterThan.String():
-		*op = OpGreaterThan
-	case OpGreaterThanEqual.String():
-		*op = OpGreaterThanEqual
-	case OpLessThan.String():
-		*op = OpLessThan
-	case OpLessThanEqual.String():
-		*op = OpLessThanEqual
-	case OpStartsWith.String():
-		*op = OpStartsWith
-	case OpNotStartsWith.String():
-		*op = OpNotStartsWith
-	case OpEndsWith.String():
-		*op = OpEndsWith
-	case OpNotEndsWith.String():
-		*op = OpNotEndsWith
-	case OpRegexp.String():
-		*op = OpRegexp
-	case OpNotRegexp.String():
-		*op = OpNotRegexp
-	case OpContains.String():
-		*op = OpContains
-	case OpNotContains.String():
-		*op = OpNotContains
-	default:
-		return fmt.Errorf("unknown filter operation %q", s)
-	}
+	*op, err = filterOpFromString(s)
 
-	return nil
+	return err
 }
 
 // Filter applied as part of a query.

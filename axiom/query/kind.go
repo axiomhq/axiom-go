@@ -15,7 +15,10 @@ type Kind uint8
 const (
 	Analytics Kind = iota + 1 // analytics
 	Stream                    // stream
-	APL                       // apl
+
+	// Read-only. Not to be used for requests. Only in place to support typed
+	// responses.
+	APL // apl
 )
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the Kind to

@@ -14,13 +14,11 @@ type AggregationOp uint8
 
 // All available query aggregation operations.
 const (
-	UnknownAggregationOp AggregationOp = iota //
+	emptyAggregationOp AggregationOp = iota //
 
 	// Works with all types, field should be `*`.
-	OpCount           // count
-	OpCountIf         // countif
-	OpCountDistinct   // distinct
-	OpCountDistinctIf // distinctif
+	OpCount         // count
+	OpCountDistinct // distinct
 
 	// Only works for numbers.
 	OpSum               // sum
@@ -32,7 +30,49 @@ const (
 	OpHistogram         // histogram
 	OpVariance          // variance
 	OpStandardDeviation // stdev
+
+	// Read-only. Not to be used for query requests. Only in place to support
+	// the APL query result.
+	OpCountIf         // countif
+	OpCountDistinctIf // distinctif
 )
+
+func aggregationOpFromString(s string) (op AggregationOp, err error) {
+	switch strings.ToLower(s) {
+	case emptyAggregationOp.String():
+		op = emptyAggregationOp
+	case OpCount.String():
+		op = OpCount
+	case OpCountDistinct.String():
+		op = OpCountDistinct
+	case OpSum.String():
+		op = OpSum
+	case OpAvg.String():
+		op = OpAvg
+	case OpMin.String():
+		op = OpMin
+	case OpMax.String():
+		op = OpMax
+	case OpTopk.String():
+		op = OpTopk
+	case OpPercentiles.String():
+		op = OpPercentiles
+	case OpHistogram.String():
+		op = OpHistogram
+	case OpVariance.String():
+		op = OpVariance
+	case OpStandardDeviation.String():
+		op = OpStandardDeviation
+	case OpCountIf.String():
+		op = OpCountIf
+	case OpCountDistinctIf.String():
+		op = OpCountDistinctIf
+	default:
+		err = fmt.Errorf("unknown aggregation operation %q", s)
+	}
+
+	return op, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the
 // AggregationOp to its string representation because that's what the server
@@ -43,44 +83,15 @@ func (op AggregationOp) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // AggregationOp from the string representation the server returns.
-func (op *AggregationOp) UnmarshalJSON(b []byte) error {
+func (op *AggregationOp) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch strings.ToLower(s) {
-	case OpCount.String():
-		*op = OpCount
-	case OpCountIf.String():
-		*op = OpCountIf
-	case OpCountDistinct.String():
-		*op = OpCountDistinct
-	case OpCountDistinctIf.String():
-		*op = OpCountDistinctIf
-	case OpSum.String():
-		*op = OpSum
-	case OpAvg.String():
-		*op = OpAvg
-	case OpMin.String():
-		*op = OpMin
-	case OpMax.String():
-		*op = OpMax
-	case OpTopk.String():
-		*op = OpTopk
-	case OpPercentiles.String():
-		*op = OpPercentiles
-	case OpHistogram.String():
-		*op = OpHistogram
-	case OpVariance.String():
-		*op = OpVariance
-	case OpStandardDeviation.String():
-		*op = OpStandardDeviation
-	default:
-		return fmt.Errorf("unknown aggregation operation %q", s)
-	}
+	*op, err = aggregationOpFromString(s)
 
-	return nil
+	return err
 }
 
 // Aggregation performed as part of a query.
