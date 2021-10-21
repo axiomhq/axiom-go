@@ -1,3 +1,4 @@
+//nolint:dupl // Fine to have a bit of duplication in a test file.
 package query
 
 import (
@@ -37,12 +38,25 @@ func TestAggregationOp_Unmarshal(t *testing.T) {
 func TestAggregationOp_String(t *testing.T) {
 	// Check outer bounds.
 	assert.Empty(t, AggregationOp(0).String())
-	assert.Empty(t, UnknownAggregationOp.String())
-	assert.Contains(t, (OpStandardDeviation + 1).String(), "AggregationOp(")
+	assert.Empty(t, emptyAggregationOp.String())
+	assert.Equal(t, emptyAggregationOp, AggregationOp(0))
+	assert.Contains(t, (OpCountDistinctIf + 1).String(), "AggregationOp(")
 
-	for c := OpCount; c <= OpStandardDeviation; c++ {
-		s := c.String()
+	for op := OpCount; op <= OpCountDistinctIf; op++ {
+		s := op.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "AggregationOp(")
+	}
+}
+
+func TestAggregationOpFromString(t *testing.T) {
+	for op := OpCount; op <= OpCountDistinctIf; op++ {
+		s := op.String()
+
+		parsedOp, err := aggregationOpFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, op, parsedOp)
 	}
 }

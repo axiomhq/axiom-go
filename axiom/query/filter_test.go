@@ -1,3 +1,4 @@
+//nolint:dupl // Fine to have a bit of duplication in a test file.
 package query
 
 import (
@@ -36,13 +37,26 @@ func TestFilterOp_Unmarshal(t *testing.T) {
 
 func TestFilterOp_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Empty(t, FilterOp(0).String(), "")
-	assert.Empty(t, UnknownFilterOp.String())
+	assert.Empty(t, FilterOp(0).String())
+	assert.Empty(t, emptyFilterOp.String())
+	assert.Equal(t, emptyFilterOp, FilterOp(0))
 	assert.Contains(t, (OpNotContains + 1).String(), "FilterOp(")
 
-	for c := OpAnd; c <= OpNotContains; c++ {
-		s := c.String()
+	for op := OpAnd; op <= OpNotContains; op++ {
+		s := op.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "FilterOp(")
+	}
+}
+
+func TestFilterOpFromString(t *testing.T) {
+	for op := OpAnd; op <= OpNotContains; op++ {
+		s := op.String()
+
+		parsedOp, err := filterOpFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, op, parsedOp)
 	}
 }
