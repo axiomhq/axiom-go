@@ -1,7 +1,7 @@
 # Axiom Go
 
 [![Go Reference][gopkg_badge]][gopkg]
-[![Go Workflow][go_workflow_badge]][go_workflow]
+[![Workflow][workflow_badge]][workflow]
 [![Coverage Status][coverage_badge]][coverage]
 [![Go Report][report_badge]][report]
 [![Latest Release][release_badge]][release]
@@ -12,7 +12,7 @@
 ## Table of Contents
 
 1. [Introduction](#introduction)
-1. [Installation](#Installation)
+1. [Installation](#installation)
 1. [Authentication](#authentication)
 1. [Usage](#usage)
 1. [Documentation](#documentation)
@@ -44,7 +44,10 @@ make # Run code generators, linters, sanitizers and test suits
 
 ## Authentication
 
-The Client is initialized with the url of the deployment and an access token.
+The client is initialized with the url of the deployment and an access token
+when using Axiom Selfhost or an access token and the users organization id when
+using Axiom Cloud.
+
 The access token can be a personal token retrieved from the users profile page
 or an ingest token retrieved from the settings of the Axiom deployment.
 
@@ -135,8 +138,8 @@ See [LICENSE](LICENSE) for more information.
 
 [gopkg]: https://pkg.go.dev/github.com/axiomhq/axiom-go
 [gopkg_badge]: https://img.shields.io/badge/doc-reference-007d9c?logo=go&logoColor=white&style=flat-square
-[go_workflow]: https://github.com/axiomhq/axiom-go/actions/workflows/push.yml
-[go_workflow_badge]: https://img.shields.io/github/workflow/status/axiomhq/axiom-go/Push?style=flat-square&ghcache=unused
+[workflow]: https://github.com/axiomhq/axiom-go/actions/workflows/push.yml
+[workflow_badge]: https://img.shields.io/github/workflow/status/axiomhq/axiom-go/Push?style=flat-square&ghcache=unused
 [coverage]: https://codecov.io/gh/axiomhq/axiom-go
 [coverage_badge]: https://img.shields.io/codecov/c/github/axiomhq/axiom-go.svg?style=flat-square&ghcache=unused
 [report]: https://goreportcard.com/report/github.com/axiomhq/axiom-go

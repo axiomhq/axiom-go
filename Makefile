@@ -56,7 +56,7 @@ dep-upgrade: ## Upgrade all direct dependencies to their latest version
 	@make dep
 
 .PHONY: dep-upgrade-tools
-dep-upgrade-tools: $(GOTOOLS) ## Upgrade all tool dependencies to their latest version and install them
+dep-upgrade-tools: $(GOTOOLS) ## Upgrade all tool dependencies to their latest version
 
 .PHONY: dep
 dep: dep-clean dep.stamp ## Install and verify dependencies and remove obsolete ones
