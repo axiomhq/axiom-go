@@ -53,11 +53,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
-	s.newClient()
-
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
+
+	s.newClient()
 
 	if strictDecoding {
 		err := s.client.Options(axiom.SetStrictDecoding())
