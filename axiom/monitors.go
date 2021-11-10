@@ -72,6 +72,8 @@ type Monitor struct {
 	// Query is executed by the monitor and the result is compared using the
 	// monitors configured comparison operator against the configured threshold.
 	Query query.Query `json:"query"`
+	// IsAPL is true if the query is an APL query.
+	IsAPL bool `json:"aplQuery"`
 	// Threshold the query result is compared against, which evalutes if the
 	// monitor acts or not.
 	Threshold float64 `json:"threshold"`
@@ -92,6 +94,10 @@ type Monitor struct {
 	LastCheckTime time.Time `json:"lastCheckTime"`
 	// LastCheckState is the state associated with the last monitor execution.
 	LastCheckState map[string]string `json:"lastCheckState"`
+	// Disabled is true, if the monitor is disabled and thus not running.
+	Disabled bool `json:"disabled"`
+	// LastError is the last error that was observed while running the monitor.
+	LastError string `json:"lastError"`
 }
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the

@@ -54,7 +54,7 @@ jobs:
         run: ${{ matrix.setup}}
       - run: |
           go run ./examples/${{ matrix.example }}/main.go
-          sleep 5
+          sleep 30
           go run ./examples/query/main.go | grep "This is awesome"
       - name: Cleanup
         if: ${{ always() }}

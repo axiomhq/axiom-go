@@ -21,16 +21,19 @@ func TestMonitorsService_List(t *testing.T) {
 			Dataset:     "test",
 			Name:        "Test",
 			Description: "A test monitor",
+			Disabled:    true,
 			Query: query.Query{
 				StartTime:  mustTimeParse(t, time.RFC3339, "2020-11-30T14:28:29Z"),
 				EndTime:    mustTimeParse(t, time.RFC3339, "2020-11-30T14:33:29Z"),
 				Resolution: time.Second,
 			},
+			IsAPL:         true,
 			Threshold:     1000,
 			Comparison:    AboveOrEqual,
 			Frequency:     time.Minute,
 			Duration:      5 * time.Minute,
 			LastCheckTime: mustTimeParse(t, time.RFC3339, "2020-11-30T14:37:13Z"),
+			LastError:     "Well, this didn't work, did it?",
 		},
 	}
 
@@ -48,12 +51,15 @@ func TestMonitorsService_List(t *testing.T) {
 					"endTime": "2020-11-30T14:33:29Z",
 					"resolution": "1s"
 				},
+				"aplQuery": true,
 				"dataset": "test",
 				"threshold": 1000,
 				"comparison": "AboveOrEqual",
 				"frequencyMinutes": 1,
 				"durationMinutes": 5,
-				"lastCheckTime": "2020-11-30T14:37:13Z"
+				"lastCheckTime": "2020-11-30T14:37:13Z",
+				"disabled": true,
+				"lastError": "Well, this didn't work, did it?"
 			}
 		]`)
 		assert.NoError(t, err)
@@ -74,16 +80,19 @@ func TestMonitorsService_Get(t *testing.T) {
 		Dataset:     "test",
 		Name:        "Test",
 		Description: "A test monitor",
+		Disabled:    true,
 		Query: query.Query{
 			StartTime:  mustTimeParse(t, time.RFC3339, "2020-11-30T14:28:29Z"),
 			EndTime:    mustTimeParse(t, time.RFC3339, "2020-11-30T14:33:29Z"),
 			Resolution: time.Second,
 		},
+		IsAPL:         true,
 		Threshold:     1000,
 		Comparison:    AboveOrEqual,
 		Frequency:     time.Minute,
 		Duration:      5 * time.Minute,
 		LastCheckTime: mustTimeParse(t, time.RFC3339, "2020-11-30T14:37:13Z"),
+		LastError:     "Well, this didn't work, did it?",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -99,12 +108,15 @@ func TestMonitorsService_Get(t *testing.T) {
 				"endTime": "2020-11-30T14:33:29Z",
 				"resolution": "1s"
 			},
+			"aplQuery": true,
 			"dataset": "test",
 			"threshold": 1000,
 			"comparison": "AboveOrEqual",
 			"frequencyMinutes": 1,
 			"durationMinutes": 5,
-			"lastCheckTime": "2020-11-30T14:37:13Z"
+			"lastCheckTime": "2020-11-30T14:37:13Z",
+			"disabled": true,
+			"lastError": "Well, this didn't work, did it?"
 		}`)
 		assert.NoError(t, err)
 	}
@@ -141,12 +153,15 @@ func TestMonitorsService_Create(t *testing.T) {
 				"endTime": "0001-01-01T00:00:00Z",
 				"resolution": ""
 			},
+			"aplQuery": false,
 			"dataset": "test",
 			"threshold": 0,
 			"comparison": "Below",
 			"frequencyMinutes": 0,
 			"durationMinutes": 0,
-			"lastCheckTime": "0001-01-01T00:00:00Z"
+			"lastCheckTime": "0001-01-01T00:00:00Z",
+			"disabled": false,
+			"lastError": ""
 		}`)
 		assert.NoError(t, err)
 	}
@@ -187,12 +202,15 @@ func TestMonitorsService_Update(t *testing.T) {
 				"endTime": "0001-01-01T00:00:00Z",
 				"resolution": ""
 			},
+			"aplQuery": false,
 			"dataset": "test",
 			"threshold": 0,
 			"comparison": "Below",
 			"frequencyMinutes": 0,
 			"durationMinutes": 0,
-			"lastCheckTime": "0001-01-01T00:00:00Z"
+			"lastCheckTime": "0001-01-01T00:00:00Z",
+			"disabled": false,
+			"lastError": ""
 		}`)
 		assert.NoError(t, err)
 	}
@@ -312,6 +330,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 			"continuationToken": "",
 			"resolution": "auto"
 		},
+		"aplQuery": false,
 		"threshold": 0,
 		"comparison": "Comparison(0)",
 		"noDataCloseWaitMinutes": 1,
@@ -319,7 +338,9 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 		"durationMinutes": 3,
 		"notifiers": null,
 		"lastCheckTime": "0001-01-01T00:00:00Z",
-		"lastCheckState": null
+		"lastCheckState": null,
+		"disabled": false,
+		"lastError": ""
 	}`
 
 	act, err := Monitor{
