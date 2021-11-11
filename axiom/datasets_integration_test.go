@@ -149,7 +149,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
 
-	// Make sure we don't overtake the server.
+	// Make sure we aren't to fast for the server.
 	time.Sleep(15 * time.Second)
 
 	// Get the dataset info and make sure four events have been ingested.
@@ -174,6 +174,17 @@ func (s *DatasetsTestSuite) Test() {
 		}
 	}
 	s.True(contains, "stats do not contain the dataset created for this test")
+
+	// Update a field of our dataset.
+	field, err := s.client.Datasets.UpdateField(s.ctx, s.dataset.ID, "response", axiom.FieldUpdateRequest{
+		Description: "HTTP status code returned as part of the response",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(field)
+
+	s.Equal("response", field.Name)
+	s.Equal("HTTP status code returned as part of the response", field.Description)
+	s.Equal("integer", field.Type)
 
 	// Run a query and make sure we see some results.
 	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
