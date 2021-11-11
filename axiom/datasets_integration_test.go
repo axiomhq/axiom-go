@@ -215,9 +215,9 @@ func (s *DatasetsTestSuite) Test() {
 		EndTime:   time.Now().UTC(),
 		Aggregations: []query.Aggregation{
 			{
-				Alias: "count",
+				Alias: "event_count",
 				Op:    query.OpCount,
-				// Field: "*",
+				Field: "*",
 			},
 		},
 		GroupBy: []string{"success", "remote_ip"},
@@ -256,7 +256,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(4, complexQueryResult.Status.RowsMatched)
 	if s.Len(complexQueryResult.Buckets.Totals, 2) {
 		agg := complexQueryResult.Buckets.Totals[0].Aggregations[0]
-		s.Equal(query.OpCount, agg.Op)
+		s.EqualValues("event_count", agg.Alias)
 		s.EqualValues(2, agg.Value)
 	}
 
