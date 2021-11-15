@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	var err error
 	s.testUser, err = s.client.Users.Current(s.suiteCtx)
 	s.Require().NoError(err)
-	s.Require().NotNil(s.client)
+	s.Require().NotNil(s.testUser)
 
 	s.T().Logf("using account %q", s.testUser.Name)
 }
