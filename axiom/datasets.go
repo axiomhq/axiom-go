@@ -516,9 +516,9 @@ func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Opt
 	return &res, nil
 }
 
-// GZIPStreamer returns an io.Reader that gzip compresses the data it reads from
+// GzipStreamer returns an io.Reader that gzip compresses the data it reads from
 // the provided reader using the specified compression level.
-func GZIPStreamer(r io.Reader, level int) (io.Reader, error) {
+func GzipStreamer(r io.Reader, level int) (io.Reader, error) {
 	pr, pw := io.Pipe()
 
 	gzw, err := gzip.NewWriterLevel(pw, level)
@@ -539,9 +539,9 @@ func GZIPStreamer(r io.Reader, level int) (io.Reader, error) {
 	return pr, nil
 }
 
-// ZSTDStreamer returns an io.Reader that zstd compresses the data it reads from
+// ZstdStreamer returns an io.Reader that zstd compresses the data it reads from
 // the provided reader.
-func ZSTDStreamer(r io.Reader) (io.Reader, error) {
+func ZstdStreamer(r io.Reader) (io.Reader, error) {
 	pr, pw := io.Pipe()
 
 	zw, err := zstd.NewWriter(pw)

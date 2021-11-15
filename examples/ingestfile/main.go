@@ -29,7 +29,7 @@ func main() {
 	defer f.Close()
 
 	// 2. Wrap it in a gzip enabled reader.
-	r, err := axiom.GZIPStreamer(f, gzip.BestSpeed)
+	r, err := axiom.GzipStreamer(f, gzip.BestSpeed)
 	if err != nil {
 		log.Fatal(err)
 	}

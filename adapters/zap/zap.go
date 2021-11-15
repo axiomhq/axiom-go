@@ -168,7 +168,7 @@ func (ws *WriteSyncer) Sync() error {
 	// Make sure to reset the buffer.
 	defer ws.buf.Reset()
 
-	r, err := axiom.GZIPStreamer(&ws.buf, gzip.BestSpeed)
+	r, err := axiom.GzipStreamer(&ws.buf, gzip.BestSpeed)
 	if err != nil {
 		return err
 	}

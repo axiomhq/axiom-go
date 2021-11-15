@@ -1008,7 +1008,7 @@ func TestDatasetsService_APLQuery(t *testing.T) {
 func TestGZIPStreamer(t *testing.T) {
 	exp := "Some fox jumps over a fence."
 
-	r, err := GZIPStreamer(strings.NewReader(exp), gzip.BestSpeed)
+	r, err := GzipStreamer(strings.NewReader(exp), gzip.BestSpeed)
 	require.NoError(t, err)
 
 	gzr, err := gzip.NewReader(r)
@@ -1027,7 +1027,7 @@ func TestGZIPStreamer(t *testing.T) {
 func TestZSTDStreamer(t *testing.T) {
 	exp := "Some fox jumps over a fence."
 
-	r, err := ZSTDStreamer(strings.NewReader(exp))
+	r, err := ZstdStreamer(strings.NewReader(exp))
 	require.NoError(t, err)
 
 	zr, err := zstd.NewReader(r)
