@@ -11,11 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/axiomhq/axiom-go/axiom/apl"
-	"github.com/axiomhq/axiom-go/axiom/query"
-
+	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/axiom/apl"
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 const actQueryResp = `{
@@ -1018,6 +1019,22 @@ func TestGZIPStreamer(t *testing.T) {
 	}()
 
 	act, err := io.ReadAll(gzr)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, string(act))
+}
+
+func TestZSTDStreamer(t *testing.T) {
+	exp := "Some fox jumps over a fence."
+
+	r, err := ZSTDStreamer(strings.NewReader(exp))
+	require.NoError(t, err)
+
+	zr, err := zstd.NewReader(r)
+	require.NoError(t, err)
+	defer zr.Close()
+
+	act, err := io.ReadAll(zr)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, string(act))

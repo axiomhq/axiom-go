@@ -13,6 +13,8 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/klauspost/compress/zstd"
+
 	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
@@ -53,6 +55,8 @@ const (
 	Identity ContentEncoding = iota + 1 //
 	// GZIP marks the data as being gzip encoded.
 	GZIP // gzip
+	// ZSTD marks the data as being zstd encoded.
+	ZSTD // zstd
 )
 
 // An Event is a map of key-value pairs.
@@ -381,7 +385,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 
 	switch enc {
 	case Identity:
-	case GZIP:
+	case GZIP, ZSTD:
 		req.Header.Set("Content-Encoding", enc.String())
 	default:
 		return nil, ErrUnknownContentEncoding
@@ -418,8 +422,11 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 
 	pr, pw := io.Pipe()
 	go func() {
-		// Does not fail with a valid compression level.
-		gzw, _ := gzip.NewWriterLevel(pw, gzip.BestSpeed)
+		gzw, wErr := gzip.NewWriterLevel(pw, gzip.BestSpeed)
+		if wErr != nil {
+			_ = pw.CloseWithError(wErr)
+			return
+		}
 
 		var (
 			enc    = json.NewEncoder(gzw)
@@ -521,7 +528,34 @@ func GZIPStreamer(r io.Reader, level int) (io.Reader, error) {
 
 	go func() {
 		_, err := io.Copy(gzw, r)
-		_ = gzw.Close()
+		if closeErr := gzw.Close(); err == nil {
+			// If we have no error from copying but from closing, capture that
+			// one.
+			err = closeErr
+		}
+		_ = pw.CloseWithError(err)
+	}()
+
+	return pr, nil
+}
+
+// ZSTDStreamer returns an io.Reader that zstd compresses the data it reads from
+// the provided reader.
+func ZSTDStreamer(r io.Reader) (io.Reader, error) {
+	pr, pw := io.Pipe()
+
+	zw, err := zstd.NewWriter(pw)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		_, err := io.Copy(zw, r)
+		if closeErr := zw.Close(); err == nil {
+			// If we have no error from copying but from closing, capture that
+			// one.
+			err = closeErr
+		}
 		_ = pw.CloseWithError(err)
 	}()
 

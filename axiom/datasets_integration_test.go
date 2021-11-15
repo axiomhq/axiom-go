@@ -131,7 +131,33 @@ func (s *DatasetsTestSuite) Test() {
 		ingested bytes.Buffer
 		r        = io.TeeReader(strings.NewReader(ingestData), &ingested)
 	)
-	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{})
+	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{
+		TimestampField: "time",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
+	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
+
+	// ... but GZIP encoded...
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.GZIP, axiom.IngestOptions{
+		TimestampField: "time",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
+	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
+
+	// ... but ZSTD encoded...
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.ZSTD, axiom.IngestOptions{
+		TimestampField: "time",
+	})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -158,7 +184,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NotNil(datasetInfo)
 
 	s.Equal(s.dataset.Name, datasetInfo.Name)
-	s.EqualValues(4, datasetInfo.NumEvents)
+	s.EqualValues(8, datasetInfo.NumEvents)
 	s.NotEmpty(datasetInfo.Fields)
 
 	// Get the stats of all datasets and make sure our dataset info is included
@@ -202,7 +228,7 @@ func (s *DatasetsTestSuite) Test() {
 	// s.EqualValues(1, queryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
 	s.EqualValues(4, queryResult.Status.RowsExamined)
 	s.EqualValues(4, queryResult.Status.RowsMatched)
-	s.Len(queryResult.Matches, 4)
+	s.Len(queryResult.Matches, 8)
 
 	// Run another query but using APL.
 	rawAPLQuery := fmt.Sprintf("['%s']", s.dataset.ID)
@@ -218,7 +244,7 @@ func (s *DatasetsTestSuite) Test() {
 	// s.EqualValues(1, aplQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
 	s.EqualValues(4, aplQueryResult.Status.RowsExamined)
 	s.EqualValues(4, aplQueryResult.Status.RowsMatched)
-	s.Len(aplQueryResult.Matches, 4)
+	s.Len(aplQueryResult.Matches, 8)
 
 	// Run a more complex query.
 	complexQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
@@ -263,12 +289,12 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(complexQueryResult)
 
-	s.EqualValues(4, complexQueryResult.Status.RowsExamined)
-	s.EqualValues(4, complexQueryResult.Status.RowsMatched)
+	s.EqualValues(8, complexQueryResult.Status.RowsExamined)
+	s.EqualValues(8, complexQueryResult.Status.RowsMatched)
 	if s.Len(complexQueryResult.Buckets.Totals, 2) {
 		agg := complexQueryResult.Buckets.Totals[0].Aggregations[0]
 		s.EqualValues("event_count", agg.Alias)
-		s.EqualValues(2, agg.Value)
+		s.EqualValues(4, agg.Value)
 	}
 
 	// HINT(lukasmalkmus): This test initializes a new client to make sure

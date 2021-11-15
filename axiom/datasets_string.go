@@ -30,11 +30,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[Identity-1]
 	_ = x[GZIP-2]
+	_ = x[ZSTD-3]
 }
 
-const _ContentEncoding_name = "gzip"
+const _ContentEncoding_name = "gzipzstd"
 
-var _ContentEncoding_index = [...]uint8{0, 0, 4}
+var _ContentEncoding_index = [...]uint8{0, 0, 4, 8}
 
 func (i ContentEncoding) String() string {
 	i -= 1
