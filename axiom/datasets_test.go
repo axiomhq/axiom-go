@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -969,41 +968,6 @@ func TestDatasetsService_APLQuery(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, expAPLQueryRes, res)
-}
-
-func TestGZIPStreamer(t *testing.T) {
-	exp := "Some fox jumps over a fence."
-
-	r, err := GzipStreamer(strings.NewReader(exp), gzip.BestSpeed)
-	require.NoError(t, err)
-
-	gzr, err := gzip.NewReader(r)
-	require.NoError(t, err)
-	defer func() {
-		closeErr := gzr.Close()
-		require.NoError(t, closeErr)
-	}()
-
-	act, err := io.ReadAll(gzr)
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, string(act))
-}
-
-func TestZSTDStreamer(t *testing.T) {
-	exp := "Some fox jumps over a fence."
-
-	r, err := ZstdStreamer(strings.NewReader(exp))
-	require.NoError(t, err)
-
-	zr, err := zstd.NewReader(r)
-	require.NoError(t, err)
-	defer zr.Close()
-
-	act, err := io.ReadAll(zr)
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, string(act))
 }
 
 func TestDetectContentType(t *testing.T) {

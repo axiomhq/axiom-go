@@ -2,7 +2,6 @@ package zap
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -168,12 +167,12 @@ func (ws *WriteSyncer) Sync() error {
 	// Make sure to reset the buffer.
 	defer ws.buf.Reset()
 
-	r, err := axiom.GzipStreamer(&ws.buf, gzip.BestSpeed)
+	r, err := axiom.GzipEncoder(&ws.buf)
 	if err != nil {
 		return err
 	}
 
-	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.GZIP, ws.ingestOptions)
+	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.JSON, axiom.Gzip, ws.ingestOptions)
 	if err != nil {
 		return err
 	} else if res.Failed > 0 {

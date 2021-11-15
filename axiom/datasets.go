@@ -13,8 +13,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/klauspost/compress/zstd"
-
 	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
@@ -53,10 +51,10 @@ type ContentEncoding uint8
 const (
 	// Identity marks the data as not being encoded.
 	Identity ContentEncoding = iota + 1 //
-	// GZIP marks the data as being gzip encoded.
-	GZIP // gzip
-	// ZSTD marks the data as being zstd encoded.
-	ZSTD // zstd
+	// Gzip marks the data as being gzip encoded.
+	Gzip // gzip
+	// Zstd marks the data as being zstd encoded.
+	Zstd // zstd
 )
 
 // An Event is a map of key-value pairs.
@@ -362,7 +360,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 
 	switch enc {
 	case Identity:
-	case GZIP, ZSTD:
+	case Gzip, Zstd:
 		req.Header.Set("Content-Encoding", enc.String())
 	default:
 		return nil, ErrUnknownContentEncoding
@@ -415,7 +413,11 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 			}
 		}
 
-		_ = gzw.Close()
+		if closeErr := gzw.Close(); encErr == nil && closeErr != nil {
+			// If we have no error from encoding but from closing, capture that
+			// one.
+			encErr = closeErr
+		}
 		_ = pw.CloseWithError(encErr)
 	}()
 
@@ -425,7 +427,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	}
 
 	req.Header.Set("Content-Type", NDJSON.String())
-	req.Header.Set("Content-Encoding", GZIP.String())
+	req.Header.Set("Content-Encoding", Gzip.String())
 
 	var res IngestStatus
 	if _, err = s.client.do(req, &res); err != nil {
@@ -491,52 +493,6 @@ func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Opt
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 
 	return &res, nil
-}
-
-// GzipStreamer returns an io.Reader that gzip compresses the data it reads from
-// the provided reader using the specified compression level.
-func GzipStreamer(r io.Reader, level int) (io.Reader, error) {
-	pr, pw := io.Pipe()
-
-	gzw, err := gzip.NewWriterLevel(pw, level)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		_, err := io.Copy(gzw, r)
-		if closeErr := gzw.Close(); err == nil {
-			// If we have no error from copying but from closing, capture that
-			// one.
-			err = closeErr
-		}
-		_ = pw.CloseWithError(err)
-	}()
-
-	return pr, nil
-}
-
-// ZstdStreamer returns an io.Reader that zstd compresses the data it reads from
-// the provided reader.
-func ZstdStreamer(r io.Reader) (io.Reader, error) {
-	pr, pw := io.Pipe()
-
-	zw, err := zstd.NewWriter(pw)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		_, err := io.Copy(zw, r)
-		if closeErr := zw.Close(); err == nil {
-			// If we have no error from copying but from closing, capture that
-			// one.
-			err = closeErr
-		}
-		_ = pw.CloseWithError(err)
-	}()
-
-	return pr, nil
 }
 
 // DetectContentType detects the content type of an io.Reader's data. The

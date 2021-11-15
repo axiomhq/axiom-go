@@ -29,8 +29,8 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[Identity-1]
-	_ = x[GZIP-2]
-	_ = x[ZSTD-3]
+	_ = x[Gzip-2]
+	_ = x[Zstd-3]
 }
 
 const _ContentEncoding_name = "gzipzstd"
