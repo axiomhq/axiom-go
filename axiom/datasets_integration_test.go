@@ -142,8 +142,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Empty(ingestStatus.Failures)
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
-	// ... but GZIP encoded...
-	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.GZIP, axiom.IngestOptions{
+	// ... but gzip encoded...
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{
 		TimestampField: "time",
 	})
 	s.Require().NoError(err)
@@ -154,8 +154,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Empty(ingestStatus.Failures)
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
-	// ... but ZSTD encoded...
-	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.ZSTD, axiom.IngestOptions{
+	// ... but zstd encoded...
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd, axiom.IngestOptions{
 		TimestampField: "time",
 	})
 	s.Require().NoError(err)
