@@ -78,7 +78,7 @@ type Client struct {
 // To connect to Axiom Cloud:
 //
 //   - AXIOM_TOKEN
-//   - AXIOM_ORG_ID
+//   - AXIOM_ORG_ID (only when using a personal token)
 //
 // To connect to an Axiom Selfhost:
 //
@@ -146,9 +146,9 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 // environment. It omits properties that have already been set by user options.
 func (c *Client) populateClientFromEnvironment() (err error) {
 	var (
-		deploymentURL  = os.Getenv("AXIOM_URL")
-		organizationID = os.Getenv("AXIOM_ORG_ID")
-		accessToken    = os.Getenv("AXIOM_TOKEN")
+		deploymentURL = os.Getenv("AXIOM_URL")
+		accessToken   = os.Getenv("AXIOM_TOKEN")
+		orgID         = os.Getenv("AXIOM_ORG_ID")
 
 		options   = make([]Option, 0)
 		addOption = func(option Option) {
@@ -165,23 +165,24 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 		addOption(SetURL(deploymentURL))
 	}
 
-	// When the base url is set to the Axiom Cloud url but no organization ID is
-	// set, use `AXIOM_ORG_ID`.
-	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
-	cloudURLSetByEnvironment := deploymentURL == CloudURL
-	if (cloudURLSetByOption || cloudURLSetByEnvironment) && c.orgID == "" {
-		if organizationID == "" || c.noEnv {
-			return ErrMissingOrganizationID
-		}
-		addOption(SetOrgID(organizationID))
-	}
-
 	// When the access token is not set, use `AXIOM_TOKEN`.
 	if c.accessToken == "" {
 		if accessToken == "" || c.noEnv {
 			return ErrMissingAccessToken
 		}
 		addOption(SetAccessToken(accessToken))
+	}
+
+	// When the base url is set to the Axiom Cloud url but no organization ID is
+	// set, use `AXIOM_ORG_ID` in case the access token is not an ingest token.
+	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
+	cloudURLSetByEnvironment := deploymentURL == CloudURL
+	isIngestToken := IsIngestToken(c.accessToken) || IsIngestToken(accessToken)
+	if (cloudURLSetByOption || cloudURLSetByEnvironment) && c.orgID == "" && !isIngestToken {
+		if orgID == "" || c.noEnv {
+			return ErrMissingOrganizationID
+		}
+		addOption(SetOrgID(orgID))
 	}
 
 	return c.Options(options...)
@@ -244,8 +245,8 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
 
-	// Set organization ID header, if present.
-	if c.orgID != "" {
+	// Set organization ID header when not using an ingest token.
+	if !IsIngestToken(c.accessToken) && c.orgID != "" {
 		req.Header.Set("X-Axiom-Org-Id", c.orgID)
 	}
 

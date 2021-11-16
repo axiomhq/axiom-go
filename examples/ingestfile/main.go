@@ -12,7 +12,8 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` and `AXIOM_DATASET` for Axiom Cloud.
+	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` (when using a personal token) and
+	// `AXIOM_DATASET` for Axiom Cloud.
 	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
 
 	dataset := os.Getenv("AXIOM_DATASET")

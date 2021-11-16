@@ -46,7 +46,8 @@ make # Run code generators, linters, sanitizers and test suits
 
 The client is initialized with the url of the deployment and an access token
 when using Axiom Selfhost or an access token and the users organization id when
-using Axiom Cloud.
+using Axiom Cloud. The organization id can be omitted in case an ingest token is
+used.
 
 The access token can be a personal token retrieved from the users profile page
 or an ingest token retrieved from the settings of the Axiom deployment.
@@ -60,8 +61,9 @@ for.
 ## Usage
 
 ```go
-// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` for Axiom Cloud
-// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost
+// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` (when using a personal token) for
+// Axiom Cloud.
+// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost.
 
 // 1. Open the file to ingest.
 f, err := os.Open("logs.json")
