@@ -5,9 +5,11 @@ import (
 	"net/http"
 )
 
-// Token represents an access token. Tokens can either be ingest tokens, valid
-// for ingestion into one or more datasets or personal tokens for access to the
-// whole Axiom API.
+// Token represents an access token. Tokens can either be api tokens, valid
+// across the whole Axiom API and granting access to the specified resources,
+// ingest tokens, valid for ingestion into one or more datasets or personal
+// tokens, granting access to the whole Axiom API only limited by the users
+// role.
 type Token struct {
 	// ID is the unique ID of the token.
 	ID string `json:"id"`
@@ -15,28 +17,32 @@ type Token struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token. Only used by ingest tokens.
+	// Scopes of the token. Only used by api and ingest tokens.
 	Scopes []string `json:"scopes"`
+	// Permissions of the token. Only used by api and ingest tokens.
+	Permissions []string `json:"permissions"`
 }
 
 // RawToken represents a raw token secret and its attached scopes.
 type RawToken struct {
 	// Token is the actual secret value of the token.
 	Token string `json:"token"`
-	// Scopes of the token. Only used by ingest tokens.
+	// Scopes of the token. Only used by api and ingest tokens.
 	Scopes []string `json:"scopes"`
+	// Permissions of the token. Only used by api and ingest tokens.
+	Permissions []string `json:"permissions"`
 }
 
-// TokenCreateRequest is a request used to create a token.
-type TokenCreateRequest struct {
+// TokenCreateUpdateRequest is a request used to create a token.
+type TokenCreateUpdateRequest struct {
 	// Name of the token.
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token. Only used by ingest tokens. Can be set to a list of
-	// dataset IDs to allow ingestion into the specified ones or "*" for all,
-	// which is the default when the field is unset.
+	// Scopes of the token. Only used by api and ingest tokens.
 	Scopes []string `json:"scopes"`
+	// Permissions of the token. Only used by api and ingest tokens.
+	Permissions []string `json:"permissions"`
 }
 
 // tokensService implements the methods sharred between the ingest and personal
@@ -78,7 +84,7 @@ func (s *tokensService) View(ctx context.Context, id string) (*RawToken, error) 
 }
 
 // Create a token with the given properties.
-func (s *tokensService) Create(ctx context.Context, req TokenCreateRequest) (*Token, error) {
+func (s *tokensService) Create(ctx context.Context, req TokenCreateUpdateRequest) (*Token, error) {
 	var res Token
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
@@ -88,7 +94,7 @@ func (s *tokensService) Create(ctx context.Context, req TokenCreateRequest) (*To
 }
 
 // Update the token identified by the given id with the given properties.
-func (s *tokensService) Update(ctx context.Context, id string, req Token) (*Token, error) {
+func (s *tokensService) Update(ctx context.Context, id string, req TokenCreateUpdateRequest) (*Token, error) {
 	path := s.basePath + "/" + id
 
 	var res Token
