@@ -138,7 +138,7 @@ func TestTokensService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/personal", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.Create(context.Background(), TokenCreateRequest{
+	res, err := client.Tokens.Personal.Create(context.Background(), TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A test token",
 	})
@@ -175,7 +175,7 @@ func TestTokensService_Update(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/personal/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.Update(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", Token{
+	res, err := client.Tokens.Personal.Update(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", TokenCreateUpdateRequest{
 		Name:        "Michael Doe",
 		Description: "A very good test token",
 	})
