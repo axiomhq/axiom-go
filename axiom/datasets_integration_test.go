@@ -131,9 +131,7 @@ func (s *DatasetsTestSuite) Test() {
 		ingested bytes.Buffer
 		r        = io.TeeReader(strings.NewReader(ingestData), &ingested)
 	)
-	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{
-		TimestampField: "time",
-	})
+	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -143,9 +141,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but gzip encoded...
-	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{
-		TimestampField: "time",
-	})
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -155,9 +151,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but zstd encoded...
-	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd, axiom.IngestOptions{
-		TimestampField: "time",
-	})
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd, axiom.IngestOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
