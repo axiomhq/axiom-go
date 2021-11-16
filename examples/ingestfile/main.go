@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// 4. Ingest ⚡
-	// Note the JSON content type and GZIP content encoding being set because
+	// Note the JSON content type and Gzip content encoding being set because
 	// the client does not auto sense them.
 	res, err := client.Datasets.Ingest(context.Background(), dataset, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
 	if err != nil {

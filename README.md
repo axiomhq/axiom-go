@@ -60,6 +60,8 @@ for.
 
 ## Usage
 
+Simple file ingestion with on the fly compression:
+
 ```go
 // Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` (when using a personal token) for
 // Axiom Cloud.
@@ -73,7 +75,7 @@ if err != nil {
 defer f.Close()
 
 // 2. Wrap it in a gzip enabled reader.
-r, err := axiom.GZIPStreamer(f, gzip.BestSpeed)
+r, err := axiom.GzipEncoder(f)
 if err != nil {
 	log.Fatal(err)
 }
@@ -85,9 +87,9 @@ if err != nil {
 }
 
 // 4. Ingest ⚡
-// Note the JSON content type and GZIP content encoding being set because
-// the client does not auto sense them.
-res, err := client.Datasets.Ingest(context.Background(), "test", r, axiom.JSON, axiom.GZIP, axiom.IngestOptions{})
+// Note the JSON content type and Gzip content encoding being set because the
+// client does not auto sense them.
+res, err := client.Datasets.Ingest(context.Background(), dataset, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
 if err != nil {
 	log.Fatal(err)
 }
