@@ -44,7 +44,7 @@ func TestValidateEnvironment(t *testing.T) {
 	}{
 		{
 			name: "no environment",
-			err:  axiom.ErrMissingOrganizationID,
+			err:  axiom.ErrMissingAccessToken,
 		},
 		{
 			name: "bad environment",
