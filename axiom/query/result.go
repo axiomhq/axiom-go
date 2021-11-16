@@ -212,8 +212,9 @@ type EntryGroup struct {
 
 // EntryGroupAgg is an aggregation which is part of a group of queried events.
 type EntryGroupAgg struct {
-	// Op is the aggregations operation.
-	Op AggregationOp `json:"op"`
+	// Alias is the aggregations alias. If it wasn't specified at query time, it
+	// is the uppercased string representation of the aggregation operation.
+	Alias string `json:"op"`
 	// Value is the result value of the aggregation.
 	Value interface{} `json:"value"`
 }
