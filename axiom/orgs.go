@@ -166,7 +166,7 @@ type Organization struct {
 
 // OrganizationUpdateRequest is a request used to update an organization.
 type OrganizationUpdateRequest struct {
-	// Name of the user.
+	// Name of the organization. Restricted to 30 characters.
 	Name string `json:"name"`
 }
 
