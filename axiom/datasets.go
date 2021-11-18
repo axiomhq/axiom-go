@@ -172,8 +172,8 @@ type IngestFailure struct {
 
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
-	// Name of the dataset to create. Restricted to 128 bytes of [a-zA-Z0-9] and
-	// special characters "-", "_" and ".". Special characters cannot be a
+	// Name of the dataset to create. Restricted to 80 characters of [a-zA-Z0-9]
+	// and special characters "-", "_" and ".". Special characters cannot be a
 	// prefix or suffix. The prefix cannot be "axiom-".
 	Name string `json:"name"`
 	// Description of the dataset to create.
