@@ -129,8 +129,20 @@ func (s *DatasetsTestSuite) Test() {
 	// Let's ingest some data from a reader source...
 	var (
 		ingested bytes.Buffer
-		r        = io.TeeReader(strings.NewReader(ingestData), &ingested)
+		r        io.Reader
+
+		resetBuffer = func(contentEncoders ...axiom.ContentEncoder) {
+			ingested.Reset()
+			r = io.TeeReader(strings.NewReader(ingestData), &ingested)
+
+			for _, contentEncoder := range contentEncoders {
+				var ceErr error
+				r, ceErr = contentEncoder(r)
+				s.Require().NoError(ceErr)
+			}
+		}
 	)
+	resetBuffer()
 	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -141,6 +153,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but gzip encoded...
+	resetBuffer(axiom.GzipEncoder)
 	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -151,6 +164,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but zstd encoded...
+	resetBuffer(axiom.ZstdEncoder)
 	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd, axiom.IngestOptions{})
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
