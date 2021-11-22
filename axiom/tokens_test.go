@@ -201,7 +201,7 @@ func TestTokensService_Delete(t *testing.T) {
 func TestIngestTokensService_Validate(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
-		assert.Equal(t, r.Header.Get("Authorization"), "Bearer "+accessToken)
+		assert.Equal(t, r.Header.Get("Authorization"), "Bearer "+personalToken)
 
 		w.WriteHeader(http.StatusOK)
 	}
