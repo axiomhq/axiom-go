@@ -39,7 +39,7 @@ const (
 	// JSON treats the data as JSON array.
 	JSON ContentType = iota + 1 // application/json
 	// NDJSON treats the data as newline delimited JSON objects. Preferred
-	// format.
+	// data format.
 	NDJSON // application/x-ndjson
 	// CSV treats the data as CSV content.
 	CSV // text/csv
@@ -51,7 +51,7 @@ type ContentEncoding uint8
 const (
 	// Identity marks the data as not being encoded.
 	Identity ContentEncoding = iota + 1 //
-	// Gzip marks the data as being gzip encoded.
+	// Gzip marks the data as being gzip encoded. Preferred compression format.
 	Gzip // gzip
 	// Zstd marks the data as being zstd encoded.
 	Zstd // zstd
