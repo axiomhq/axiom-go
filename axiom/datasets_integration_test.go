@@ -234,8 +234,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NotEmpty(queryResult.SavedQueryID)
 
 	// s.EqualValues(1, queryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
-	s.EqualValues(4, queryResult.Status.RowsExamined)
-	s.EqualValues(4, queryResult.Status.RowsMatched)
+	s.EqualValues(8, queryResult.Status.RowsExamined)
+	s.EqualValues(8, queryResult.Status.RowsMatched)
 	s.Len(queryResult.Matches, 8)
 
 	// Run another query but using APL.
@@ -250,8 +250,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NotEmpty(aplQueryResult.SavedQueryID)
 
 	// s.EqualValues(1, aplQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
-	s.EqualValues(4, aplQueryResult.Status.RowsExamined)
-	s.EqualValues(4, aplQueryResult.Status.RowsMatched)
+	s.EqualValues(8, aplQueryResult.Status.RowsExamined)
+	s.EqualValues(8, aplQueryResult.Status.RowsMatched)
 	s.Len(aplQueryResult.Matches, 8)
 
 	// Run a more complex query.
