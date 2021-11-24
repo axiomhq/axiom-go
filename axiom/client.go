@@ -64,6 +64,7 @@ type Client struct {
 	StarredQueries *StarredQueriesService
 	Teams          *TeamsService
 	Tokens         struct {
+		API      *APITokensService
 		Ingest   *IngestTokensService
 		Personal *PersonalTokensService
 	}
@@ -105,6 +106,7 @@ func NewClient(options ...Option) (*Client, error) {
 	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
 	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
+	client.Tokens.API = &APITokensService{tokensService{client, "/api/v1/tokens/api"}}
 	client.Tokens.Ingest = &IngestTokensService{tokensService{client, "/api/v1/tokens/ingest"}}
 	client.Tokens.Personal = &PersonalTokensService{tokensService{client, "/api/v1/tokens/personal"}}
 	client.Users = &UsersService{client, "/api/v1/users"}

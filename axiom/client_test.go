@@ -212,6 +212,7 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.NotNil(t, client.Organizations)
 	assert.NotNil(t, client.StarredQueries)
 	assert.NotNil(t, client.Teams)
+	assert.NotNil(t, client.Tokens.API)
 	assert.NotNil(t, client.Tokens.Ingest)
 	assert.NotNil(t, client.Tokens.Personal)
 	assert.NotNil(t, client.Users)
