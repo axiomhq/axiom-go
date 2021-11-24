@@ -186,6 +186,16 @@ type DatasetUpdateRequest struct {
 	Description string `json:"description"`
 }
 
+// FieldUpdateRequest is a request used to update a field for a dataset.
+type FieldUpdateRequest struct {
+	// Description of the field to update.
+	Description string `json:"description"`
+	// Unit of the field to update.
+	Unit string `json:"unit"`
+	// Hidden status of the field to update.
+	Hidden bool `json:"hidden"`
+}
+
 type datasetTrimRequest struct {
 	// MaxDuration marks the oldest timestamp an event can have before getting
 	// deleted.
@@ -274,6 +284,19 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 	path := s.basePath + "/" + id
 
 	var res Dataset
+	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Update the named field of the dataset identified by the given id with the
+// given properties.
+func (s *DatasetsService) UpdateField(ctx context.Context, dataset, field string, req FieldUpdateRequest) (*Field, error) {
+	path := s.basePath + "/" + dataset + "/fields/" + field
+
+	var res Field
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}

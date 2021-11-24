@@ -565,6 +565,40 @@ func TestDatasetsService_Update(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestDatasetsService_UpdateField(t *testing.T) {
+	exp := &Field{
+		Name:        "status",
+		Description: "HTTP status code",
+		Type:        "integer",
+		Unit:        "",
+		Hidden:      false,
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+
+		_, err := fmt.Fprint(w, `{
+			"name": "status",
+			"type": "integer",
+			"unit": "",
+			"hidden": false,
+			"description": "HTTP status code"
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/fields/status", hf)
+	defer teardown()
+
+	res, err := client.Datasets.UpdateField(context.Background(), "test", "status", FieldUpdateRequest{
+		Description: "HTTP status code",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 func TestDatasetsService_Delete(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodDelete, r.Method)
