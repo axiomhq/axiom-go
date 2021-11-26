@@ -9,9 +9,6 @@
 
 ---
 
-## Table of Contents
-
-
 ## Introduction
 
 Axiom Go is a Go client library for accessing the [Axiom](https://www.axiom.co/)
@@ -106,7 +103,7 @@ You can find the Axiom and Axiom Go documentation
 
 The documentation is divided into several sections:
 
-- [Getting started with Axiom Cloud](https://www.axiom.co/docs/install/cloud)
+- [Axiom Cloud](https://www.axiom.co/docs/install/cloud)
 - [Getting Started](https://docs.axiom.co/usage/getting-started/)
 - [Ingesting Data](https://docs.axiom.co/usage/ingest/)
 - [Analyzing Data](https://docs.axiom.co/usage/analyze/)
