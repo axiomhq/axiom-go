@@ -11,17 +11,6 @@
 
 ## Table of Contents
 
-- [Axiom Go](#axiom-go)
-	- [Table of Contents](#table-of-contents)
-	- [Introduction](#introduction)
-	- [Installation](#installation)
-		- [Install using `go get`](#install-using-go-get)
-		- [Install from source](#install-from-source)
-	- [Authentication](#authentication)
-	- [Usage](#usage)
-	- [Documentation](#documentation)
-	- [Contributing](#contributing)
-	- [License](#license)
 
 ## Introduction
 
