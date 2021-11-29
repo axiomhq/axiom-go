@@ -18,6 +18,10 @@ var (
 	// `AXIOM_ORG_ID`.
 	ErrMissingOrganizationID = errors.New("missing organization id")
 
+	// ErrUnauthorized is raised when the user or token misses permissions to
+	// perform the requested operation.
+	ErrUnauthorized = errors.New("insufficient permissions")
+
 	// ErrUnauthenticated is raised when the access token is not valid.
 	ErrUnauthenticated = errors.New("invalid authentication credentials")
 

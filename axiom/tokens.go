@@ -91,8 +91,8 @@ type TokenCreateUpdateRequest struct {
 	Permissions []Permission `json:"permissions"`
 }
 
-// tokensService implements the methods sharred between the ingest and personal
-// token services.
+// tokensService implements the methods sharred between the api, ingest and
+// personal token services.
 type tokensService service
 
 // List all available tokens.

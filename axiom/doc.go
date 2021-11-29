@@ -22,9 +22,9 @@
 //
 // Some API methods have additional parameters that can be passed:
 //
-//	 dashboards, err := client.Dashboards.List(ctx, axiom.ListOptions{
+//   dashboards, err := client.Dashboards.List(ctx, axiom.ListOptions{
 //       Limit: 5,
-//	 })
+//   })
 //
 // NOTE: Every client method mapping to an API method takes a context.Context
 // (https://godoc.org/context) as its first parameter to pass cancelation
