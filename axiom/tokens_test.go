@@ -2,6 +2,7 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -10,10 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// HINT(lukasmalkmus): The tests below just test against the "personal"
-// endpoint. However, the "ingest" implementation is the same. Under the hood,
-// they both use the TokenService. The integration tests make sure this
-// implementation works against both endpoints.
+// HINT(lukasmalkmus): Most of the tests below just test against the "api"
+// endpoint. However, the "ingest" and "personal" implementation is the same as
+// "api" one: Under the hood, they both use the TokenService. The integration
+// tests make sure this implementation works against both endpoints.
 
 func TestTokensService_List(t *testing.T) {
 	exp := []*Token{
@@ -41,7 +42,7 @@ func TestTokensService_List(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/personal", hf)
+	client, teardown := setup(t, "/api/v1/tokens/api", hf)
 	defer teardown()
 
 	res, err := client.Tokens.Personal.List(context.Background())
@@ -72,7 +73,7 @@ func TestTokensService_Get(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/personal/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
+	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
 	res, err := client.Tokens.Personal.Get(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
@@ -101,7 +102,7 @@ func TestTokensService_View(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/personal/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e/token", hf)
+	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e/token", hf)
 	defer teardown()
 
 	res, err := client.Tokens.Personal.View(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
@@ -135,7 +136,7 @@ func TestTokensService_Create(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/personal", hf)
+	client, teardown := setup(t, "/api/v1/tokens/api", hf)
 	defer teardown()
 
 	res, err := client.Tokens.Personal.Create(context.Background(), TokenCreateUpdateRequest{
@@ -172,7 +173,7 @@ func TestTokensService_Update(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/personal/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
+	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
 	res, err := client.Tokens.Personal.Update(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", TokenCreateUpdateRequest{
@@ -191,7 +192,7 @@ func TestTokensService_Delete(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/personal/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
+	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
 	err := client.Tokens.Personal.Delete(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
@@ -201,7 +202,7 @@ func TestTokensService_Delete(t *testing.T) {
 func TestIngestTokensService_Validate(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
-		assert.Equal(t, r.Header.Get("Authorization"), "Bearer "+personalToken)
+		assert.Equal(t, r.Header.Get("Authorization"), "Bearer "+ingestToken)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -211,4 +212,43 @@ func TestIngestTokensService_Validate(t *testing.T) {
 
 	err := client.Tokens.Ingest.Validate(context.Background())
 	require.NoError(t, err)
+}
+
+func TestPermission_Marshal(t *testing.T) {
+	exp := `{
+		"permission": "CanIngest"
+	}`
+
+	b, err := json.Marshal(struct {
+		Permission Permission `json:"permission"`
+	}{
+		Permission: CanIngest,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestPermission_Unmarshal(t *testing.T) {
+	var act struct {
+		Permission Permission `json:"permission"`
+	}
+	err := json.Unmarshal([]byte(`{ "permission": "CanIngest" }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, CanIngest, act.Permission)
+}
+
+func TestPermission_String(t *testing.T) {
+	// Check outer bounds.
+	assert.Equal(t, Permission(0).String(), "Permission(0)")
+	assert.Contains(t, (CanIngest - 1).String(), "Permission(")
+	assert.Contains(t, (CanQuery + 1).String(), "Permission(")
+
+	for c := CanIngest; c <= CanQuery; c++ {
+		s := c.String()
+		assert.NotEmpty(t, s)
+		assert.NotContains(t, s, "Permission(")
+	}
 }

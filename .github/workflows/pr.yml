@@ -82,6 +82,12 @@ jobs:
           AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
           AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
         run: make test-integration
+      - name: Cleanup (On Integration Failure)
+        if: github.event.pull_request.head.repo.full_name == github.repository && failure()
+        env:
+          AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
+          AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
+        run: axiom dataset list -f=json | jq '.[] | select(.id | contains("test-axiom-go-")).id' | xargs -n1 axiom dataset delete -f
       - name: Update Coverage
         if: ${{ matrix.update-coverage }}
         uses: codecov/codecov-action@v1
