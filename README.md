@@ -9,16 +9,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#introduction)
-1. [Installation](#installation)
-1. [Authentication](#authentication)
-1. [Usage](#usage)
-1. [Documentation](#documentation)
-1. [Contributing](#contributing)
-1. [License](#license)
-
 ## Introduction
 
 Axiom Go is a Go client library for accessing the [Axiom](https://www.axiom.co/)
@@ -113,13 +103,14 @@ You can find the Axiom and Axiom Go documentation
 
 The documentation is divided into several sections:
 
+- [Axiom Cloud](https://www.axiom.co/docs/install/cloud)
 - [Getting Started](https://docs.axiom.co/usage/getting-started/)
 - [Ingesting Data](https://docs.axiom.co/usage/ingest/)
 - [Analyzing Data](https://docs.axiom.co/usage/analyze/)
 - [Streaming Data](https://docs.axiom.co/usage/stream/)
 - [Runing Axiom on Kubernetes](https://docs.axiom.co/install/kubernetes/)
 - [Run Axiom on your Desktop](https://docs.axiom.co/install/demo/)
-- [Manage deployments with Axiom CLI](https://docs.axiom.co/reference/CLI/)
+- [Manage deployments with Axiom CLI](https://www.axiom.co/docs/reference/cli)
 - [Ingest using Elastic Beats](https://docs.axiom.co/data-shippers/elastic-beats/)
 - [Ingesting via Elasticsearch API](https://docs.axiom.co/data-shippers/api/)
 - [Where to Get Support](https://axiom.co/support)
