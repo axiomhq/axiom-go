@@ -295,7 +295,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 
 		// In case something went wrong, include the raw response and hope for
 		// the best.
-		if errResp.Message == "" && errResp.ErrorMessage == "" {
+		if errResp.Message == "" {
 			s := strings.ReplaceAll(buf.String(), "\n", " ")
 			errResp.Message = s
 			return resp, errResp
