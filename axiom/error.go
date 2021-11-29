@@ -32,19 +32,17 @@ var (
 	ErrExists = errors.New("entity exists")
 )
 
+var _ error = (*Error)(nil)
+
 // Error is the generic error response returned on non 2xx HTTP status codes.
 // Either one of the two fields is populated. However, calling the Error()
 // method is preferred.
 type Error struct {
-	Status       int    `json:"-"`
-	ErrorMessage string `json:"error"`
-	Message      string `json:"message"`
+	Status  int    `json:"-"`
+	Message string `json:"message"`
 }
 
 // Error implements the error interface.
 func (e Error) Error() string {
-	if e.ErrorMessage != "" {
-		return fmt.Sprintf("API error %d: %s", e.Status, e.ErrorMessage)
-	}
 	return fmt.Sprintf("API error %d: %s", e.Status, e.Message)
 }
