@@ -305,13 +305,24 @@ func (s *DatasetsTestSuite) Test() {
 		s.EqualValues(4, agg.Value)
 	}
 
-	// HINT(lukasmalkmus): This test initializes a new client to make sure
-	// strict decoding is never set on this method. After this test, it gets
-	// set to its previous state.
-	// This is in place because the API returns a slightly different model with
-	// a lot of empty fields which are never set for a history query. Those are
-	// not part of the client side model for ease of use.
-	s.newClient()
+	// Trim the dataset down to a minimum.
+	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
+	s.Require().NoError(err)
+	s.Require().NotNil(trimResult)
+
+	// HINT(lukasmalkmus): There are no blocks to trim in this test.
+	s.EqualValues(0, trimResult.BlocksDeleted)
+
+	// HINT(lukasmalkmus): Disable strict decoding for the query history. This
+	// is in place because the API returns a slightly different model with a lot
+	// of empty fields which are never set for a history query. Those are not
+	// part of the client side model for ease of use.
+	err = s.client.Options(axiom.SetStrictDecoding(false))
+	s.Require().NoError(err)
+	defer func() {
+		optsErr := s.client.Options(axiom.SetStrictDecoding(strictDecoding))
+		s.Require().NoError(optsErr)
+	}()
 
 	// Give the server some time to store the queries.
 	time.Sleep(time.Second)
@@ -329,18 +340,4 @@ func (s *DatasetsTestSuite) Test() {
 
 	s.Equal(aplQueryResult.SavedQueryID, historyQuery.ID)
 	s.Equal(query.APL, historyQuery.Kind)
-
-	// Revert to strict decoding.
-	if strictDecoding {
-		optsErr := s.client.Options(axiom.SetStrictDecoding())
-		s.Require().NoError(optsErr)
-	}
-
-	// Trim the dataset down to a minimum.
-	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
-	s.Require().NoError(err)
-	s.Require().NotNil(trimResult)
-
-	// HINT(lukasmalkmus): There are no blocks to trim in this test.
-	s.EqualValues(0, trimResult.BlocksDeleted)
 }

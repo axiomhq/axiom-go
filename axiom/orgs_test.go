@@ -1,3 +1,4 @@
+//nolint:dupl // Fine to have a bit of duplication in a test file.
 package axiom
 
 import (
@@ -114,7 +115,6 @@ func TestOrganizationsService_List(t *testing.T) {
 }
 
 func TestOrganizationsService_Get(t *testing.T) {
-	//nolint:dupl // Fine to have a bit of duplication in a test file.
 	exp := &Organization{
 		ID:                  "axiom",
 		Name:                "Slovak Industries Ltd",
@@ -273,7 +273,6 @@ func TestOrganizationsService_License(t *testing.T) {
 }
 
 func TestOrganizationsService_Update(t *testing.T) {
-	//nolint:dupl // Fine to have a bit of duplication in a test file.
 	exp := &Organization{
 		ID:                  "axiom",
 		Name:                "Axiom Industries Ltd",

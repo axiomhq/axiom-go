@@ -29,12 +29,12 @@ const (
 
 var tokenRe = regexp.MustCompile("xa(a|i|p|)t-[a-zA-z0-9]{8}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{12}")
 
-// SetStrictDecoding is a special testing only client option that failes JSON
-// response decoding if fields not present in the destination struct are
-// encountered.
-func SetStrictDecoding() Option {
+// SetStrictDecoding is a special testing-only client option that - when set to
+// 'true' - failes JSON response decoding if fields not present in the
+// destination struct are encountered.
+func SetStrictDecoding(b bool) Option {
 	return func(c *Client) error {
-		c.strictDecoding = true
+		c.strictDecoding = b
 		return nil
 	}
 }
@@ -537,7 +537,7 @@ func TestIngestPathRegex(t *testing.T) {
 // setup sets up a test HTTP server along with a client that is configured to
 // talk to that test server. Tests should pass a handler function which provides
 // the response for the API method being tested.
-func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()) {
+func setup(t *testing.T, path string, handler http.HandlerFunc, options ...Option) (*Client, func()) {
 	t.Helper()
 
 	r := http.NewServeMux()
@@ -562,9 +562,14 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 		SetAccessToken(personalToken),
 		SetOrgID(orgID),
 		SetClient(srv.Client()),
-		SetStrictDecoding(),
+		SetStrictDecoding(true),
 		SetNoEnv(),
 	)
+	require.NoError(t, err)
+
+	// Supply additional options passed as parameters separately. This makes it
+	// easier to debug issues with user supplied options to this function.
+	err = client.Options(options...)
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

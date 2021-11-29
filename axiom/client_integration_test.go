@@ -59,11 +59,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.newClient()
 
-	if strictDecoding {
-		err := s.client.Options(axiom.SetStrictDecoding())
-		s.Require().NoError(err)
-	}
-
 	var err error
 	s.testUser, err = s.client.Users.Current(s.suiteCtx)
 	s.Require().NoError(err)
@@ -91,11 +86,17 @@ func (s *IntegrationTestSuite) Test() {
 	s.Require().NoError(err)
 }
 
-func (s *IntegrationTestSuite) newClient() {
+func (s *IntegrationTestSuite) newClient(additionalOptions ...axiom.Option) {
+	var err error
+	s.client, err = newClient(additionalOptions...)
+	s.Require().NoError(err)
+	s.Require().NotNil(s.client)
+}
+
+func newClient(additionalOptions ...axiom.Option) (*axiom.Client, error) {
 	var (
 		userAgent = "axiom-go-integration-test/" + datasetSuffix
 		options   = []axiom.Option{axiom.SetNoEnv(), axiom.SetUserAgent(userAgent)}
-		err       error
 	)
 
 	if deploymentURL != "" {
@@ -108,7 +109,8 @@ func (s *IntegrationTestSuite) newClient() {
 		options = append(options, axiom.SetOrgID(orgID))
 	}
 
-	s.client, err = axiom.NewClient(options...)
-	s.Require().NoError(err)
-	s.Require().NotNil(s.client)
+	options = append(options, axiom.SetStrictDecoding(strictDecoding))
+	options = append(options, additionalOptions...)
+
+	return axiom.NewClient(options...)
 }

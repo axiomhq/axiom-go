@@ -45,7 +45,7 @@ func TestTokensService_List(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/api", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.List(context.Background())
+	res, err := client.Tokens.API.List(context.Background())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -76,7 +76,7 @@ func TestTokensService_Get(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.Get(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
+	res, err := client.Tokens.API.Get(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -105,7 +105,7 @@ func TestTokensService_View(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e/token", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.View(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
+	res, err := client.Tokens.API.View(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -139,7 +139,7 @@ func TestTokensService_Create(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/api", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.Create(context.Background(), TokenCreateUpdateRequest{
+	res, err := client.Tokens.API.Create(context.Background(), TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A test token",
 	})
@@ -176,7 +176,7 @@ func TestTokensService_Update(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
-	res, err := client.Tokens.Personal.Update(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", TokenCreateUpdateRequest{
+	res, err := client.Tokens.API.Update(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", TokenCreateUpdateRequest{
 		Name:        "Michael Doe",
 		Description: "A very good test token",
 	})
@@ -195,7 +195,7 @@ func TestTokensService_Delete(t *testing.T) {
 	client, teardown := setup(t, "/api/v1/tokens/api/08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e", hf)
 	defer teardown()
 
-	err := client.Tokens.Personal.Delete(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
+	err := client.Tokens.API.Delete(context.Background(), "08fceb797a467c3c23151f3584c31cfaea962e3ca306e3af69c2dab28e8c2e6e")
 	require.NoError(t, err)
 }
 
@@ -207,7 +207,7 @@ func TestIngestTokensService_Validate(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	client, teardown := setup(t, "/api/v1/tokens/ingest/validate", hf)
+	client, teardown := setup(t, "/api/v1/tokens/ingest/validate", hf, SetAccessToken(ingestToken))
 	defer teardown()
 
 	err := client.Tokens.Ingest.Validate(context.Background())

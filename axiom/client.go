@@ -305,6 +305,8 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		// and wrap them with our errors so user can check for them using
 		// `errors.Is()`.
 		switch statusCode {
+		case http.StatusUnauthorized:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthorized)
 		case http.StatusForbidden:
 			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthenticated)
 		case http.StatusNotFound:

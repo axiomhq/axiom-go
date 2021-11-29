@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 // APITokensTestSuite tests all methods of the Axiom API Tokens API against a
@@ -18,7 +19,8 @@ import (
 type APITokensTestSuite struct {
 	IntegrationTestSuite
 
-	token *axiom.Token
+	dataset *axiom.Dataset
+	token   *axiom.Token
 }
 
 func TestAPITokensTestSuite(t *testing.T) {
@@ -29,6 +31,13 @@ func (s *APITokensTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
+	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
+		Name:        "test-axiom-go-tokens-api-" + datasetSuffix,
+		Description: "This is a test dataset for api tokens integration tests.",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(s.dataset)
+
 	s.token, err = s.client.Tokens.API.Create(s.suiteCtx, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A test token",
@@ -43,7 +52,10 @@ func (s *APITokensTestSuite) TearDownSuite() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	err := s.client.Tokens.API.Delete(ctx, s.token.ID)
+	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
+	s.NoError(err)
+
+	err = s.client.Tokens.API.Delete(ctx, s.token.ID)
 	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
@@ -54,7 +66,7 @@ func (s *APITokensTestSuite) Test() {
 	token, err := s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token",
-		Scopes:      []string{"*"},
+		Scopes:      []string{"none"}, // Not a real scope but prevents the server from automatically assigning the `*` (all) scope.
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
@@ -85,12 +97,54 @@ func (s *APITokensTestSuite) Test() {
 	s.Contains(tokens, s.token)
 }
 
+func (s *APITokensTestSuite) TestScopesAndPermissions() {
+	rawToken, err := s.client.Tokens.API.View(s.ctx, s.token.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(rawToken)
+
+	// Create a separate client that uses the api token as authentication token.
+	client, err := newClient(axiom.SetAccessToken(rawToken.Token))
+	s.Require().NoError(err)
+	s.Require().NotNil(client)
+
+	// Let's make sure we cannot ingest into the dataset we initially created.
+	_, err = client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+
+	token, err := s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
+		Name:        "Test",
+		Description: "A very good test token with scopes and permissions",
+		Scopes:      []string{s.dataset.ID},
+		Permissions: []axiom.Permission{axiom.CanIngest},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(token)
+
+	s.token = token
+
+	// Let's make sure we can now ingest...
+	ingestStatus, err := client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	s.Require().NoError(err)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+
+	// ...but not query.
+	_, err = client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
+		StartTime: time.Now().UTC().Add(-time.Minute),
+		EndTime:   time.Now().UTC(),
+	}, query.Options{})
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+}
+
 // IngestTokensTestSuite tests all methods of the Axiom Ingest Tokens API
 // against a live deployment.
 type IngestTokensTestSuite struct {
 	IntegrationTestSuite
 
-	token *axiom.Token
+	dataset *axiom.Dataset
+	token   *axiom.Token
 }
 
 func TestIngestTokensTestSuite(t *testing.T) {
@@ -101,6 +155,13 @@ func (s *IngestTokensTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
+	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
+		Name:        "test-axiom-go-tokens-ingest-" + datasetSuffix,
+		Description: "This is a test dataset for ingest tokens integration tests.",
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(s.dataset)
+
 	s.token, err = s.client.Tokens.Ingest.Create(s.suiteCtx, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A test token",
@@ -115,7 +176,10 @@ func (s *IngestTokensTestSuite) TearDownSuite() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	err := s.client.Tokens.Ingest.Delete(ctx, s.token.ID)
+	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
+	s.NoError(err)
+
+	err = s.client.Tokens.Ingest.Delete(ctx, s.token.ID)
 	s.NoError(err)
 
 	s.IntegrationTestSuite.TearDownSuite()
@@ -126,7 +190,7 @@ func (s *IngestTokensTestSuite) Test() {
 	token, err := s.client.Tokens.Ingest.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token",
-		Scopes:      []string{"*"},
+		Scopes:      []string{"none"}, // Not a real scope but prevents the server from automatically assigning the `*` (all) scope.
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
@@ -156,22 +220,51 @@ func (s *IngestTokensTestSuite) Test() {
 
 	s.Contains(tokens, s.token)
 
-	// Create a separate client that uses the ingest token as authentication
-	// token and test the Validate() method.
-	oldClient, oldAccessToken := s.client, accessToken
-	accessToken = rawToken.Token
-	s.newClient()
+	// Modify the client to use the ingest token as authentication token and
+	// test the Validate() method.
+	oldAccessToken := accessToken
+	err = s.client.Options(axiom.SetAccessToken(rawToken.Token))
+	s.Require().NoError(err)
 	defer func() {
-		s.client, accessToken = oldClient, oldAccessToken
-
-		if strictDecoding {
-			optsErr := s.client.Options(axiom.SetStrictDecoding())
-			s.Require().NoError(optsErr)
-		}
+		optsErr := s.client.Options(axiom.SetAccessToken(oldAccessToken))
+		s.Require().NoError(optsErr)
 	}()
 
 	err = s.client.Tokens.Ingest.Validate(s.ctx)
 	s.Require().NoError(err)
+}
+
+func (s *IngestTokensTestSuite) TestScopesAndPermissions() {
+	rawToken, err := s.client.Tokens.Ingest.View(s.ctx, s.token.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(rawToken)
+
+	// Create a separate client that uses the ingest token as authentication
+	// token.
+	client, err := newClient(axiom.SetAccessToken(rawToken.Token))
+	s.Require().NoError(err)
+	s.Require().NotNil(client)
+
+	// Let's make sure we cannot ingest into the dataset we initially created.
+	_, err = client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+
+	token, err := s.client.Tokens.Ingest.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
+		Name:        "Test",
+		Description: "A very good test token with scopes and permissions",
+		Scopes:      []string{s.dataset.ID},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(token)
+
+	s.token = token
+
+	// Let's make sure we can now ingest.
+	ingestStatus, err := client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	s.Require().NoError(err)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
 }
 
 // PersonalTokensTestSuite tests all methods of the Axiom Personal Tokens API
