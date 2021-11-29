@@ -19,8 +19,6 @@ import (
 
 const (
 	endpoint = "http://axiom.local"
-	// apiToken is a placeholder api token.
-	apiToken = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	// ingestToken is a placeholder ingest token.
 	ingestToken = "xait-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	// personalToken is a placeholder personal token.
