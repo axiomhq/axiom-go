@@ -11,7 +11,8 @@ import (
 	"github.com/axiomhq/axiom-go/axiom"
 )
 
-// ErrorTestSuite implements a base test suite for integration tests.
+// ErrorTestSuite tests that the Axiom API returns proper errors against a live
+// deployment.
 type ErrorTestSuite struct {
 	IntegrationTestSuite
 }
