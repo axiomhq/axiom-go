@@ -59,7 +59,8 @@ type Token struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token. Only used by API and ingest tokens.
+	// Scopes of the token. Only used by API and ingest tokens. Usually the name
+	// of the dataset to grant access to.
 	Scopes []string `json:"scopes"`
 	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions"`
@@ -70,7 +71,8 @@ type Token struct {
 type RawToken struct {
 	// Token is the actual secret value of the token.
 	Token string `json:"token"`
-	// Scopes of the token. Only used by API and ingest tokens.
+	// Scopes of the token. Only used by API and ingest tokens. Usually the name
+	// of the dataset to grant access to.
 	Scopes []string `json:"scopes"`
 	// Permissions of the token. Only used by API and ingest tokens.
 	Permissions []Permission `json:"permissions"`
@@ -82,7 +84,8 @@ type TokenCreateUpdateRequest struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token. Only used by API and ingest tokens.
+	// Scopes of the token. Only used by API and ingest tokens. Usually the name
+	// of the dataset to grant access to.
 	Scopes []string `json:"scopes"`
 	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions"`
