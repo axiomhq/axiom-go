@@ -28,7 +28,7 @@ func TestNew(t *testing.T) {
 	os.Setenv("AXIOM_ORG_ID", "123")
 
 	handler, err := New()
-	require.EqualError(t, err, ErrMissingDatasetName.Error())
+	require.ErrorIs(t, err, ErrMissingDatasetName)
 	require.Nil(t, handler)
 
 	os.Setenv("AXIOM_DATASET", "test")

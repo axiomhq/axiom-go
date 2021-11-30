@@ -154,7 +154,7 @@ func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 // Sync implements zapcore.WriteSyncer.
 func (ws *WriteSyncer) Sync() error {
 	// Best effort context timeout. A `Sync()` should never take that long.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	ws.bufMtx.Lock()
@@ -172,7 +172,7 @@ func (ws *WriteSyncer) Sync() error {
 		return err
 	}
 
-	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.JSON, axiom.Gzip, ws.ingestOptions)
+	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Gzip, ws.ingestOptions)
 	if err != nil {
 		return err
 	} else if res.Failed > 0 {

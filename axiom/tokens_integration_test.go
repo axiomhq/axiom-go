@@ -260,6 +260,9 @@ func (s *IngestTokensTestSuite) TestScopes() {
 
 	s.token = token
 
+	// HINT(lukasmalkmus): This is a workaround for a bug in the Axiom API.
+	time.Sleep(5 * time.Second)
+
 	// Let's make sure we can now ingest.
 	ingestStatus, err := client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
 	s.Require().NoError(err)

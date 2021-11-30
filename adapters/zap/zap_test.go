@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 	os.Setenv("AXIOM_ORG_ID", "123")
 
 	core, err := New()
-	require.EqualError(t, err, ErrMissingDatasetName.Error())
+	require.ErrorIs(t, err, ErrMissingDatasetName)
 	require.Nil(t, core)
 
 	os.Setenv("AXIOM_DATASET", "test")
@@ -76,6 +76,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*zap.Logger, func()) {
 	srv := httptest.NewServer(h)
 
 	client, err := axiom.NewClient(
+		axiom.SetNoEnv(),
 		axiom.SetURL(srv.URL),
 		axiom.SetAccessToken("xait-test"),
 		axiom.SetClient(srv.Client()),
