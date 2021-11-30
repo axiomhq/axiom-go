@@ -33,10 +33,12 @@ func main() {
 	res, err := client.Datasets.APLQuery(context.Background(), aplQuery, apl.Options{})
 	if err != nil {
 		log.Fatal(err)
+	} else if len(res.Matches) == 0 {
+		log.Fatal("No matches found")
 	}
 
 	// 3. Print the queried results.
-	for _, match := range res.Result.Matches {
+	for _, match := range res.Matches {
 		fmt.Println(match.Data)
 	}
 }
