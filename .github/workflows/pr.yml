@@ -89,7 +89,7 @@ jobs:
           AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
         run: axiom dataset list -f=json | jq '.[] | select(.id | contains("test-axiom-go-")).id' | xargs -n1 axiom dataset delete -f
       - name: Update Coverage
-        if: ${{ matrix.update-coverage }}
+        if: matrix.update-coverage
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
