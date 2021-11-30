@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 //go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Permission -linecomment -output=tokens_string.go
@@ -60,7 +61,8 @@ type Token struct {
 	// Description of the token.
 	Description string `json:"description"`
 	// Scopes of the token. Only used by API and ingest tokens. Usually the name
-	// of the dataset to grant access to.
+	// of the dataset to grant access to. `*` is the wildcard that grants access
+	// to all datasets.
 	Scopes []string `json:"scopes"`
 	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions"`
@@ -72,7 +74,8 @@ type RawToken struct {
 	// Token is the actual secret value of the token.
 	Token string `json:"token"`
 	// Scopes of the token. Only used by API and ingest tokens. Usually the name
-	// of the dataset to grant access to.
+	// of the dataset to grant access to. If left empty, will default to `*`
+	// (all datasets)
 	Scopes []string `json:"scopes"`
 	// Permissions of the token. Only used by API and ingest tokens.
 	Permissions []Permission `json:"permissions"`
@@ -85,10 +88,11 @@ type TokenCreateUpdateRequest struct {
 	// Description of the token.
 	Description string `json:"description"`
 	// Scopes of the token. Only used by API and ingest tokens. Usually the name
-	// of the dataset to grant access to.
-	Scopes []string `json:"scopes"`
+	// of the dataset to grant access to. If left empty, will default to `*`
+	// (all datasets).
+	Scopes []string `json:"scopes,omitempty"`
 	// Permissions of the token. Only used by API tokens.
-	Permissions []Permission `json:"permissions"`
+	Permissions []Permission `json:"permissions,omitempty"`
 }
 
 // tokensService implements the methods sharred between the api, ingest and
@@ -131,6 +135,8 @@ func (s *tokensService) View(ctx context.Context, id string) (*RawToken, error) 
 
 // Create a token with the given properties.
 func (s *tokensService) Create(ctx context.Context, req TokenCreateUpdateRequest) (*Token, error) {
+	prepareTokenCreateUpdateRequest(s.basePath, &req)
+
 	var res Token
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
@@ -141,6 +147,8 @@ func (s *tokensService) Create(ctx context.Context, req TokenCreateUpdateRequest
 
 // Update the token identified by the given id with the given properties.
 func (s *tokensService) Update(ctx context.Context, id string, req TokenCreateUpdateRequest) (*Token, error) {
+	prepareTokenCreateUpdateRequest(s.basePath, &req)
+
 	path := s.basePath + "/" + id
 
 	var res Token
@@ -154,6 +162,22 @@ func (s *tokensService) Update(ctx context.Context, id string, req TokenCreateUp
 // Delete the token identified by the given id.
 func (s *tokensService) Delete(ctx context.Context, id string) error {
 	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
+}
+
+func prepareTokenCreateUpdateRequest(basePath string, req *TokenCreateUpdateRequest) {
+	pathParts := strings.Split(basePath, "/")
+	tokenType := pathParts[len(pathParts)-1]
+	switch tokenType {
+	case "api":
+		// Scopes and permissions are allowed.
+	case "ingest":
+		// Scopes are allowed.
+		req.Permissions = nil
+	case "personal":
+		// Nor scopes nor permissions are allowed.
+		req.Scopes = nil
+		req.Permissions = nil
+	}
 }
 
 // APITokensService handles communication with the API token related operations
