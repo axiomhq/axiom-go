@@ -1,5 +1,4 @@
-// The purpose of this example is to show how to integrate with zap.
-package main
+package zap_test
 
 import (
 	"log"
@@ -9,28 +8,23 @@ import (
 	adapter "github.com/axiomhq/axiom-go/adapters/zap"
 )
 
-func main() {
+func Example() {
 	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` (when using a personal token) and
 	// `AXIOM_DATASET` for Axiom Cloud.
 	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
 
-	// 1. Setup the Axiom core for zap.
 	core, err := adapter.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 2. Spawn the logger.
 	logger := zap.New(core)
-
-	// 3. Have all logs flushed before the application exits.
 	defer func() {
 		if syncErr := logger.Sync(); syncErr != nil {
 			log.Fatal(syncErr)
 		}
 	}()
 
-	// 4. Log ⚡
 	logger.Info("This is awesome!", zap.String("mood", "hyped"))
 	logger.Warn("This is no that awesome...", zap.String("mood", "worried"))
 	logger.Error("This is rather bad.", zap.String("mood", "depressed"))
