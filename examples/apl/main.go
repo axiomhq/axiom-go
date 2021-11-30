@@ -1,4 +1,5 @@
-// The purpose of this example is to show how to query a dataset.
+// The purpose of this example is to show how to query a dataset using the Axiom
+// Processing Language (APL).
 package main
 
 import (
@@ -6,10 +7,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/apl"
 )
 
 func main() {
@@ -28,11 +28,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 2. Query all events in the last minute ⚡
-	res, err := client.Datasets.Query(context.Background(), dataset, query.Query{
-		StartTime: time.Now().Add(-time.Minute),
-		EndTime:   time.Now(),
-	}, query.Options{})
+	// 2. Query all events using APL ⚡
+	aplQuery := fmt.Sprintf("['%s']", dataset) // E.g. ['test']
+	res, err := client.Datasets.APLQuery(context.Background(), aplQuery, apl.Options{})
 	if err != nil {
 		log.Fatal(err)
 	} else if len(res.Matches) == 0 {

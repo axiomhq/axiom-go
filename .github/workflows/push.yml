@@ -78,10 +78,10 @@ jobs:
           AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
         run: make test-integration
       - name: Update Coverage
-        if: ${{ matrix.update-coverage }}
+        if: matrix.update-coverage
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
       - name: Update Go Report Card
-        if: ${{ matrix.update-goreportcard }}
+        if: matrix.update-goreportcard
         uses: creekorful/goreportcard-action@v1.0

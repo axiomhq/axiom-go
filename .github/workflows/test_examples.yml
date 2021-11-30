@@ -14,20 +14,36 @@ env:
 
 jobs:
   run:
-    name: Run
+    name: Run ${{ matrix.example }} example
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example:
-          - apex
-          - ingestfile
-          - logrus
-          - zap
         include:
+          - example: apex
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+          - example: apl
+            setup: |
+              echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
+              axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
+              sleep 5
           - example: ingestfile
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+          - example: logrus
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+          - example: query
+            setup: |
+              echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
+              axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
+              sleep 5
+          - example: zap
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
       max-parallel: 1
     env:
       AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
@@ -49,13 +65,14 @@ jobs:
         run: |
           go install github.com/axiomhq/cli/cmd/axiom@latest
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go examples test"
-      - name: Example Setup
+      - name: Setup ${{ matrix.example }} example
         if: matrix.setup
         run: ${{ matrix.setup}}
-      - run: |
-          go run ./examples/${{ matrix.example }}/main.go
-          sleep 60
-          go run ./examples/query/main.go | grep "This is awesome"
+      - name: Run ${{ matrix.example }} example
+        run: go run ./examples/${{ matrix.example }}/main.go
+      - name: Verify ${{ matrix.example }} example
+        if: matrix.verify
+        run: ${{ matrix.verify}}
       - name: Cleanup
-        if: ${{ always() }}
+        if: always()
         run: axiom dataset delete -f $AXIOM_DATASET
