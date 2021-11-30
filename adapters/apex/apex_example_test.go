@@ -1,5 +1,4 @@
-// The purpose of this example is to show how to integrate with apex.
-package main
+package apex_test
 
 import (
 	stdlibLog "log"
@@ -9,7 +8,7 @@ import (
 	adapter "github.com/axiomhq/axiom-go/adapters/apex"
 )
 
-func main() {
+func Example() {
 	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` (when using a personal token) and
 	// `AXIOM_DATASET` for Axiom Cloud.
 	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.

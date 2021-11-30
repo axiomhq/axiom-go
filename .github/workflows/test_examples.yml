@@ -22,7 +22,7 @@ jobs:
         include:
           - example: apex
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: apl
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
@@ -35,7 +35,7 @@ jobs:
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
           - example: logrus
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: query
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
@@ -43,7 +43,7 @@ jobs:
               sleep 5
           - example: zap
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
       max-parallel: 1
     env:
       AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
