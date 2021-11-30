@@ -234,7 +234,7 @@ func (s *IngestTokensTestSuite) Test() {
 	s.Require().NoError(err)
 }
 
-func (s *IngestTokensTestSuite) TestScopesAndPermissions() {
+func (s *IngestTokensTestSuite) TestScopes() {
 	rawToken, err := s.client.Tokens.Ingest.View(s.ctx, s.token.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(rawToken)
@@ -252,7 +252,7 @@ func (s *IngestTokensTestSuite) TestScopesAndPermissions() {
 
 	token, err := s.client.Tokens.Ingest.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
-		Description: "A very good test token with scopes and permissions",
+		Description: "A very good test token with scopes",
 		Scopes:      []string{s.dataset.ID},
 	})
 	s.Require().NoError(err)
@@ -265,6 +265,22 @@ func (s *IngestTokensTestSuite) TestScopesAndPermissions() {
 	s.Require().NoError(err)
 
 	s.EqualValues(ingestStatus.Ingested, 2)
+}
+
+func (s *IngestTokensTestSuite) TestTokenRequestedCleaned() {
+	// Let's make sure we can pass permissions with the request without it to
+	// fail as permissions are not allowed on ingest tokens. They will be
+	// cleaned up automatically before making the request.
+	token, err := s.client.Tokens.Ingest.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
+		Name:        "Test",
+		Description: "A very good test token with scopes and permissions",
+		Scopes:      []string{s.dataset.ID},
+		Permissions: []axiom.Permission{axiom.CanIngest, axiom.CanQuery},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(token)
+
+	s.token = token
 }
 
 // PersonalTokensTestSuite tests all methods of the Axiom Personal Tokens API
@@ -308,7 +324,6 @@ func (s *PersonalTokensTestSuite) Test() {
 	token, err := s.client.Tokens.Personal.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token",
-		Scopes:      []string{"*"},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
@@ -337,4 +352,20 @@ func (s *PersonalTokensTestSuite) Test() {
 	s.Require().NotNil(tokens)
 
 	s.Contains(tokens, s.token)
+}
+
+func (s *PersonalTokensTestSuite) TestTokenRequestedCleaned() {
+	// Let's make sure we can pass scopes and permissions with the request
+	// without it to fail as scopes and permissions are not allowed on personal
+	// tokens. They will be cleaned up automatically before making the request.
+	token, err := s.client.Tokens.Personal.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
+		Name:        "Test",
+		Description: "A very good test token with scopes and permissions",
+		Scopes:      []string{"*"},
+		Permissions: []axiom.Permission{axiom.CanIngest, axiom.CanQuery},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(token)
+
+	s.token = token
 }
