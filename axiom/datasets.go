@@ -196,6 +196,16 @@ type FieldUpdateRequest struct {
 	Hidden bool `json:"hidden"`
 }
 
+type datasetResponse struct {
+	Dataset
+
+	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
+	// package so we just ignore it for now.
+	IntegrationConfigs interface{} `json:"integrationConfigs,omitempty"`
+	IntegrationFilters interface{} `json:"integrationFilters,omitempty"`
+	QuickQueries       interface{} `json:"quickQueries,omitempty"`
+}
+
 type datasetTrimRequest struct {
 	// MaxDuration marks the oldest timestamp an event can have before getting
 	// deleted.
@@ -249,46 +259,51 @@ func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
 
 // List all available datasets.
 func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
-	var res []*Dataset
+	var res []*datasetResponse
 	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	datasets := make([]*Dataset, len(res))
+	for i, r := range res {
+		datasets[i] = &r.Dataset
+	}
+
+	return datasets, nil
 }
 
 // Get a dataset by id.
 func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) {
 	path := s.basePath + "/" + id
 
-	var res Dataset
+	var res datasetResponse
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return &res.Dataset, nil
 }
 
 // Create a dataset with the given properties.
 func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) (*Dataset, error) {
-	var res Dataset
+	var res datasetResponse
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return &res.Dataset, nil
 }
 
 // Update the dataset identified by the given id with the given properties.
 func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpdateRequest) (*Dataset, error) {
 	path := s.basePath + "/" + id
 
-	var res Dataset
+	var res datasetResponse
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return &res.Dataset, nil
 }
 
 // Update the named field of the dataset identified by the given id with the
