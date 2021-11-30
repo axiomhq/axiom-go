@@ -3,34 +3,38 @@
 ## Before you start
 
 Axiom Go and the Adapters automatically pick up their configuration from the
-environment, if not otherwise specified. To learn more about cunfiguration,
+environment, if not otherwise specified. To learn more about configuration,
 check the [Documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go).
 
 To quickstart, export the environment variables below.
 
 ### When using Axiom Cloud
 
-* `AXIOM_TOKEN`: **Personal Access** or **Ingest** token. Can be
-  created under `Profile` or `Settings > Ingest Tokens`. For security reasons it
-  is advised to use an Ingest Token with minimal privileges only.
+* `AXIOM_TOKEN`: **API**, **Ingest** or **Personal Access** token. Can be
+  created under `Settings > API Tokens`, `Settings > Ingest Tokens` or
+  `Profile`. For security reasons it is advised to use an API or Ingest token
+  with minimal privileges only.
 * `AXIOM_ORG_ID`: Organization identifier of the organization to use on Axiom
-   Cloud.
+   Cloud (when using a personal access token).
 * `AXIOM_DATASET`: Dataset to use. Must exist prior to using it.
 
 ### When using Axiom Selfhost
 
 * `AXIOM_URL`: URL of the Axiom deployment to use.
-* `AXIOM_TOKEN`: **Personal Access** or **Ingest** token. Can be
-  created under `Profile` or `Settings > Ingest Tokens`. For security reasons it
-  is advised to use an Ingest Token with minimal privileges only.
+* `AXIOM_TOKEN`: **API**, **Ingest** or **Personal Access** token. Can be
+  created under `Settings > API Tokens`, `Settings > Ingest Tokens` or
+  `Profile`. For security reasons it is advised to use an API or Ingest token
+  with minimal privileges only.
 * `AXIOM_DATASET`: Dataset to use. Must exist prior to using it.
 
 ## Package usage
 
+* [apl](apl/main.go): How to query a dataset using the Kusto-like Axiom
+  Processing Language (APL).
 * [ingestfile](ingestfile/main.go): How to ingest the contents of a file into
   Axiom and compress them on the fly.
-* [query](query/main.go): How to query a dataset using the Kusto-like Axiom
-  Processing Language (APL).
+* [query](query/main.go): How to query a dataset using the datatypes provided by
+  Axiom Go.
 
 ## Adapter usage
 

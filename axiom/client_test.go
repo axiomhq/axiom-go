@@ -192,7 +192,7 @@ func TestNewClient(t *testing.T) {
 
 			client, err := NewClient(tt.options...)
 			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
+				assert.ErrorIs(t, err, tt.err)
 			} else {
 				assert.Regexp(t, tokenRe, client.accessToken)
 				assert.NotEmpty(t, client.baseURL)
