@@ -67,9 +67,13 @@ func (s *APITokensTestSuite) Test() {
 		Name:        "Test",
 		Description: "A very good test token",
 		Scopes:      []string{"none"}, // Not a real scope but prevents the server from automatically assigning the `*` (all) scope.
+		Permissions: []axiom.Permission{axiom.CanQuery},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
+
+	s.Contains(token.Scopes, "none")
+	s.Contains(token.Permissions, axiom.CanQuery)
 
 	s.token = token
 
@@ -80,14 +84,15 @@ func (s *APITokensTestSuite) Test() {
 
 	s.Equal(s.token, token)
 
-	// Let's get the raw token string and make sure it has the same scopes as
-	// the token entity.
+	// Let's get the raw token string and make sure it has the same scopes and
+	// permissions as the token entity.
 	rawToken, err := s.client.Tokens.API.View(s.ctx, s.token.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(rawToken)
 
 	s.NotEmpty(rawToken.Token)
 	s.Equal(s.token.Scopes, rawToken.Scopes)
+	s.Equal(s.token.Permissions, rawToken.Permissions)
 
 	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.client.Tokens.API.List(s.ctx)
@@ -98,6 +103,7 @@ func (s *APITokensTestSuite) Test() {
 }
 
 func (s *APITokensTestSuite) TestScopesAndPermissions() {
+	// Get the raw token to use it for authentication.
 	rawToken, err := s.client.Tokens.API.View(s.ctx, s.token.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(rawToken)
@@ -112,6 +118,7 @@ func (s *APITokensTestSuite) TestScopesAndPermissions() {
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
 
+	// Update the token to allow ingestion into the test dataset only.
 	token, err := s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token with scopes and permissions",
@@ -120,6 +127,9 @@ func (s *APITokensTestSuite) TestScopesAndPermissions() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
+
+	s.Contains(token.Scopes, s.dataset.ID)
+	s.Contains(token.Permissions, axiom.CanIngest)
 
 	s.token = token
 
@@ -165,6 +175,7 @@ func (s *IngestTokensTestSuite) SetupSuite() {
 	s.token, err = s.client.Tokens.Ingest.Create(s.suiteCtx, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A test token",
+		Permissions: []axiom.Permission{axiom.CanQuery},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.token)
@@ -195,6 +206,9 @@ func (s *IngestTokensTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
 
+	s.Contains(token.Scopes, "none")
+	s.Empty(token.Permissions)
+
 	s.token = token
 
 	// Get the token and make sure it matches what we have updated it to.
@@ -212,6 +226,7 @@ func (s *IngestTokensTestSuite) Test() {
 
 	s.NotEmpty(rawToken.Token)
 	s.Equal(s.token.Scopes, rawToken.Scopes)
+	s.Empty(token.Permissions)
 
 	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.client.Tokens.Ingest.List(s.ctx)
@@ -235,6 +250,7 @@ func (s *IngestTokensTestSuite) Test() {
 }
 
 func (s *IngestTokensTestSuite) TestScopes() {
+	// Get the raw token to use it for authentication.
 	rawToken, err := s.client.Tokens.Ingest.View(s.ctx, s.token.ID)
 	s.Require().NoError(err)
 	s.Require().NotNil(rawToken)
@@ -250,6 +266,7 @@ func (s *IngestTokensTestSuite) TestScopes() {
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
 
+	// Update the token to allow ingestion into the test dataset only.
 	token, err := s.client.Tokens.Ingest.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token with scopes",
@@ -258,10 +275,10 @@ func (s *IngestTokensTestSuite) TestScopes() {
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
 
-	s.token = token
+	s.Contains(token.Scopes, s.dataset.ID)
+	s.Empty(token.Permissions)
 
-	// HINT(lukasmalkmus): This is a workaround for a bug in the Axiom API.
-	time.Sleep(5 * time.Second)
+	s.token = token
 
 	// Let's make sure we can now ingest.
 	ingestStatus, err := client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
@@ -282,6 +299,9 @@ func (s *IngestTokensTestSuite) TestTokenRequestedCleaned() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
+
+	s.Contains(token.Scopes, s.dataset.ID)
+	s.Empty(token.Permissions)
 
 	s.token = token
 }
@@ -331,6 +351,9 @@ func (s *PersonalTokensTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
 
+	s.Empty(token.Scopes)
+	s.Empty(token.Permissions)
+
 	s.token = token
 
 	// Get the token and make sure it matches what we have updated it to.
@@ -347,7 +370,8 @@ func (s *PersonalTokensTestSuite) Test() {
 	s.Require().NotNil(rawToken)
 
 	s.NotEmpty(rawToken.Token)
-	s.Equal(s.token.Scopes, rawToken.Scopes)
+	s.Empty(token.Scopes)
+	s.Empty(token.Permissions)
 
 	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.client.Tokens.Personal.List(s.ctx)
@@ -369,6 +393,9 @@ func (s *PersonalTokensTestSuite) TestTokenRequestedCleaned() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
+
+	s.Empty(token.Scopes)
+	s.Empty(token.Permissions)
 
 	s.token = token
 }
