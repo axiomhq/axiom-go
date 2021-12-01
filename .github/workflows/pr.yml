@@ -87,7 +87,9 @@ jobs:
         env:
           AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
           AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
-        run: axiom dataset list -f=json | jq '.[] | select(.id | contains("test-axiom-go-")).id' | xargs -n1 axiom dataset delete -f
+        run: |
+          go install github.com/axiomhq/cli/cmd/axiom@latest
+          axiom dataset list -f=json | jq '.[] | select(.id | contains("test-axiom-go-")).id' | xargs -n1 axiom dataset delete -f
       - name: Update Coverage
         if: matrix.update-coverage
         uses: codecov/codecov-action@v1
