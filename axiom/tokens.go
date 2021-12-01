@@ -74,10 +74,10 @@ type RawToken struct {
 	// Token is the actual secret value of the token.
 	Token string `json:"token"`
 	// Scopes of the token. Only used by API and ingest tokens. Usually the name
-	// of the dataset to grant access to. If left empty, will default to `*`
-	// (all datasets)
+	// of the dataset to grant access to. `*` is the wildcard that grants access
+	// to all datasets.
 	Scopes []string `json:"scopes"`
-	// Permissions of the token. Only used by API and ingest tokens.
+	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions"`
 }
 
@@ -89,7 +89,7 @@ type TokenCreateUpdateRequest struct {
 	Description string `json:"description"`
 	// Scopes of the token. Only used by API and ingest tokens. Usually the name
 	// of the dataset to grant access to. If left empty, will default to `*`
-	// (all datasets).
+	// which grants access to all datasets.
 	Scopes []string `json:"scopes,omitempty"`
 	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions,omitempty"`
@@ -106,6 +106,10 @@ func (s *tokensService) List(ctx context.Context) ([]*Token, error) {
 		return nil, err
 	}
 
+	for _, t := range res {
+		cleanupTokenResponse(s.basePath, t)
+	}
+
 	return res, nil
 }
 
@@ -117,6 +121,8 @@ func (s *tokensService) Get(ctx context.Context, id string) (*Token, error) {
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
+
+	cleanupTokenResponse(s.basePath, &res)
 
 	return &res, nil
 }
@@ -142,6 +148,8 @@ func (s *tokensService) Create(ctx context.Context, req TokenCreateUpdateRequest
 		return nil, err
 	}
 
+	cleanupTokenResponse(s.basePath, &res)
+
 	return &res, nil
 }
 
@@ -155,6 +163,8 @@ func (s *tokensService) Update(ctx context.Context, id string, req TokenCreateUp
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}
+
+	cleanupTokenResponse(s.basePath, &res)
 
 	return &res, nil
 }
@@ -177,6 +187,22 @@ func prepareTokenCreateUpdateRequest(basePath string, req *TokenCreateUpdateRequ
 		// Nor scopes nor permissions are allowed.
 		req.Scopes = nil
 		req.Permissions = nil
+	}
+}
+
+func cleanupTokenResponse(basePath string, t *Token) {
+	pathParts := strings.Split(basePath, "/")
+	tokenType := pathParts[len(pathParts)-1]
+	switch tokenType {
+	case "api":
+		// Scopes and permissions are allowed.
+	case "ingest":
+		// Scopes are allowed.
+		t.Permissions = nil
+	case "personal":
+		// Nor scopes nor permissions are allowed.
+		t.Scopes = nil
+		t.Permissions = nil
 	}
 }
 
