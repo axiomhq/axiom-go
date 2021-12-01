@@ -14,12 +14,29 @@ env:
 
 jobs:
   run:
-    name: Run ${{ matrix.example }} example
+    name: Run ${{ matrix.example }} example (${{ matrix.deployment }})
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        deployment:
+          - azure-1-staging
+          - cloud-dev
+        example:
+          - apex
+          - apl
+          - ingestfile
+          - logrus
+          - query
+          - zap
         include:
+          - deployment: azure-1-staging
+            axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
+            axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
+          - deployment: cloud-dev
+            axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
+            axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
+            axiom_org_id: TESTING_CLOUD_DEV_ORG_ID
           - example: apex
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
@@ -45,9 +62,11 @@ jobs:
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
       max-parallel: 1
+      fail-fast: false
     env:
-      AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
-      AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
+      AXIOM_URL: ${{ secrets[matrix.axiom_url] }}
+      AXIOM_TOKEN: ${{ secrets[matrix.axiom_token] }}
+      AXIOM_ORG_ID: ${{ secrets[matrix.axiom_org_id] }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v2
