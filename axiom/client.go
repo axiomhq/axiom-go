@@ -175,18 +175,20 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 		addOption(SetAccessToken(accessToken))
 	}
 
-	// When the base url is set to the Axiom Cloud url but no organization ID is
-	// set, use `AXIOM_ORG_ID` in case the access token is not an ingest token.
+	// When the organization ID is not set, use `AXIOM_ORG_ID`. In case the url
+	// is the Axiom Cloud url and the access token is not an ingest token, the
+	// organization ID is explicitly required and an error is returned, if it is
+	// not set.
 	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
 	cloudURLSetByEnvironment := deploymentURL == CloudURL
+	cloudURLSet := cloudURLSetByOption || cloudURLSetByEnvironment
 	isIngestToken := IsIngestToken(c.accessToken) || IsIngestToken(accessToken)
-	if (cloudURLSetByOption || cloudURLSetByEnvironment) && c.orgID == "" && !isIngestToken {
-		if orgID == "" || c.noEnv {
+	if c.orgID == "" {
+		if (orgID == "" && cloudURLSet && !isIngestToken) || (c.noEnv && cloudURLSet) {
 			return ErrMissingOrganizationID
 		}
 		addOption(SetOrgID(orgID))
 	}
-
 	return c.Options(options...)
 }
 

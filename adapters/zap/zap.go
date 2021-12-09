@@ -52,7 +52,7 @@ func SetClient(client *axiom.Client) Option {
 // SetClientOptions specifies the Axiom client options to pass to
 // `axiom.NewClient()`. `axiom.NewClient()` is only called if no client was
 // specified by the `SetClient` option.
-func SetClientOptions(options []axiom.Option) Option {
+func SetClientOptions(options ...axiom.Option) Option {
 	return func(ws *WriteSyncer) error {
 		ws.clientOptions = options
 		return nil

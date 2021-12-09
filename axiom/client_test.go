@@ -161,6 +161,14 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
+			name: "dev url, accessToken and orgID environment no options",
+			environment: map[string]string{
+				"AXIOM_URL":    "https://dev.axiom.co",
+				"AXIOM_TOKEN":  personalToken,
+				"AXIOM_ORG_ID": orgID,
+			},
+		},
+		{
 			name: "cloudUrl and accessToken environment orgID option",
 			environment: map[string]string{
 				"AXIOM_URL":   CloudURL,
@@ -194,8 +202,10 @@ func TestNewClient(t *testing.T) {
 			if tt.err != nil {
 				assert.ErrorIs(t, err, tt.err)
 			} else {
-				assert.Regexp(t, tokenRe, client.accessToken)
-				assert.NotEmpty(t, client.baseURL)
+				if assert.NoError(t, err) {
+					assert.Regexp(t, tokenRe, client.accessToken)
+					assert.NotEmpty(t, client.baseURL)
+				}
 			}
 		})
 	}
