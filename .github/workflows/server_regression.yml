@@ -10,8 +10,34 @@ env:
 
 jobs:
   test:
-    name: Test
+    name: Test (${{ matrix.deployment }}/${{ matrix.go }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        deployment:
+          - azure-1-staging
+          - cloud-dev
+        go:
+          - 1.16
+          - 1.17
+        include:
+          - deployment: azure-1-staging
+            axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
+            axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
+          - deployment: cloud-dev
+            axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
+            axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
+            axiom_org_id: TESTING_CLOUD_DEV_ORG_ID
+          - deployment: cloud-dev
+            go: 1.17
+            update-coverage: true
+      max-parallel: 1
+      fail-fast: false
+    env:
+      AXIOM_URL: ${{ secrets[matrix.axiom_url] }}
+      AXIOM_TOKEN: ${{ secrets[matrix.axiom_token] }}
+      AXIOM_ORG_ID: ${{ secrets[matrix.axiom_org_id] }}
+      AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -24,8 +50,9 @@ jobs:
             ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - env:
-          AXIOM_URL: ${{ secrets.TESTING_AZURE_1_STAGING_DEPLOYMENT_URL }}
-          AXIOM_TOKEN: ${{ secrets.TESTING_AZURE_1_STAGING_ACCESS_TOKEN }}
-          AXIOM_DATASET_SUFFIX: ${{ github.run_id }}
-        run: make test-integration
+      - run: make test-integration
+      - name: Cleanup (On Test Failure)
+        if: failure()
+        run: |
+          go install github.com/axiomhq/cli/cmd/axiom@latest
+          axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -n1 axiom dataset delete -f

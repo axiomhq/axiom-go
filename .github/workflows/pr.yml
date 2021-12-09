@@ -123,7 +123,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
       - run: make test-integration
-      - name: Cleanup (On Integration Test Failure)
+      - name: Cleanup (On Test Failure)
         if: failure()
         run: |
           go install github.com/axiomhq/cli/cmd/axiom@latest
