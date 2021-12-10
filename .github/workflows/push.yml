@@ -48,7 +48,7 @@ jobs:
           skip-go-installation: true
 
   test:
-    name: Test (${{ matrix.deployment }}/${{ matrix.go }})
+    name: Test
     needs: lint
     runs-on: ubuntu-latest
     strategy:
