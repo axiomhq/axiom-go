@@ -22,7 +22,8 @@ var (
 	// perform the requested operation.
 	ErrUnauthorized = errors.New("insufficient permissions")
 
-	// ErrUnauthenticated is raised when the access token is not valid.
+	// ErrUnauthenticated is raised when the authentication on the request is
+	// not valid.
 	ErrUnauthenticated = errors.New("invalid authentication credentials")
 
 	// ErrUnprivilegedToken is raised when a client tries to call an ingest or

@@ -24,5 +24,5 @@ func (s *VersionTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotEmpty(version)
 
-	s.Contains(version, "1.")
+	s.Contains(version, "v1.")
 }
