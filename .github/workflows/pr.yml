@@ -133,3 +133,29 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
+
+  ci-pass:
+    needs: test
+    name: CI Pass
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - uses: LouisBrunner/checks-action@v1.1.2
+        if: success()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: CI Pass
+          conclusion: ${{ job.status }}
+
+  ci-pass-integration:
+    needs: test-integration
+    name: CI Pass
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: LouisBrunner/checks-action@v1.1.2
+        if: success()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: CI Pass
+          conclusion: ${{ job.status }}
