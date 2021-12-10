@@ -36,5 +36,5 @@ func (s *ErrorTestSuite) Test() {
 	// (unauthenticated).
 	_, err = s.client.Datasets.Info(s.ctx, invalidDatasetName)
 	s.Require().Error(err)
-	s.Require().ErrorIs(err, axiom.ErrUnauthenticated)
+	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
 }

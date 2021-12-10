@@ -12,15 +12,11 @@ env:
   GOVERSION: "1.17"
 
 jobs:
-  run:
-    name: Run
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  test:
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deployment:
-          # - azure-1-staging
-          - cloud-dev
         example:
           - apex
           - apl
@@ -29,13 +25,6 @@ jobs:
           - query
           - zap
         include:
-          # - deployment: azure-1-staging
-          #   axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
-          #   axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
-          - deployment: cloud-dev
-            axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
-            axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
-            axiom_org_id: TESTING_CLOUD_DEV_ORG_ID
           - example: apex
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
@@ -60,12 +49,8 @@ jobs:
           - example: zap
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
-      max-parallel: 1
       fail-fast: false
     env:
-      AXIOM_URL: ${{ secrets[matrix.axiom_url] }}
-      AXIOM_TOKEN: ${{ secrets[matrix.axiom_token] }}
-      AXIOM_ORG_ID: ${{ secrets[matrix.axiom_org_id] }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v2
@@ -79,29 +64,33 @@ jobs:
             ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
+      - uses: axiomhq/setup-axiom@v1
+        id: axiom
+      - run: |
+          echo "AXIOM_URL=${{ steps.axiom.outputs.url }}" >> $GITHUB_ENV
+          echo "AXIOM_TOKEN=${{ steps.axiom.outputs.token }}" >> $GITHUB_ENV
       - name: Setup
         run: |
           go install github.com/axiomhq/cli/cmd/axiom@latest
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go examples test"
-      - name: Setup ${{ matrix.example }} example
+      - name: Setup example
         if: matrix.setup
-        run: ${{ matrix.setup}}
-      - name: Run ${{ matrix.example }} example
+        run: ${{ matrix.setup }}
+      - name: Run example
         run: go run ./examples/${{ matrix.example }}/main.go
-      - name: Verify ${{ matrix.example }} example
+      - name: Verify example
         if: matrix.verify
-        run: ${{ matrix.verify}}
+        run: ${{ matrix.verify }}
       - name: Cleanup
         if: always()
         run: axiom dataset delete -f $AXIOM_DATASET
 
   examples-pass:
-    needs: run
+    needs: test
     name: Examples Pass
     runs-on: ubuntu-latest
     steps:
       - uses: LouisBrunner/checks-action@v1.1.2
-        if: success()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Examples Pass

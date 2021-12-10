@@ -426,7 +426,7 @@ func TestClient_do_HTTPError(t *testing.T) {
 
 func TestClient_do_Unauthenticated(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		code := http.StatusForbidden
+		code := http.StatusUnauthorized
 
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(code)

@@ -51,51 +51,19 @@ jobs:
     name: Test
     needs: lint
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name != github.repository
-    strategy:
-      matrix:
-        go:
-          - 1.16
-          - 1.17
-        include:
-          - go: 1.17
-            update-coverage: true
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: ${{ matrix.go }}
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
-      - run: make test
-      - name: Update Coverage
-        if: matrix.update-coverage
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
-
-  test-integration:
-    name: Test
-    needs: lint
-    runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       matrix:
         deployment:
-          # - azure-1-staging
+          - azure-1-staging
           - cloud-dev
         go:
           - 1.16
           - 1.17
         include:
-          # - deployment: azure-1-staging
-          #   axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
-          #   axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
+          - deployment: azure-1-staging
+            axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
+            axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
           - deployment: cloud-dev
             axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
             axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
@@ -103,6 +71,7 @@ jobs:
           - deployment: cloud-dev
             go: 1.17
             update-coverage: true
+            update-goreportcard: true
       max-parallel: 1
       fail-fast: false
     env:
@@ -124,26 +93,22 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
       - run: make test-integration
       - name: Cleanup (On Test Failure)
-        if: failure()
+        if: failure() && matrix.if
         run: |
           go install github.com/axiomhq/cli/cmd/axiom@latest
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -n1 axiom dataset delete -f
       - name: Update Coverage
-        if: matrix.update-coverage
+        if: matrix.update-coverage && matrix.if
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
 
   ci-pass:
-    needs:
-      - test
-      - test-integration
+    needs: test
     name: CI Pass
     runs-on: ubuntu-latest
-    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) }}
     steps:
       - uses: LouisBrunner/checks-action@v1.1.2
-        if: success()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: CI Pass

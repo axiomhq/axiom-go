@@ -4,12 +4,9 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
-env:
-  GOVERSION: "1.17"
-
 jobs:
   test:
-    name: Test (${{ matrix.deployment }}/${{ matrix.go }})
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,9 +24,6 @@ jobs:
             axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
             axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
             axiom_org_id: TESTING_CLOUD_DEV_ORG_ID
-          - deployment: cloud-dev
-            go: 1.17
-            update-coverage: true
       max-parallel: 1
       fail-fast: false
     env:
@@ -41,7 +35,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: ${{ env.GOVERSION }}
+          go-version: ${{ matrix.go }}
       - uses: actions/cache@v2
         with:
           path: |
