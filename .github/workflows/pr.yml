@@ -48,7 +48,7 @@ jobs:
           skip-go-installation: true
 
   test:
-    name: Test (Unit)
+    name: Test
     needs: lint
     runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name != github.repository
@@ -80,7 +80,7 @@ jobs:
           fail_ci_if_error: true
 
   test-integration:
-    name: Test (${{ matrix.deployment }}/${{ matrix.go }})
+    name: Test
     needs: lint
     runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name == github.repository

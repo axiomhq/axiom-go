@@ -12,8 +12,8 @@ env:
   GOVERSION: "1.17"
 
 jobs:
-  test:
-    name: Test ${{ matrix.example }} example on ${{ matrix.deployment }}
+  run:
+    name: Run
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     strategy:
@@ -96,7 +96,7 @@ jobs:
         run: axiom dataset delete -f $AXIOM_DATASET
 
   examples-pass:
-    needs: test
+    needs: run
     name: Examples Pass
     runs-on: ubuntu-latest
     steps:
