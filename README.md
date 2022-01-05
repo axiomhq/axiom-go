@@ -99,6 +99,7 @@ For more sample code snippets, head over to the [examples](examples) directory.
 - Also get a detailed overview on [Constants](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-constants), [variables](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-variables), [Functions](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-functions), and [Types](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-types), and [Source Files](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#section-sourcefiles) in the [go.dev documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-index). 
 
 
+---
 
 You can find the Axiom and Axiom Go documentation
 [on the docs website](https://docs.axiom.co/).
