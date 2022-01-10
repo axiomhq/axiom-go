@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -34,6 +35,9 @@ func init() {
 type IntegrationTestSuite struct {
 	suite.Suite
 
+	// Generic properties.
+	isCloud bool
+
 	// Setup once per suite.
 	client      *axiom.Client
 	testUser    *axiom.AuthenticatedUser
@@ -53,6 +57,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
+	if strings.Contains(deploymentURL, "cloud.") {
+		s.isCloud = true
+	}
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
