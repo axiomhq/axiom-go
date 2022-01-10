@@ -130,24 +130,9 @@ func (l *License) UnmarshalJSON(b []byte) error {
 type SigningKeys struct {
 	// Primary signing key. Gets rotated to the secondary signing key after
 	// rotation.
-	Primary string `json:"-"`
+	Primary string `json:"primary"`
 	// Secondary signing key. Gets rotated out.
-	Secondary string `json:"-"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler. It is in place to enhance the
-// representation of the signin keys field returned by the server.
-func (sk *SigningKeys) UnmarshalJSON(b []byte) error {
-	localKeys := make(map[string]string, 2)
-
-	if err := json.Unmarshal(b, &localKeys); err != nil {
-		return err
-	}
-
-	sk.Primary = localKeys["primary"]
-	sk.Secondary = localKeys["secondary"]
-
-	return nil
+	Secondary string `json:"secondary"`
 }
 
 // Organization represents an organization. For selfhost deployments, there is

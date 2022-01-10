@@ -588,31 +588,3 @@ func TestPlan_String(t *testing.T) {
 		assert.NotContains(t, s, "Plan(")
 	}
 }
-
-func TestSigningKeys_Marshal(t *testing.T) {
-	exp := `{}`
-
-	b, err := json.Marshal(SigningKeys{
-		Primary:   "6205e228-f8ed-4265-bee8-058a9b1091db",
-		Secondary: "cea1675d-acff-44b7-8d33-0a3e03c1c37f",
-	})
-	require.NoError(t, err)
-	require.NotEmpty(t, b)
-
-	assert.JSONEq(t, exp, string(b))
-}
-
-func TestSigningKeys_Unmarshal(t *testing.T) {
-	act := SigningKeys{
-		Primary:   "6205e228-f8ed-4265-bee8-058a9b1091db",
-		Secondary: "cea1675d-acff-44b7-8d33-0a3e03c1c37f",
-	}
-	err := json.Unmarshal([]byte(`{
-		"primary": "6205e228-f8ed-4265-bee8-058a9b1091db",
-		"secondary": "cea1675d-acff-44b7-8d33-0a3e03c1c37f"
-	}`), &act)
-	require.NoError(t, err)
-
-	assert.Equal(t, "6205e228-f8ed-4265-bee8-058a9b1091db", act.Primary)
-	assert.Equal(t, "cea1675d-acff-44b7-8d33-0a3e03c1c37f", act.Secondary)
-}
