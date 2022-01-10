@@ -22,7 +22,7 @@ func TestValidateCredentials(t *testing.T) {
 	os.Setenv("AXIOM_URL", deploymentURL)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+	t.Cleanup(cancel)
 
 	err := axiom.ValidateCredentials(ctx)
 	require.NoError(t, err)
