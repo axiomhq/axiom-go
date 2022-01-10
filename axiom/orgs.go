@@ -184,7 +184,7 @@ type Organization struct {
 	License License `json:"license"`
 	// SigningKeys are the signing keys used to sign shared access tokens that
 	// can be used by a third party to run queries on behalf of the
-	// organization. They can be rotated.
+	// organization. Signing keys can be rotated. Only available on Axiom Cloud.
 	SigningKeys SigningKeys `json:"keys"`
 	// CreatedAt is the time the Organization was created.
 	CreatedAt time.Time `json:"metaCreated"`

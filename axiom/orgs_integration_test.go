@@ -55,13 +55,15 @@ func (s *OrganizationsTestSuite) Test() {
 	// s.Equal(organizations[0].Name, organization.Name)
 
 	// Rotate the signing keys on the organization and make sure the new keys
-	// are returned.
-	oldPrimaryKey, oldSecondaryKey := organization.SigningKeys.Primary, organization.SigningKeys.Secondary
-	organization, err = s.client.Organizations.RotateSigningKeys(s.ctx, organization.ID)
-	s.Require().NoError(err)
-	s.Require().NotNil(organization)
+	// are returned (cloud only).
+	if s.isCloud {
+		oldPrimaryKey, oldSecondaryKey := organization.SigningKeys.Primary, organization.SigningKeys.Secondary
+		organization, err = s.client.Organizations.RotateSigningKeys(s.ctx, organization.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(organization)
 
-	s.NotEqual(oldPrimaryKey, organization.SigningKeys.Primary)
-	s.NotEqual(oldSecondaryKey, organization.SigningKeys.Secondary)
-	s.Equal(oldPrimaryKey, organization.SigningKeys.Secondary)
+		s.NotEqual(oldPrimaryKey, organization.SigningKeys.Primary)
+		s.NotEqual(oldSecondaryKey, organization.SigningKeys.Secondary)
+		s.Equal(oldPrimaryKey, organization.SigningKeys.Secondary)
+	}
 }
