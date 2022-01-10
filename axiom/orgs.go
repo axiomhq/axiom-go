@@ -164,6 +164,25 @@ type Organization struct {
 	Version string `json:"metaVersion"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler. It is in place to ignore some
+// fields the server returns.
+func (o *Organization) UnmarshalJSON(b []byte) error {
+	type LocalOrg Organization
+	localOrg := struct {
+		*LocalOrg
+
+		Keys map[string]string `json:"keys"`
+	}{
+		LocalOrg: (*LocalOrg)(o),
+	}
+
+	if err := json.Unmarshal(b, &localOrg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // OrganizationUpdateRequest is a request used to update an organization.
 type OrganizationUpdateRequest struct {
 	// Name of the organization. Restricted to 30 characters.
