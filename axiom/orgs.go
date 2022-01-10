@@ -124,6 +124,32 @@ func (l *License) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// SigningKeys are the signing keys used to sign shared access tokens that
+// can be used by a third party to run queries on behalf of the organization.
+// They can be rotated.
+type SigningKeys struct {
+	// Primary signing key. Gets rotated to the secondary signing key after
+	// rotation.
+	Primary string `json:"-"`
+	// Secondary signing key. Gets rotated out.
+	Secondary string `json:"-"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler. It is in place to enhance the
+// representation of the signin keys field returned by the server.
+func (sk *SigningKeys) UnmarshalJSON(b []byte) error {
+	localKeys := make(map[string]string, 2)
+
+	if err := json.Unmarshal(b, &localKeys); err != nil {
+		return err
+	}
+
+	sk.Primary = localKeys["primary"]
+	sk.Secondary = localKeys["secondary"]
+
+	return nil
+}
+
 // Organization represents an organization. For selfhost deployments, there is
 // only one main organization, therefor it is referred to as deployment.
 type Organization struct {
@@ -156,31 +182,16 @@ type Organization struct {
 	PrimaryEmail string `json:"primaryEmail"`
 	// License of the deployment or organization.
 	License License `json:"license"`
+	// SigningKeys are the signing keys used to sign shared access tokens that
+	// can be used by a third party to run queries on behalf of the
+	// organization. They can be rotated.
+	SigningKeys SigningKeys `json:"keys"`
 	// CreatedAt is the time the Organization was created.
 	CreatedAt time.Time `json:"metaCreated"`
 	// ModifiedAt is the time the Organization was last modified.
 	ModifiedAt time.Time `json:"metaModified"`
 	// Version of the organization.
 	Version string `json:"metaVersion"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler. It is in place to ignore some
-// fields the server returns.
-func (o *Organization) UnmarshalJSON(b []byte) error {
-	type LocalOrg Organization
-	localOrg := struct {
-		*LocalOrg
-
-		Keys map[string]string `json:"keys"`
-	}{
-		LocalOrg: (*LocalOrg)(o),
-	}
-
-	if err := json.Unmarshal(b, &localOrg); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // OrganizationUpdateRequest is a request used to update an organization.
@@ -235,6 +246,19 @@ func (s *OrganizationsService) Update(ctx context.Context, id string, req Organi
 
 	var res Organization
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// RotateSigningKeys rotates the shared access token signing keys for the
+// organization identified by the given id.
+func (s *OrganizationsService) RotateSigningKeys(ctx context.Context, id string) (*Organization, error) {
+	path := s.basePath + "/" + id + "/rotate-keys"
+
+	var res Organization
+	if err := s.client.call(ctx, http.MethodPut, path, nil, &res); err != nil {
 		return nil, err
 	}
 

@@ -375,6 +375,111 @@ func TestOrganizationsService_Update(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestOrganizationsService_RotateSigningKeys(t *testing.T) {
+	exp := &Organization{
+		ID:                  "axiom",
+		Name:                "Axiom Industries Ltd",
+		Slug:                "",
+		Plan:                Trial,
+		PlanCreated:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		PlanExpires:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		Trialed:             false,
+		PreviousPlan:        Free,
+		PreviousPlanCreated: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		PreviousPlanExpired: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		LastUsageSync:       mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
+		Role:                RoleAdmin,
+		PrimaryEmail:        "herb@axiom.sh",
+		License: License{
+			ID:                  "98baf1f7-0b51-403f-abc1-2ee91972a225",
+			Issuer:              "console.dev.axiomtestlabs.co",
+			IssuedTo:            "testorg-9t84.LAMdQbdnHiGOYCKLp0",
+			IssuedAt:            mustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
+			ValidFrom:           mustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
+			ExpiresAt:           mustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
+			Tier:                Enterprise,
+			DailyIngestGB:       100,
+			MaxUsers:            50,
+			MaxTeams:            10,
+			MaxDatasets:         25,
+			MaxQueriesPerSecond: 25,
+			MaxQueryWindow:      time.Hour * 24 * 30,
+			MaxAuditWindow:      time.Hour * 24 * 30,
+			WithRBAC:            true,
+			WithAuths: []string{
+				"local",
+				"sso",
+			},
+			Error: "",
+		},
+		SigningKeys: SigningKeys{
+			Primary:   "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+			Secondary: "6205e228-f8ed-4265-bee8-058a9b1091db",
+		},
+		CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
+		Version:    "1615469248501218883",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		_, err := fmt.Fprint(w, `{
+			"id": "axiom",
+			"name": "Axiom Industries Ltd",
+			"slug": "",
+			"plan": "trial",
+			"planCreated": "1970-01-01T00:00:00Z",
+			"planExpires": "1970-01-01T00:00:00Z",
+			"trialed": false,
+			"previousPlan": "free",
+			"previousPlanCreated": "1970-01-01T00:00:00Z",
+			"previousPlanExpired": "1970-01-01T00:00:00Z",
+			"lastUsageSync": "0001-01-01T00:00:00Z",
+			"role": "admin",
+			"primaryEmail": "herb@axiom.sh",
+			"license": {
+				"id": "98baf1f7-0b51-403f-abc1-2ee91972a225",
+				"issuer": "console.dev.axiomtestlabs.co",
+				"issuedTo": "testorg-9t84.LAMdQbdnHiGOYCKLp0",
+				"issuedAt": "2021-01-19T17:55:53Z",
+				"validFrom": "2021-01-19T17:55:53Z",
+				"expiresAt": "2022-01-19T17:55:53Z",
+				"tier": "enterprise",
+				"dailyIngestGb": 100,
+				"maxUsers": 50,
+				"maxTeams": 10,
+				"maxDatasets": 25,
+				"maxQueriesPerSecond": 25,
+				"maxQueryWindowSeconds": 2592000,
+				"maxAuditWindowSeconds": 2592000,
+				"withRBAC": true,
+				"withAuths": [
+					"local",
+					"sso"
+				],
+				"error": ""
+			},
+			"keys": {
+				"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+				"secondary": "6205e228-f8ed-4265-bee8-058a9b1091db"
+			},
+			"metaCreated": "1970-01-01T00:00:00Z",
+			"metaModified": "2021-03-11T13:27:28.501218883Z",
+			"metaVersion": "1615469248501218883"
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/orgs/4miTfZKp29VByAQgTd/rotate-keys", hf)
+	defer teardown()
+
+	res, err := client.Organizations.RotateSigningKeys(context.Background(), "4miTfZKp29VByAQgTd")
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 func TestLicense(t *testing.T) {
 	exp := License{
 		ID:                  "98baf1f7-0b51-403f-abc1-2ee91972a225",
@@ -482,4 +587,32 @@ func TestPlan_String(t *testing.T) {
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Plan(")
 	}
+}
+
+func TestSigningKeys_Marshal(t *testing.T) {
+	exp := `{}`
+
+	b, err := json.Marshal(SigningKeys{
+		Primary:   "6205e228-f8ed-4265-bee8-058a9b1091db",
+		Secondary: "cea1675d-acff-44b7-8d33-0a3e03c1c37f",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestSigningKeys_Unmarshal(t *testing.T) {
+	act := SigningKeys{
+		Primary:   "6205e228-f8ed-4265-bee8-058a9b1091db",
+		Secondary: "cea1675d-acff-44b7-8d33-0a3e03c1c37f",
+	}
+	err := json.Unmarshal([]byte(`{
+		"primary": "6205e228-f8ed-4265-bee8-058a9b1091db",
+		"secondary": "cea1675d-acff-44b7-8d33-0a3e03c1c37f"
+	}`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, "6205e228-f8ed-4265-bee8-058a9b1091db", act.Primary)
+	assert.Equal(t, "cea1675d-acff-44b7-8d33-0a3e03c1c37f", act.Secondary)
 }
