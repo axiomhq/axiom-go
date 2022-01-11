@@ -64,6 +64,7 @@ func (s *OrganizationsTestSuite) Test() {
 
 		s.NotEqual(oldPrimaryKey, organization.SigningKeys.Primary)
 		s.NotEqual(oldSecondaryKey, organization.SigningKeys.Secondary)
+		s.NotEqual(oldSecondaryKey, organization.SigningKeys.Primary)
 		s.Equal(oldPrimaryKey, organization.SigningKeys.Secondary)
 	}
 }
