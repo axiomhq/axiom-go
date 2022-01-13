@@ -4,7 +4,6 @@
 package axiom_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -25,5 +24,5 @@ func (s *VersionTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotEmpty(version)
 
-	s.True(strings.HasPrefix(version, "v1."))
+	s.Contains(version, "1.")
 }

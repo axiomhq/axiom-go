@@ -11,13 +11,13 @@ import (
 )
 
 func TestVersionService_Get(t *testing.T) {
-	exp := "v1.4.0-20201118T1633+1f878f59d"
+	exp := "1.17.0"
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
 		_, err := fmt.Fprint(w, `{
-			"currentVersion": "v1.4.0-20201118T1633+1f878f59d"
+			"currentVersion": "1.17.0"
 		}`)
 		assert.NoError(t, err)
 	}
