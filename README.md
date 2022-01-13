@@ -40,8 +40,8 @@ using Axiom Cloud. The organization id can be omitted in case an ingest token is
 used.
 
 The access token can be a personal token retrieved from the users profile page,
-an ingest token retrieved from the settings of the Axiom deployment or an API
-token.
+an ingest token retrieved from the settings page of the Axiom deployment or an
+API token.
 
 The personal access token grants access to all resources available to the user
 on his behalf.
