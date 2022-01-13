@@ -51,6 +51,10 @@ func TestOrganizationsService_List(t *testing.T) {
 				},
 				Error: "",
 			},
+			SigningKeys: SigningKeys{
+				Primary:   "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+				Secondary: "6205e228-f8ed-4265-bee8-058a9b1091db",
+			},
 			CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 			Version:    "1615469248501218883",
@@ -97,7 +101,10 @@ func TestOrganizationsService_List(t *testing.T) {
 					],
 					"error": ""
 				},
-				"keys": null,
+				"keys": {
+				"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+				"secondary": "6205e228-f8ed-4265-bee8-058a9b1091db"
+			},
 				"metaCreated": "1970-01-01T00:00:00Z",
 				"metaModified": "2021-03-11T13:27:28.501218883Z",
 				"metaVersion": "1615469248501218883"
@@ -152,6 +159,10 @@ func TestOrganizationsService_Get(t *testing.T) {
 			},
 			Error: "",
 		},
+		SigningKeys: SigningKeys{
+			Primary:   "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+			Secondary: "6205e228-f8ed-4265-bee8-058a9b1091db",
+		},
 		CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 		Version:    "1615469248501218883",
@@ -196,7 +207,10 @@ func TestOrganizationsService_Get(t *testing.T) {
 				],
 				"error": ""
 			},
-			"keys": null,
+			"keys": {
+				"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+				"secondary": "6205e228-f8ed-4265-bee8-058a9b1091db"
+			},
 			"metaCreated": "1970-01-01T00:00:00Z",
 			"metaModified": "2021-03-11T13:27:28.501218883Z",
 			"metaVersion": "1615469248501218883"
@@ -311,6 +325,10 @@ func TestOrganizationsService_Update(t *testing.T) {
 			},
 			Error: "",
 		},
+		SigningKeys: SigningKeys{
+			Primary:   "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+			Secondary: "6205e228-f8ed-4265-bee8-058a9b1091db",
+		},
 		CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 		Version:    "1615469248501218883",
@@ -356,7 +374,10 @@ func TestOrganizationsService_Update(t *testing.T) {
 				],
 				"error": ""
 			},
-			"keys": null,
+			"keys": {
+				"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+				"secondary": "6205e228-f8ed-4265-bee8-058a9b1091db"
+			},
 			"metaCreated": "1970-01-01T00:00:00Z",
 			"metaModified": "2021-03-11T13:27:28.501218883Z",
 			"metaVersion": "1615469248501218883"
