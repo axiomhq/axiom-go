@@ -56,11 +56,14 @@ type Client struct {
 	strictDecoding bool
 	noEnv          bool
 
-	Dashboards     *DashboardsService
-	Datasets       *DatasetsService
-	Monitors       *MonitorsService
-	Notifiers      *NotifiersService
-	Organizations  *OrganizationsService
+	Dashboards    *DashboardsService
+	Datasets      *DatasetsService
+	Monitors      *MonitorsService
+	Notifiers     *NotifiersService
+	Organizations struct {
+		Cloud    *CloudOrganizationsService
+		Selfhost *OrganizationsService
+	}
 	StarredQueries *StarredQueriesService
 	Teams          *TeamsService
 	Tokens         struct {
@@ -103,7 +106,8 @@ func NewClient(options ...Option) (*Client, error) {
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
 	client.Monitors = &MonitorsService{client, "/api/v1/monitors"}
 	client.Notifiers = &NotifiersService{client, "/api/v1/notifiers"}
-	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
+	client.Organizations.Cloud = &CloudOrganizationsService{OrganizationsService{client, "/api/v1/orgs"}}
+	client.Organizations.Selfhost = &OrganizationsService{client, "/api/v1/orgs"}
 	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
 	client.Tokens.API = &APITokensService{tokensService{client, "/api/v1/tokens/api"}}

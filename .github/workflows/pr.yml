@@ -87,7 +87,7 @@ jobs:
     strategy:
       matrix:
         deployment:
-          - azure-1-staging
+          # - azure-1-staging
           - cloud-dev
         go:
           - 1.16

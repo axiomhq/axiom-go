@@ -124,6 +124,25 @@ func (l *License) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Status is the status of the organization. It describes the usage of the plan
+// an organization or licensee is billed for.
+type Status struct {
+	// DailyIngestUsedGB is the data volume in gigabytes that has been used
+	// today.
+	DailyIngestUsedGB float64 `json:"dailyIngestUsedGB"`
+	// DailyIngestRemainingGB is the data volume in gigabytes that is remaining
+	// today.
+	DailyIngestRemainingGB float64 `json:"dailyIngestRemainingGB"`
+	// DatasetsUsed is the amount of datasets used.
+	DatasetsUsed int64 `json:"datasetsUsed"`
+	// DatasetsUsed is the amount of datasets remaining.
+	DatasetsRemaining int64 `json:"datasetsRemaining"`
+	// UsersUsed is the amount of users used.
+	UsersUsed int64 `json:"usersUsed"`
+	// UsersRemaining is the amount of users remaining.
+	UsersRemaining int64 `json:"usersRemaining"`
+}
+
 // SigningKeys are the signing keys used to sign shared access tokens that
 // can be used by a third party to run queries on behalf of the organization.
 // They can be rotated.
@@ -179,14 +198,15 @@ type Organization struct {
 	Version string `json:"metaVersion"`
 }
 
-// OrganizationUpdateRequest is a request used to update an organization.
-type OrganizationUpdateRequest struct {
+// OrganizationCreateUpdateRequest is a request used to update an organization.
+type OrganizationCreateUpdateRequest struct {
 	// Name of the organization. Restricted to 30 characters.
 	Name string `json:"name"`
 }
 
 // OrganizationsService handles communication with the organization related
-// operations of the Axiom API.
+// operations of the Axiom API. These methods can be used regardless of the
+// use of Axiom Cloud or Axiom Selfhost.
 //
 // Axiom API Reference: /api/v1/orgs
 type OrganizationsService service
@@ -213,20 +233,8 @@ func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organizatio
 	return &res, nil
 }
 
-// License gets an organizations license.
-func (s *OrganizationsService) License(ctx context.Context, organizationID string) (*License, error) {
-	path := s.basePath + "/" + organizationID + "/license"
-
-	var res License
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
 // Update the organization identified by the given id with the given properties.
-func (s *OrganizationsService) Update(ctx context.Context, id string, req OrganizationUpdateRequest) (*Organization, error) {
+func (s *OrganizationsService) Update(ctx context.Context, id string, req OrganizationCreateUpdateRequest) (*Organization, error) {
 	path := s.basePath + "/" + id
 
 	var res Organization
@@ -237,9 +245,43 @@ func (s *OrganizationsService) Update(ctx context.Context, id string, req Organi
 	return &res, nil
 }
 
+// License gets an organizations license.
+func (s *OrganizationsService) License(ctx context.Context, id string) (*License, error) {
+	path := s.basePath + "/" + id + "/license"
+
+	var res License
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Status gets an organizations status.
+func (s *OrganizationsService) Status(ctx context.Context, id string) (*Status, error) {
+	path := s.basePath + "/" + id + "/status"
+
+	var res Status
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// CloudOrganizationsService handles communication with the organization related
+// operations of the Axiom API. Some of these methods are only available on
+// Axiom Cloud. See OrganizationsService for methods, that exclusively work on
+// Axiom Selfhost.
+//
+// Axiom API Reference: /api/v1/orgs
+type CloudOrganizationsService struct {
+	OrganizationsService
+}
+
 // RotateSigningKeys rotates the shared access token signing keys for the
 // organization identified by the given id.
-func (s *OrganizationsService) RotateSigningKeys(ctx context.Context, id string) (*Organization, error) {
+func (s *CloudOrganizationsService) RotateSigningKeys(ctx context.Context, id string) (*Organization, error) {
 	path := s.basePath + "/" + id + "/rotate-keys"
 
 	var res Organization
@@ -248,4 +290,19 @@ func (s *OrganizationsService) RotateSigningKeys(ctx context.Context, id string)
 	}
 
 	return &res, nil
+}
+
+// Create an organization with the given properties.
+func (s *CloudOrganizationsService) Create(ctx context.Context, req OrganizationCreateUpdateRequest) (*Organization, error) {
+	var res Organization
+	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Delete the organization identified by the given id.
+func (s *CloudOrganizationsService) Delete(ctx context.Context, id string) error {
+	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }

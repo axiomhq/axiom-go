@@ -83,7 +83,7 @@ func (s *UsersTestSuite) Test() {
 	// List all users and make sure the created user is part of that list.
 	users, err := s.client.Users.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(users)
+	s.Require().NotEmpty(users)
 
 	s.Contains(users, s.user)
 }

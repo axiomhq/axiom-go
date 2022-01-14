@@ -77,7 +77,7 @@ func (s *NotifiersTestSuite) Test() {
 	// list.
 	notifiers, err := s.client.Notifiers.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(notifiers)
+	s.Require().NotEmpty(notifiers)
 
 	s.Contains(notifiers, s.notifier)
 }
