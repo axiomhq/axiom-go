@@ -122,7 +122,7 @@ func (s *DatasetsTestSuite) Test() {
 	// list.
 	datasets, err := s.client.Datasets.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(datasets)
+	s.Require().NotEmpty(datasets)
 
 	s.Contains(datasets, s.dataset)
 

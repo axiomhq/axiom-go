@@ -72,7 +72,7 @@ func (s *TeamsTestSuite) Test() {
 	// List all teams and make sure the created team is part of that list.
 	teams, err := s.client.Teams.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(teams)
+	s.Require().NotEmpty(teams)
 
 	s.Contains(teams, s.team)
 }

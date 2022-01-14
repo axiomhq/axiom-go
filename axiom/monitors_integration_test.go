@@ -98,7 +98,7 @@ func (s *MonitorsTestSuite) Test() {
 	// List all monitors and make sure the created monitor is part of that list.
 	monitors, err := s.client.Monitors.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(monitors)
+	s.Require().NotEmpty(monitors)
 
 	s.Contains(monitors, s.monitor)
 }

@@ -97,7 +97,7 @@ func (s *APITokensTestSuite) Test() {
 	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.client.Tokens.API.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(tokens)
+	s.Require().NotEmpty(tokens)
 
 	s.Contains(tokens, s.token)
 }
@@ -231,7 +231,7 @@ func (s *IngestTokensTestSuite) Test() {
 	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.client.Tokens.Ingest.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(tokens)
+	s.Require().NotEmpty(tokens)
 
 	s.Contains(tokens, s.token)
 
@@ -376,7 +376,7 @@ func (s *PersonalTokensTestSuite) Test() {
 	// List all tokens and make sure the created token is part of that list.
 	tokens, err := s.client.Tokens.Personal.List(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(tokens)
+	s.Require().NotEmpty(tokens)
 
 	s.Contains(tokens, s.token)
 }
