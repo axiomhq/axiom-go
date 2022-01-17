@@ -9,4 +9,6 @@ type Result struct {
 
 	// Request is the APL query request that created the result.
 	Request *query.Query `json:"request"`
+	// The datasets that were queried in order to create the result.
+	Datasets []string `json:"datasetNames"`
 }

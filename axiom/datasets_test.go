@@ -128,7 +128,10 @@ const actAPLQueryResp = `{
 		"buckets": {
 			"series": [],
 			"totals": []
-		}
+		},
+		"datasetNames": [
+			"test"
+		]
 	}`
 
 var expQueryRes = &query.Result{
@@ -187,7 +190,8 @@ var expAPLQueryRes = &apl.Result{
 		EndTime:   parseTimeOrPanic(time.RFC3339Nano, "2021-08-19T16:34:57.885821616Z"),
 		Limit:     1000,
 	},
-	Result: expQueryRes,
+	Result:   expQueryRes,
+	Datasets: []string{"test"},
 }
 
 func TestDatasetsService_Stats(t *testing.T) {
