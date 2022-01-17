@@ -253,6 +253,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(8, aplQueryResult.Status.RowsExamined)
 	s.EqualValues(8, aplQueryResult.Status.RowsMatched)
 	s.Len(aplQueryResult.Matches, 8)
+	s.Contains(aplQueryResult.Datasets, s.dataset.ID)
 
 	// Run a more complex query.
 	complexQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
