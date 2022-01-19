@@ -94,9 +94,12 @@ type Hook struct {
 // control the Axiom client creation. To specify the dataset set `AXIOM_DATASET`
 // or use the `SetDataset()` option.
 //
-// An ingest token is sufficient enough. Additional options can be supplied to
-// configure the `Hook`. A hook needs to be closed properly to make sure all
-// logs are sent by calling `Close()`.
+// An API token with `axiom.CanIngest` permission is sufficient enough.
+//
+// Additional options can be supplied to configure the `Hook`.
+//
+// A hook needs to be closed properly to make sure all logs are sent by calling
+// `Close()`.
 func New(options ...Option) (*Hook, error) {
 	hook := &Hook{
 		levels: logrus.AllLevels,

@@ -12,34 +12,24 @@ import (
 //nolint:gosec // Chill bro, those are just for testing.
 const (
 	apiTokenStr         = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	ingestTokenStr      = "xait-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	personalTokenStr    = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	unspecifiedTokenStr = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 )
 
 func TestIsAPIToken(t *testing.T) {
 	assert.True(t, axiom.IsAPIToken(apiTokenStr))
-	assert.False(t, axiom.IsAPIToken(ingestTokenStr))
 	assert.False(t, axiom.IsAPIToken(personalTokenStr))
 	assert.False(t, axiom.IsAPIToken(unspecifiedTokenStr))
-}
-func TestIsIngestToken(t *testing.T) {
-	assert.False(t, axiom.IsIngestToken(apiTokenStr))
-	assert.True(t, axiom.IsIngestToken(ingestTokenStr))
-	assert.False(t, axiom.IsIngestToken(personalTokenStr))
-	assert.False(t, axiom.IsIngestToken(unspecifiedTokenStr))
 }
 
 func TestIsPersonalToken(t *testing.T) {
 	assert.False(t, axiom.IsPersonalToken(apiTokenStr))
-	assert.False(t, axiom.IsPersonalToken(ingestTokenStr))
 	assert.True(t, axiom.IsPersonalToken(personalTokenStr))
 	assert.False(t, axiom.IsPersonalToken(unspecifiedTokenStr))
 }
 
 func TestIsValidToken(t *testing.T) {
 	assert.True(t, axiom.IsValidToken(apiTokenStr))
-	assert.True(t, axiom.IsValidToken(ingestTokenStr))
 	assert.True(t, axiom.IsValidToken(personalTokenStr))
 	assert.False(t, axiom.IsValidToken(unspecifiedTokenStr))
 }

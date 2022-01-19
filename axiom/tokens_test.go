@@ -199,21 +199,6 @@ func TestTokensService_Delete(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestIngestTokensService_Validate(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-		assert.Equal(t, r.Header.Get("Authorization"), "Bearer "+ingestToken)
-
-		w.WriteHeader(http.StatusOK)
-	}
-
-	client, teardown := setup(t, "/api/v1/tokens/ingest/validate", hf, SetAccessToken(ingestToken))
-	defer teardown()
-
-	err := client.Tokens.Ingest.Validate(context.Background())
-	require.NoError(t, err)
-}
-
 func TestPermission_Marshal(t *testing.T) {
 	exp := `{
 		"permission": "CanIngest"

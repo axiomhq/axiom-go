@@ -19,15 +19,15 @@ import (
 
 const (
 	endpoint = "http://axiom.local"
-	// ingestToken is a placeholder ingest token.
-	ingestToken = "xait-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	// apiToken is a placeholder API token.
+	apiToken = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	// personalToken is a placeholder personal token.
 	personalToken = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
 	// orgID is a placeholder organization id.
 	orgID = "awkward-identifier-c3po"
 )
 
-var tokenRe = regexp.MustCompile("xa(a|i|p|)t-[a-zA-z0-9]{8}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{12}")
+var tokenRe = regexp.MustCompile("xa(a|p|)t-[a-zA-z0-9]{8}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{12}")
 
 // SetStrictDecoding is a special testing-only client option that - when set to
 // 'true' - failes JSON response decoding if fields not present in the
@@ -60,9 +60,9 @@ func TestNewClient(t *testing.T) {
 			err: ErrMissingOrganizationID,
 		},
 		{
-			name: "no environment accessToken option with ingest token",
+			name: "no environment accessToken option with API token",
 			options: []Option{
-				SetAccessToken(ingestToken),
+				SetAccessToken(apiToken),
 			},
 		},
 		{
@@ -73,9 +73,9 @@ func TestNewClient(t *testing.T) {
 			err: ErrMissingOrganizationID,
 		},
 		{
-			name: "orgID environment no options with ingest token",
+			name: "orgID environment no options with API token",
 			environment: map[string]string{
-				"AXIOM_TOKEN": ingestToken,
+				"AXIOM_TOKEN": apiToken,
 			},
 		},
 		{
@@ -224,7 +224,6 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.NotNil(t, client.StarredQueries)
 	assert.NotNil(t, client.Teams)
 	assert.NotNil(t, client.Tokens.API)
-	assert.NotNil(t, client.Tokens.Ingest)
 	assert.NotNil(t, client.Tokens.Personal)
 	assert.NotNil(t, client.Users)
 	assert.NotNil(t, client.Version)
@@ -454,7 +453,7 @@ func TestClient_do_UnprivilegedToken(t *testing.T) {
 	client, teardown := setup(t, "/", nil)
 	defer teardown()
 
-	err := client.Options(SetAccessToken("xait-123"))
+	err := client.Options(SetAccessToken("xaat-123"))
 	require.NoError(t, err)
 
 	_, err = client.newRequest(context.Background(), http.MethodGet, "/", nil)
@@ -478,21 +477,21 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 	assert.IsType(t, err, new(url.Error))
 }
 
-func TestClient_do_validIngestOnlyTokenPaths(t *testing.T) {
+func TestClient_do_validOnlyAPITokenPaths(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 
 	tests := []string{
-		"/api/v1/datasets/test/ingest",
-		"/api/v1/tokens/ingest/validate",
+		"/api/v1/datasets/test/query",
+		"/api/v1/datasets/_apl",
 	}
 	for _, tt := range tests {
 		t.Run(tt, func(t *testing.T) {
 			client, teardown := setup(t, tt, hf)
 			defer teardown()
 
-			err := client.Options(SetAccessToken("xait-123"))
+			err := client.Options(SetAccessToken("xaat-123"))
 			require.NoError(t, err)
 
 			req, err := client.newRequest(context.Background(), http.MethodGet, tt, nil)
@@ -504,7 +503,7 @@ func TestClient_do_validIngestOnlyTokenPaths(t *testing.T) {
 	}
 }
 
-func TestIngestPathRegex(t *testing.T) {
+func TestAPITokenPathRegex(t *testing.T) {
 	tests := []struct {
 		input string
 		match bool
@@ -514,33 +513,41 @@ func TestIngestPathRegex(t *testing.T) {
 			match: true,
 		},
 		{
-			input: "/api/v1/tokens/ingest/validate",
+			input: "/api/v1/datasets/test/ingest?timestamp-format=unix",
 			match: true,
+		},
+		{
+			input: "/api/v1/datasets/test/query",
+			match: true,
+		},
+		{
+			input: "/api/v1/datasets/_apl",
+			match: true,
+		},
+		{
+			input: "/api/v1/datasets/test/query?nocache=true",
+			match: true,
+		},
+		{
+			input: "/api/v1/datasets/_apl?nocache=true",
+			match: true,
+		},
+		{
+			input: "/api/v1/datasets//query",
+			match: false,
+		},
+		{
+			input: "/api/v1/datasets/query",
+			match: false,
 		},
 		{
 			input: "/api/v1/datasets/test/elastic",
 			match: false,
 		},
-		{
-			input: "/api/v1/datasets/test",
-			match: false,
-		},
-		{
-			input: "/api/v1/datasets/test/",
-			match: false,
-		},
-		{
-			input: "/api/v1/tokens/personal/validate",
-			match: false,
-		},
-		{
-			input: "/api/v1/tokens/validate",
-			match: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			assert.Equal(t, tt.match, validIngestTokenPathRe.MatchString(tt.input))
+			assert.Equal(t, tt.match, validOnlyAPITokenPaths.MatchString(tt.input))
 		})
 	}
 }
@@ -548,7 +555,7 @@ func TestIngestPathRegex(t *testing.T) {
 // setup sets up a test HTTP server along with a client that is configured to
 // talk to that test server. Tests should pass a handler function which provides
 // the response for the API method being tested.
-func setup(t *testing.T, path string, handler http.HandlerFunc, options ...Option) (*Client, func()) {
+func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()) {
 	t.Helper()
 
 	r := http.NewServeMux()
@@ -576,11 +583,6 @@ func setup(t *testing.T, path string, handler http.HandlerFunc, options ...Optio
 		SetStrictDecoding(true),
 		SetNoEnv(),
 	)
-	require.NoError(t, err)
-
-	// Supply additional options passed as parameters separately. This makes it
-	// easier to debug issues with user supplied options to this function.
-	err = client.Options(options...)
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

@@ -24,7 +24,7 @@ import (
 func TestNew(t *testing.T) {
 	os.Clearenv()
 
-	os.Setenv("AXIOM_TOKEN", "xait-test")
+	os.Setenv("AXIOM_TOKEN", "xaat-test")
 	os.Setenv("AXIOM_ORG_ID", "123")
 
 	handler, err := New()
@@ -122,7 +122,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*logrus.Logger, func()) {
 
 	client, err := axiom.NewClient(
 		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xait-test"),
+		axiom.SetAccessToken("xaat-test"),
 		axiom.SetClient(srv.Client()),
 	)
 	require.NoError(t, err)

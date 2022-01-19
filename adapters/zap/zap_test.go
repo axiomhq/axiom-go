@@ -21,7 +21,7 @@ import (
 func TestNew(t *testing.T) {
 	os.Clearenv()
 
-	os.Setenv("AXIOM_TOKEN", "xait-test")
+	os.Setenv("AXIOM_TOKEN", "xaat-test")
 	os.Setenv("AXIOM_ORG_ID", "123")
 
 	core, err := New()
@@ -78,7 +78,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*zap.Logger, func()) {
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
 		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xait-test"),
+		axiom.SetAccessToken("xaat-test"),
 		axiom.SetClient(srv.Client()),
 	)
 	require.NoError(t, err)

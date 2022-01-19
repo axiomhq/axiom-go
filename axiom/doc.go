@@ -10,9 +10,9 @@
 // access different parts of the Axiom API. The package automatically takes its
 // configuration from the environment if not specified otherwise. Refer to
 // `NewClient()` for details. The configuration also differs when connection to
-// Axiom Cloud or Axiom Selfhost. Either way, the access token can be a personal
-// or an ingest token. The ingest token however, will just allow ingestion into
-// the datasets targeted by the ingest token:
+// Axiom Cloud or Axiom Selfhost. Either way, the access token can be an api or
+// personal token. The API token however, will just allow ingestion or querying
+// into or from the datasets the token is valid for.
 //
 //   client, err := axiom.NewClient()
 //

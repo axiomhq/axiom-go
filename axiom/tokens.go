@@ -49,10 +49,9 @@ func (p *Permission) UnmarshalJSON(b []byte) error {
 }
 
 // Token represents an access token. Tokens can either be API tokens, valid
-// across the whole Axiom API and granting access to the specified resources,
-// ingest tokens, valid for ingestion into one or more datasets or personal
-// tokens, granting access to the whole Axiom API only limited by the users
-// role.
+// across the whole Axiom API and granting access to the specified resources or
+// personal tokens, granting access to the whole Axiom API only limited by the
+// users role.
 type Token struct {
 	// ID is the unique ID of the token.
 	ID string `json:"id"`
@@ -60,9 +59,9 @@ type Token struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token. Only used by API and ingest tokens. Usually the name
-	// of the dataset to grant access to. `*` is the wildcard that grants access
-	// to all datasets.
+	// Scopes of the token. Only used by API tokens. Usually the name of the
+	// dataset to grant access to. `*` is the wildcard that grants access to all
+	// datasets.
 	Scopes []string `json:"scopes"`
 	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions"`
@@ -73,7 +72,7 @@ type Token struct {
 type RawToken struct {
 	// Token is the actual secret value of the token.
 	Token string `json:"token"`
-	// Scopes of the token. Only used by API and ingest tokens. Usually the name
+	// Scopes of the token. Only used by API tokens. Usually the name
 	// of the dataset to grant access to. `*` is the wildcard that grants access
 	// to all datasets.
 	Scopes []string `json:"scopes"`
@@ -87,9 +86,9 @@ type TokenCreateUpdateRequest struct {
 	Name string `json:"name"`
 	// Description of the token.
 	Description string `json:"description"`
-	// Scopes of the token. Only used by API and ingest tokens. Usually the name
-	// of the dataset to grant access to. If left empty, will default to `*`
-	// which grants access to all datasets.
+	// Scopes of the token. Only used by API tokens. Usually the name of the
+	// dataset to grant access to. If left empty, will default to `*` which
+	// grants access to all datasets.
 	Scopes []string `json:"scopes,omitempty"`
 	// Permissions of the token. Only used by API tokens.
 	Permissions []Permission `json:"permissions,omitempty"`
@@ -191,16 +190,10 @@ func prepareTokenCreateUpdateRequest(basePath string, req *TokenCreateUpdateRequ
 }
 
 func cleanupTokenResponse(basePath string, t *Token) {
+	// Nor scopes nor permissions are allowed on personal tokens.
 	pathParts := strings.Split(basePath, "/")
 	tokenType := pathParts[len(pathParts)-1]
-	switch tokenType {
-	case "api":
-		// Scopes and permissions are allowed.
-	case "ingest":
-		// Scopes are allowed.
-		t.Permissions = nil
-	case "personal":
-		// Nor scopes nor permissions are allowed.
+	if tokenType == "personal" {
 		t.Scopes = nil
 		t.Permissions = nil
 	}
@@ -214,20 +207,6 @@ func cleanupTokenResponse(basePath string, t *Token) {
 // Axiom API Reference: /api/v1/tokens/api
 type APITokensService struct {
 	tokensService
-}
-
-// IngestTokensService handles communication with the ingest token related
-// operations of the Axiom API. Ingest tokens can only be used to send data to
-// one or more datasets. They cannot be used to access other endpoints.
-//
-// Axiom API Reference: /api/v1/tokens/ingest
-type IngestTokensService struct {
-	tokensService
-}
-
-// Validate the token that is used for authentication.
-func (s *IngestTokensService) Validate(ctx context.Context) error {
-	return s.client.call(ctx, http.MethodGet, s.basePath+"/validate", nil, nil)
 }
 
 // PersonalTokensService handles communication with the personal token related
