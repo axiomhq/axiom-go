@@ -10,11 +10,6 @@ func IsAPIToken(token string) bool {
 	return strings.HasPrefix(token, "xaat-")
 }
 
-// IsIngestToken returns true if the given access token is an ingest token.
-func IsIngestToken(token string) bool {
-	return strings.HasPrefix(token, "xait-")
-}
-
 // IsPersonalToken returns true if the given access token is a personal token.
 func IsPersonalToken(token string) bool {
 	return strings.HasPrefix(token, "xapt-")
@@ -23,7 +18,7 @@ func IsPersonalToken(token string) bool {
 // IsValidToken returns true if the given access token is a valid Axiom access
 // token.
 func IsValidToken(token string) bool {
-	return IsAPIToken(token) || IsIngestToken(token) || IsPersonalToken(token)
+	return IsAPIToken(token) || IsPersonalToken(token)
 }
 
 // ValidateEnvironment returns nil if the environment variables, needed to

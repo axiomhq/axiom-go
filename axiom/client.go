@@ -18,7 +18,7 @@ import (
 // CloudURL is the url of the cloud hosted version of Axiom.
 const CloudURL = "https://cloud.axiom.co"
 
-var validIngestTokenPathRe = regexp.MustCompile("^/api/v1/(datasets/.+/ingest|tokens/ingest/validate)$")
+var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
 //nolint:structcheck // https://github.com/golangci/golangci-lint/issues/1517
@@ -68,7 +68,6 @@ type Client struct {
 	Teams          *TeamsService
 	Tokens         struct {
 		API      *APITokensService
-		Ingest   *IngestTokensService
 		Personal *PersonalTokensService
 	}
 	Users         *UsersService
@@ -93,8 +92,8 @@ type Client struct {
 // `Set`. Refer to `SetCloudConfig()` and `SetSelfhostConfig()`. Individual
 // properties can be overwritten as well.
 //
-// The access token must be a personal or ingest token which can be created on
-// the user profile or settings page on Axiom.
+// The access token must be an api or personal token which can be created on
+// the settings or user profile page on Axiom.
 func NewClient(options ...Option) (*Client, error) {
 	client := &Client{
 		userAgent: "axiom-go",
@@ -111,7 +110,6 @@ func NewClient(options ...Option) (*Client, error) {
 	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
 	client.Teams = &TeamsService{client, "/api/v1/teams"}
 	client.Tokens.API = &APITokensService{tokensService{client, "/api/v1/tokens/api"}}
-	client.Tokens.Ingest = &IngestTokensService{tokensService{client, "/api/v1/tokens/ingest"}}
 	client.Tokens.Personal = &PersonalTokensService{tokensService{client, "/api/v1/tokens/personal"}}
 	client.Users = &UsersService{client, "/api/v1/users"}
 	client.Version = &VersionService{client, "/api/v1/version"}
@@ -139,13 +137,15 @@ func (c *Client) Options(options ...Option) error {
 // ValidateCredentials makes sure the client can properly authenticate against
 // the configured Axiom deployment.
 func (c *Client) ValidateCredentials(ctx context.Context) error {
-	if IsIngestToken(c.accessToken) {
-		return c.Tokens.Ingest.Validate(ctx)
-	} else if IsPersonalToken(c.accessToken) {
+	if IsPersonalToken(c.accessToken) {
 		_, err := c.Users.Current(ctx)
 		return err
 	}
-	return ErrInvalidToken
+
+	// FIXME(lukasmalkmus): Well, with the current API, we need to assume the
+	// token is valid.
+	// return ErrInvalidToken
+	return nil
 }
 
 // populateClientFromEnvironment populates the client with values from the
@@ -180,15 +180,15 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 	}
 
 	// When the organization ID is not set, use `AXIOM_ORG_ID`. In case the url
-	// is the Axiom Cloud url and the access token is not an ingest token, the
+	// is the Axiom Cloud url and the access token is not a personal token, the
 	// organization ID is explicitly required and an error is returned, if it is
 	// not set.
 	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
 	cloudURLSetByEnvironment := deploymentURL == CloudURL
 	cloudURLSet := cloudURLSetByOption || cloudURLSetByEnvironment
-	isIngestToken := IsIngestToken(c.accessToken) || IsIngestToken(accessToken)
+	isPersonalToken := IsPersonalToken(c.accessToken) || IsPersonalToken(accessToken)
 	if c.orgID == "" {
-		if (orgID == "" && cloudURLSet && !isIngestToken) || (c.noEnv && cloudURLSet) {
+		if (orgID == "" && cloudURLSet && isPersonalToken) || (c.noEnv && cloudURLSet) {
 			return ErrMissingOrganizationID
 		}
 		addOption(SetOrgID(orgID))
@@ -218,7 +218,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 	}
 	u := c.baseURL.ResolveReference(rel)
 
-	if IsIngestToken(c.accessToken) && !validIngestTokenPathRe.MatchString(u.Path) {
+	if IsAPIToken(c.accessToken) && !validOnlyAPITokenPaths.MatchString(u.Path) {
 		return nil, ErrUnprivilegedToken
 	}
 
@@ -253,8 +253,8 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
 
-	// Set organization ID header when not using an ingest token.
-	if !IsIngestToken(c.accessToken) && c.orgID != "" {
+	// Set organization ID header when using a personal token.
+	if IsPersonalToken(c.accessToken) && c.orgID != "" {
 		req.Header.Set("X-Axiom-Org-Id", c.orgID)
 	}
 

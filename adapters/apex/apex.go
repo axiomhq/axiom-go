@@ -84,9 +84,12 @@ type Handler struct {
 // control the Axiom client creation. To specify the dataset set `AXIOM_DATASET`
 // or use the `SetDataset()` option.
 //
-// An ingest token is sufficient enough. Additional options can be supplied to
-// configure the `Handler`. A handler needs to be closed properly to make sure
-// all logs are sent by calling `Close()`.
+// An API token with `axiom.CanIngest` permission is sufficient enough.
+//
+// Additional options can be supplied to configure the `Handler`.
+//
+// A handler needs to be closed properly to make sure all logs are sent by
+// calling `Close()`.
 func New(options ...Option) (*Handler, error) {
 	handler := &Handler{
 		eventCh: make(chan axiom.Event, 1),

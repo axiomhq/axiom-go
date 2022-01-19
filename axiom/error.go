@@ -25,9 +25,9 @@ var (
 	// ErrUnauthenticated is raised when the access token is not valid.
 	ErrUnauthenticated = errors.New("invalid authentication credentials")
 
-	// ErrUnprivilegedToken is raised when a client tries to call a non-ingest
-	// endpoint with an ingest-only token configured.
-	ErrUnprivilegedToken = errors.New("using ingest token for non-ingest operation")
+	// ErrUnprivilegedToken is raised when a client tries to call an ingest or
+	// query endpoint with an API token configured.
+	ErrUnprivilegedToken = errors.New("using API token for non-ingest or non-query operation")
 
 	// ErrNotFound is returned when the requested resource is not found.
 	ErrNotFound = errors.New("not found")

@@ -24,7 +24,7 @@ var (
 )
 
 // TestFunc is a function that provides a client that is configured with an
-// ingest token for a unique test dataset. The client should be passed to the
+// API token for a unique test dataset. The client should be passed to the
 // adapter to be tested as well as the target dataset.
 type TestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 
@@ -72,22 +72,23 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 		assert.NoError(t, deleteErr)
 	})
 
-	// Create the ingest token for the dataset.
-	token, err := client.Tokens.Ingest.Create(ctx, axiom.TokenCreateUpdateRequest{
+	// Create the api token for the dataset.
+	token, err := client.Tokens.API.Create(ctx, axiom.TokenCreateUpdateRequest{
 		Name:        fmt.Sprintf("test-axiom-go-adapter-%s-%s", adapterName, datasetSuffix),
-		Description: "This is a test ingest token for adapter integration tests.",
+		Description: "This is a test API token for adapter integration tests.",
 		Scopes:      []string{dataset.ID},
+		Permissions: []axiom.Permission{axiom.CanIngest},
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		deleteErr := client.Tokens.Ingest.Delete(teardownContext(t), token.ID)
+		deleteErr := client.Tokens.API.Delete(teardownContext(t), token.ID)
 		assert.NoError(t, deleteErr)
 	})
 
-	rawToken, err := client.Tokens.Ingest.View(ctx, token.ID)
+	rawToken, err := client.Tokens.API.View(ctx, token.ID)
 	require.NoError(t, err)
 
-	// Create a client that uses the ingest token.
+	// Create a client that uses the API token.
 	testClient, err := newClient(
 		axiom.SetUserAgent(fmt.Sprintf("axiom-go-adapter-%s-integration-test/%s", adapterName, datasetSuffix)),
 		axiom.SetAccessToken(rawToken.Token),

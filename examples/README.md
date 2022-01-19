@@ -10,10 +10,9 @@ To quickstart, export the environment variables below.
 
 ### When using Axiom Cloud
 
-* `AXIOM_TOKEN`: **API**, **Ingest** or **Personal Access** token. Can be
-  created under `Settings > API Tokens`, `Settings > Ingest Tokens` or
-  `Profile`. For security reasons it is advised to use an API or Ingest token
-  with minimal privileges only.
+* `AXIOM_TOKEN`: **API** or **Personal Access** token. Can be created under
+  `Settings > API Tokens` or `Profile`. For security reasons it is advised to
+  use an API token with minimal privileges only.
 * `AXIOM_ORG_ID`: Organization identifier of the organization to use on Axiom
    Cloud (when using a personal access token).
 * `AXIOM_DATASET`: Dataset to use. Must exist prior to using it.
@@ -21,10 +20,9 @@ To quickstart, export the environment variables below.
 ### When using Axiom Selfhost
 
 * `AXIOM_URL`: URL of the Axiom deployment to use.
-* `AXIOM_TOKEN`: **API**, **Ingest** or **Personal Access** token. Can be
-  created under `Settings > API Tokens`, `Settings > Ingest Tokens` or
-  `Profile`. For security reasons it is advised to use an API or Ingest token
-  with minimal privileges only.
+* `AXIOM_TOKEN`: **API** or **Personal Access** token. Can be created under
+  `Settings > API Tokens` or `Profile`. For security reasons it is advised to
+  use an API token with minimal privileges only.
 * `AXIOM_DATASET`: Dataset to use. Must exist prior to using it.
 
 ## Package usage
