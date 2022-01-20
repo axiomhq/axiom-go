@@ -15,43 +15,53 @@ type Plan uint8
 
 // All available deployment or organization plans.
 const (
-	Free       Plan = iota + 1 // free
-	Trial                      // trial
-	Pro                        // pro
-	Enterprise                 // enterprise
-	Comped                     // comped
+	emptyPlan Plan = iota //
+
+	Free       // free
+	Trial      // trial
+	Pro        // pro
+	Enterprise // enterprise
+	Comped     // comped
 )
+
+func planFromString(s string) (plan Plan, err error) {
+	switch s {
+	case emptyPlan.String():
+		plan = emptyPlan
+	case Free.String():
+		plan = Free
+	case Trial.String():
+		plan = Trial
+	case Pro.String():
+		plan = Pro
+	case Enterprise.String():
+		plan = Enterprise
+	case Comped.String():
+		plan = Comped
+	default:
+		err = fmt.Errorf("unknown plan %q", s)
+	}
+
+	return plan, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the Plan to
 // its string representation because that's what the server expects.
-func (plan Plan) MarshalJSON() ([]byte, error) {
-	return json.Marshal(plan.String())
+func (p Plan) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.String())
 }
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // Plan from the string representation the server returns.
-func (plan *Plan) UnmarshalJSON(b []byte) error {
+func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case Free.String():
-		*plan = Free
-	case Trial.String():
-		*plan = Trial
-	case Pro.String():
-		*plan = Pro
-	case Enterprise.String():
-		*plan = Enterprise
-	case Comped.String():
-		*plan = Comped
-	default:
-		return fmt.Errorf("unknown plan %q", s)
-	}
+	*p, err = planFromString(s)
 
-	return nil
+	return err
 }
 
 // License of a deployment or organization.
@@ -143,10 +153,10 @@ type Status struct {
 	UsersRemaining int64 `json:"usersRemaining"`
 }
 
-// SigningKeys are the signing keys used to sign shared access tokens that
-// can be used by a third party to run queries on behalf of the organization.
-// They can be rotated.
-type SigningKeys struct {
+// SharedAccessKeys are the signing keys used to create shared access tokens
+// that can be used by a third party to run queries on behalf of the
+// organization. They can be rotated.
+type SharedAccessKeys struct {
 	// Primary signing key. Gets rotated to the secondary signing key after
 	// rotation.
 	Primary string `json:"primary"`
@@ -186,10 +196,6 @@ type Organization struct {
 	PrimaryEmail string `json:"primaryEmail"`
 	// License of the deployment or organization.
 	License License `json:"license"`
-	// SigningKeys are the signing keys used to sign shared access tokens that
-	// can be used by a third party to run queries on behalf of the
-	// organization. Signing keys can be rotated. Only available on Axiom Cloud.
-	SigningKeys SigningKeys `json:"keys"`
 	// CreatedAt is the time the Organization was created.
 	CreatedAt time.Time `json:"metaCreated"`
 	// ModifiedAt is the time the Organization was last modified.
@@ -279,12 +285,25 @@ type CloudOrganizationsService struct {
 	OrganizationsService
 }
 
-// RotateSigningKeys rotates the shared access token signing keys for the
+// ViewSharedAccessKeys rotates the shared access signing keys for the
 // organization identified by the given id.
-func (s *CloudOrganizationsService) RotateSigningKeys(ctx context.Context, id string) (*Organization, error) {
+func (s *CloudOrganizationsService) ViewSharedAccessKeys(ctx context.Context, id string) (*SharedAccessKeys, error) {
+	path := s.basePath + "/" + id + "/keys"
+
+	var res SharedAccessKeys
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// RotateSharedAccessKeys rotates the shared access signing keys for the
+// organization identified by the given id.
+func (s *CloudOrganizationsService) RotateSharedAccessKeys(ctx context.Context, id string) (*SharedAccessKeys, error) {
 	path := s.basePath + "/" + id + "/rotate-keys"
 
-	var res Organization
+	var res SharedAccessKeys
 	if err := s.client.call(ctx, http.MethodPut, path, nil, &res); err != nil {
 		return nil, err
 	}

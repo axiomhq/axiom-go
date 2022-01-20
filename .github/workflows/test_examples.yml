@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         deployment:
-          - azure-1-staging
+          # - azure-1-staging
           - cloud-dev
         example:
           - apex
@@ -29,9 +29,9 @@ jobs:
           - query
           - zap
         include:
-          - deployment: azure-1-staging
-            axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
-            axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
+          # - deployment: azure-1-staging
+          #   axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
+          #   axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
           - deployment: cloud-dev
             axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
             axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN

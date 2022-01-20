@@ -270,14 +270,27 @@ func TestComparison_Unmarshal(t *testing.T) {
 
 func TestComparison_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Equal(t, Comparison(0).String(), "Comparison(0)")
-	assert.Contains(t, (Below - 1).String(), "Comparison(")
+	assert.Empty(t, Comparison(0).String())
+	assert.Empty(t, emptyComparison.String())
+	assert.Equal(t, emptyComparison, Comparison(0))
 	assert.Contains(t, (AboveOrEqual + 1).String(), "Comparison(")
 
 	for c := Below; c <= AboveOrEqual; c++ {
 		s := c.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Comparison(")
+	}
+}
+
+func TestComparisonFromString(t *testing.T) {
+	for c := Below; c <= AboveOrEqual; c++ {
+		s := c.String()
+
+		parsedComparison, err := comparisonFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, c, parsedComparison)
 	}
 }
 
@@ -332,7 +345,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 		},
 		"aplQuery": false,
 		"threshold": 0,
-		"comparison": "Comparison(0)",
+		"comparison": "",
 		"noDataCloseWaitMinutes": 1,
 		"frequencyMinutes": 2,
 		"durationMinutes": 3,

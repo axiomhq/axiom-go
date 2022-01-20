@@ -13,35 +13,44 @@ type MessageCode uint8
 
 // All available message codes.
 const (
-	UnknownMessageCode          MessageCode = iota
-	VirtualFieldFinalizeError               // virtual_field_finalize_error
-	MissingColumn                           // missing_column
-	LicenseLimitForQueryWarning             // license_limit_for_query_warning
-	DefaultLimitWarning                     // default_limit_warning
+	emptyMessageCode MessageCode = iota //
+
+	VirtualFieldFinalizeError   // virtual_field_finalize_error
+	MissingColumn               // missing_column
+	LicenseLimitForQueryWarning // license_limit_for_query_warning
+	DefaultLimitWarning         // default_limit_warning
 )
+
+func messageCodeFromString(s string) (mc MessageCode, err error) {
+	switch s {
+	case emptyMessageCode.String():
+		mc = emptyMessageCode
+	case VirtualFieldFinalizeError.String():
+		mc = VirtualFieldFinalizeError
+	case MissingColumn.String():
+		mc = MissingColumn
+	case LicenseLimitForQueryWarning.String():
+		mc = LicenseLimitForQueryWarning
+	case DefaultLimitWarning.String():
+		mc = DefaultLimitWarning
+	default:
+		err = fmt.Errorf("unknown message code %q", s)
+	}
+
+	return mc, err
+}
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // MessageCode from the string representation the server returns.
-func (mc *MessageCode) UnmarshalJSON(b []byte) error {
+func (mc *MessageCode) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case VirtualFieldFinalizeError.String():
-		*mc = VirtualFieldFinalizeError
-	case MissingColumn.String():
-		*mc = MissingColumn
-	case LicenseLimitForQueryWarning.String():
-		*mc = LicenseLimitForQueryWarning
-	case DefaultLimitWarning.String():
-		*mc = DefaultLimitWarning
-	default:
-		*mc = UnknownMessageCode
-	}
+	*mc, err = messageCodeFromString(s)
 
-	return nil
+	return err
 }
 
 // MessagePriority represents the priority of a message associated with a query.
@@ -49,40 +58,50 @@ type MessagePriority uint8
 
 // All available message priorities.
 const (
-	Trace MessagePriority = iota + 1 // trace
-	Debug                            // debug
-	Info                             // info
-	Warn                             // warn
-	Error                            // error
-	Fatal                            // fatal
+	emptyMessagePriority MessagePriority = iota //
+
+	Trace // trace
+	Debug // debug
+	Info  // info
+	Warn  // warn
+	Error // error
+	Fatal // fatal
 )
+
+func messagePriorityFromString(s string) (mp MessagePriority, err error) {
+	switch s {
+	case emptyMessagePriority.String():
+		mp = emptyMessagePriority
+	case Trace.String():
+		mp = Trace
+	case Debug.String():
+		mp = Debug
+	case Info.String():
+		mp = Info
+	case Warn.String():
+		mp = Warn
+	case Error.String():
+		mp = Error
+	case Fatal.String():
+		mp = Fatal
+	default:
+		err = fmt.Errorf("unknown message priority %q", s)
+	}
+
+	return mp, err
+}
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // MessagePriority from the string representation the server returns.
-func (mp *MessagePriority) UnmarshalJSON(b []byte) error {
+func (mp *MessagePriority) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case Trace.String():
-		*mp = Trace
-	case Debug.String():
-		*mp = Debug
-	case Info.String():
-		*mp = Info
-	case Warn.String():
-		*mp = Warn
-	case Error.String():
-		*mp = Error
-	case Fatal.String():
-		*mp = Fatal
-	default:
-		return fmt.Errorf("unknown message priority %q", s)
-	}
+	*mp, err = messagePriorityFromString(s)
 
-	return nil
+	return err
 }
 
 // Result is the result of a query.

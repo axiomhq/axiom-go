@@ -77,17 +77,22 @@ func (s *OrganizationsTestSuite) TestCloud() {
 
 	s.Equal("tag-org-"+datasetSuffix, organization.Name)
 
-	// Rotate the signing keys on the organization and make sure the new keys
-	// are returned.
-	oldPrimaryKey, oldSecondaryKey := organization.SigningKeys.Primary, organization.SigningKeys.Secondary
-	organization, err = s.client.Organizations.Cloud.RotateSigningKeys(s.ctx, organization.ID)
+	// View the signing keys on the organization.
+	keys, err := s.client.Organizations.Cloud.ViewSharedAccessKeys(s.ctx, organization.ID)
 	s.Require().NoError(err)
-	s.Require().NotNil(organization)
+	s.Require().NotNil(keys)
 
-	s.NotEqual(oldPrimaryKey, organization.SigningKeys.Primary)
-	s.NotEqual(oldSecondaryKey, organization.SigningKeys.Secondary)
-	s.NotEqual(oldSecondaryKey, organization.SigningKeys.Primary)
-	s.Equal(oldPrimaryKey, organization.SigningKeys.Secondary)
+	oldPrimaryKey, oldSecondaryKey := keys.Primary, keys.Secondary
+
+	// Rotate the signing keys on the organization and make sure the rotated
+	// keys are returned.
+	keys, err = s.client.Organizations.Cloud.RotateSharedAccessKeys(s.ctx, organization.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(keys)
+
+	s.Equal(oldPrimaryKey, keys.Secondary)      // Primary key is now the secondary key
+	s.NotEqual(oldSecondaryKey, keys.Secondary) // Secondary key is not the old secondary key
+	s.NotEqual(oldSecondaryKey, keys.Primary)   // Primary key is not the old secondary key
 
 	// Delete the organization.
 	err = s.client.Organizations.Cloud.Delete(s.ctx, organization.ID)

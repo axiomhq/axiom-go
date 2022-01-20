@@ -84,6 +84,7 @@ generate: \
 	axiom/notifiers_string.go \
 	axiom/orgs_string.go \
 	axiom/starred_string.go \
+	axiom/tokens_string.go \
 	axiom/users_string.go ## Generate code using `go generate`
 
 .PHONY: lint

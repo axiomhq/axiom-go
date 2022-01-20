@@ -14,11 +14,32 @@ type UserRole uint8
 
 // All available user roles.
 const (
-	RoleReadOnly UserRole = iota + 1 // read-only
-	RoleUser                         // user
-	RoleAdmin                        // admin
-	RoleOwner                        // owner
+	emptyUserRole UserRole = iota //
+
+	RoleReadOnly // read-only
+	RoleUser     // user
+	RoleAdmin    // admin
+	RoleOwner    // owner
 )
+
+func userRoleFromString(s string) (ur UserRole, err error) {
+	switch s {
+	case emptyUserRole.String():
+		ur = emptyUserRole
+	case RoleReadOnly.String():
+		ur = RoleReadOnly
+	case RoleUser.String():
+		ur = RoleUser
+	case RoleAdmin.String():
+		ur = RoleAdmin
+	case RoleOwner.String():
+		ur = RoleOwner
+	default:
+		err = fmt.Errorf("unknown user role %q", s)
+	}
+
+	return ur, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the UserRole
 // to its string representation because that's what the server expects.
@@ -28,26 +49,15 @@ func (ur UserRole) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // UserRole from the string representation the server returns.
-func (ur *UserRole) UnmarshalJSON(b []byte) error {
+func (ur *UserRole) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case RoleReadOnly.String():
-		*ur = RoleReadOnly
-	case RoleUser.String():
-		*ur = RoleUser
-	case RoleAdmin.String():
-		*ur = RoleAdmin
-	case RoleOwner.String():
-		*ur = RoleOwner
-	default:
-		return fmt.Errorf("unknown user role %q", s)
-	}
+	*ur, err = userRoleFromString(s)
 
-	return nil
+	return err
 }
 
 // User represents an user.

@@ -77,12 +77,27 @@ func TestMessageCode_Unmarshal(t *testing.T) {
 
 func TestMessageCode_String(t *testing.T) {
 	// Check outer bounds.
+	assert.Empty(t, MessageCode(0).String())
+	assert.Empty(t, emptyMessageCode.String())
+	assert.Equal(t, emptyMessageCode, MessageCode(0))
 	assert.Contains(t, (DefaultLimitWarning + 1).String(), "MessageCode(")
 
-	for typ := VirtualFieldFinalizeError; typ <= DefaultLimitWarning; typ++ {
-		s := typ.String()
+	for mc := VirtualFieldFinalizeError; mc <= DefaultLimitWarning; mc++ {
+		s := mc.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "MessageCode(")
+	}
+}
+
+func TestMessageCodeFromString(t *testing.T) {
+	for mc := VirtualFieldFinalizeError; mc <= DefaultLimitWarning; mc++ {
+		s := mc.String()
+
+		parsedMC, err := messageCodeFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, mc, parsedMC)
 	}
 }
 
@@ -98,13 +113,26 @@ func TestMessagePriority_Unmarshal(t *testing.T) {
 
 func TestMessagePriority_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Equal(t, MessagePriority(0).String(), "MessagePriority(0)")
-	assert.Contains(t, (Trace - 1).String(), "MessagePriority(")
+	assert.Empty(t, MessagePriority(0).String())
+	assert.Empty(t, emptyMessagePriority.String())
+	assert.Equal(t, emptyMessagePriority, MessagePriority(0))
 	assert.Contains(t, (Fatal + 1).String(), "MessagePriority(")
 
-	for typ := Trace; typ <= Fatal; typ++ {
-		s := typ.String()
+	for mp := Trace; mp <= Fatal; mp++ {
+		s := mp.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "MessagePriority(")
+	}
+}
+
+func TestMessagePriorityFromString(t *testing.T) {
+	for mp := Trace; mp <= Fatal; mp++ {
+		s := mp.String()
+
+		parsedMP, err := messagePriorityFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, mp, parsedMP)
 	}
 }
