@@ -34,6 +34,10 @@ var (
 
 	// ErrExists is returned when the requested resource already exists.
 	ErrExists = errors.New("entity exists")
+
+	// ErrRateLimitExceeded is returned when the rate limit for a requested
+	// resource was reached or exceeded.
+	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )
 
 var _ error = (*Error)(nil)

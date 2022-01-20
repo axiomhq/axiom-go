@@ -319,6 +319,8 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 			return resp, fmt.Errorf("%v: %w", errResp, ErrNotFound)
 		case http.StatusConflict:
 			return resp, fmt.Errorf("%v: %w", errResp, ErrExists)
+		case http.StatusTooManyRequests:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrRateLimitExceeded)
 		}
 
 		return resp, errResp
