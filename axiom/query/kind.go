@@ -13,13 +13,32 @@ type Kind uint8
 
 // All available query kinds.
 const (
-	Analytics Kind = iota + 1 // analytics
-	Stream                    // stream
+	emptyKind Kind = iota //
+
+	Analytics // analytics
+	Stream    // stream
 
 	// Read-only. Not to be used for requests. Only in place to support typed
 	// responses.
 	APL // apl
 )
+
+func kindFromString(s string) (k Kind, err error) {
+	switch s {
+	case emptyKind.String():
+		k = emptyKind
+	case Analytics.String():
+		k = Analytics
+	case Stream.String():
+		k = Stream
+	case APL.String():
+		k = APL
+	default:
+		err = fmt.Errorf("unknown query kind %q", s)
+	}
+
+	return k, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the Kind to
 // its string representation because that's what the server expects.
@@ -29,24 +48,15 @@ func (k Kind) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // Kind from the string representation the server returns.
-func (k *Kind) UnmarshalJSON(b []byte) error {
+func (k *Kind) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case Analytics.String():
-		*k = Analytics
-	case Stream.String():
-		*k = Stream
-	case APL.String():
-		*k = APL
-	default:
-		return fmt.Errorf("unknown query kind %q", s)
-	}
+	*k, err = kindFromString(s)
 
-	return nil
+	return err
 }
 
 // EncodeValues implements `query.Encoder`. It is in place to encode the Kind

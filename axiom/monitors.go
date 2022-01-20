@@ -10,7 +10,7 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
-//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Comparison -output=monitors_string.go
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Comparison -linecomment -output=monitors_string.go
 
 // Comparison represents a comparison operation for a monitor. A monitor acts on
 // the result of comparing a query result with a threshold.
@@ -18,11 +18,32 @@ type Comparison uint8
 
 // All available monitor comparison modes.
 const (
-	Below Comparison = iota + 1
-	BelowOrEqual
-	Above
-	AboveOrEqual
+	emptyComparison Comparison = iota //
+
+	Below        // Below
+	BelowOrEqual // BelowOrEqual
+	Above        // Above
+	AboveOrEqual // AboveOrEqual
 )
+
+func comparisonFromString(s string) (c Comparison, err error) {
+	switch s {
+	case emptyComparison.String():
+		c = emptyComparison
+	case Below.String():
+		c = Below
+	case BelowOrEqual.String():
+		c = BelowOrEqual
+	case Above.String():
+		c = Above
+	case AboveOrEqual.String():
+		c = AboveOrEqual
+	default:
+		err = fmt.Errorf("unknown comparison %q", s)
+	}
+
+	return c, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the
 // Comparison to its string representation because that's what the server
@@ -33,26 +54,15 @@ func (c Comparison) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // Comparison from the string representation the server returns.
-func (c *Comparison) UnmarshalJSON(b []byte) error {
+func (c *Comparison) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case Below.String():
-		*c = Below
-	case BelowOrEqual.String():
-		*c = BelowOrEqual
-	case Above.String():
-		*c = Above
-	case AboveOrEqual.String():
-		*c = AboveOrEqual
-	default:
-		return fmt.Errorf("unknown comparison %q", s)
-	}
+	*c, err = comparisonFromString(s)
 
-	return nil
+	return err
 }
 
 // A Monitor continuesly runs a query on a dataset and evaluates its result

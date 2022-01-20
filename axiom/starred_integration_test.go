@@ -67,6 +67,7 @@ func (s *StarredQueriesTestSuite) TearDownSuite() {
 func (s *StarredQueriesTestSuite) Test() {
 	// Let's update the starredQuery.
 	starredQuery, err := s.client.StarredQueries.Update(s.suiteCtx, s.starredQuery.ID, axiom.StarredQuery{
+		Kind:    query.Analytics,
 		Dataset: s.datasetID,
 		Name:    "Updated Test Query",
 	})

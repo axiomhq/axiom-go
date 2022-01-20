@@ -227,13 +227,26 @@ func TestPermission_Unmarshal(t *testing.T) {
 
 func TestPermission_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Equal(t, Permission(0).String(), "Permission(0)")
-	assert.Contains(t, (CanIngest - 1).String(), "Permission(")
+	assert.Empty(t, Permission(0).String())
+	assert.Empty(t, emptyPermission.String())
+	assert.Equal(t, emptyPermission, Permission(0))
 	assert.Contains(t, (CanQuery + 1).String(), "Permission(")
 
 	for c := CanIngest; c <= CanQuery; c++ {
 		s := c.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Permission(")
+	}
+}
+
+func TestPermissionFromString(t *testing.T) {
+	for permission := CanIngest; permission <= CanQuery; permission++ {
+		s := permission.String()
+
+		parsedPermission, err := permissionFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, permission, parsedPermission)
 	}
 }

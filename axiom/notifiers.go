@@ -15,11 +15,32 @@ type Type uint8
 
 // All available notifier types.
 const (
-	Pagerduty Type = iota + 1 // pagerduty
-	Slack                     // slack
-	Email                     // email
-	Webhook                   // webhook
+	emptyType Type = iota //
+
+	Pagerduty // pagerduty
+	Slack     // slack
+	Email     // email
+	Webhook   // webhook
 )
+
+func typeFromString(s string) (t Type, err error) {
+	switch s {
+	case emptyType.String():
+		t = emptyType
+	case Pagerduty.String():
+		t = Pagerduty
+	case Slack.String():
+		t = Slack
+	case Email.String():
+		t = Email
+	case Webhook.String():
+		t = Webhook
+	default:
+		err = fmt.Errorf("unknown type %q", s)
+	}
+
+	return t, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the
 // Type to its string representation because that's what the server
@@ -30,26 +51,15 @@ func (t Type) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // Type from the string representation the server returns.
-func (t *Type) UnmarshalJSON(b []byte) error {
+func (t *Type) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case Pagerduty.String():
-		*t = Pagerduty
-	case Slack.String():
-		*t = Slack
-	case Email.String():
-		*t = Email
-	case Webhook.String():
-		*t = Webhook
-	default:
-		return fmt.Errorf("unknown type %q", s)
-	}
+	*t, err = typeFromString(s)
 
-	return nil
+	return err
 }
 
 // A Notifier alerts users by using the configured service to reach out to them.

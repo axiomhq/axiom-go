@@ -288,13 +288,26 @@ func TestUserRole_Unmarshal(t *testing.T) {
 
 func TestUserRole_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Equal(t, UserRole(0).String(), "UserRole(0)")
-	assert.Contains(t, (RoleReadOnly - 1).String(), "UserRole(")
+	assert.Empty(t, UserRole(0).String())
+	assert.Empty(t, emptyUserRole.String())
+	assert.Equal(t, emptyUserRole, UserRole(0))
 	assert.Contains(t, (RoleOwner + 1).String(), "UserRole(")
 
-	for r := RoleReadOnly; r <= RoleOwner; r++ {
-		s := r.String()
+	for typ := RoleReadOnly; typ <= RoleOwner; typ++ {
+		s := typ.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "UserRole(")
+	}
+}
+
+func TestUserRoleFromString(t *testing.T) {
+	for typ := RoleReadOnly; typ <= RoleOwner; typ++ {
+		s := typ.String()
+
+		parsedUserRole, err := userRoleFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, typ, parsedUserRole)
 	}
 }

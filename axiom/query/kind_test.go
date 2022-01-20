@@ -14,10 +14,10 @@ func TestKind_EncodeValues(t *testing.T) {
 		input Kind
 		exp   string
 	}{
+		{emptyKind, ""},
 		{Analytics, "analytics"},
 		{Stream, "stream"},
 		{APL, "apl"},
-		{0, "Kind(0)"}, // HINT(lukasmalkmus): Maybe we want to sort this out by raising an error?
 	}
 	for _, tt := range tests {
 		t.Run(tt.input.String(), func(t *testing.T) {
@@ -58,13 +58,26 @@ func TestKind_Unmarshal(t *testing.T) {
 
 func TestKind_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Equal(t, Kind(0).String(), "Kind(0)")
-	assert.Contains(t, (Analytics - 1).String(), "Kind(")
+	assert.Empty(t, Kind(0).String())
+	assert.Empty(t, emptyKind.String())
+	assert.Equal(t, emptyKind, Kind(0))
 	assert.Contains(t, (APL + 1).String(), "Kind(")
 
-	for c := Analytics; c <= APL; c++ {
-		s := c.String()
+	for k := Analytics; k <= APL; k++ {
+		s := k.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Kind(")
+	}
+}
+
+func TestKindFromString(t *testing.T) {
+	for k := Analytics; k <= APL; k++ {
+		s := k.String()
+
+		parsedKind, err := kindFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, k, parsedKind)
 	}
 }

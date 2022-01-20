@@ -15,11 +15,28 @@ type Permission uint8
 
 // All available permissions.
 const (
+	emptyPermission Permission = iota //
+
 	// CanIngest is the permission to write to a dataset.
-	CanIngest Permission = iota + 1 // CanIngest
+	CanIngest // CanIngest
 	// CanQuery is the permission to read from a dataset.
 	CanQuery // CanQuery
 )
+
+func permissionFromString(s string) (permission Permission, err error) {
+	switch s {
+	// case emptyPermission.String():
+	// 	permission = emptyPermission
+	case CanIngest.String():
+		permission = CanIngest
+	case CanQuery.String():
+		permission = CanQuery
+	default:
+		err = fmt.Errorf("unknown permission %q", s)
+	}
+
+	return permission, err
+}
 
 // MarshalJSON implements json.Marshaler. It is in place to marshal the
 // Permission to its string representation because that's what the server
@@ -30,22 +47,15 @@ func (p Permission) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
 // Permission from the string representation the server returns.
-func (p *Permission) UnmarshalJSON(b []byte) error {
+func (p *Permission) UnmarshalJSON(b []byte) (err error) {
 	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	switch s {
-	case CanIngest.String():
-		*p = CanIngest
-	case CanQuery.String():
-		*p = CanQuery
-	default:
-		return fmt.Errorf("unknown permission %q", s)
-	}
+	*p, err = permissionFromString(s)
 
-	return nil
+	return err
 }
 
 // Token represents an access token. Tokens can either be API tokens, valid
@@ -135,6 +145,8 @@ func (s *tokensService) View(ctx context.Context, id string) (*RawToken, error) 
 		return nil, err
 	}
 
+	cleanupRawTokenResponse(s.basePath, &res)
+
 	return &res, nil
 }
 
@@ -173,17 +185,13 @@ func (s *tokensService) Delete(ctx context.Context, id string) error {
 	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }
 
+const personalTokenStr = "personal"
+
 func prepareTokenCreateUpdateRequest(basePath string, req *TokenCreateUpdateRequest) {
+	// Nor scopes nor permissions are allowed on personal tokens.
 	pathParts := strings.Split(basePath, "/")
 	tokenType := pathParts[len(pathParts)-1]
-	switch tokenType {
-	case "api":
-		// Scopes and permissions are allowed.
-	case "ingest":
-		// Scopes are allowed.
-		req.Permissions = nil
-	case "personal":
-		// Nor scopes nor permissions are allowed.
+	if tokenType == personalTokenStr {
 		req.Scopes = nil
 		req.Permissions = nil
 	}
@@ -193,7 +201,17 @@ func cleanupTokenResponse(basePath string, t *Token) {
 	// Nor scopes nor permissions are allowed on personal tokens.
 	pathParts := strings.Split(basePath, "/")
 	tokenType := pathParts[len(pathParts)-1]
-	if tokenType == "personal" {
+	if tokenType == personalTokenStr {
+		t.Scopes = nil
+		t.Permissions = nil
+	}
+}
+
+func cleanupRawTokenResponse(basePath string, t *RawToken) {
+	// Nor scopes nor permissions are allowed on personal tokens.
+	pathParts := strings.Split(basePath, "/")
+	tokenType := pathParts[len(pathParts)-1]
+	if tokenType == personalTokenStr {
 		t.Scopes = nil
 		t.Permissions = nil
 	}
