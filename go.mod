@@ -6,6 +6,7 @@ require (
 	github.com/apex/log v1.9.0
 	github.com/golangci/golangci-lint v1.43.0
 	github.com/google/go-querystring v1.1.0
+	github.com/google/uuid v1.3.0
 	github.com/klauspost/compress v1.13.6
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0

@@ -603,8 +603,8 @@ func newClient(t *testing.T) *Client {
 	return client
 }
 
-func mustTimeParse(t *testing.T, layout, value string) time.Time {
+func mustTimeParse(tb testing.TB, layout, value string) time.Time {
 	ts, err := time.Parse(layout, value)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	return ts
 }
