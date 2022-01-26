@@ -41,6 +41,8 @@ func (s *APITokensTestSuite) SetupSuite() {
 	s.token, err = s.client.Tokens.API.Create(s.suiteCtx, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A test token",
+		Scopes:      []string{"*"},
+		Permissions: []axiom.Permission{axiom.CanIngest},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.token)
@@ -66,13 +68,13 @@ func (s *APITokensTestSuite) Test() {
 	token, err := s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token",
-		Scopes:      []string{"none"}, // Not a real scope but prevents the server from automatically assigning the `*` (all) scope.
+		Scopes:      []string{"hopefully-non-existing-dataset"},
 		Permissions: []axiom.Permission{axiom.CanQuery},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(token)
 
-	s.Contains(token.Scopes, "none")
+	s.Contains(token.Scopes, "hopefully-non-existing-dataset")
 	s.Contains(token.Permissions, axiom.CanQuery)
 
 	s.token = token
@@ -106,7 +108,6 @@ func (s *APITokensTestSuite) TestScopesAndPermissions() {
 	// Get the raw token to use it for authentication.
 	rawToken, err := s.client.Tokens.API.View(s.ctx, s.token.ID)
 	s.Require().NoError(err)
-	s.Require().NotNil(rawToken)
 
 	// Create a separate client that uses the API token as authentication token.
 	client, err := newClient(axiom.SetAccessToken(rawToken.Token))
@@ -118,22 +119,34 @@ func (s *APITokensTestSuite) TestScopesAndPermissions() {
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
 
-	// Update the token to allow ingestion into the test dataset only.
+	// Update the token to allow querying the test dataset only.
 	token, err := s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
+		Name:        "Test",
+		Description: "A very good test token with scopes and permissions",
+		Scopes:      []string{s.dataset.ID},
+		Permissions: []axiom.Permission{axiom.CanQuery},
+	})
+	s.Require().NoError(err)
+
+	s.token = token
+
+	// Let's make sure we cannot ingest...
+	_, err = client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+
+	// ...but after updating the token to allow ingestion into the test dataset
+	// only...
+	token, err = s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
 		Name:        "Test",
 		Description: "A very good test token with scopes and permissions",
 		Scopes:      []string{s.dataset.ID},
 		Permissions: []axiom.Permission{axiom.CanIngest},
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(token)
-
-	s.Contains(token.Scopes, s.dataset.ID)
-	s.Contains(token.Permissions, axiom.CanIngest)
 
 	s.token = token
 
-	// Let's make sure we can now ingest...
+	// ... we can now ingest...
 	ingestStatus, err := client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
 	s.Require().NoError(err)
 
@@ -146,6 +159,24 @@ func (s *APITokensTestSuite) TestScopesAndPermissions() {
 	}, query.Options{})
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+
+	// After updating the token to allow querying the test dataset only...
+	token, err = s.client.Tokens.API.Update(s.suiteCtx, s.token.ID, axiom.TokenCreateUpdateRequest{
+		Name:        "Test",
+		Description: "A very good test token with scopes and permissions",
+		Scopes:      []string{s.dataset.ID},
+		Permissions: []axiom.Permission{axiom.CanQuery},
+	})
+	s.Require().NoError(err)
+
+	s.token = token
+
+	// ...we can query now.
+	_, err = client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
+		StartTime: time.Now().UTC().Add(-time.Minute),
+		EndTime:   time.Now().UTC(),
+	}, query.Options{})
+	s.Require().NoError(err)
 }
 
 // PersonalTokensTestSuite tests all methods of the Axiom Personal Tokens API

@@ -32,8 +32,8 @@ func (s *ErrorTestSuite) Test() {
 	err = s.client.Options(axiom.SetAccessToken("xapt-123"))
 	s.Require().NoError(err)
 
-	// ...and see the same request fail with a different (unauthenticated)
-	// error.
+	// ...and see the same request fail with a different error
+	// (unauthenticated).
 	_, err = s.client.Datasets.Info(s.ctx, invalidDatasetName)
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthenticated)
