@@ -7,7 +7,6 @@ import (
 	"context"
 	"flag"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -53,18 +52,19 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.Require().NotEmpty(accessToken, "integration test needs a personal access token set")
 	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization ID or deployment url set")
 
-	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
-
-	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
-
-	if strings.Contains(deploymentURL, "cloud.") {
+	if orgID != "" {
 		s.isCloud = true
 	}
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
 
+	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
+	s.T().Logf("cloud enabled: \"%t\"", s.isCloud)
+
 	s.newClient()
+
+	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
 	var err error
 	s.testUser, err = s.client.Users.Current(s.suiteCtx)

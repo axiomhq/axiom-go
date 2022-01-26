@@ -93,13 +93,13 @@ func filterOpFromString(s string) (op FilterOp, err error) {
 	return op, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the FilterOp
-// to its string representation because that's what the server expects.
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// FilterOp to its string representation because that's what the server expects.
 func (op FilterOp) MarshalJSON() ([]byte, error) {
 	return json.Marshal(op.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // FilterOp from the string representation the server returns.
 func (op *FilterOp) UnmarshalJSON(b []byte) (err error) {
 	var s string
