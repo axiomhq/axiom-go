@@ -41,13 +41,13 @@ func userRoleFromString(s string) (ur UserRole, err error) {
 	return ur, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the UserRole
-// to its string representation because that's what the server expects.
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// UserRole to its string representation because that's what the server expects.
 func (ur UserRole) MarshalJSON() ([]byte, error) {
 	return json.Marshal(ur.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // UserRole from the string representation the server returns.
 func (ur *UserRole) UnmarshalJSON(b []byte) (err error) {
 	var s string

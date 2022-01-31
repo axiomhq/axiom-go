@@ -45,13 +45,13 @@ func planFromString(s string) (plan Plan, err error) {
 	return plan, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the Plan to
-// its string representation because that's what the server expects.
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the Plan
+// to its string representation because that's what the server expects.
 func (p Plan) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // Plan from the string representation the server returns.
 func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -103,7 +103,7 @@ type License struct {
 	Error string `json:"error"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // MaxQueryWindow and MaxAuditWindow to seconds because that's what the server
 // expects.
 func (l License) MarshalJSON() ([]byte, error) {
@@ -116,7 +116,7 @@ func (l License) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localLicense(l))
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // MaxQueryWindow and MaxAuditWindow into a proper time.Duration value because
 // the server returns it in seconds.
 func (l *License) UnmarshalJSON(b []byte) error {

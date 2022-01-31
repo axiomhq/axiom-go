@@ -144,7 +144,7 @@ func New(options ...Option) (zapcore.Core, error) {
 	return zapcore.NewCore(enc, ws, ws.levelEnabler), nil
 }
 
-// Write implements zapcore.WriteSyncer.
+// Write implements `zapcore.WriteSyncer`.
 func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 	ws.bufMtx.Lock()
 	defer ws.bufMtx.Unlock()
@@ -152,7 +152,7 @@ func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 	return ws.buf.Write(p)
 }
 
-// Sync implements zapcore.WriteSyncer.
+// Sync implements `zapcore.WriteSyncer`.
 func (ws *WriteSyncer) Sync() error {
 	// Best effort context timeout. A `Sync()` should never take that long.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)

@@ -9,8 +9,8 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
-// Options represents the options for creating a shared access token
-// or shared access signature.
+// Options represents the options for creating a shared access token or a shared
+// access signature.
 type Options struct {
 	// OrganizationID is the ID of the organization the token and signature is
 	// valid for.
