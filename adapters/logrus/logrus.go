@@ -150,12 +150,12 @@ func (h *Hook) Close() {
 	})
 }
 
-// Levels implements logrus.Hook.
+// Levels implements `logrus.Hook`.
 func (h *Hook) Levels() []logrus.Level {
 	return h.levels
 }
 
-// Fire implements logrus.Hook.
+// Fire implements `logrus.Hook`.
 func (h *Hook) Fire(entry *logrus.Entry) error {
 	event := axiom.Event{}
 

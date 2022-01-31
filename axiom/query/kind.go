@@ -40,13 +40,13 @@ func kindFromString(s string) (k Kind, err error) {
 	return k, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the Kind to
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the Kind to
 // its string representation because that's what the server expects.
 func (k Kind) MarshalJSON() ([]byte, error) {
 	return json.Marshal(k.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // Kind from the string representation the server returns.
 func (k *Kind) UnmarshalJSON(b []byte) (err error) {
 	var s string

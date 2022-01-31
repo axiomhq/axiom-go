@@ -137,7 +137,7 @@ func (h *Handler) Close() {
 	})
 }
 
-// HandleLog implements log.Handler.
+// HandleLog implements `log.Handler`.
 func (h *Handler) HandleLog(entry *log.Entry) error {
 	event := axiom.Event{}
 

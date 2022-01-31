@@ -40,7 +40,7 @@ func messageCodeFromString(s string) (mc MessageCode, err error) {
 	return mc, err
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // MessageCode from the string representation the server returns.
 func (mc *MessageCode) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -91,7 +91,7 @@ func messagePriorityFromString(s string) (mp MessagePriority, err error) {
 	return mp, err
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // MessagePriority from the string representation the server returns.
 func (mp *MessagePriority) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -146,7 +146,7 @@ type Status struct {
 	Messages []Message `json:"messages"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // ElapsedTime into its microsecond representation because that's what the
 // server expects.
 func (s Status) MarshalJSON() ([]byte, error) {
@@ -158,7 +158,7 @@ func (s Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localStatus(s))
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // ElapsedTime into a proper time.Duration value because the server returns it
 // in microseconds.
 func (s *Status) UnmarshalJSON(b []byte) error {

@@ -42,14 +42,14 @@ func typeFromString(s string) (t Type, err error) {
 	return t, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // Type to its string representation because that's what the server
 // expects.
 func (t Type) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // Type from the string representation the server returns.
 func (t *Type) UnmarshalJSON(b []byte) (err error) {
 	var s string
