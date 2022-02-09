@@ -21,6 +21,8 @@ const (
 	queryToken        = "tk"
 )
 
+var tokenCodec = base64.URLEncoding
+
 // Create creates a shared access signature using the given signing key and
 // valid for the given options. The returned string is a query string that can
 // be attached to a URL.
@@ -73,7 +75,7 @@ func CreateToken(keyStr string, options Options) (string, error) {
 		return "", err
 	}
 
-	return base64.URLEncoding.EncodeToString(token), nil
+	return tokenCodec.EncodeToString(token), nil
 }
 
 // Verify the given shared access signature string using the given signing key.
@@ -100,7 +102,7 @@ func Verify(keyStr, signature string) (bool, Options, error) {
 	}
 	q.Del(queryToken)
 
-	givenTokenBytes, err := base64.URLEncoding.DecodeString(givenToken)
+	givenTokenBytes, err := tokenCodec.DecodeString(givenToken)
 	if err != nil {
 		return false, options, err
 	}
