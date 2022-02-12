@@ -224,12 +224,10 @@ func (s *SharedAccessTestSuite) doQueryRequest(q query.Query, v *query.Result) *
 	resp, err := s.httpClient.Do(req)
 	s.Require().NoError(err)
 
-	s.T().Cleanup(func() {
-		s.NoError(resp.Body.Close())
-	})
-
 	err = json.NewDecoder(resp.Body).Decode(v)
-	s.NoError(err)
+	s.Require().NoError(err)
+
+	s.NoError(resp.Body.Close())
 
 	return resp
 }
@@ -259,12 +257,10 @@ func (s *SharedAccessTestSuite) doAPLRequest(apl string, v *apl.Result) *http.Re
 	resp, err := s.httpClient.Do(req)
 	s.Require().NoError(err)
 
-	s.T().Cleanup(func() {
-		s.NoError(resp.Body.Close())
-	})
-
 	err = json.NewDecoder(resp.Body).Decode(v)
-	s.NoError(err)
+	s.Require().NoError(err)
+
+	s.NoError(resp.Body.Close())
 
 	return resp
 }
