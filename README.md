@@ -35,12 +35,14 @@ make # Run code generators, linters, sanitizers and test suits
 ## Authentication
 
 The client is initialized with an access token. The access token can be an API
-token retrieved from the settings page of the Axiom deployment or a personal
-token retrieved from the users profile page.
+token retrieved from the settings page of the Axiom deployment (`Settings` ->
+`API Tokens`) or a personal token retrieved from the users profile page
+(`Settings` -> `Profile`).
 
 When using Axiom Cloud the users organization ID must be provided in case a
-personal token is used. The organization ID can be omitted in case an API token
-is used.
+personal token is used. It can be retrieved from the address bar of the web
+browser when visiting Axiom Cloud and copying the identifier after the Axiom
+Cloud url. The organization ID can be omitted in case an API token is used.
 
 When using Axiom Selfhost the URL of the deployment must be provided.
 
