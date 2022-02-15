@@ -45,14 +45,14 @@ func comparisonFromString(s string) (c Comparison, err error) {
 	return c, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // Comparison to its string representation because that's what the server
 // expects.
 func (c Comparison) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // Comparison from the string representation the server returns.
 func (c *Comparison) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -110,7 +110,7 @@ type Monitor struct {
 	LastError string `json:"lastError"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // NoDataCloseWait, Frequency and Duration to minutes because that's what the
 // server expects.
 func (m Monitor) MarshalJSON() ([]byte, error) {
@@ -124,7 +124,7 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localMonitor(m))
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // RefreshTime into a proper time.Duration value because the server returns it
 // in seconds.
 func (m *Monitor) UnmarshalJSON(b []byte) error {

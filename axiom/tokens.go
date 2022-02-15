@@ -38,14 +38,14 @@ func permissionFromString(s string) (permission Permission, err error) {
 	return permission, err
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // Permission to its string representation because that's what the server
 // expects.
 func (p Permission) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // Permission from the string representation the server returns.
 func (p *Permission) UnmarshalJSON(b []byte) (err error) {
 	var s string

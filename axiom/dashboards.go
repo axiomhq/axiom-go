@@ -45,9 +45,9 @@ type Dashboard struct {
 	Version string `json:"version"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal some fields
-// to different representations for transport because that's what the server
-// expects.
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal some
+// fields to different representations for transport because that's what the
+// server expects.
 func (d Dashboard) MarshalJSON() ([]byte, error) {
 	type LocalDash Dashboard
 	localDash := struct {
@@ -74,7 +74,7 @@ func (d Dashboard) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localDash)
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal some
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal some
 // fields from their transport representation into proper Go types because the
 // server returns them differently.
 func (d *Dashboard) UnmarshalJSON(b []byte) error {

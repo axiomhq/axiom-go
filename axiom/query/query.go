@@ -45,7 +45,7 @@ type Query struct {
 	ContinuationToken string `json:"continuationToken"`
 }
 
-// MarshalJSON implements json.Marshaler. It is in place to marshal the
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // Resolutions zero value to its proper string representation because that's
 // what the server expects.
 func (q Query) MarshalJSON() ([]byte, error) {
@@ -69,7 +69,7 @@ func (q Query) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localQuery)
 }
 
-// UnmarshalJSON implements json.Unmarshaler. It is in place to unmarshal the
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // Resolution string value to a proper time.Duration because that's what the
 // server returns.
 func (q *Query) UnmarshalJSON(b []byte) error {
