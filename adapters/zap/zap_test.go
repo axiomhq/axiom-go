@@ -1,7 +1,6 @@
 package zap
 
 import (
-	"compress/gzip"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/klauspost/compress/gzip"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"

@@ -2,7 +2,6 @@ package logrus
 
 import (
 	"bufio"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/klauspost/compress/zstd"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,10 +49,10 @@ func TestHook(t *testing.T) {
 
 	var hasRun uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		gzr, err := gzip.NewReader(r.Body)
+		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		b, err := io.ReadAll(gzr)
+		b, err := io.ReadAll(zsr)
 		assert.NoError(t, err)
 
 		assert.JSONEq(t, exp, string(b))
@@ -79,10 +79,10 @@ func TestHook(t *testing.T) {
 func TestHook_FlushFullBatch(t *testing.T) {
 	var lines uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		gzr, err := gzip.NewReader(r.Body)
+		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		s := bufio.NewScanner(gzr)
+		s := bufio.NewScanner(zsr)
 		for s.Scan() {
 			atomic.AddUint64(&lines, 1)
 		}

@@ -1,14 +1,18 @@
 package axiom
 
 import (
-	"compress/gzip"
+	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
 
+	"github.com/klauspost/compress/gzip"
 	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/axiom/testdata"
 )
 
 func TestGzipEncoder(t *testing.T) {
@@ -37,12 +41,44 @@ func TestZstdEncoder(t *testing.T) {
 	r, err := ZstdEncoder(strings.NewReader(exp))
 	require.NoError(t, err)
 
-	zr, err := zstd.NewReader(r)
+	zsr, err := zstd.NewReader(r)
 	require.NoError(t, err)
-	defer zr.Close()
+	defer zsr.Close()
 
-	act, err := io.ReadAll(zr)
+	act, err := io.ReadAll(zsr)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, string(act))
+}
+
+func BenchmarkEncoder(b *testing.B) {
+	data := testdata.Load(b)
+
+	tests := []struct {
+		name    string
+		encoder ContentEncoder
+	}{
+		{
+			name:    "gzip",
+			encoder: GzipEncoder,
+		},
+		{
+			name:    "zstd",
+			encoder: ZstdEncoder,
+		},
+	}
+	for _, tt := range tests {
+		b.Run(fmt.Sprintf("encoder=%s", tt.name), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				r, err := tt.encoder(bytes.NewReader(data))
+				require.NoError(b, err)
+
+				n, err := io.Copy(io.Discard, r)
+				require.NoError(b, err)
+
+				b.ReportMetric(float64(n), "size_compressed/op")
+				b.ReportMetric(float64(len(data))/float64(n), "compression_ratio/op")
+			}
+		})
+	}
 }

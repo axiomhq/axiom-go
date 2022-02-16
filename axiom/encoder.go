@@ -1,9 +1,9 @@
 package axiom
 
 import (
-	"compress/gzip"
 	"io"
 
+	"github.com/klauspost/compress/gzip"
 	"github.com/klauspost/compress/zstd"
 )
 
@@ -33,9 +33,9 @@ func GzipEncoderWithLevel(level int) ContentEncoder {
 
 		go func() {
 			_, err := io.Copy(gzw, r)
-			if closeErr := gzw.Close(); err == nil && closeErr != nil {
-				// If we have no error from copying but from closing, capture that
-				// one.
+			if closeErr := gzw.Close(); err == nil {
+				// If we have no error from copying but from closing, capture
+				// that one.
 				err = closeErr
 			}
 			_ = pw.CloseWithError(err)
@@ -50,14 +50,14 @@ func GzipEncoderWithLevel(level int) ContentEncoder {
 func ZstdEncoder(r io.Reader) (io.Reader, error) {
 	pr, pw := io.Pipe()
 
-	zw, err := zstd.NewWriter(pw)
+	zsw, err := zstd.NewWriter(pw)
 	if err != nil {
 		return nil, err
 	}
 
 	go func() {
-		_, err := io.Copy(zw, r)
-		if closeErr := zw.Close(); err == nil {
+		_, err := io.Copy(zsw, r)
+		if closeErr := zsw.Close(); err == nil {
 			// If we have no error from copying but from closing, capture that
 			// one.
 			err = closeErr

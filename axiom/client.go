@@ -13,6 +13,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/klauspost/compress/gzhttp"
 )
 
 // CloudURL is the url of the cloud hosted version of Axiom.
@@ -35,13 +37,13 @@ type response struct {
 // DefaultHTTPClient returns the default HTTP client used for making requests.
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
-		Transport: &http.Transport{
+		Transport: gzhttp.Transport(&http.Transport{
 			DialContext: (&net.Dialer{
 				Timeout: 5 * time.Second,
 			}).DialContext,
 			TLSHandshakeTimeout: 5 * time.Second,
 			ForceAttemptHTTP2:   true,
-		},
+		}),
 	}
 }
 

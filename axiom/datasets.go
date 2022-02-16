@@ -3,7 +3,6 @@ package axiom
 import (
 	"bufio"
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,6 +11,8 @@ import (
 	"net/http"
 	"time"
 	"unicode"
+
+	"github.com/klauspost/compress/zstd"
 
 	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
@@ -419,14 +420,14 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 
 	pr, pw := io.Pipe()
 	go func() {
-		gzw, wErr := gzip.NewWriterLevel(pw, gzip.BestSpeed)
+		zsw, wErr := zstd.NewWriter(pw)
 		if wErr != nil {
 			_ = pw.CloseWithError(wErr)
 			return
 		}
 
 		var (
-			enc    = json.NewEncoder(gzw)
+			enc    = json.NewEncoder(zsw)
 			encErr error
 		)
 		for _, event := range events {
@@ -435,7 +436,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 			}
 		}
 
-		if closeErr := gzw.Close(); encErr == nil && closeErr != nil {
+		if closeErr := zsw.Close(); encErr == nil {
 			// If we have no error from encoding but from closing, capture that
 			// one.
 			encErr = closeErr
@@ -449,7 +450,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	}
 
 	req.Header.Set("Content-Type", NDJSON.String())
-	req.Header.Set("Content-Encoding", Gzip.String())
+	req.Header.Set("Content-Encoding", Zstd.String())
 
 	var res IngestStatus
 	if _, err = s.client.do(req, &res); err != nil {

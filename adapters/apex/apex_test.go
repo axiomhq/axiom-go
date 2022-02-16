@@ -2,7 +2,6 @@ package apex
 
 import (
 	"bufio"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/apex/log"
+	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -49,10 +49,10 @@ func TestHandler(t *testing.T) {
 
 	var hasRun uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		gzr, err := gzip.NewReader(r.Body)
+		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		b, err := io.ReadAll(gzr)
+		b, err := io.ReadAll(zsr)
 		assert.NoError(t, err)
 
 		JSONEqExp(t, exp, string(b), []string{axiom.TimestampField})
@@ -78,10 +78,10 @@ func TestHandler(t *testing.T) {
 func TestHandler_FlushFullBatch(t *testing.T) {
 	var lines uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		gzr, err := gzip.NewReader(r.Body)
+		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		s := bufio.NewScanner(gzr)
+		s := bufio.NewScanner(zsr)
 		for s.Scan() {
 			atomic.AddUint64(&lines, 1)
 		}
