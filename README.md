@@ -100,11 +100,17 @@ For more sample code snippets, head over to the [examples](examples) directory.
 
 ## Documentation
 
+- Visit the Go bindings documentation for the Axiom API on [go.dev](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom). 
+
+- Also get a detailed overview on [Constants](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-constants), [Variables](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-variables), [Functions](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-functions), and [Types](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-types), and [Source Files](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#section-sourcefiles) in the [go.dev documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-index). 
+
+
+---
+
 You can find the Axiom and Axiom Go documentation
 [on the docs website](https://docs.axiom.co/).
 
 The documentation is divided into several sections:
-
 
 - [Axiom Cloud](https://www.axiom.co/docs/install/cloud)
 - [Getting Started](https://docs.axiom.co/usage/getting-started/)
