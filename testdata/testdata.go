@@ -17,7 +17,9 @@ var testdata []byte
 func Load(tb testing.TB) []byte {
 	gzr, err := gzip.NewReader(bytes.NewReader(testdata))
 	require.NoError(tb, err)
-	defer gzr.Close()
+	defer func() {
+		require.NoError(tb, gzr.Close())
+	}()
 
 	b, err := io.ReadAll(gzr)
 	require.NoError(tb, err)

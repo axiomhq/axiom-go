@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/axiom/testdata"
+	"github.com/axiomhq/axiom-go/testdata"
 )
 
 func TestGzipEncoder(t *testing.T) {
