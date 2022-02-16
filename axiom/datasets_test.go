@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -878,13 +878,13 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-ndjson", r.Header.Get("Content-Type"))
-		assert.Equal(t, "gzip", r.Header.Get("Content-Encoding"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
 
-		gzr, err := gzip.NewReader(r.Body)
+		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		assertValidJSON(t, gzr)
-		assert.NoError(t, gzr.Close())
+		assertValidJSON(t, zsr)
+		zsr.Close()
 
 		_, err = fmt.Fprint(w, `{
 			"ingested": 2,
