@@ -105,6 +105,7 @@ You can find the Axiom and Axiom Go documentation
 
 The documentation is divided into several sections:
 
+
 - [Axiom Cloud](https://www.axiom.co/docs/install/cloud)
 - [Getting Started](https://docs.axiom.co/usage/getting-started/)
 - [Ingesting Data](https://docs.axiom.co/usage/ingest/)
