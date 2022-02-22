@@ -196,7 +196,7 @@ var expAPLQueryRes = &apl.Result{
 
 func TestDatasetsService_Stats(t *testing.T) {
 	exp := &DatasetStats{
-		Datasets: []*DatasetInfo{
+		Datasets: []*DatasetStat{
 			{
 				Name:                 "test",
 				NumBlocks:            1,
@@ -208,45 +208,8 @@ func TestDatasetsService_Stats(t *testing.T) {
 				CompressedBytesHuman: "2.5 MB",
 				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
 				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
-				Fields: []Field{
-					{
-						Name:        "_sysTime",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "_time",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "path",
-						Description: "",
-						Type:        "string",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "size",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "status",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-				},
-				CreatedBy: "f83e245a-afdc-47ad-a765-4addd1994321",
-				CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+				CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
+				CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 			},
 			{
 				Name:                 "test1",
@@ -259,45 +222,8 @@ func TestDatasetsService_Stats(t *testing.T) {
 				CompressedBytesHuman: "2.5 MB",
 				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
 				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
-				Fields: []Field{
-					{
-						Name:        "_sysTime",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "_time",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "path",
-						Description: "",
-						Type:        "string",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "size",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-					{
-						Name:        "status",
-						Description: "",
-						Type:        "integer",
-						Unit:        "",
-						Hidden:      false,
-					},
-				},
-				CreatedBy: "f83e245a-afdc-47ad-a765-4addd1994321",
-				CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+				CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
+				CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 			},
 		},
 		NumBlocks:            2,
@@ -324,43 +250,6 @@ func TestDatasetsService_Stats(t *testing.T) {
 					"compressedBytesHuman": "2.5 MB",
 					"minTime": "2020-11-17T22:30:59Z",
 					"maxTime": "2020-11-18T17:31:55Z",
-					"fields": [
-						{
-							"name": "_sysTime",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "_time",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "path",
-							"type": "string",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "size",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "status",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						}
-					],
 					"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 					"created": "2020-11-18T21:30:20.623322799Z"
 				},
@@ -375,43 +264,6 @@ func TestDatasetsService_Stats(t *testing.T) {
 					"compressedBytesHuman": "2.5 MB",
 					"minTime": "2020-11-17T22:30:59Z",
 					"maxTime": "2020-11-18T17:31:55Z",
-					"fields": [
-						{
-							"name": "_sysTime",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "_time",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "path",
-							"type": "string",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "size",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						},
-						{
-							"name": "status",
-							"type": "integer",
-							"unit": "",
-            				"hidden": false,
-            				"description": ""
-						}
-					],
 					"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 					"created": "2020-11-18T21:30:20.623322799Z"
 				}
@@ -430,6 +282,235 @@ func TestDatasetsService_Stats(t *testing.T) {
 	defer teardown()
 
 	res, err := client.Datasets.Stats(context.Background())
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestDatasetsService_Infos(t *testing.T) {
+	exp := []*DatasetInfo{
+		{
+			DatasetStat: DatasetStat{
+				Name:                 "test",
+				NumBlocks:            1,
+				NumEvents:            68459,
+				NumFields:            8,
+				InputBytes:           10383386,
+				InputBytesHuman:      "10 MB",
+				CompressedBytes:      2509224,
+				CompressedBytesHuman: "2.5 MB",
+				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
+				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+				CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
+				CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+			},
+			Fields: []Field{
+				{
+					Name:        "_sysTime",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "_time",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "path",
+					Description: "",
+					Type:        "string",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "size",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "status",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+			},
+		},
+		{
+			DatasetStat: DatasetStat{
+				Name:                 "test1",
+				NumBlocks:            1,
+				NumEvents:            68459,
+				NumFields:            8,
+				InputBytes:           10383386,
+				InputBytesHuman:      "10 MB",
+				CompressedBytes:      2509224,
+				CompressedBytesHuman: "2.5 MB",
+				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
+				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+				CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
+				CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+			},
+			Fields: []Field{
+				{
+					Name:        "_sysTime",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "_time",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "path",
+					Description: "",
+					Type:        "string",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "size",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+				{
+					Name:        "status",
+					Description: "",
+					Type:        "integer",
+					Unit:        "",
+					Hidden:      false,
+				},
+			},
+		},
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		_, err := fmt.Fprint(w, `[
+			{
+				"name": "test",
+				"numBlocks": 1,
+				"numEvents": 68459,
+				"numFields": 8,
+				"inputBytes": 10383386,
+				"inputBytesHuman": "10 MB",
+				"compressedBytes": 2509224,
+				"compressedBytesHuman": "2.5 MB",
+				"minTime": "2020-11-17T22:30:59Z",
+				"maxTime": "2020-11-18T17:31:55Z",
+				"fields": [
+					{
+						"name": "_sysTime",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "_time",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "path",
+						"type": "string",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "size",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "status",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					}
+				],
+				"who": "f83e245a-afdc-47ad-a765-4addd1994321",
+				"created": "2020-11-18T21:30:20.623322799Z"
+			},
+			{
+				"name": "test1",
+				"numBlocks": 1,
+				"numEvents": 68459,
+				"numFields": 8,
+				"inputBytes": 10383386,
+				"inputBytesHuman": "10 MB",
+				"compressedBytes": 2509224,
+				"compressedBytesHuman": "2.5 MB",
+				"minTime": "2020-11-17T22:30:59Z",
+				"maxTime": "2020-11-18T17:31:55Z",
+				"fields": [
+					{
+						"name": "_sysTime",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "_time",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "path",
+						"type": "string",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "size",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "status",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					}
+				],
+				"who": "f83e245a-afdc-47ad-a765-4addd1994321",
+				"created": "2020-11-18T21:30:20.623322799Z"
+			}
+		]`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/_info", hf)
+	defer teardown()
+
+	res, err := client.Datasets.Infos(context.Background())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -619,16 +700,20 @@ func TestDatasetsService_Delete(t *testing.T) {
 
 func TestDatasetsService_Info(t *testing.T) {
 	exp := &DatasetInfo{
-		Name:                 "test",
-		NumBlocks:            1,
-		NumEvents:            68459,
-		NumFields:            8,
-		InputBytes:           10383386,
-		InputBytesHuman:      "10 MB",
-		CompressedBytes:      2509224,
-		CompressedBytesHuman: "2.5 MB",
-		MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
-		MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+		DatasetStat: DatasetStat{
+			Name:                 "test",
+			NumBlocks:            1,
+			NumEvents:            68459,
+			NumFields:            8,
+			InputBytes:           10383386,
+			InputBytesHuman:      "10 MB",
+			CompressedBytes:      2509224,
+			CompressedBytesHuman: "2.5 MB",
+			MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
+			MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
+			CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
+			CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		},
 		Fields: []Field{
 			{
 				Name:        "_sysTime",
@@ -666,8 +751,6 @@ func TestDatasetsService_Info(t *testing.T) {
 				Hidden:      false,
 			},
 		},
-		CreatedBy: "f83e245a-afdc-47ad-a765-4addd1994321",
-		CreatedAt: mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {

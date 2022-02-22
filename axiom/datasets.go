@@ -89,9 +89,9 @@ type Field struct {
 	Hidden bool `json:"hidden"`
 }
 
-// DatasetInfo represents the details of the information stored inside an Axiom
+// DatasetStat represents the details of the information stored inside a
 // dataset.
-type DatasetInfo struct {
+type DatasetStat struct {
 	// Name is the unique name of the dataset.
 	Name string `json:"name"`
 	// NumBlocks is the number of blocks of the dataset.
@@ -114,30 +114,39 @@ type DatasetInfo struct {
 	MinTime time.Time `json:"minTime"`
 	// MaxTime is the time of the newest event stored in the dataset.
 	MaxTime time.Time `json:"maxTime"`
-	// Fields are the fields of the dataset.
-	Fields []Field `json:"fields"`
 	// CreatedBy is the ID of the user who created the dataset.
 	CreatedBy string `json:"who"`
 	// CreatedAt is the time the dataset was created.
 	CreatedAt time.Time `json:"created"`
 }
 
-// DatasetStats are the stats of
+// DatasetInfo represents the details of the information stored inside a dataset
+// including the fields that make up the dataset.
+type DatasetInfo struct {
+	DatasetStat
+
+	// Fields are the fields of the dataset.
+	Fields []Field `json:"fields"`
+}
+
+// DatasetStats are the statistics of all datasets as well as their aggregated
+// totals.
 type DatasetStats struct {
-	Datasets []*DatasetInfo `json:"datasets"`
-	// NumBlocks is the number of blocks of the dataset.
+	// Datasets are the individual statistics of all datasets.
+	Datasets []*DatasetStat `json:"datasets"`
+	// NumBlocks is the total number of blocks.
 	NumBlocks uint64 `json:"numBlocks"`
-	// NumEvents is the number of events of the dataset.
+	// NumEvents is the total number of events.
 	NumEvents uint64 `json:"numEvents"`
-	// InputBytes is the amount of data stored in the dataset.
+	// InputBytes is the total amount of data stored.
 	InputBytes uint64 `json:"inputBytes"`
-	// InputBytesHuman is the amount of data stored in the dataset formatted in
-	// a human readable format.
+	// InputBytesHuman is the total amount of data stored formatted in a human
+	// readable format.
 	InputBytesHuman string `json:"inputBytesHuman"`
-	// CompressedBytes is the amount of compressed data stored in the dataset.
+	// CompressedBytes is the total amount of compressed data stored.
 	CompressedBytes uint64 `json:"compressedBytes"`
-	// CompressedBytesHuman is the amount of compressed data stored in the
-	// dataset formatted in a human readable format.
+	// CompressedBytesHuman is the total amount of compressed data stored
+	// formatted in a human readable format.
 	CompressedBytesHuman string `json:"compressedBytesHuman"`
 }
 
@@ -243,14 +252,32 @@ type IngestOptions struct {
 // Axiom API Reference: /api/v1/datasets
 type DatasetsService service
 
-// Stats returns detailed statistics about all available datasets. This
-// operation is more expenssive and listing the datasets and then getting the
-// information of a specific dataset is preferred, when no aggregated
+// Stats returns detailed statistics about all available datasets.
+//
+// This operation is expenssive and listing the datasets and then retreiving
+// the information of a specific dataset is preferred, when no aggregated
 // statistics across all datasets are needed.
 func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
 	path := s.basePath + "/_stats"
 
 	var res *DatasetStats
+	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// Infos is like `Stats()` but with the dataset fields included. It returns
+// detailed statistics about all available datasets.
+//
+// This operation is expenssive and listing the datasets and then retreiving
+// the information of a specific dataset is preferred, when no aggregated
+// statistics across all datasets are needed.
+func (s *DatasetsService) Infos(ctx context.Context) ([]*DatasetInfo, error) {
+	path := s.basePath + "/_info"
+
+	var res []*DatasetInfo
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
