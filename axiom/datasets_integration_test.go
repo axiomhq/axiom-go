@@ -194,19 +194,18 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(8, datasetInfo.NumEvents)
 	s.NotEmpty(datasetInfo.Fields)
 
-	// Get the stats of all datasets and make sure our dataset info is included
-	// in that list.
+	// Get the statistics of all datasets.
 	datasetStats, err := s.client.Datasets.Stats(s.ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(datasetStats)
 
-	var contains bool
-	for _, stat := range datasetStats.Datasets {
-		if contains = stat.Name == dataset.Name; contains {
-			break
-		}
-	}
-	s.True(contains, "stats do not contain the dataset created for this test")
+	// Get the infos of all datasets and make sure our dataset info is included
+	// in that list.
+	datasetInfos, err := s.client.Datasets.Infos(s.ctx)
+	s.Require().NoError(err)
+	s.Require().NotNil(datasetInfos)
+
+	s.Contains(datasetInfos, datasetInfo, "infos do not contain the dataset created for this test")
 
 	// Update a field of our dataset.
 	field, err := s.client.Datasets.UpdateField(s.ctx, s.dataset.ID, "response", axiom.FieldUpdateRequest{
