@@ -89,6 +89,9 @@ type Field struct {
 	Hidden bool `json:"hidden"`
 }
 
+// Fields maps a dataset to its fields.
+type Fields map[string][]*Field
+
 // DatasetStat represents the details of the information stored inside a
 // dataset.
 type DatasetStat struct {
@@ -123,10 +126,10 @@ type DatasetStat struct {
 // DatasetInfo represents the details of the information stored inside a dataset
 // including the fields that make up the dataset.
 type DatasetInfo struct {
-	DatasetStat
+	*DatasetStat
 
 	// Fields are the fields of the dataset.
-	Fields []Field `json:"fields"`
+	Fields []*Field `json:"fields"`
 }
 
 // DatasetStats are the statistics of all datasets as well as their aggregated
@@ -268,16 +271,11 @@ func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
 	return res, nil
 }
 
-// Infos is like `Stats()` but with the dataset fields included. It returns
-// detailed statistics about all available datasets.
-//
-// This operation is expenssive and listing the datasets and then retreiving
-// the information of a specific dataset is preferred, when no aggregated
-// statistics across all datasets are needed.
-func (s *DatasetsService) Infos(ctx context.Context) ([]*DatasetInfo, error) {
-	path := s.basePath + "/_info"
+// Fields returns the fields of every dataset.
+func (s *DatasetsService) Fields(ctx context.Context) (Fields, error) {
+	path := s.basePath + "/_fields"
 
-	var res []*DatasetInfo
+	var res Fields
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
