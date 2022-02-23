@@ -199,13 +199,15 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(datasetStats)
 
-	// Get the infos of all datasets and make sure our dataset info is included
-	// in that list.
-	datasetInfos, err := s.client.Datasets.Infos(s.ctx)
+	// Get the fields of all datasets and make sure the fields of our dataset
+	// info match those.
+	datasetFields, err := s.client.Datasets.Fields(s.ctx)
 	s.Require().NoError(err)
-	s.Require().NotNil(datasetInfos)
+	s.Require().NotNil(datasetFields)
 
-	s.Contains(datasetInfos, datasetInfo, "infos do not contain the dataset created for this test")
+	if fields := datasetFields[dataset.Name]; s.NotNil(fields, "no fields for dataset %s", dataset.Name) {
+		s.Equal(datasetInfo.Fields, fields, "dataset info fields do not match dataset %s entry in the global list of dataset fields", dataset.Name)
+	}
 
 	// Update a field of our dataset.
 	field, err := s.client.Datasets.UpdateField(s.ctx, s.dataset.ID, "response", axiom.FieldUpdateRequest{
