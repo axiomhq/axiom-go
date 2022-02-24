@@ -275,12 +275,20 @@ func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
 func (s *DatasetsService) Fields(ctx context.Context) (Fields, error) {
 	path := s.basePath + "/_fields"
 
-	var res Fields
+	var res []struct {
+		DatasetName string   `json:"datasetName"`
+		Fields      []*Field `json:"fields"`
+	}
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	resMap := make(Fields, len(res))
+	for _, fieldSet := range res {
+		resMap[fieldSet.DatasetName] = fieldSet.Fields
+	}
+
+	return resMap, nil
 }
 
 // List all available datasets.
