@@ -368,82 +368,86 @@ func TestDatasetsService_Fields(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
-		_, err := fmt.Fprint(w, `{
-			"test": [
-				{
-					"name": "_sysTime",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "_time",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "path",
-					"type": "string",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "size",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "status",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				}
-			],
-			"test1": [
-				{
-					"name": "_sysTime",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "_time",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "path",
-					"type": "string",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "size",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				},
-				{
-					"name": "status",
-					"type": "integer",
-					"unit": "",
-					"hidden": false,
-					"description": ""
-				}
-			]
-		}`)
+		_, err := fmt.Fprint(w, `[
+			{
+				"datasetName": "test",
+				"fields": [{
+						"name": "_sysTime",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "_time",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "path",
+						"type": "string",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "size",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "status",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					}
+				]
+			},
+			{
+				"datasetName": "test1",
+				"fields": [{
+						"name": "_sysTime",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "_time",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "path",
+						"type": "string",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "size",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					},
+					{
+						"name": "status",
+						"type": "integer",
+						"unit": "",
+						"hidden": false,
+						"description": ""
+					}
+				]
+			}
+		]`)
 		assert.NoError(t, err)
 	}
 
