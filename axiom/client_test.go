@@ -189,6 +189,14 @@ func TestNewClient(t *testing.T) {
 			},
 			err: ErrMissingAccessToken,
 		},
+		{
+			name: "no environment noEnv, cloudUrl and accessToken option with API token",
+			options: []Option{
+				SetNoEnv(),
+				SetURL(CloudURL),
+				SetAccessToken(apiToken),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

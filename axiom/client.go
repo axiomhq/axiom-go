@@ -182,14 +182,15 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 	}
 
 	// When the organization ID is not set, use `AXIOM_ORG_ID`. In case the url
-	// is the Axiom Cloud url and the access token is not a personal token, the
+	// is the Axiom Cloud url and the access token is a personal token, the
 	// organization ID is explicitly required and an error is returned, if it is
 	// not set.
 	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
 	cloudURLSetByEnvironment := deploymentURL == CloudURL
 	cloudURLSet := cloudURLSetByOption || cloudURLSetByEnvironment
+	isAPIToken := IsAPIToken(c.accessToken) || IsAPIToken(accessToken)
 	isPersonalToken := IsPersonalToken(c.accessToken) || IsPersonalToken(accessToken)
-	if c.orgID == "" {
+	if c.orgID == "" && !isAPIToken {
 		if (orgID == "" && cloudURLSet && isPersonalToken) || (c.noEnv && cloudURLSet) {
 			return ErrMissingOrganizationID
 		}
