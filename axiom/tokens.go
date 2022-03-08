@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Permission -linecomment -output=tokens_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Permission -linecomment -output=tokens_string.go
 
 // Permission of an API token.
 type Permission uint8

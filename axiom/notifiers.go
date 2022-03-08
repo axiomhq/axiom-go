@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=Type -linecomment -output=notifiers_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Type -linecomment -output=notifiers_string.go
 
 // Type represents the type of a notifier.
 type Type uint8
