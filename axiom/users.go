@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
 
 // UserRole represents the role of a user.
 type UserRole uint8

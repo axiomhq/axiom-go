@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=AggregationOp -linecomment -output=aggregation_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=AggregationOp -linecomment -output=aggregation_string.go
 
 // An AggregationOp can be applied on queries to aggrgate based on different
 // conditions.

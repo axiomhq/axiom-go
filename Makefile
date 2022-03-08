@@ -29,7 +29,7 @@ endif
 
 # FUNCTIONS
 # func go-run-tool(name)
-go-run-tool = $(CGO) run -mod=mod $(shell echo $(GOTOOLS) | tr ' ' '\n' | grep -w $1)
+go-run-tool = $(CGO) run $(shell echo $(GOTOOLS) | tr ' ' '\n' | grep -w $1)
 
 .PHONY: all
 all: dep generate fmt lint test ## Run dep, generate, fmt, lint and test
