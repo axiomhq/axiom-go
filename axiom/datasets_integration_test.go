@@ -325,8 +325,9 @@ func (s *DatasetsTestSuite) Test() {
 		s.Require().NoError(optsErr)
 	}()
 
-	// Give the server some time to store the queries.
-	time.Sleep(time.Second)
+	// Give the server some time to store the queries as they are processed
+	// asynchronously.
+	time.Sleep(time.Second * 15)
 
 	historyQuery, err := s.client.Datasets.History(s.ctx, queryResult.SavedQueryID)
 	s.Require().NoError(err)
