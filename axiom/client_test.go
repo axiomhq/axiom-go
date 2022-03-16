@@ -40,7 +40,7 @@ func SetStrictDecoding(b bool) Option {
 }
 
 func TestNewClient(t *testing.T) {
-	defer os.Clearenv()
+	t.Cleanup(os.Clearenv)
 
 	tests := []struct {
 		name        string

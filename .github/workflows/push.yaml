@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - 1.16
           - 1.17
+          - 1.18
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -36,8 +36,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - 1.16
           - 1.17
+          - 1.18
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -57,8 +57,8 @@ jobs:
           - azure-1-staging
           - cloud-dev
         go:
-          - 1.16
           - 1.17
+          - 1.18
         include:
           - deployment: azure-1-staging
             axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL

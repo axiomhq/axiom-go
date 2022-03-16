@@ -14,7 +14,7 @@
 Axiom Go is a Go client library for accessing the [Axiom](https://www.axiom.co/)
 API.
 
-Currently, **Axiom Go requires Go 1.16 or greater**.
+Currently, **Axiom Go requires Go 1.17 or greater**.
 
 ## Installation
 
