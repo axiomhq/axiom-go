@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"testing"
 	"time"
 
@@ -244,6 +245,8 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.NotNil(t, client.httpClient)
 	assert.NotEmpty(t, client.userAgent)
 	assert.False(t, client.strictDecoding)
+	assert.True(t, client.noEnv) // Disabled for testing.
+	assert.False(t, client.noLimiting)
 }
 
 func TestClient_Options_SetAccessToken(t *testing.T) {
@@ -338,7 +341,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
 
-	if assert.IsType(t, err, new(url.Error)) {
+	if assert.IsType(t, new(url.Error), err) {
 		urlErr := err.(*url.Error)
 		assert.Equal(t, urlErr.Op, "parse")
 	}
@@ -361,6 +364,8 @@ func TestClient_newRequest_EmptyBody(t *testing.T) {
 func TestClient_do(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, _ = fmt.Fprint(w, `{"A":"a"}`)
 	}
 
@@ -386,6 +391,8 @@ func TestClient_do_ioWriter(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, _ = fmt.Fprint(w, content)
 	}
 
@@ -404,17 +411,8 @@ func TestClient_do_ioWriter(t *testing.T) {
 
 func TestClient_do_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		code := http.StatusBadRequest
-
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(code)
-
-		httpErr := Error{
-			Message: "This is a Bad Request error",
-		}
-
-		err := json.NewEncoder(w).Encode(httpErr)
-		assert.NoError(t, err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(http.StatusText(http.StatusBadRequest)))
 	}
 
 	client, teardown := setup(t, "/", hf)
@@ -423,28 +421,46 @@ func TestClient_do_HTTPError(t *testing.T) {
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	resp, err := client.do(req, nil)
-	require.NotNil(t, resp)
-	require.Error(t, err)
+	if _, err = client.do(req, nil); assert.ErrorIs(t, err, &Error{
+		Status:  http.StatusBadRequest,
+		Message: http.StatusText(http.StatusBadRequest),
+	}) {
+		assert.EqualError(t, err, "API error 400: Bad Request")
+	}
+}
 
-	if assert.IsType(t, Error{}, err) {
+func TestClient_do_HTTPError_JSON(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.WriteHeader(http.StatusBadRequest)
+
+		assert.NoError(t, json.NewEncoder(w).Encode(Error{
+			Message: "This is a Bad Request error",
+		}))
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	if _, err = client.do(req, nil); assert.ErrorIs(t, err, &Error{
+		Status:  http.StatusBadRequest,
+		Message: "This is a Bad Request error",
+	}) {
 		assert.EqualError(t, err, "API error 400: This is a Bad Request error")
 	}
 }
 
-func TestClient_do_Unauthenticated(t *testing.T) {
+func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		code := http.StatusUnauthorized
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.WriteHeader(http.StatusUnauthorized)
 
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(code)
-
-		httpErr := Error{
+		assert.NoError(t, json.NewEncoder(w).Encode(Error{
 			Message: "You are not allowed here!",
-		}
-
-		err := json.NewEncoder(w).Encode(httpErr)
-		assert.NoError(t, err)
+		}))
 	}
 
 	client, teardown := setup(t, "/", hf)
@@ -454,7 +470,158 @@ func TestClient_do_Unauthenticated(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.do(req, nil)
-	require.ErrorIs(t, err, ErrUnauthenticated)
+	assert.ErrorIs(t, err, ErrUnauthenticated)
+}
+
+func TestClient_do_RateLimit(t *testing.T) {
+	// Truncated time for testing as the `Error()` method for the `LimitError`
+	// uses `time.Until()` which will yield different milliseconds when
+	// comparing the time values on `errors.Is()`.
+	reset := time.Now().Add(time.Hour).Truncate(time.Second)
+
+	expErr := &LimitError{
+		Limit: Limit{
+			Scope:     LimitScopeAnonymous,
+			Limit:     1000,
+			Remaining: 0,
+			Reset:     reset,
+
+			limitType: limitRate,
+		},
+		Message: "rate limit exceeded",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set(headerRateScope, "anonymous")
+		w.Header().Set(headerRateLimit, "1000")
+		w.Header().Set(headerRateRemaining, "0")
+		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
+		w.WriteHeader(http.StatusTooManyRequests)
+		assert.NoError(t, json.NewEncoder(w).Encode(Error{
+			Message: "rate limit exceeded",
+		}))
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	// Request should fail with a `*LimitError`.
+	resp, err := client.do(req, nil)
+
+	if assert.ErrorIs(t, err, expErr) {
+		assert.EqualError(t, err, "rate limit exceeded: try again in 59m59s")
+	}
+	assert.Equal(t, expErr.Limit, resp.Limit)
+}
+
+func TestClient_do_RateLimit_ShortCircuit(t *testing.T) {
+	// Truncated time for testing as the `Error()` method for the `LimitError`
+	// uses `time.Until()` which will yield different milliseconds when
+	// comparing the time values on `errors.Is()`.
+	reset := time.Now().Add(time.Hour).Truncate(time.Second)
+
+	expErr := &LimitError{
+		Limit: Limit{
+			Scope:     LimitScopeAnonymous,
+			Limit:     1000,
+			Remaining: 0,
+			Reset:     reset,
+
+			limitType: limitRate,
+		},
+		Message: "anonymous rate limit exceeded, not making remote request",
+	}
+
+	var exceeded bool
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set(headerRateScope, "anonymous")
+		w.Header().Set(headerRateLimit, "1000")
+		w.Header().Set(headerRateRemaining, "0")
+		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
+
+		if !exceeded {
+			_, _ = w.Write([]byte(`{"status":"ok"}`))
+		} else {
+			w.WriteHeader(http.StatusTooManyRequests)
+			assert.NoError(t, json.NewEncoder(w).Encode(Error{
+				Message: "rate limit exceeded",
+			}))
+		}
+		exceeded = true
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	// First request should succeed with no rate limit remaining.
+	resp, err := client.do(req, nil)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, "anonymous", resp.Limit.Scope.String())
+	assert.EqualValues(t, 1000, resp.Limit.Limit)
+	assert.EqualValues(t, 0, resp.Limit.Remaining)
+	assert.EqualValues(t, reset, resp.Limit.Reset)
+	assert.Equal(t, limitRate, resp.Limit.limitType)
+
+	// Second request should short circuit as the client is aware that there is
+	// no rate remaining.
+	resp, err = client.do(req, nil)
+	if assert.ErrorIs(t, err, expErr) {
+		assert.EqualError(t, err, "anonymous rate limit exceeded, not making remote request: try again in 59m59s")
+	}
+	assert.Equal(t, expErr.Limit, resp.Limit)
+}
+
+func TestClient_do_RateLimit_NoLimiting(t *testing.T) {
+	// Truncated time for testing as the `Error()` method for the `LimitError`
+	// uses `time.Until()` which will yield different milliseconds when
+	// comparing the time values on `errors.Is()`.
+	reset := time.Now().Add(time.Hour).Truncate(time.Second)
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set(headerRateScope, "anonymous")
+		w.Header().Set(headerRateLimit, "1000")
+		w.Header().Set(headerRateRemaining, "0")
+		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
+
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	}
+
+	client, teardown := setup(t, "/", hf, SetNoLimiting())
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	// First request should succeed with no rate limit remaining.
+	resp, err := client.do(req, nil)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, "anonymous", resp.Limit.Scope.String())
+	assert.EqualValues(t, 1000, resp.Limit.Limit)
+	assert.EqualValues(t, 0, resp.Limit.Remaining)
+	assert.EqualValues(t, reset, resp.Limit.Reset)
+	assert.Equal(t, limitRate, resp.Limit.limitType)
+
+	// Second request should succeed as well as there is no client side limiting
+	// happening.
+	resp, err = client.do(req, nil)
+	require.NoError(t, err)
+
+	assert.EqualValues(t, "anonymous", resp.Limit.Scope.String())
+	assert.EqualValues(t, 1000, resp.Limit.Limit)
+	assert.EqualValues(t, 0, resp.Limit.Remaining)
+	assert.EqualValues(t, reset, resp.Limit.Reset)
+	assert.Equal(t, limitRate, resp.Limit.limitType)
 }
 
 func TestClient_do_UnprivilegedToken(t *testing.T) {
@@ -480,15 +647,11 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.do(req, nil)
-	require.Error(t, err)
-
-	assert.IsType(t, err, new(url.Error))
+	assert.IsType(t, new(url.Error), err)
 }
 
-func TestClient_do_validOnlyAPITokenPaths(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}
+func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {}
 
 	tests := []string{
 		"/api/v1/datasets/test/query",
@@ -563,13 +726,13 @@ func TestAPITokenPathRegex(t *testing.T) {
 // setup sets up a test HTTP server along with a client that is configured to
 // talk to that test server. Tests should pass a handler function which provides
 // the response for the API method being tested.
-func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()) {
+func setup(t *testing.T, path string, handler http.HandlerFunc, options ...Option) (*Client, func()) {
 	t.Helper()
 
 	r := http.NewServeMux()
 	r.HandleFunc(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.NotEmpty(t, r.Header.Get("Authorization"), "no authorization header present on the request")
-		assert.Equal(t, "application/json", r.Header.Get("Accept"), "bad accept header present on the request")
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Accept"), "bad accept header present on the request")
 		assert.Equal(t, "axiom-go", r.Header.Get("User-Agent"), "bad user-agent header present on the request")
 		if orgIDHeader := r.Header.Get("X-Axiom-Org-Id"); orgIDHeader != "" {
 			assert.Equal(t, orgID, orgIDHeader, "bad x-axiom-org-id header present on the request")
@@ -583,14 +746,17 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	}))
 	srv := httptest.NewServer(r)
 
-	client, err := NewClient(
+	clientOptions := []Option{
 		SetURL(srv.URL),
 		SetAccessToken(personalToken),
 		SetOrgID(orgID),
 		SetClient(srv.Client()),
 		SetStrictDecoding(true),
 		SetNoEnv(),
-	)
+	}
+	clientOptions = append(clientOptions, options...)
+
+	client, err := NewClient(clientOptions...)
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

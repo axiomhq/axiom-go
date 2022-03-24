@@ -28,6 +28,7 @@ func TestVirtualFieldsService_List(t *testing.T) {
 		assert.Equal(t, "1", r.URL.Query().Get("limit"))
 		assert.Equal(t, "1", r.URL.Query().Get("offset"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `[
 			{
 				"dataset": "test",
@@ -67,6 +68,7 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"dataset": "test",
 			"description": "Successful Requests",
@@ -97,8 +99,9 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"dataset": "test",
 			"description": "Failed Requests",
@@ -134,8 +137,9 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"dataset": "test",
 			"description": "Failed Requests",

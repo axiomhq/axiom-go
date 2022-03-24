@@ -64,6 +64,7 @@ func TestCloudOrganizationsService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `[
 			{
 				"id": "axiom",
@@ -163,6 +164,7 @@ func TestCloudOrganizationsService_Get(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "axiom",
 			"name": "Axiom Industries Ltd",
@@ -259,8 +261,9 @@ func TestCloudOrganizationsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "axiom",
 			"name": "Malk Industries Ltd",
@@ -342,6 +345,7 @@ func TestCloudOrganizationsService_License(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "98baf1f7-0b51-403f-abc1-2ee91972a225",
 			"issuer": "console.dev.axiomtestlabs.co",
@@ -389,6 +393,7 @@ func TestCloudOrganizationsService_Status(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"dailyIngestUsedGB": 0,
 			"dailyIngestRemainingGB": 10000,
@@ -418,6 +423,7 @@ func TestCloudOrganizationsService_ViewSharedAccessKeys(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"primary": "0d83c05a-e77e-4c20-b35d-6e6077832e58",
 			"secondary": "75bb5815-8459-4b6e-a08f-1eb8058db44e"
@@ -443,6 +449,7 @@ func TestCloudOrganizationsService_RotateSharedAccessKeys(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
 			"secondary": "0d83c05a-e77e-4c20-b35d-6e6077832e58"
@@ -503,8 +510,9 @@ func TestCloudOrganizationsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "malkovitch",
 			"name": "Malk Industries Ltd",

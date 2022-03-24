@@ -11,6 +11,15 @@ import (
 // performing an operation.
 type Option func(c *Client) error
 
+// SetURL sets the base URL used by the client. Can also be specified using the
+// `AXIOM_URL` environment variable.
+func SetURL(baseURL string) Option {
+	return func(c *Client) (err error) {
+		c.baseURL, err = url.ParseRequestURI(baseURL)
+		return err
+	}
+}
+
 // SetAccessToken specifies the access token to use. Can also be specified using
 // the `AXIOM_TOKEN` environment variable.
 func SetAccessToken(accessToken string) Option {
@@ -19,38 +28,6 @@ func SetAccessToken(accessToken string) Option {
 			return ErrInvalidToken
 		}
 		c.accessToken = accessToken
-		return nil
-	}
-}
-
-// SetClient specifies a custom http client that should be used to make
-// requests.
-func SetClient(client *http.Client) Option {
-	return func(c *Client) error {
-		if client == nil {
-			return nil
-		}
-		c.httpClient = client
-		return nil
-	}
-}
-
-// SetCloudConfig specifies all properties needed in order to successfully
-// connect to Axiom Cloud.
-func SetCloudConfig(accessToken, orgID string) Option {
-	return func(c *Client) error {
-		return c.Options(
-			SetAccessToken(accessToken),
-			SetOrgID(orgID),
-		)
-	}
-}
-
-// SetNoEnv prevents the client from deriving its configuration from the
-// environment.
-func SetNoEnv() Option {
-	return func(c *Client) error {
-		c.noEnv = true
 		return nil
 	}
 }
@@ -66,6 +43,17 @@ func SetOrgID(orgID string) Option {
 	}
 }
 
+// SetCloudConfig specifies all properties needed in order to successfully
+// connect to Axiom Cloud.
+func SetCloudConfig(accessToken, orgID string) Option {
+	return func(c *Client) error {
+		return c.Options(
+			SetAccessToken(accessToken),
+			SetOrgID(orgID),
+		)
+	}
+}
+
 // SetSelfhostConfig specifies all properties needed in order to successfully
 // connect to an Axiom Selfhost deployment.
 func SetSelfhostConfig(deploymentURL, accessToken string) Option {
@@ -77,12 +65,15 @@ func SetSelfhostConfig(deploymentURL, accessToken string) Option {
 	}
 }
 
-// SetURL sets the base URL used by the client. Can also be specified using the
-// `AXIOM_URL` environment variable.
-func SetURL(baseURL string) Option {
-	return func(c *Client) (err error) {
-		c.baseURL, err = url.ParseRequestURI(baseURL)
-		return err
+// SetClient specifies a custom http client that should be used to make
+// requests.
+func SetClient(client *http.Client) Option {
+	return func(c *Client) error {
+		if client == nil {
+			return nil
+		}
+		c.httpClient = client
+		return nil
 	}
 }
 
@@ -90,6 +81,24 @@ func SetURL(baseURL string) Option {
 func SetUserAgent(userAgent string) Option {
 	return func(c *Client) error {
 		c.userAgent = userAgent
+		return nil
+	}
+}
+
+// SetNoEnv prevents the client from deriving its configuration from the
+// environment.
+func SetNoEnv() Option {
+	return func(c *Client) error {
+		c.noEnv = true
+		return nil
+	}
+}
+
+// SetNoLimiting prevents the client from performing client side request
+// limting.
+func SetNoLimiting() Option {
+	return func(c *Client) error {
+		c.noLimiting = true
 		return nil
 	}
 }

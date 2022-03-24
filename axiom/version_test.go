@@ -16,6 +16,7 @@ func TestVersionService_Get(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"currentVersion": "1.17.0"
 		}`)

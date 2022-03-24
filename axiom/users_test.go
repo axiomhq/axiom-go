@@ -23,6 +23,7 @@ func TestUsersService_Current(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			"name": "Lukas Malkmus",
@@ -75,6 +76,7 @@ func TestUsersService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `[
 			{
 				"id": "20475220-20e4-4080-b2f4-68315e21f5ec",
@@ -128,6 +130,7 @@ func TestUsersService_Get(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "20475220-20e4-4080-b2f4-68315e21f5ec",
 			"name": "John Doe",
@@ -157,8 +160,9 @@ func TestUsersService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 			"name": "John Doe",
@@ -192,8 +196,9 @@ func TestUsersService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 			"name": "Michael Doe",
@@ -225,8 +230,9 @@ func TestUsersService_UpdateRole(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "7debe8bb-69f1-436f-94f6-a2fe23e71cf5",
 			"name": "Michael Doe",

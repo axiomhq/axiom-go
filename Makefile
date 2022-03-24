@@ -81,6 +81,7 @@ generate: \
 	axiom/query/kind_string.go \
 	axiom/query/result_string.go \
 	axiom/datasets_string.go \
+	axiom/limit_string.go \
 	axiom/monitors_string.go \
 	axiom/notifiers_string.go \
 	axiom/orgs_string.go \
