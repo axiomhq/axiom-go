@@ -3,6 +3,8 @@ package axiom
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
 )
 
 var (
@@ -35,13 +37,7 @@ var (
 
 	// ErrExists is returned when the requested resource already exists.
 	ErrExists = errors.New("entity exists")
-
-	// ErrRateLimitExceeded is returned when the rate limit for a requested
-	// resource was reached or exceeded.
-	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )
-
-var _ error = (*Error)(nil)
 
 // Error is the generic error response returned on non 2xx HTTP status codes.
 // Either one of the two fields is populated. However, calling the Error()
@@ -52,6 +48,40 @@ type Error struct {
 }
 
 // Error implements the error interface.
-func (e Error) Error() string {
+func (e *Error) Error() string {
 	return fmt.Sprintf("API error %d: %s", e.Status, e.Message)
+}
+
+// Is returns whether the provided error equals this error.
+func (e *Error) Is(target error) bool {
+	v, ok := target.(*Error)
+	if !ok {
+		return false
+	}
+	return e.Status == v.Status && e.Message == v.Message
+}
+
+// LimitError occurs when http status code 429 (TooManyRequests) is encountered.
+type LimitError struct {
+	Limit   Limit  `json:"-"`
+	Message string `json:"message"`
+
+	response *http.Response
+}
+
+// Error returns the string representation of the error.
+//
+// It implements the `error` interface.
+func (e *LimitError) Error() string {
+	return fmt.Sprintf("%s: try again in %s",
+		e.Message, time.Until(e.Limit.Reset).Truncate(time.Second))
+}
+
+// Is returns whether the provided error equals this error.
+func (e *LimitError) Is(target error) bool {
+	v, ok := target.(*LimitError)
+	if !ok {
+		return false
+	}
+	return e.Limit == v.Limit && e.Message == v.Message
 }

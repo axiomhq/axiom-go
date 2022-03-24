@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -111,7 +112,7 @@ func (s *SharedAccessTestSuite) TearDownSuite() {
 	s.IntegrationTestSuite.TearDownSuite()
 }
 
-//nolint:bodyclose // doQueryRequest() registers a cleanup function on the body.
+//nolint:bodyclose // doQueryRequest() actually closes the body.
 func (s *SharedAccessTestSuite) TestQueryValid() {
 	// Sum favourites for the "vercel" customer within the last minute.
 	q := query.Query{
@@ -171,7 +172,7 @@ func (s *SharedAccessTestSuite) TestQueryValid() {
 	}
 }
 
-//nolint:bodyclose // doQueryRequest() registers a cleanup function on the body.
+//nolint:bodyclose // doAPLRequest() actually closes the body.
 func (s *SharedAccessTestSuite) TestAPLValid() {
 	s.T().Skip("Skipping test until we have the apl query endpoint working")
 
@@ -212,26 +213,10 @@ func (s *SharedAccessTestSuite) doQueryRequest(q query.Query, v *query.Result) *
 
 	u := fmt.Sprintf("%s/api/v1/datasets/%s/query", deploymentURL, s.dataset.ID)
 
-	req, err := http.NewRequestWithContext(s.ctx, http.MethodPost, u, &buf)
-	s.Require().NoError(err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	req.URL.RawQuery = s.signature
-
-	resp, err := s.httpClient.Do(req)
-	s.Require().NoError(err)
-
-	err = json.NewDecoder(resp.Body).Decode(v)
-	s.Require().NoError(err)
-
-	s.NoError(resp.Body.Close())
-
-	return resp
+	return s.doRequest(u, &buf, v)
 }
 
-//nolint:unused // Test is skipped currently.
+//nolint:unused // Test that uses this method is currently skipped.
 func (s *SharedAccessTestSuite) doAPLRequest(apl string, v *apl.Result) *http.Response {
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(struct {
@@ -245,7 +230,11 @@ func (s *SharedAccessTestSuite) doAPLRequest(apl string, v *apl.Result) *http.Re
 
 	u := fmt.Sprintf("%s/api/v1/datasets/_apl", deploymentURL)
 
-	req, err := http.NewRequestWithContext(s.ctx, http.MethodPost, u, &buf)
+	return s.doRequest(u, &buf, v)
+}
+
+func (s *SharedAccessTestSuite) doRequest(urlStr string, body io.Reader, v interface{}) *http.Response {
+	req, err := http.NewRequestWithContext(s.ctx, http.MethodPost, urlStr, body)
 	s.Require().NoError(err)
 
 	req.Header.Set("Content-Type", "application/json")

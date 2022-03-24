@@ -4,14 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/klauspost/compress/gzhttp"
@@ -20,6 +23,19 @@ import (
 // CloudURL is the url of the cloud hosted version of Axiom.
 const CloudURL = "https://cloud.axiom.co"
 
+const (
+	headerAuthorization  = "Authorization"
+	headerOrganizationID = "X-Axiom-Org-Id"
+
+	headerAccept      = "Accept"
+	headerContentType = "Content-Type"
+	headerUserAgent   = "User-Agent"
+
+	defaultMediaType = "application/octet-stream"
+	mediaTypeJSON    = "application/json"
+	mediaTypeNDJSON  = "application/x-ndjson"
+)
+
 var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
@@ -27,11 +43,6 @@ var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(inges
 type service struct {
 	client   *Client
 	basePath string
-}
-
-// response wraps the default http.Response type. It never has an open body.
-type response struct {
-	*http.Response
 }
 
 // DefaultHTTPClient returns the default HTTP client used for making requests.
@@ -57,7 +68,13 @@ type Client struct {
 	userAgent      string
 	strictDecoding bool
 	noEnv          bool
+	noLimiting     bool
 
+	// Rate limit for the client as determined by the most recent API call.
+	limits   map[string]Limit
+	limitsMu sync.Mutex
+
+	// Services for communicating with different parts of the GitHub API.
 	Dashboards    *DashboardsService
 	Datasets      *DatasetsService
 	Monitors      *MonitorsService
@@ -101,6 +118,8 @@ func NewClient(options ...Option) (*Client, error) {
 		userAgent: "axiom-go",
 
 		httpClient: DefaultHTTPClient(),
+
+		limits: make(map[string]Limit),
 	}
 
 	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
@@ -246,24 +265,24 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 
 	// Set Content-Type.
 	if body != nil && !isReader {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set(headerContentType, mediaTypeJSON)
 	} else if body != nil {
-		req.Header.Set("Content-Type", "application/octet-stream")
+		req.Header.Set(headerContentType, defaultMediaType)
 	}
 
 	// Set authorization header, if present.
 	if c.accessToken != "" {
-		req.Header.Set("Authorization", "Bearer "+c.accessToken)
+		req.Header.Set(headerAuthorization, "Bearer "+c.accessToken)
 	}
 
 	// Set organization ID header when using a personal token.
 	if IsPersonalToken(c.accessToken) && c.orgID != "" {
-		req.Header.Set("X-Axiom-Org-Id", c.orgID)
+		req.Header.Set(headerOrganizationID, c.orgID)
 	}
 
 	// Set other headers.
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set(headerAccept, mediaTypeJSON)
+	req.Header.Set(headerUserAgent, c.userAgent)
 
 	return req, nil
 }
@@ -271,19 +290,39 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 // do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
+// If the rate limit is exceeded and reset time is in the future, it returns
+// `*LimitError` immediately without making an API call.
 func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
+	// If we've hit the rate limit, don't make further requests before
+	// the reset time.
+	if err := c.checkLimit(req); err != nil {
+		return &response{
+			Response: err.response,
+
+			Limit: err.Limit,
+		}, err
+	}
+
 	httpResp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer httpResp.Body.Close()
+	defer func() {
+		_, _ = io.Copy(io.Discard, httpResp.Body)
+		_ = httpResp.Body.Close()
+	}()
 
-	resp := &response{httpResp}
+	resp := newResponse(httpResp)
+
+	key := limitKey(resp.Limit.limitType, resp.Limit.Scope)
+	c.limitsMu.Lock()
+	c.limits[key] = resp.Limit
+	c.limitsMu.Unlock()
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		// Handle a generic HTTP error if the response is not JSON formatted.
-		if val := resp.Header.Get("Content-Type"); !strings.HasPrefix(val, "application/json") {
-			return resp, Error{
+		if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
+			return resp, &Error{
 				Status:  statusCode,
 				Message: http.StatusText(statusCode),
 			}
@@ -297,7 +336,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		)
 
 		// Handle a properly JSON formatted Axiom API error response.
-		errResp := Error{Status: statusCode}
+		errResp := &Error{Status: statusCode}
 		if err = dec.Decode(&errResp); err != nil {
 			return resp, fmt.Errorf("error decoding %d error response: %w", statusCode, err)
 		}
@@ -323,7 +362,12 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		case http.StatusConflict:
 			return resp, fmt.Errorf("%v: %w", errResp, ErrExists)
 		case http.StatusTooManyRequests:
-			return resp, fmt.Errorf("%v: %w", errResp, ErrRateLimitExceeded)
+			return resp, &LimitError{
+				Limit:   resp.Limit,
+				Message: errResp.Message,
+
+				response: httpResp,
+			}
 		}
 
 		return resp, errResp
@@ -335,12 +379,67 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 			return resp, err
 		}
 
-		dec := json.NewDecoder(resp.Body)
-		if c.strictDecoding {
-			dec.DisallowUnknownFields()
+		if val := resp.Header.Get(headerContentType); strings.HasPrefix(val, mediaTypeJSON) {
+			dec := json.NewDecoder(resp.Body)
+			if c.strictDecoding {
+				dec.DisallowUnknownFields()
+			}
+			return resp, dec.Decode(v)
 		}
-		return resp, dec.Decode(v)
+
+		return resp, errors.New("cannot decode response with unknown content type")
 	}
 
 	return resp, nil
+}
+
+// checkLimit checks if *LimitError can be immediately returned from
+// `Client.do`, and if so, returns it so that `Client.do` can skip making an API
+// call unnecessarily.
+func (c *Client) checkLimit(req *http.Request) *LimitError {
+	var (
+		lt            limitType
+		messagePrefix string
+	)
+	if strings.HasSuffix(req.URL.Path, "/ingest") {
+		lt = limitIngest
+		messagePrefix = "ingest"
+	} else if strings.HasSuffix(req.URL.Path, "/query") || strings.HasSuffix(req.URL.Path, "/_apl") {
+		lt = limitQuery
+		messagePrefix = "query"
+	} else {
+		lt = limitRate
+		messagePrefix = "rate"
+	}
+
+	var limit Limit
+	c.limitsMu.Lock()
+	for ls := LimitScopeUnknown; ls <= LimitScopeAnonymous; ls++ {
+		key := limitKey(lt, ls)
+		var ok bool
+		if limit, ok = c.limits[key]; ok {
+			break
+		}
+	}
+	c.limitsMu.Unlock()
+
+	if !c.noLimiting && !limit.Reset.IsZero() && limit.Remaining == 0 && time.Now().Before(limit.Reset) {
+		// Create a fake response.
+		resp := &http.Response{
+			Status:     http.StatusText(http.StatusTooManyRequests),
+			StatusCode: http.StatusTooManyRequests,
+			Request:    req,
+			Header:     make(http.Header),
+			Body:       ioutil.NopCloser(strings.NewReader("")),
+		}
+		return &LimitError{
+			Limit: limit,
+			Message: fmt.Sprintf("%s %s limit exceeded, not making remote request",
+				limit.Scope, messagePrefix),
+
+			response: resp,
+		}
+	}
+
+	return nil
 }

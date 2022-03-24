@@ -59,6 +59,7 @@ func TestHandler(t *testing.T) {
 
 		atomic.AddUint64(&hasRun, 1)
 
+		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))
 	}
 
@@ -87,6 +88,7 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 		}
 		assert.NoError(t, s.Err())
 
+		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))
 	}
 

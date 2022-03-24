@@ -40,6 +40,7 @@ func TestMonitorsService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `[
 			{
 				"id": "nGxDh3TGuidQJgJW3s",
@@ -98,6 +99,7 @@ func TestMonitorsService_Get(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "nGxDh3TGuidQJgJW3s",
 			"name": "Test",
@@ -141,8 +143,9 @@ func TestMonitorsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "lrR66wmzYm9NKtq0rz",
 			"name": "Test",
@@ -190,8 +193,9 @@ func TestMonitorsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "lrR66wmzYm9NKtq0rz",
 			"name": "Test",

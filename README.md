@@ -48,11 +48,11 @@ When using Axiom Selfhost the URL of the deployment must be provided.
 
 ### Access Token Types
 
-The **personal token** grants access to all resources available to the user on his
-behalf.
+The **personal token** grants access to all resources available to the user on
+his behalf.
 
-The **API token** just allows ingestion or querying into or from the datasets the
-token is configured for.
+The **API token** just allows ingestion or querying into or from the datasets
+the token is configured for.
 
 ## Usage
 

@@ -237,6 +237,7 @@ func TestDatasetsService_Stats(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"datasets": [
 				{
@@ -368,6 +369,7 @@ func TestDatasetsService_Fields(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `[
 			{
 				"datasetName": "test",
@@ -474,6 +476,7 @@ func TestDatasetsService_List(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `[
 			{
 				"id": "test",
@@ -506,6 +509,7 @@ func TestDatasetsService_Get(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
@@ -536,8 +540,9 @@ func TestDatasetsService_Create(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
@@ -571,8 +576,9 @@ func TestDatasetsService_Update(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
@@ -605,8 +611,9 @@ func TestDatasetsService_UpdateField(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"name": "status",
 			"type": "integer",
@@ -700,6 +707,7 @@ func TestDatasetsService_Info(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"name": "test",
 			"numBlocks": 1,
@@ -771,6 +779,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"numDeleted": 1
 		}`)
@@ -803,6 +812,7 @@ func TestDatasetsService_History(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"created": "2020-12-08T13:28:52.78954814Z",
 			"dataset": "test",
@@ -839,12 +849,14 @@ func TestDatasetsService_Ingest(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
 		assert.Equal(t, "time", r.URL.Query().Get("timestamp-field"))
 		assert.Equal(t, "2/Jan/2006:15:04:05 +0000", r.URL.Query().Get("timestamp-format"))
 		assert.Equal(t, ";", r.URL.Query().Get("csv-delimiter"))
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -904,7 +916,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/x-ndjson", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
 		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
 
 		zsr, err := zstd.NewReader(r.Body)
@@ -913,6 +925,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		assertValidJSON(t, zsr)
 		zsr.Close()
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err = fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -962,7 +975,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 func TestDatasetsService_Query(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
 		assert.Equal(t, "1s", r.URL.Query().Get("streaming-duration"))
 		assert.Equal(t, "true", r.URL.Query().Get("nocache"))
@@ -970,6 +983,7 @@ func TestDatasetsService_Query(t *testing.T) {
 
 		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, actQueryResp)
 		assert.NoError(t, err)
 	}
@@ -1003,7 +1017,7 @@ func TestDatasetsService_Query_InvalidSaveKind(t *testing.T) {
 func TestDatasetsService_APLQuery(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, "application/json", r.Header.Get("content-type"))
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("content-type"))
 
 		assert.Equal(t, "true", r.URL.Query().Get("saveAsKind"))
 		assert.Equal(t, "legacy", r.URL.Query().Get("format"))
@@ -1018,6 +1032,7 @@ func TestDatasetsService_APLQuery(t *testing.T) {
 
 		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
+		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err = fmt.Fprint(w, actAPLQueryResp)
 		assert.NoError(t, err)
 	}

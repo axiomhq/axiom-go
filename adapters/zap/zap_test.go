@@ -53,6 +53,7 @@ func TestCore(t *testing.T) {
 
 		hasRun = true
 
+		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))
 	}
 
