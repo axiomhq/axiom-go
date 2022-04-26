@@ -71,7 +71,7 @@ jobs:
           echo "AXIOM_TOKEN=${{ steps.axiom.outputs.token }}" >> $GITHUB_ENV
       - name: Setup
         run: |
-          go install github.com/axiomhq/cli/cmd/axiom@latest
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go examples test"
       - name: Setup example
         if: matrix.setup
