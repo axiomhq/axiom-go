@@ -511,7 +511,10 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 	}
 
 	var (
-		res  query.Result
+		res struct {
+			query.Result
+			_ interface{} `json:"fieldsMetaMap"` //nolint:govet // HINT(lukasmalkmus): Fine to ignore.
+		}
 		resp *response
 	)
 	if resp, err = s.client.do(req, &res); err != nil {
@@ -519,7 +522,7 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 
-	return &res, nil
+	return &res.Result, nil
 }
 
 // APLQuery executes the given query specified using the Axiom Processing
@@ -540,7 +543,10 @@ func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Opt
 	}
 
 	var (
-		res  apl.Result
+		res struct {
+			apl.Result
+			_ interface{} `json:"fieldsMeta"` //nolint:govet // HINT(lukasmalkmus): Fine to ignore.
+		}
 		resp *response
 	)
 	if resp, err = s.client.do(req, &res); err != nil {
@@ -548,7 +554,7 @@ func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Opt
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 
-	return &res, nil
+	return &res.Result, nil
 }
 
 // DetectContentType detects the content type of an io.Reader's data. The
