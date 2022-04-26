@@ -513,7 +513,7 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 	var (
 		res struct {
 			query.Result
-			_ interface{} `json:"fieldsMetaMap"` //nolint:govet // HINT(lukasmalkmus): Fine to ignore.
+			FieldsMeta interface{} `json:"fieldsMeta"`
 		}
 		resp *response
 	)
@@ -545,7 +545,7 @@ func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Opt
 	var (
 		res struct {
 			apl.Result
-			_ interface{} `json:"fieldsMeta"` //nolint:govet // HINT(lukasmalkmus): Fine to ignore.
+			FieldsMeta interface{} `json:"fieldsMetaMap"`
 		}
 		resp *response
 	)
