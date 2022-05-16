@@ -90,3 +90,43 @@ func TestLogin(t *testing.T) {
 
 	assert.Equal(t, "test-token", token)
 }
+
+func TestLogin_ExchangeError(t *testing.T) {
+	authHf := func(w http.ResponseWriter, r *http.Request) {
+		redirectURI, err := url.ParseRequestURI(r.FormValue("redirect_uri"))
+		require.NoError(t, err)
+
+		q := redirectURI.Query()
+		q.Set("code", "test-code")
+		q.Set("state", r.FormValue("state"))
+		redirectURI.RawQuery = q.Encode()
+
+		http.Redirect(w, r, redirectURI.String(), http.StatusFound)
+	}
+
+	tokenHf := func(w http.ResponseWriter, r *http.Request) {
+		code := http.StatusInternalServerError
+		http.Error(w, http.StatusText(code), code)
+	}
+
+	r := http.NewServeMux()
+	r.Handle("/oauth/authorize", http.HandlerFunc(authHf))
+	r.Handle("/oauth/token", http.HandlerFunc(tokenHf))
+
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	loginFunc := func(_ context.Context, loginURL string) error {
+		// Assume the user opens the login URL and gives consent.
+		go func() {
+			resp, err := http.Get(loginURL) //nolint:gosec // This is a test.
+			require.NoError(t, err)
+			assert.NoError(t, resp.Body.Close())
+		}()
+		return nil
+	}
+
+	token, err := auth.Login(context.Background(), srv.URL, loginFunc)
+	assert.EqualError(t, err, "oauth2: cannot fetch token: 500 Internal Server Error\nResponse: Internal Server Error\n")
+	assert.Empty(t, token)
+}
