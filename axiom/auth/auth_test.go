@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -69,15 +68,16 @@ func TestLogin(t *testing.T) {
 		}`))
 	}
 
-	var doneCalled uint32
+	successCh := make(chan struct{})
 
 	r := http.NewServeMux()
 	r.Handle("/oauth/authorize", http.HandlerFunc(authHf))
 	r.Handle("/oauth/token", http.HandlerFunc(tokenHf))
-	r.Handle("/oauth/done", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.NotContains(t, r.Form, "error")
-		assert.NotContains(t, r.Form, "error_description")
-		atomic.AddUint32(&doneCalled, 1)
+	r.Handle("/oauth/success", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(successCh)
+	}))
+	r.Handle("/oauth/error", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("should not be called")
 	}))
 
 	srv := httptest.NewServer(r)
@@ -98,7 +98,55 @@ func TestLogin(t *testing.T) {
 
 	assert.Equal(t, "test-token", token)
 
-	assert.EqualValues(t, 1, atomic.LoadUint32(&doneCalled))
+	<-successCh
+}
+
+func TestLogin_AuthorizationError(t *testing.T) {
+	authHf := func(w http.ResponseWriter, r *http.Request) {
+		redirectURI, err := url.ParseRequestURI(r.FormValue("redirect_uri"))
+		require.NoError(t, err)
+
+		q := redirectURI.Query()
+		q.Set("error", "access_denied")
+		q.Set("error_description", "user denied access")
+		q.Set("state", r.FormValue("state"))
+		redirectURI.RawQuery = q.Encode()
+
+		http.Redirect(w, r, redirectURI.String(), http.StatusFound)
+	}
+
+	errCh := make(chan struct{})
+
+	r := http.NewServeMux()
+	r.Handle("/oauth/authorize", http.HandlerFunc(authHf))
+	r.Handle("/oauth/token", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("should not be called")
+	}))
+	r.Handle("/oauth/success", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("should not be called")
+	}))
+	r.Handle("/oauth/error", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(errCh)
+	}))
+
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	loginFunc := func(_ context.Context, loginURL string) error {
+		// Assume the user opens the login URL and gives consent.
+		go func() {
+			resp, err := http.Get(loginURL) //nolint:gosec // This is a test.
+			require.NoError(t, err)
+			assert.NoError(t, resp.Body.Close())
+		}()
+		return nil
+	}
+
+	token, err := auth.Login(context.Background(), srv.URL, loginFunc)
+	assert.EqualError(t, err, "oauth2 authorization error \"access_denied\": user denied access")
+	assert.Empty(t, token)
+
+	<-errCh
 }
 
 func TestLogin_ExchangeError(t *testing.T) {
@@ -119,11 +167,16 @@ func TestLogin_ExchangeError(t *testing.T) {
 		http.Error(w, http.StatusText(code), code)
 	}
 
+	errCh := make(chan struct{})
+
 	r := http.NewServeMux()
 	r.Handle("/oauth/authorize", http.HandlerFunc(authHf))
 	r.Handle("/oauth/token", http.HandlerFunc(tokenHf))
-	r.Handle("/oauth/done", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("/oauth/success", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Error("should not be called")
+	}))
+	r.Handle("/oauth/error", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(errCh)
 	}))
 
 	srv := httptest.NewServer(r)
@@ -142,4 +195,6 @@ func TestLogin_ExchangeError(t *testing.T) {
 	token, err := auth.Login(context.Background(), srv.URL, loginFunc)
 	assert.EqualError(t, err, "oauth2: cannot fetch token: 500 Internal Server Error\nResponse: Internal Server Error\n")
 	assert.Empty(t, token)
+
+	<-errCh
 }
