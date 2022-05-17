@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -14,9 +15,10 @@ import (
 )
 
 const (
-	authPath          = "/oauth/authorize"
-	tokenPath         = "/oauth/token" //nolint:gosec // Sigh, this is not a hardcoded credential...
-	finalRedirectPath = "/oauth/done"
+	authPath    = "/oauth/authorize"
+	tokenPath   = "/oauth/token" //nolint:gosec // Sigh, this is not a hardcoded credential...
+	successPath = "/oauth/success"
+	errorPath   = "/oauth/error"
 
 	clientID = "13c885a8-f46a-4424-82d2-883cf7ccfe49"
 )
@@ -44,7 +46,12 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 		return "", err
 	}
 
-	finalRedirectURL, err := u.Parse(finalRedirectPath)
+	successURL, err := u.Parse(successPath)
+	if err != nil {
+		return "", err
+	}
+
+	errorURL, err := u.Parse(errorPath)
 	if err != nil {
 		return "", err
 	}
@@ -102,44 +109,42 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 		defer close(callbackErrCh)
 
 		if r.Method != http.MethodGet {
-			code := http.StatusMethodNotAllowed
-			http.Error(w, http.StatusText(code), code)
 			callbackErrCh <- errors.New("invalid method")
+			http.Redirect(w, r, errorURL.String(), http.StatusFound)
 			return
 		}
 
 		// Make sure state matches.
 		if r.FormValue("state") != state.String() {
-			code := http.StatusBadRequest
-			http.Error(w, http.StatusText(code), code)
 			callbackErrCh <- errors.New("invalid state")
+			http.Redirect(w, r, errorURL.String(), http.StatusFound)
 			return
 		}
 
+		// In case we have an error from the authorization server, return it and
+		// redirect to the error page.
 		if r.Form.Has("error") {
-			q := r.URL.Query()
-			q.Set("error", r.FormValue("error"))
-			q.Set("error_description", r.FormValue("error_description"))
-			finalRedirectURL.RawQuery = q.Encode()
-		} else {
-			code := r.FormValue("code")
-			if code == "" {
-				code := http.StatusBadRequest
-				http.Error(w, http.StatusText(code), code)
-				callbackErrCh <- errors.New("missing authorization code")
-				return
-			}
-
-			var exchangeErr error
-			if token, exchangeErr = config.Exchange(r.Context(), code, codeVerifier.AuthCodeOption()); exchangeErr != nil {
-				code := http.StatusBadRequest
-				http.Error(w, exchangeErr.Error(), code)
-				callbackErrCh <- exchangeErr
-				return
-			}
+			serverErr := fmt.Errorf("oauth2 authorization error %q: %s", r.FormValue("error"), r.FormValue("error_description"))
+			callbackErrCh <- serverErr
+			http.Redirect(w, r, errorURL.String(), http.StatusFound)
+			return
 		}
 
-		http.Redirect(w, r, finalRedirectURL.String(), http.StatusFound)
+		code := r.FormValue("code")
+		if code == "" {
+			callbackErrCh <- errors.New("missing authorization code")
+			http.Redirect(w, r, errorURL.String(), http.StatusFound)
+			return
+		}
+
+		var exchangeErr error
+		if token, exchangeErr = config.Exchange(r.Context(), code, codeVerifier.AuthCodeOption()); exchangeErr != nil {
+			callbackErrCh <- exchangeErr
+			http.Redirect(w, r, errorURL.String(), http.StatusFound)
+			return
+		}
+
+		http.Redirect(w, r, successURL.String(), http.StatusFound)
 	}
 
 	srv := http.Server{
@@ -164,11 +169,11 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 	case err = <-srvErrCh:
 		close(callbackErrCh)
 		return "", err
-	case err = <-callbackErrCh:
-		if err != nil {
-			return "", err
-		} else if shutdownErr := srv.Shutdown(ctx); shutdownErr != nil {
-			return "", err
+	case callbackErr := <-callbackErrCh:
+		if shutdownErr := srv.Shutdown(ctx); callbackErr != nil {
+			return "", callbackErr
+		} else if shutdownErr != nil {
+			return "", shutdownErr
 		}
 	}
 
