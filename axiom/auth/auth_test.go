@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -68,9 +69,16 @@ func TestLogin(t *testing.T) {
 		}`))
 	}
 
+	var doneCalled uint32
+
 	r := http.NewServeMux()
 	r.Handle("/oauth/authorize", http.HandlerFunc(authHf))
 	r.Handle("/oauth/token", http.HandlerFunc(tokenHf))
+	r.Handle("/oauth/done", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.NotContains(t, r.Form, "error")
+		assert.NotContains(t, r.Form, "error_description")
+		atomic.AddUint32(&doneCalled, 1)
+	}))
 
 	srv := httptest.NewServer(r)
 	defer srv.Close()
@@ -89,6 +97,8 @@ func TestLogin(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "test-token", token)
+
+	assert.EqualValues(t, 1, atomic.LoadUint32(&doneCalled))
 }
 
 func TestLogin_ExchangeError(t *testing.T) {
@@ -112,6 +122,9 @@ func TestLogin_ExchangeError(t *testing.T) {
 	r := http.NewServeMux()
 	r.Handle("/oauth/authorize", http.HandlerFunc(authHf))
 	r.Handle("/oauth/token", http.HandlerFunc(tokenHf))
+	r.Handle("/oauth/done", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("should not be called")
+	}))
 
 	srv := httptest.NewServer(r)
 	defer srv.Close()
