@@ -305,6 +305,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	}
 
 	var resp *response
+	var httpResp *http.Response
 
 	op := func() error {
 		httpResp, err := c.httpClient.Do(req)
@@ -318,83 +319,88 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 
 		resp = newResponse(httpResp)
 
-		key := limitKey(resp.Limit.limitType, resp.Limit.Scope)
-		c.limitsMu.Lock()
-		c.limits[key] = resp.Limit
-		c.limitsMu.Unlock()
-
-		if statusCode := resp.StatusCode; statusCode >= 400 {
-			// Handle a generic HTTP error if the response is not JSON formatted.
-			if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
-				return &Error{
-					Status:  statusCode,
-					Message: http.StatusText(statusCode),
-				}
-			}
-
-			// For error handling, we want to have access to the raw request body
-			// to inspect it further
-			var (
-				buf bytes.Buffer
-				dec = json.NewDecoder(io.TeeReader(resp.Body, &buf))
-			)
-
-			// Handle a properly JSON formatted Axiom API error response.
-			errResp := &Error{Status: statusCode}
-			if err = dec.Decode(&errResp); err != nil {
-				return fmt.Errorf("error decoding %d error response: %w", statusCode, err)
-			}
-
-			// In case something went wrong, include the raw response and hope for
-			// the best.
-			if errResp.Message == "" {
-				s := strings.ReplaceAll(buf.String(), "\n", " ")
-				errResp.Message = s
-				return errResp
-			}
-
-			// In case everything went fine till this point, handle special errors
-			// and wrap them with our errors so user can check for them using
-			// `errors.Is()`.
-			switch statusCode {
-			case http.StatusUnauthorized:
-				return fmt.Errorf("%v: %w", errResp, ErrUnauthenticated)
-			case http.StatusForbidden:
-				return fmt.Errorf("%v: %w", errResp, ErrUnauthorized)
-			case http.StatusNotFound:
-				return fmt.Errorf("%v: %w", errResp, ErrNotFound)
-			case http.StatusConflict:
-				return fmt.Errorf("%v: %w", errResp, ErrExists)
-			case http.StatusTooManyRequests:
-				return &LimitError{
-					Limit:   resp.Limit,
-					Message: errResp.Message,
-
-					response: httpResp,
-				}
-			}
-
-			return errResp
-		}
-
-		if v != nil {
-			if w, ok := v.(io.Writer); ok {
-				_, err = io.Copy(w, resp.Body)
-				return err
-			}
-
-			if val := resp.Header.Get(headerContentType); strings.HasPrefix(val, mediaTypeJSON) {
-				dec := json.NewDecoder(resp.Body)
-				if c.strictDecoding {
-					dec.DisallowUnknownFields()
-				}
-				return dec.Decode(v)
-			}
-
-			return errors.New("cannot decode response with unknown content type")
+		// We should only retry in the case the status code is >= 500, anything below isn't worth retrying.
+		if resp.StatusCode >= 500 {
+			return err
 		}
 
 		return nil
+	}
+
+	key := limitKey(resp.Limit.limitType, resp.Limit.Scope)
+	c.limitsMu.Lock()
+	c.limits[key] = resp.Limit
+	c.limitsMu.Unlock()
+
+	if statusCode := resp.StatusCode; statusCode >= 400 {
+		// Handle a generic HTTP error if the response is not JSON formatted.
+		if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
+			return resp, &Error{
+				Status:  statusCode,
+				Message: http.StatusText(statusCode),
+			}
+		}
+
+		// For error handling, we want to have access to the raw request body
+		// to inspect it further
+		var (
+			buf bytes.Buffer
+			dec = json.NewDecoder(io.TeeReader(resp.Body, &buf))
+		)
+
+		// Handle a properly JSON formatted Axiom API error response.
+		errResp := &Error{Status: statusCode}
+		if err := dec.Decode(&errResp); err != nil {
+			return resp, fmt.Errorf("error decoding %d error response: %w", statusCode, err)
+		}
+
+		// In case something went wrong, include the raw response and hope for
+		// the best.
+		if errResp.Message == "" {
+			s := strings.ReplaceAll(buf.String(), "\n", " ")
+			errResp.Message = s
+			return resp, errResp
+		}
+
+		// In case everything went fine till this point, handle special errors
+		// and wrap them with our errors so user can check for them using
+		// `errors.Is()`.
+		switch statusCode {
+		case http.StatusUnauthorized:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthenticated)
+		case http.StatusForbidden:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthorized)
+		case http.StatusNotFound:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrNotFound)
+		case http.StatusConflict:
+			return resp, fmt.Errorf("%v: %w", errResp, ErrExists)
+		case http.StatusTooManyRequests:
+			return resp, &LimitError{
+				Limit:   resp.Limit,
+				Message: errResp.Message,
+
+				response: httpResp,
+			}
+		}
+
+		return resp, errResp
+	}
+
+	if v != nil {
+		if w, ok := v.(io.Writer); ok {
+			_, err := io.Copy(w, resp.Body)
+			return resp, err
+		}
+
+		if val := resp.Header.Get(headerContentType); strings.HasPrefix(val, mediaTypeJSON) {
+			dec := json.NewDecoder(resp.Body)
+			if c.strictDecoding {
+				dec.DisallowUnknownFields()
+			}
+			return resp, dec.Decode(v)
+		}
+
+		return resp, errors.New("cannot decode response with unknown content type")
 	}
 
 	bck := backoff.NewExponentialBackOff()
