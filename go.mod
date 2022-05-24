@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/apex/log v1.9.0
+	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/golangci/golangci-lint v1.45.2
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.3.0
