@@ -321,7 +321,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 
 		// We should only retry in the case the status code is >= 500, anything below isn't worth retrying.
 		if resp.StatusCode >= 500 {
-			return err
+			return fmt.Errorf("got status code %d", resp.StatusCode)
 		}
 
 		return nil
