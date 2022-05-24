@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/klauspost/compress v1.15.2
 	github.com/sirupsen/logrus v1.8.1
+	github.com/sony/gobreaker v0.5.0
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
