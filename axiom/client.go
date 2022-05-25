@@ -331,8 +331,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	bck := backoff.NewExponentialBackOff()
 	bck.InitialInterval = 200 * time.Millisecond
 	bck.Multiplier = 2.0
-	bck.MaxInterval = 1 * time.Second
-	bck.MaxElapsedTime = 30 * time.Second
+	bck.MaxElapsedTime = 10 * time.Second
 
 	err = backoff.Retry(op, bck)
 	if err != nil {
