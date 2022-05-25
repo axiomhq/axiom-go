@@ -306,9 +306,10 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 
 	var resp *response
 	var httpResp *http.Response
+	var err error
 
 	op := func() error {
-		httpResp, err := c.httpClient.Do(req)
+		httpResp, err = c.httpClient.Do(req)
 		if err != nil {
 			return err
 		}
@@ -409,7 +410,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	bck.MaxInterval = 1 * time.Second
 	bck.MaxElapsedTime = 30 * time.Second
 
-	err := backoff.Retry(op, bck)
+	err = backoff.Retry(op, bck)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
