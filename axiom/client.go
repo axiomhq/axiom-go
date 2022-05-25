@@ -308,7 +308,12 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	var httpResp *http.Response
 	var err error
 
-	op := func() error {
+	bck := backoff.NewExponentialBackOff()
+	bck.InitialInterval = 200 * time.Millisecond
+	bck.Multiplier = 2.0
+	bck.MaxElapsedTime = 10 * time.Second
+
+	err = backoff.Retry(func() error {
 		httpResp, err = c.httpClient.Do(req)
 		if err != nil {
 			return err
@@ -326,14 +331,8 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		}
 
 		return nil
-	}
+	}, bck)
 
-	bck := backoff.NewExponentialBackOff()
-	bck.InitialInterval = 200 * time.Millisecond
-	bck.Multiplier = 2.0
-	bck.MaxElapsedTime = 10 * time.Second
-
-	err = backoff.Retry(op, bck)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
