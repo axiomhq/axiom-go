@@ -328,6 +328,17 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		return nil
 	}
 
+	bck := backoff.NewExponentialBackOff()
+	bck.InitialInterval = 200 * time.Millisecond
+	bck.Multiplier = 2.0
+	bck.MaxInterval = 1 * time.Second
+	bck.MaxElapsedTime = 30 * time.Second
+
+	err = backoff.Retry(op, bck)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %v", err)
+	}
+
 	key := limitKey(resp.Limit.limitType, resp.Limit.Scope)
 	c.limitsMu.Lock()
 	c.limits[key] = resp.Limit
@@ -402,17 +413,6 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		}
 
 		return resp, errors.New("cannot decode response with unknown content type")
-	}
-
-	bck := backoff.NewExponentialBackOff()
-	bck.InitialInterval = 200 * time.Millisecond
-	bck.Multiplier = 2.0
-	bck.MaxInterval = 1 * time.Second
-	bck.MaxElapsedTime = 30 * time.Second
-
-	err = backoff.Retry(op, bck)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %v", err)
 	}
 
 	return resp, nil
