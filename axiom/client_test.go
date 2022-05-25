@@ -723,6 +723,55 @@ func TestAPITokenPathRegex(t *testing.T) {
 	}
 }
 
+func TestClient_do_Backoff(t *testing.T) {
+	var currentCalls int
+	r := http.NewServeMux()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		currentCalls++
+		switch currentCalls {
+		case 1:
+			w.WriteHeader(http.StatusInternalServerError)
+		case 2:
+			w.WriteHeader(http.StatusBadGateway)
+		case 3:
+			w.WriteHeader(http.StatusGatewayTimeout)
+		default:
+			w.WriteHeader(http.StatusOK)
+		}
+		return
+	})
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	clientOptions := []Option{
+		SetURL(srv.URL),
+		SetAccessToken(personalToken),
+		SetOrgID(orgID),
+		SetClient(srv.Client()),
+		SetStrictDecoding(true),
+		SetNoEnv(),
+	}
+
+	client, err := NewClient(clientOptions...)
+	require.NoError(t, err)
+
+	var attemptedCalls int
+	resp := &response{&http.Response{StatusCode: 500}, Limit{}}
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	for resp.StatusCode != http.StatusOK {
+		attemptedCalls++
+		resp, err = client.do(req, nil)
+		require.NoError(t, err)
+		if attemptedCalls > 4 {
+			t.Fatal("expected to attempt 4 times")
+		}
+	}
+	assert.Equal(t, 4, currentCalls)
+
+}
+
 // setup sets up a test HTTP server along with a client that is configured to
 // talk to that test server. Tests should pass a handler function which provides
 // the response for the API method being tested.
