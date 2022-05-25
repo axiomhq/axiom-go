@@ -755,21 +755,16 @@ func TestClient_do_Backoff(t *testing.T) {
 	client, err := NewClient(clientOptions...)
 	require.NoError(t, err)
 
-	var attemptedCalls int
-	resp := &response{&http.Response{StatusCode: 500}, Limit{}}
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	for resp.StatusCode != http.StatusOK {
-		attemptedCalls++
-		resp, err = client.do(req, nil)
-		require.NoError(t, err)
-		if attemptedCalls > 4 {
-			t.Fatal("expected to attempt 4 times")
-		}
+	resp, err := client.do(req, nil)
+	require.NoError(t, err)
+	if currentCalls > 4 {
+		t.Fatal("expected to attempt 4 times")
 	}
 	assert.Equal(t, 4, currentCalls)
-
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 // setup sets up a test HTTP server along with a client that is configured to
