@@ -738,7 +738,6 @@ func TestClient_do_Backoff(t *testing.T) {
 		default:
 			w.WriteHeader(http.StatusOK)
 		}
-		return
 	})
 	srv := httptest.NewServer(r)
 	defer srv.Close()
