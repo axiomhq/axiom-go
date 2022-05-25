@@ -314,7 +314,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 
 	err := backoff.Retry(func() error {
 		var err error
-		httpResp, err = c.httpClient.Do(req)
+		httpResp, err = c.httpClient.Do(req) //nolint:bodyclose // We close the body in the defer func below.
 		if err != nil {
 			return err
 		}
