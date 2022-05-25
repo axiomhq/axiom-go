@@ -330,8 +330,10 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	}, bck)
 
 	defer func() {
-		_, _ = io.Copy(io.Discard, httpResp.Body)
-		_ = httpResp.Body.Close()
+		if httpResp != nil {
+			_, _ = io.Copy(io.Discard, httpResp.Body)
+			_ = httpResp.Body.Close()
+		}
 	}()
 
 	if err != nil {
