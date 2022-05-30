@@ -674,6 +674,55 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 	}
 }
 
+func TestClient_do_Backoff(t *testing.T) {
+	var currentCalls int
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		currentCalls++
+		switch currentCalls {
+		case 1:
+			w.WriteHeader(http.StatusInternalServerError)
+		case 2:
+			w.WriteHeader(http.StatusBadGateway)
+		case 3:
+			w.WriteHeader(http.StatusGatewayTimeout)
+		default:
+			w.WriteHeader(http.StatusOK)
+		}
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	resp, err := client.do(req, nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, 4, currentCalls)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
+	var currentCalls int
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		currentCalls++
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	client, teardown := setup(t, "/", hf)
+	defer teardown()
+
+	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	resp, err := client.do(req, nil)
+	require.Error(t, err, "got status code 400")
+
+	assert.Equal(t, 1, currentCalls)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
 func TestAPITokenPathRegex(t *testing.T) {
 	tests := []struct {
 		input string
@@ -721,49 +770,6 @@ func TestAPITokenPathRegex(t *testing.T) {
 			assert.Equal(t, tt.match, validOnlyAPITokenPaths.MatchString(tt.input))
 		})
 	}
-}
-
-func TestClient_do_Backoff(t *testing.T) {
-	var currentCalls int
-	r := http.NewServeMux()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		currentCalls++
-		switch currentCalls {
-		case 1:
-			w.WriteHeader(http.StatusInternalServerError)
-		case 2:
-			w.WriteHeader(http.StatusBadGateway)
-		case 3:
-			w.WriteHeader(http.StatusGatewayTimeout)
-		default:
-			w.WriteHeader(http.StatusOK)
-		}
-	})
-	srv := httptest.NewServer(r)
-	defer srv.Close()
-
-	clientOptions := []Option{
-		SetURL(srv.URL),
-		SetAccessToken(personalToken),
-		SetOrgID(orgID),
-		SetClient(srv.Client()),
-		SetStrictDecoding(true),
-		SetNoEnv(),
-	}
-
-	client, err := NewClient(clientOptions...)
-	require.NoError(t, err)
-
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
-	require.NoError(t, err)
-
-	resp, err := client.do(req, nil)
-	require.NoError(t, err)
-	if currentCalls > 4 {
-		t.Fatal("expected to attempt 4 times")
-	}
-	assert.Equal(t, 4, currentCalls)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 // setup sets up a test HTTP server along with a client that is configured to
