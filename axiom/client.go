@@ -304,8 +304,10 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		}, err
 	}
 
-	var resp *response
-	var httpResp *http.Response
+	var (
+		resp     *response
+		httpResp *http.Response
+	)
 
 	bck := backoff.NewExponentialBackOff()
 	bck.InitialInterval = 200 * time.Millisecond
@@ -314,16 +316,15 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 
 	err := backoff.Retry(func() error {
 		var err error
-		httpResp, err = c.httpClient.Do(req) //nolint:bodyclose // We close the body in the defer func below.
-		if err != nil {
+		if httpResp, err = c.httpClient.Do(req); err != nil { //nolint:bodyclose // We close the body in the defer func below.
 			return err
 		}
 
 		resp = newResponse(httpResp)
 
 		// We should only retry in the case the status code is >= 500, anything below isn't worth retrying.
-		if resp.StatusCode >= 500 {
-			return fmt.Errorf("got status code %d", resp.StatusCode)
+		if code := resp.StatusCode; code >= 500 {
+			return fmt.Errorf("got status code %d", code)
 		}
 
 		return nil
@@ -337,7 +338,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	}()
 
 	if err != nil {
-		return nil, fmt.Errorf("error making request: %v", err)
+		return resp, err
 	}
 
 	key := limitKey(resp.Limit.limitType, resp.Limit.Scope)
