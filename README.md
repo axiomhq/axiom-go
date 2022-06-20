@@ -56,12 +56,50 @@ the token is configured for.
 
 ## Usage
 
+### Getting started
+
+```go
+// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` (when using a personal token) for
+// Axiom Cloud.
+// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost.
+
+import "github.com/axiomhq/axiom-go/axiom"
+
+// ...
+
+// 1. Initialize the Axiom API client.
+client, err := axiom.NewClient()
+if err != nil {
+	log.Fatal(err)
+}
+
+// 2. Ingest ⚡
+ev := axiom.Event{
+	"foo": "bar",
+}
+res, err := client.Datasets.IngestEvents(context.Background(), "axiom-go-test", axiom.IngestOptions{}, ev)
+if err != nil {
+	log.Fatal(err)
+}
+
+// 3. Make sure everything went smoothly.
+for _, fail := range res.Failures {
+	log.Print(fail.Error)
+}
+```
+
+### Advanced usage
+
 Simple file ingestion with on the fly compression:
 
 ```go
 // Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` (when using a personal token) for
 // Axiom Cloud.
 // Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost.
+
+import "github.com/axiomhq/axiom-go/axiom"
+
+// ...
 
 // 1. Open the file to ingest.
 f, err := os.Open("logs.json")
@@ -85,7 +123,7 @@ if err != nil {
 // 4. Ingest ⚡
 // Note the JSON content type and Gzip content encoding being set because the
 // client does not auto sense them.
-res, err := client.Datasets.Ingest(context.Background(), dataset, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
+res, err := client.Datasets.Ingest(context.Background(), "axiom-go-test", r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
 if err != nil {
 	log.Fatal(err)
 }
@@ -100,10 +138,9 @@ For more sample code snippets, head over to the [examples](examples) directory.
 
 ## Documentation
 
-- Visit the Go bindings documentation for the Axiom API on [go.dev](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom). 
+- Visit the Go bindings documentation for the Axiom API on [go.dev](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom).
 
-- Also get a detailed overview on [Constants](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-constants), [Variables](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-variables), [Functions](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-functions), and [Types](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-types), and [Source Files](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#section-sourcefiles) in the [go.dev documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-index). 
-
+- Also get a detailed overview on [Constants](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-constants), [Variables](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-variables), [Functions](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-functions), and [Types](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-types), and [Source Files](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#section-sourcefiles) in the [go.dev documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#pkg-index).
 
 ---
 

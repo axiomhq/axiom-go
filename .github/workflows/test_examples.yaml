@@ -20,6 +20,7 @@ jobs:
         example:
           - apex
           - apl
+          - ingestevent
           - ingestfile
           - logrus
           - query
@@ -33,6 +34,9 @@ jobs:
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
               axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
               sleep 5
+          - example: ingestevent
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
           - example: ingestfile
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
