@@ -18,7 +18,6 @@ const (
 	emptyPlan Plan = iota //
 
 	Free       // free
-	Trial      // trial
 	Pro        // pro
 	Enterprise // enterprise
 	Comped     // comped
@@ -30,8 +29,6 @@ func planFromString(s string) (plan Plan, err error) {
 		plan = emptyPlan
 	case Free.String():
 		plan = Free
-	case Trial.String():
-		plan = Trial
 	case Pro.String():
 		plan = Pro
 	case Enterprise.String():

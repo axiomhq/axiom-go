@@ -10,15 +10,14 @@ func _() {
 	var x [1]struct{}
 	_ = x[emptyPlan-0]
 	_ = x[Free-1]
-	_ = x[Trial-2]
-	_ = x[Pro-3]
-	_ = x[Enterprise-4]
-	_ = x[Comped-5]
+	_ = x[Pro-2]
+	_ = x[Enterprise-3]
+	_ = x[Comped-4]
 }
 
-const _Plan_name = "freetrialproenterprisecomped"
+const _Plan_name = "freeproenterprisecomped"
 
-var _Plan_index = [...]uint8{0, 0, 4, 9, 12, 22, 28}
+var _Plan_index = [...]uint8{0, 0, 4, 7, 17, 23}
 
 func (i Plan) String() string {
 	if i >= Plan(len(_Plan_index)-1) {
