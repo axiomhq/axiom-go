@@ -86,8 +86,6 @@ type License struct {
 	MaxTeams int `json:"maxTeams"`
 	// MaxDatasets is the maximum amount of datasets allowed.
 	MaxDatasets int `json:"maxDatasets"`
-	// MaxQueriesPerSecond is the maximum amount of queries allowed per second.
-	MaxQueriesPerSecond int `json:"maxQueriesPerSecond"`
 	// MaxQueryWindow is the maximum query window allowed.
 	MaxQueryWindow time.Duration `json:"maxQueryWindowSeconds"`
 	// MaxAuditWindow is the maximum audit window allowed.
