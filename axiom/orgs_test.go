@@ -23,11 +23,11 @@ func TestCloudOrganizationsService_List(t *testing.T) {
 			ID:                  "axiom",
 			Name:                "Axiom Industries Ltd",
 			Slug:                "",
-			Plan:                Pro,
+			Plan:                Basic,
 			PlanCreated:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			PlanExpires:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			Trialed:             false,
-			PreviousPlan:        Free,
+			PreviousPlan:        Hobby,
 			PreviousPlanCreated: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			PreviousPlanExpired: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			LastUsageSync:       mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
@@ -69,11 +69,11 @@ func TestCloudOrganizationsService_List(t *testing.T) {
 				"id": "axiom",
 				"name": "Axiom Industries Ltd",
 				"slug": "",
-				"plan": "pro",
+				"plan": "basic",
 				"planCreated": "1970-01-01T00:00:00Z",
 				"planExpires": "1970-01-01T00:00:00Z",
 				"trialed": false,
-				"previousPlan": "free",
+				"previousPlan": "hobby",
 				"previousPlanCreated": "1970-01-01T00:00:00Z",
 				"previousPlanExpired": "1970-01-01T00:00:00Z",
 				"lastUsageSync": "0001-01-01T00:00:00Z",
@@ -122,11 +122,11 @@ func TestCloudOrganizationsService_Get(t *testing.T) {
 		ID:                  "axiom",
 		Name:                "Axiom Industries Ltd",
 		Slug:                "",
-		Plan:                Pro,
+		Plan:                Basic,
 		PlanCreated:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		PlanExpires:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Trialed:             false,
-		PreviousPlan:        Free,
+		PreviousPlan:        Hobby,
 		PreviousPlanCreated: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		PreviousPlanExpired: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		LastUsageSync:       mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
@@ -166,11 +166,11 @@ func TestCloudOrganizationsService_Get(t *testing.T) {
 			"id": "axiom",
 			"name": "Axiom Industries Ltd",
 			"slug": "",
-			"plan": "pro",
+			"plan": "basic",
 			"planCreated": "1970-01-01T00:00:00Z",
 			"planExpires": "1970-01-01T00:00:00Z",
 			"trialed": false,
-			"previousPlan": "free",
+			"previousPlan": "hobby",
 			"previousPlanCreated": "1970-01-01T00:00:00Z",
 			"previousPlanExpired": "1970-01-01T00:00:00Z",
 			"lastUsageSync": "0001-01-01T00:00:00Z",
@@ -218,11 +218,11 @@ func TestCloudOrganizationsService_Update(t *testing.T) {
 		ID:                  "axiom",
 		Name:                "Malk Industries Ltd",
 		Slug:                "",
-		Plan:                Pro,
+		Plan:                Basic,
 		PlanCreated:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		PlanExpires:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Trialed:             false,
-		PreviousPlan:        Free,
+		PreviousPlan:        Hobby,
 		PreviousPlanCreated: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		PreviousPlanExpired: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		LastUsageSync:       mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
@@ -263,11 +263,11 @@ func TestCloudOrganizationsService_Update(t *testing.T) {
 			"id": "axiom",
 			"name": "Malk Industries Ltd",
 			"slug": "",
-			"plan": "pro",
+			"plan": "basic",
 			"planCreated": "1970-01-01T00:00:00Z",
 			"planExpires": "1970-01-01T00:00:00Z",
 			"trialed": false,
-			"previousPlan": "free",
+			"previousPlan": "hobby",
 			"previousPlanCreated": "1970-01-01T00:00:00Z",
 			"previousPlanExpired": "1970-01-01T00:00:00Z",
 			"lastUsageSync": "0001-01-01T00:00:00Z",
@@ -463,11 +463,11 @@ func TestCloudOrganizationsService_Create(t *testing.T) {
 		ID:                  "malkovitch",
 		Name:                "Malk Industries Ltd",
 		Slug:                "",
-		Plan:                Pro,
+		Plan:                Basic,
 		PlanCreated:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		PlanExpires:         mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Trialed:             false,
-		PreviousPlan:        Free,
+		PreviousPlan:        Hobby,
 		PreviousPlanCreated: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		PreviousPlanExpired: mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		LastUsageSync:       mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
@@ -508,11 +508,11 @@ func TestCloudOrganizationsService_Create(t *testing.T) {
 			"id": "malkovitch",
 			"name": "Malk Industries Ltd",
 			"slug": "",
-			"plan": "pro",
+			"plan": "basic",
 			"planCreated": "1970-01-01T00:00:00Z",
 			"planExpires": "1970-01-01T00:00:00Z",
 			"trialed": false,
-			"previousPlan": "free",
+			"previousPlan": "hobby",
 			"previousPlanCreated": "1970-01-01T00:00:00Z",
 			"previousPlanExpired": "1970-01-01T00:00:00Z",
 			"lastUsageSync": "0001-01-01T00:00:00Z",
@@ -573,13 +573,13 @@ func TestCloudOrganizationsService_Delete(t *testing.T) {
 
 func TestPlan_Marshal(t *testing.T) {
 	exp := `{
-		"plan": "free"
+		"plan": "hobby"
 	}`
 
 	b, err := json.Marshal(struct {
 		Plan Plan `json:"plan"`
 	}{
-		Plan: Free,
+		Plan: Hobby,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, b)
@@ -591,10 +591,10 @@ func TestPlan_Unmarshal(t *testing.T) {
 	var act struct {
 		Plan Plan `json:"plan"`
 	}
-	err := json.Unmarshal([]byte(`{ "plan": "free" }`), &act)
+	err := json.Unmarshal([]byte(`{ "plan": "hobby" }`), &act)
 	require.NoError(t, err)
 
-	assert.Equal(t, Free, act.Plan)
+	assert.Equal(t, Hobby, act.Plan)
 }
 
 func TestPlan_String(t *testing.T) {
@@ -604,7 +604,7 @@ func TestPlan_String(t *testing.T) {
 	assert.Equal(t, emptyPlan, Plan(0))
 	assert.Contains(t, (Comped + 1).String(), "Plan(")
 
-	for p := Free; p <= Comped; p++ {
+	for p := Hobby; p <= Comped; p++ {
 		s := p.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Plan(")
@@ -612,7 +612,7 @@ func TestPlan_String(t *testing.T) {
 }
 
 func TestPlanFromString(t *testing.T) {
-	for plan := Free; plan <= Comped; plan++ {
+	for plan := Hobby; plan <= Comped; plan++ {
 		s := plan.String()
 
 		parsedPlan, err := planFromString(s)
@@ -626,7 +626,7 @@ func TestPlanFromString(t *testing.T) {
 func TestLicense(t *testing.T) {
 	exp := License{
 		ID:             "98baf1f7-0b51-403f-abc1-2ee91972a225",
-		Tier:           Free,
+		Tier:           Hobby,
 		MaxUsers:       50,
 		MaxTeams:       10,
 		MaxDatasets:    25,
