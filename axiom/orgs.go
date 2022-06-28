@@ -168,20 +168,12 @@ type Organization struct {
 	Name string `json:"name"`
 	// Slug of the organization.
 	Slug string `json:"slug"`
+	// Trial describes if the plan is trialed or not.
+	Trial bool `json:"inTrial"`
 	// Plan the deployment or organization is on.
 	Plan Plan `json:"plan"`
 	// PlanCreated is the time the plan was created.
 	PlanCreated time.Time `json:"planCreated"`
-	// PlanExpires is the time the plan will expire.
-	PlanExpires time.Time `json:"planExpires"`
-	// Trialed describes if the plan is trialed or not.
-	Trialed bool `json:"trialed"`
-	// PreviousPlan is the previous plan the deployment or organization was on.
-	PreviousPlan Plan `json:"previousPlan"`
-	// PreviousPlanCreated is the time the previous plan was created.
-	PreviousPlanCreated time.Time `json:"previousPlanCreated"`
-	// PreviousPlanExpired is the time the previous plan expired.
-	PreviousPlanExpired time.Time `json:"previousPlanExpired"`
 	// LastUsageSync is the last time the usage instance usage statistics were
 	// synchronized.
 	LastUsageSync time.Time `json:"lastUsageSync"`
