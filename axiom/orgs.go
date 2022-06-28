@@ -17,8 +17,8 @@ type Plan uint8
 const (
 	emptyPlan Plan = iota //
 
-	Free       // free
-	Pro        // pro
+	Hobby      // hobby
+	Basic      // basic
 	Enterprise // enterprise
 	Comped     // comped
 )
@@ -27,10 +27,10 @@ func planFromString(s string) (plan Plan, err error) {
 	switch s {
 	case emptyPlan.String():
 		plan = emptyPlan
-	case Free.String():
-		plan = Free
-	case Pro.String():
-		plan = Pro
+	case Hobby.String():
+		plan = Hobby
+	case Basic.String():
+		plan = Basic
 	case Enterprise.String():
 		plan = Enterprise
 	case Comped.String():
