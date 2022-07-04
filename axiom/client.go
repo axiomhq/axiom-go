@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -121,6 +122,16 @@ func NewClient(options ...Option) (*Client, error) {
 		httpClient: DefaultHTTPClient(),
 
 		limits: make(map[string]Limit),
+	}
+
+	// Try to get module version to include in the user agent.
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, dep := range info.Deps {
+			if dep.Path == "github.com/axiomhq/axiom-go" {
+				client.userAgent += fmt.Sprintf("/%s", dep.Version)
+				break
+			}
+		}
 	}
 
 	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
