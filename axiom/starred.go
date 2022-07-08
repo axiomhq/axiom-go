@@ -2,10 +2,12 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
@@ -31,7 +33,8 @@ func (ok OwnerKind) EncodeValues(key string, v *url.Values) error {
 type StarredQuery struct {
 	// ID is the unique ID of the starred query.
 	ID string `json:"id"`
-	// Kind of the starred query.
+	// Kind of the starred query. For create or update operations the field is
+	// set to `APL` by the client if the query is an APL query.
 	Kind query.Kind `json:"kind"`
 	// Dataset the starred query belongs to.
 	Dataset string `json:"dataset"`
@@ -40,11 +43,61 @@ type StarredQuery struct {
 	// Name is the display name of the starred query.
 	Name string `json:"name"`
 	// Query is the actual query.
-	Query query.Query `json:"query"`
+	Query Query `json:"query"`
 	// Metadata associated with the query.
 	Metadata map[string]string `json:"metadata"`
 	// CreatedAt is the time the starred query was created.
 	CreatedAt time.Time `json:"created"`
+}
+
+// MarshalJSON implements `json.Marshaler`. It is in place to set the
+// appropriate query kind.
+func (s StarredQuery) MarshalJSON() ([]byte, error) {
+	type localStarredQuery StarredQuery
+
+	// Make sure the `Kind` field matches if the query is an APL query.
+	if _, ok := s.Query.(apl.Query); ok {
+		s.Kind = query.APL
+	}
+
+	return json.Marshal(localStarredQuery(s))
+}
+
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// query in to its appropriate type.
+func (s *StarredQuery) UnmarshalJSON(b []byte) error {
+	type LocalStarredQuery StarredQuery
+	localStarredQuery := struct {
+		*LocalStarredQuery
+
+		Query json.RawMessage `json:"query"`
+	}{
+		LocalStarredQuery: (*LocalStarredQuery)(s),
+	}
+
+	if err := json.Unmarshal(b, &localStarredQuery); err != nil {
+		return err
+	}
+
+	// Figure out if the query is an APL query or not and unmarshal into the
+	// appropriate type, should there be data to unmarshal.
+	if b = localStarredQuery.Query; len(b) > 0 {
+		var err error
+		if s.Kind == query.APL {
+			var q apl.Query
+			err = json.Unmarshal(b, &q)
+			s.Query = q
+		} else {
+			var q query.Query
+			err = json.Unmarshal(b, &q)
+			s.Query = q
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // StarredQueriesListOptions specifies the parameters for the List method of the
