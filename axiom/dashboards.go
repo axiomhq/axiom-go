@@ -92,7 +92,7 @@ func (d *Dashboard) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// Set to a proper time.Duration value interpreting the server response
+	// Set to a proper time.Duration value by interpreting the server response
 	// value in seconds.
 	d.RefreshTime = d.RefreshTime * time.Second
 
@@ -103,8 +103,8 @@ func (d *Dashboard) UnmarshalJSON(b []byte) error {
 		}
 	}
 
-	// Set to a proper time.Duration value parsing the server response value as
-	// a custom time format.
+	// Set to a proper time.Duration value by parsing the server response value
+	// as a custom time format.
 	if ts := localDash.AgainstTimestamp; ts != "" {
 		if d.AgainstTimestamp, err = time.Parse(dashboardAgainstTimestampFormat, ts); err != nil {
 			return err

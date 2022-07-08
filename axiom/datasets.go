@@ -226,8 +226,8 @@ type datasetTrimRequest struct {
 }
 
 type aplQueryRequest struct {
-	// Raw is the raw APL query string.
-	Raw string `json:"apl"`
+	// Query is the APL query string.
+	Query string `json:"apl"`
 	// StartTime of the query. Optional.
 	StartTime time.Time `json:"startTime"`
 	// EndTime of the query. Optional.
@@ -527,14 +527,14 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 
 // APLQuery executes the given query specified using the Axiom Processing
 // Language (APL).
-func (s *DatasetsService) APLQuery(ctx context.Context, raw string, opts apl.Options) (*apl.Result, error) {
+func (s *DatasetsService) APLQuery(ctx context.Context, q apl.Query, opts apl.Options) (*apl.Result, error) {
 	path, err := addOptions(s.basePath+"/_apl", opts)
 	if err != nil {
 		return nil, err
 	}
 
 	req, err := s.client.newRequest(ctx, http.MethodPost, path, aplQueryRequest{
-		Raw:       raw,
+		Query:     string(q),
 		StartTime: opts.StartTime,
 		EndTime:   opts.EndTime,
 	})

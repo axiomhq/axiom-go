@@ -1025,7 +1025,7 @@ func TestDatasetsService_APLQuery(t *testing.T) {
 		var req aplQueryRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if assert.NoError(t, err) {
-			assert.Equal(t, "['test'] | where response == 304", req.Raw)
+			assert.EqualValues(t, "['test'] | where response == 304", req.Query)
 			assert.NotEmpty(t, req.StartTime)
 			assert.Empty(t, req.EndTime)
 		}

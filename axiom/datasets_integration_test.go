@@ -239,8 +239,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Len(queryResult.Matches, 8)
 
 	// Run another query but using APL.
-	rawAPLQuery := fmt.Sprintf("['%s']", s.dataset.ID)
-	aplQueryResult, err := s.client.Datasets.APLQuery(s.ctx, rawAPLQuery, apl.Options{
+	q := apl.Query(fmt.Sprintf("['%s']", s.dataset.ID))
+	aplQueryResult, err := s.client.Datasets.APLQuery(s.ctx, q, apl.Options{
 		Save: true,
 	})
 	s.Require().NoError(err)
