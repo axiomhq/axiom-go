@@ -209,7 +209,7 @@ type FieldUpdateRequest struct {
 	Hidden bool `json:"hidden"`
 }
 
-type datasetResponse struct {
+type wrappedDataset struct {
 	Dataset
 
 	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
@@ -293,7 +293,7 @@ func (s *DatasetsService) Fields(ctx context.Context) (Fields, error) {
 
 // List all available datasets.
 func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
-	var res []*datasetResponse
+	var res []*wrappedDataset
 	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) {
 	path := s.basePath + "/" + id
 
-	var res datasetResponse
+	var res wrappedDataset
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 
 // Create a dataset with the given properties.
 func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) (*Dataset, error) {
-	var res datasetResponse
+	var res wrappedDataset
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
 	}
@@ -332,7 +332,7 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpdateRequest) (*Dataset, error) {
 	path := s.basePath + "/" + id
 
-	var res datasetResponse
+	var res wrappedDataset
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}

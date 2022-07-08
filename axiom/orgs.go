@@ -197,6 +197,14 @@ type OrganizationCreateUpdateRequest struct {
 	Name string `json:"name"`
 }
 
+type wrappedOrganization struct {
+	Organization
+
+	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
+	// package so we just ignore it for now.
+	ExternalPlan interface{} `json:"externalPlan,omitempty"`
+}
+
 // OrganizationsService handles communication with the organization related
 // operations of the Axiom API. These methods can be used regardless of the
 // use of Axiom Cloud or Axiom Selfhost.
@@ -206,36 +214,41 @@ type OrganizationsService service
 
 // List all available organizations.
 func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error) {
-	var res []*Organization
+	var res []*wrappedOrganization
 	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	organizations := make([]*Organization, len(res))
+	for i, r := range res {
+		organizations[i] = &r.Organization
+	}
+
+	return organizations, nil
 }
 
 // Get an organization by id.
 func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organization, error) {
 	path := s.basePath + "/" + id
 
-	var res Organization
+	var res wrappedOrganization
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return &res.Organization, nil
 }
 
 // Update the organization identified by the given id with the given properties.
 func (s *OrganizationsService) Update(ctx context.Context, id string, req OrganizationCreateUpdateRequest) (*Organization, error) {
 	path := s.basePath + "/" + id
 
-	var res Organization
+	var res wrappedOrganization
 	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return &res.Organization, nil
 }
 
 // License gets an organizations license.
@@ -300,12 +313,12 @@ func (s *CloudOrganizationsService) RotateSharedAccessKeys(ctx context.Context, 
 
 // Create an organization with the given properties.
 func (s *CloudOrganizationsService) Create(ctx context.Context, req OrganizationCreateUpdateRequest) (*Organization, error) {
-	var res Organization
+	var res wrappedOrganization
 	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return &res.Organization, nil
 }
 
 // Delete the organization identified by the given id.
