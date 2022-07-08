@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestMonitorsService_List(t *testing.T) {
 				EndTime:    mustTimeParse(t, time.RFC3339, "2020-11-30T14:33:29Z"),
 				Resolution: time.Second,
 			},
-			IsAPL:         true,
+			IsAPL:         false,
 			Threshold:     1000,
 			Comparison:    AboveOrEqual,
 			Frequency:     time.Minute,
@@ -52,7 +53,7 @@ func TestMonitorsService_List(t *testing.T) {
 					"endTime": "2020-11-30T14:33:29Z",
 					"resolution": "1s"
 				},
-				"aplQuery": true,
+				"aplQuery": false,
 				"dataset": "test",
 				"threshold": 1000,
 				"comparison": "AboveOrEqual",
@@ -87,7 +88,7 @@ func TestMonitorsService_Get(t *testing.T) {
 			EndTime:    mustTimeParse(t, time.RFC3339, "2020-11-30T14:33:29Z"),
 			Resolution: time.Second,
 		},
-		IsAPL:         true,
+		IsAPL:         false,
 		Threshold:     1000,
 		Comparison:    AboveOrEqual,
 		Frequency:     time.Minute,
@@ -110,7 +111,7 @@ func TestMonitorsService_Get(t *testing.T) {
 				"endTime": "2020-11-30T14:33:29Z",
 				"resolution": "1s"
 			},
-			"aplQuery": true,
+			"aplQuery": false,
 			"dataset": "test",
 			"threshold": 1000,
 			"comparison": "AboveOrEqual",
@@ -139,6 +140,8 @@ func TestMonitorsService_Create(t *testing.T) {
 		Description: "A test monitor",
 		Dataset:     "test",
 		Comparison:  Below,
+		Query:       apl.Query("['test'] | take 10"),
+		IsAPL:       true,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -152,11 +155,9 @@ func TestMonitorsService_Create(t *testing.T) {
 			"description": "A test monitor",
 			"disabledUntil": "0001-01-01T00:00:00Z",
 			"query": {
-				"startTime": "0001-01-01T00:00:00Z",
-				"endTime": "0001-01-01T00:00:00Z",
-				"resolution": ""
+				"apl": "['test'] | take 10"
 			},
-			"aplQuery": false,
+			"aplQuery": true,
 			"dataset": "test",
 			"threshold": 0,
 			"comparison": "Below",
@@ -176,6 +177,8 @@ func TestMonitorsService_Create(t *testing.T) {
 		Name:        "Test",
 		Description: "A test monitor",
 		Dataset:     "test",
+		Query:       apl.Query("['test'] | take 10"),
+		IsAPL:       false, // Client should set this to `true`.
 	})
 	require.NoError(t, err)
 
@@ -201,11 +204,6 @@ func TestMonitorsService_Update(t *testing.T) {
 			"name": "Test",
 			"description": "A very good test monitor",
 			"disabledUntil": "0001-01-01T00:00:00Z",
-			"query": {
-				"startTime": "0001-01-01T00:00:00Z",
-				"endTime": "0001-01-01T00:00:00Z",
-				"resolution": ""
-			},
 			"aplQuery": false,
 			"dataset": "test",
 			"threshold": 0,
@@ -306,6 +304,7 @@ func TestMonitor(t *testing.T) {
 		Description: "A test monitor",
 		Threshold:   21.25,
 		Comparison:  AboveOrEqual,
+		Query:       query.Query{},
 	}
 
 	b, err := json.Marshal(exp)
@@ -364,6 +363,7 @@ func TestMonitor_MarshalJSON(t *testing.T) {
 		NoDataCloseWait: time.Minute,
 		Frequency:       2 * time.Minute,
 		Duration:        3 * time.Minute,
+		Query:           query.Query{},
 	}.MarshalJSON()
 	require.NoError(t, err)
 	require.NotEmpty(t, act)

@@ -45,6 +45,9 @@ type Query struct {
 	ContinuationToken string `json:"continuationToken"`
 }
 
+// Query implements `axiom.Query`.
+func (q Query) Query() {}
+
 // MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // Resolutions zero value to its proper string representation because that's
 // what the server expects.

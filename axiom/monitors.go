@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
@@ -65,9 +66,9 @@ func (c *Comparison) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
-// A Monitor continuesly runs a query on a dataset and evaluates its result
-// against a configured threshold. Upon reaching those it will invoke the
-// configured notifiers.
+// A Monitor continuesly runs a query and evaluates its result against a
+// configured threshold. Upon reaching it, it will invoke the configured
+// notifiers.
 type Monitor struct {
 	// ID is the unique ID of the monitor.
 	ID string `json:"id"`
@@ -81,8 +82,10 @@ type Monitor struct {
 	DisabledUntil time.Time `json:"disabledUntil"`
 	// Query is executed by the monitor and the result is compared using the
 	// monitors configured comparison operator against the configured threshold.
-	Query query.Query `json:"query"`
-	// IsAPL is true if the query is an APL query.
+	Query Query `json:"query"`
+	// IsAPL is true if the query is an APL query. For create or update
+	// operations the field is controlled by the client, depending on the
+	// queries type.
 	IsAPL bool `json:"aplQuery"`
 	// Threshold the query result is compared against, which evalutes if the
 	// monitor acts or not.
@@ -112,9 +115,17 @@ type Monitor struct {
 
 // MarshalJSON implements `json.Marshaler`. It is in place to marshal the
 // NoDataCloseWait, Frequency and Duration to minutes because that's what the
-// server expects.
+// server expects as well as setting the appropriate query type.
 func (m Monitor) MarshalJSON() ([]byte, error) {
 	type localMonitor Monitor
+
+	// Make sure the `IsAPL` field matches the query type. If it is no known
+	// type, assume the user knows what he does and leave the field as is.
+	if _, ok := m.Query.(apl.Query); ok {
+		m.IsAPL = true
+	} else if _, ok := m.Query.(query.Query); ok {
+		m.IsAPL = false
+	}
 
 	// Set to the value in minutes.
 	m.NoDataCloseWait = time.Duration(m.NoDataCloseWait.Minutes())
@@ -124,17 +135,43 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localMonitor(m))
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
-// RefreshTime into a proper time.Duration value because the server returns it
-// in seconds.
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to convert the
+// NoDataCloseWait, Frequency and Duration field values into proper
+// time.Duration values because the server returns them in seconds as well as
+// unmarshalling the query in to its appropriate type.
 func (m *Monitor) UnmarshalJSON(b []byte) error {
-	type localMonitor *Monitor
+	type LocalMonitor Monitor
+	localMonitor := struct {
+		*LocalMonitor
 
-	if err := json.Unmarshal(b, localMonitor(m)); err != nil {
+		Query json.RawMessage `json:"query"`
+	}{
+		LocalMonitor: (*LocalMonitor)(m),
+	}
+
+	if err := json.Unmarshal(b, &localMonitor); err != nil {
 		return err
 	}
 
-	// Set to a proper time.Duration value interpreting the server response
+	// Figure out if the query is an APL query or not and unmarshal into the
+	// appropriate type, should there be data to unmarshal.
+	if b = localMonitor.Query; len(b) > 0 {
+		var err error
+		if m.IsAPL {
+			var q apl.Query
+			err = json.Unmarshal(b, &q)
+			m.Query = q
+		} else {
+			var q query.Query
+			err = json.Unmarshal(b, &q)
+			m.Query = q
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	// Set to a proper time.Duration value by interpreting the server response
 	// value in seconds.
 	m.NoDataCloseWait = m.NoDataCloseWait * time.Minute
 	m.Frequency = m.Frequency * time.Minute
