@@ -221,26 +221,27 @@ func (s *DatasetsTestSuite) Test() {
 	s.Equal("integer", field.Type)
 
 	// Run a query and make sure we see some results.
-	queryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
+	simpleQuery := query.Query{
 		StartTime: time.Now().UTC().Add(-time.Minute),
 		EndTime:   time.Now().UTC(),
-	}, query.Options{
+	}
+	simpleQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, simpleQuery, query.Options{
 		SaveKind: query.Analytics,
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(queryResult)
+	s.Require().NotNil(simpleQueryResult)
 
 	// This needs to pass in order for the history query test to have an input.
-	s.Require().NotEmpty(queryResult.SavedQueryID)
+	s.Require().NotEmpty(simpleQueryResult.SavedQueryID)
 
-	// s.EqualValues(1, queryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
-	s.EqualValues(8, queryResult.Status.RowsExamined)
-	s.EqualValues(8, queryResult.Status.RowsMatched)
-	s.Len(queryResult.Matches, 8)
+	// s.EqualValues(1, simpleQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
+	s.EqualValues(8, simpleQueryResult.Status.RowsExamined)
+	s.EqualValues(8, simpleQueryResult.Status.RowsMatched)
+	s.Len(simpleQueryResult.Matches, 8)
 
 	// Run another query but using APL.
-	q := apl.Query(fmt.Sprintf("['%s']", s.dataset.ID))
-	aplQueryResult, err := s.client.Datasets.APLQuery(s.ctx, q, apl.Options{
+	aplQuery := apl.Query(fmt.Sprintf("['%s']", s.dataset.ID))
+	aplQueryResult, err := s.client.Datasets.APLQuery(s.ctx, aplQuery, apl.Options{
 		Save: true,
 	})
 	s.Require().NoError(err)
@@ -256,7 +257,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Contains(aplQueryResult.Datasets, s.dataset.ID)
 
 	// Run a more complex query.
-	complexQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, query.Query{
+	complexQuery := query.Query{
 		StartTime: time.Now().UTC().Add(-time.Minute),
 		EndTime:   time.Now().UTC(),
 		Aggregations: []query.Aggregation{
@@ -294,7 +295,8 @@ func (s *DatasetsTestSuite) Test() {
 				Alias: "ip",
 			},
 		},
-	}, query.Options{})
+	}
+	complexQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, complexQuery, query.Options{})
 	s.Require().NoError(err)
 	s.Require().NotNil(complexQueryResult)
 
@@ -329,12 +331,13 @@ func (s *DatasetsTestSuite) Test() {
 	// asynchronously.
 	time.Sleep(time.Second * 15)
 
-	historyQuery, err := s.client.Datasets.History(s.ctx, queryResult.SavedQueryID)
+	historyQuery, err := s.client.Datasets.History(s.ctx, simpleQueryResult.SavedQueryID)
 	s.Require().NoError(err)
 	s.Require().NotNil(historyQuery)
 
-	s.Equal(queryResult.SavedQueryID, historyQuery.ID)
+	s.Equal(simpleQueryResult.SavedQueryID, historyQuery.ID)
 	s.Equal(query.Analytics, historyQuery.Kind)
+	s.EqualValues(simpleQuery, historyQuery.Query)
 
 	historyQuery, err = s.client.Datasets.History(s.ctx, aplQueryResult.SavedQueryID)
 	s.Require().NoError(err)
@@ -342,4 +345,5 @@ func (s *DatasetsTestSuite) Test() {
 
 	s.Equal(aplQueryResult.SavedQueryID, historyQuery.ID)
 	s.Equal(query.APL, historyQuery.Kind)
+	s.EqualValues(aplQuery, historyQuery.Query)
 }
