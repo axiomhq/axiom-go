@@ -1,5 +1,5 @@
-// Package query provides the datatypes for construction queries and working
-// with their results.
+// Package query provides the datatypes and functions for construction queries
+// and working with their results.
 //
 // The base for every query is the `Query` type:
 //
