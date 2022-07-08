@@ -17,10 +17,7 @@ const (
 
 	Analytics // analytics
 	Stream    // stream
-
-	// Read-only. Not to be used for requests. Only in place to support typed
-	// responses.
-	APL // apl
+	APL       // apl
 )
 
 func kindFromString(s string) (k Kind, err error) {
