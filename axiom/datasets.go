@@ -209,6 +209,73 @@ type FieldUpdateRequest struct {
 	Hidden bool `json:"hidden"`
 }
 
+// HistoryQuery represents a query stored inside the query history as it has
+// been run in the past and requested to be saved.
+type HistoryQuery struct {
+	// ID is the unique ID of the history query.
+	ID string `json:"id"`
+	// Kind of the starred query.
+	Kind query.Kind `json:"kind"`
+	// Dataset the history query belongs to.
+	Dataset string `json:"dataset"`
+	// Owner is the team or user ID of the history queries owner.
+	Owner string `json:"who"`
+	// Query is the actual query.
+	Query Query `json:"query"`
+	// CreatedAt is the time the history query was created.
+	CreatedAt time.Time `json:"created"`
+}
+
+// MarshalJSON implements `json.Marshaler`. It is in place to set the
+// appropriate query kind.
+func (h HistoryQuery) MarshalJSON() ([]byte, error) {
+	type localHistoryQuery HistoryQuery
+
+	// Make sure the `Kind` field matches if the query is an APL query.
+	if _, ok := h.Query.(apl.Query); ok {
+		h.Kind = query.APL
+	}
+
+	return json.Marshal(localHistoryQuery(h))
+}
+
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// query in to its appropriate type.
+func (h *HistoryQuery) UnmarshalJSON(b []byte) error {
+	type LocalHistoryQuery HistoryQuery
+	localHistoryQuery := struct {
+		*LocalHistoryQuery
+
+		Query json.RawMessage `json:"query"`
+	}{
+		LocalHistoryQuery: (*LocalHistoryQuery)(h),
+	}
+
+	if err := json.Unmarshal(b, &localHistoryQuery); err != nil {
+		return err
+	}
+
+	// Figure out if the query is an APL query or not and unmarshal into the
+	// appropriate type, should there be data to unmarshal.
+	if b = localHistoryQuery.Query; len(b) > 0 {
+		var err error
+		if h.Kind == query.APL {
+			var q apl.Query
+			err = json.Unmarshal(b, &q)
+			h.Query = q
+		} else {
+			var q query.Query
+			err = json.Unmarshal(b, &q)
+			h.Query = q
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type wrappedDataset struct {
 	Dataset
 
@@ -390,10 +457,10 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 // History retrieves the query stored inside the query history dataset
 // identified by its id.
-func (s *DatasetsService) History(ctx context.Context, id string) (*query.History, error) {
+func (s *DatasetsService) History(ctx context.Context, id string) (*HistoryQuery, error) {
 	path := s.basePath + "/_history/" + id
 
-	var res query.History
+	var res HistoryQuery
 	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
