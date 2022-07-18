@@ -14,7 +14,6 @@ jobs:
         go:
           - 1.17
           - 1.18
-          - ^1.19.0-beta.1
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -39,7 +38,6 @@ jobs:
         go:
           - 1.17
           - 1.18
-          - ^1.19.0-beta.1
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -51,7 +49,6 @@ jobs:
     name: Test
     needs: lint
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         deployment:
@@ -60,7 +57,6 @@ jobs:
         go:
           - 1.17
           - 1.18
-        experimental: [false]
         include:
           - deployment: azure-1-staging
             axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
@@ -74,10 +70,8 @@ jobs:
             go: 1.17
             update-coverage: true
             update-goreportcard: true
-          - deployment: cloud-dev
-            go: ^1.19.0-beta.1
-            experimental: true
       max-parallel: 1
+      fail-fast: false
     env:
       AXIOM_URL: ${{ secrets[matrix.axiom_url] }}
       AXIOM_TOKEN: ${{ secrets[matrix.axiom_token] }}
