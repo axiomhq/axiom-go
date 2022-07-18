@@ -40,7 +40,7 @@ jobs:
         go:
           - 1.17
           - 1.18
-          - ^1.19.0-beta.1
+        experimental: [false]
         include:
           - go: ^1.19.0-beta.1
             experimental: true
@@ -65,7 +65,7 @@ jobs:
         go:
           - 1.17
           - 1.18
-          - ^1.19.0-beta.1
+        experimental: [false]
         include:
           - deployment: azure-1-staging
             axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
