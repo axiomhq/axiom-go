@@ -77,15 +77,15 @@ type License struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	// Tier of the license.
 	Tier Plan `json:"tier"`
-	// DailyIngestGB is the daily amount of data in gigabytes that can be
+	// MonthlyIngestGB is the monthly amount of data in gigabytes that can be
 	// ingested as part of the license.
-	DailyIngestGB int `json:"dailyIngestGb"`
+	MonthlyIngestGB uint64 `json:"monthlyIngestGb"`
 	// MaxUsers is the maximum amount of teams allowed.
-	MaxUsers int `json:"maxUsers"`
+	MaxUsers uint64 `json:"maxUsers"`
 	// MaxTeams is the maximum amount of user allowed.
-	MaxTeams int `json:"maxTeams"`
+	MaxTeams uint64 `json:"maxTeams"`
 	// MaxDatasets is the maximum amount of datasets allowed.
-	MaxDatasets int `json:"maxDatasets"`
+	MaxDatasets uint64 `json:"maxDatasets"`
 	// MaxQueryWindow is the maximum query window allowed.
 	MaxQueryWindow time.Duration `json:"maxQueryWindowSeconds"`
 	// MaxAuditWindow is the maximum audit window allowed.
@@ -132,12 +132,12 @@ func (l *License) UnmarshalJSON(b []byte) error {
 // Status is the status of the organization. It describes the usage of the plan
 // an organization or licensee is billed for.
 type Status struct {
-	// DailyIngestUsedGB is the data volume in gigabytes that has been used
-	// today.
-	DailyIngestUsedGB float64 `json:"dailyIngestUsedGB"`
-	// DailyIngestRemainingGB is the data volume in gigabytes that is remaining
-	// today.
-	DailyIngestRemainingGB float64 `json:"dailyIngestRemainingGB"`
+	// MonthlyIngestUsedGB is the data volume in gigabytes that has been used
+	// this month.
+	MonthlyIngestUsedGB float64 `json:"monthlyIngestUsedGB"`
+	// MonthlyIngestRemainingGB is the data volume in gigabytes that is
+	// remaining this month.
+	MonthlyIngestRemainingGB float64 `json:"monthlyIngestRemainingGB"`
 	// DatasetsUsed is the amount of datasets used.
 	DatasetsUsed int64 `json:"datasetsUsed"`
 	// DatasetsUsed is the amount of datasets remaining.
