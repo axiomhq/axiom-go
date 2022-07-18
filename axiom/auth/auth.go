@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
@@ -148,9 +149,10 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 	}
 
 	srv := http.Server{
-		Addr:        lis.Addr().String(),
-		Handler:     http.HandlerFunc(callbackHandlerHf),
-		BaseContext: func(net.Listener) context.Context { return ctx },
+		Addr:              lis.Addr().String(),
+		Handler:           http.HandlerFunc(callbackHandlerHf),
+		BaseContext:       func(net.Listener) context.Context { return ctx },
+		ReadHeaderTimeout: time.Second * 10,
 	}
 	defer srv.Close()
 
