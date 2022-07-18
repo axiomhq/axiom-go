@@ -14,6 +14,7 @@ jobs:
         go:
           - 1.17
           - 1.18
+          - ^1.19.0-beta.1
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -33,11 +34,16 @@ jobs:
     name: Lint
     needs: gen-diff
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         go:
           - 1.17
           - 1.18
+          - ^1.19.0-beta.1
+        include:
+          - go: ^1.19.0-beta.1
+            experimental: true
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -50,6 +56,7 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name == github.repository
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         deployment:
@@ -58,10 +65,12 @@ jobs:
         go:
           - 1.17
           - 1.18
+          - ^1.19.0-beta.1
         include:
           - deployment: azure-1-staging
             axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
             axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
+            experimental: true
           - deployment: cloud-dev
             axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
             axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
@@ -69,8 +78,10 @@ jobs:
           - deployment: cloud-dev
             go: 1.17
             update-coverage: true
+          - deployment: cloud-dev
+            go: ^1.19.0-beta.1
+            experimental: true
       max-parallel: 1
-      fail-fast: false
     env:
       AXIOM_URL: ${{ secrets[matrix.axiom_url] }}
       AXIOM_TOKEN: ${{ secrets[matrix.axiom_token] }}
