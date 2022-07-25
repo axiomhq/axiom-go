@@ -322,9 +322,8 @@ func (c *Client) do(req *http.Request, v any) (*response, error) {
 		return resp, err
 	}
 
-	key := limitKey(resp.Limit.limitType, resp.Limit.Scope)
 	c.limitsMu.Lock()
-	c.limits[key] = resp.Limit
+	c.limits[resp.Limit.limitType.String()] = resp.Limit
 	c.limitsMu.Unlock()
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
@@ -405,33 +404,28 @@ func (c *Client) do(req *http.Request, v any) (*response, error) {
 // `Client.do`, and if so, returns it so that `Client.do` can skip making an API
 // call unnecessarily.
 func (c *Client) checkLimit(req *http.Request) *LimitError {
-	var (
-		lt            limitType
-		messagePrefix string
-	)
+	if !c.noLimiting {
+		return nil
+	}
+
+	var lt limitType
 	if strings.HasSuffix(req.URL.Path, "/ingest") {
 		lt = limitIngest
-		messagePrefix = "ingest"
 	} else if strings.HasSuffix(req.URL.Path, "/query") || strings.HasSuffix(req.URL.Path, "/_apl") {
 		lt = limitQuery
-		messagePrefix = "query"
 	} else {
-		lt = limitRate
-		messagePrefix = "rate"
+		return nil
 	}
 
-	var limit Limit
 	c.limitsMu.Lock()
-	for ls := LimitScopeUnknown; ls <= LimitScopeAnonymous; ls++ {
-		key := limitKey(lt, ls)
-		var ok bool
-		if limit, ok = c.limits[key]; ok {
-			break
-		}
-	}
-	c.limitsMu.Unlock()
+	defer c.limitsMu.Unlock()
 
-	if !c.noLimiting && !limit.Reset.IsZero() && limit.Remaining == 0 && time.Now().Before(limit.Reset) {
+	limit, ok := c.limits[lt.String()]
+	if !ok {
+		return nil
+	}
+
+	if !limit.Reset.IsZero() && limit.Remaining == 0 && time.Now().Before(limit.Reset) {
 		// Create a fake response.
 		resp := &http.Response{
 			Status:     http.StatusText(http.StatusTooManyRequests),
@@ -441,9 +435,8 @@ func (c *Client) checkLimit(req *http.Request) *LimitError {
 			Body:       io.NopCloser(strings.NewReader("")),
 		}
 		return &LimitError{
-			Limit: limit,
-			Message: fmt.Sprintf("%s %s limit exceeded, not making remote request",
-				limit.Scope, messagePrefix),
+			Limit:   limit,
+			Message: fmt.Sprintf("%s limit exceeded, not making remote request", lt.String()),
 
 			response: resp,
 		}

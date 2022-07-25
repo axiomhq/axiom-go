@@ -507,7 +507,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 	assert.Equal(t, expErr.Limit, resp.Limit)
 }
 
-func TestClient_do_RateLimit_ShortCircuit(t *testing.T) {
+func TestClient_do_IngestLimit_ShortCircuit(t *testing.T) {
 	// Truncated time for testing as the `Error()` method for the `LimitError`
 	// uses `time.Until()` which will yield different milliseconds when
 	// comparing the time values on `errors.Is()`.
@@ -515,23 +515,21 @@ func TestClient_do_RateLimit_ShortCircuit(t *testing.T) {
 
 	expErr := &LimitError{
 		Limit: Limit{
-			Scope:     LimitScopeAnonymous,
 			Limit:     1000,
 			Remaining: 0,
 			Reset:     reset,
 
-			limitType: limitRate,
+			limitType: limitIngest,
 		},
-		Message: "anonymous rate limit exceeded, not making remote request",
+		Message: "ingest limit exceeded, not making remote request",
 	}
 
 	var exceeded bool
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set(headerRateScope, "anonymous")
-		w.Header().Set(headerRateLimit, "1000")
-		w.Header().Set(headerRateRemaining, "0")
-		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
+		w.Header().Set(headerIngestLimit, "1000")
+		w.Header().Set(headerIngestRemaining, "0")
+		w.Header().Set(headerIngestReset, strconv.FormatInt(reset.Unix(), 10))
 
 		if !exceeded {
 			_, _ = w.Write([]byte(`{"status":"ok"}`))
@@ -554,17 +552,17 @@ func TestClient_do_RateLimit_ShortCircuit(t *testing.T) {
 	resp, err := client.do(req, nil)
 	require.NoError(t, err)
 
-	assert.EqualValues(t, "anonymous", resp.Limit.Scope.String())
+	assert.EqualValues(t, "", resp.Limit.Scope.String()) // Ingest limit has no scope.
 	assert.EqualValues(t, 1000, resp.Limit.Limit)
 	assert.EqualValues(t, 0, resp.Limit.Remaining)
 	assert.EqualValues(t, reset, resp.Limit.Reset)
-	assert.Equal(t, limitRate, resp.Limit.limitType)
+	assert.Equal(t, limitIngest, resp.Limit.limitType)
 
 	// Second request should short circuit as the client is aware that there is
 	// no rate remaining.
 	resp, err = client.do(req, nil)
 	if assert.ErrorIs(t, err, expErr) {
-		assert.EqualError(t, err, "anonymous rate limit exceeded, not making remote request: try again in 59m59s")
+		assert.EqualError(t, err, "ingest limit exceeded, not making remote request: try again in 59m59s")
 	}
 	assert.Equal(t, expErr.Limit, resp.Limit)
 }

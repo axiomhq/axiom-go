@@ -120,8 +120,3 @@ func parseLimitFromHeaders(r *http.Response, headerScope, headerLimit, headerRem
 	}
 	return limit
 }
-
-// limitKey returns a unique key for the limit type and scope combination.
-func limitKey(limitType limitType, limitScope LimitScope) string {
-	return fmt.Sprintf("%s:%s", limitType, limitScope)
-}
