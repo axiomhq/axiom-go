@@ -7,15 +7,6 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-// ListOptions specifies the optional parameters to various List methods that
-// support result limits.
-type ListOptions struct {
-	// Limit of the of the result set.
-	Limit uint `url:"limit,omitempty"`
-	// Offset the result set has from its base.
-	Offset uint `url:"offset,omitempty"`
-}
-
 // addOptions adds the parameters in opt as URL query parameters to s. opt must
 // be a struct whose fields may contain "url" tags.
 // https://github.com/google/go-github/blob/master/github/github.go#L232

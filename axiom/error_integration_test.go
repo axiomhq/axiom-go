@@ -23,7 +23,7 @@ func TestErrorTestSuite(t *testing.T) {
 func (s *ErrorTestSuite) Test() {
 	invalidDatasetName := "test-axiom-go-error-" + datasetSuffix
 
-	_, err := s.client.Datasets.Info(s.ctx, invalidDatasetName)
+	_, err := s.client.Datasets.Get(s.ctx, invalidDatasetName)
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrNotFound)
 
@@ -33,7 +33,7 @@ func (s *ErrorTestSuite) Test() {
 
 	// ...and see the same request fail with a different error
 	// (unauthenticated).
-	_, err = s.client.Datasets.Info(s.ctx, invalidDatasetName)
+	_, err = s.client.Datasets.Get(s.ctx, invalidDatasetName)
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
 }

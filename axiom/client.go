@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -41,6 +40,7 @@ const (
 var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
+//
 //nolint:structcheck // https://github.com/golangci/golangci-lint/issues/1517
 type service struct {
 	client   *Client
@@ -77,23 +77,9 @@ type Client struct {
 	limitsMu sync.Mutex
 
 	// Services for communicating with different parts of the GitHub API.
-	Dashboards    *DashboardsService
 	Datasets      *DatasetsService
-	Monitors      *MonitorsService
-	Notifiers     *NotifiersService
-	Organizations struct {
-		Cloud    *CloudOrganizationsService
-		Selfhost *OrganizationsService
-	}
-	StarredQueries *StarredQueriesService
-	Teams          *TeamsService
-	Tokens         struct {
-		API      *APITokensService
-		Personal *PersonalTokensService
-	}
+	Organizations *OrganizationsService
 	Users         *UsersService
-	Version       *VersionService
-	VirtualFields *VirtualFieldsService
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
@@ -134,19 +120,9 @@ func NewClient(options ...Option) (*Client, error) {
 		}
 	}
 
-	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
-	client.Monitors = &MonitorsService{client, "/api/v1/monitors"}
-	client.Notifiers = &NotifiersService{client, "/api/v1/notifiers"}
-	client.Organizations.Cloud = &CloudOrganizationsService{OrganizationsService{client, "/api/v1/orgs"}}
-	client.Organizations.Selfhost = &OrganizationsService{client, "/api/v1/orgs"}
-	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
-	client.Teams = &TeamsService{client, "/api/v1/teams"}
-	client.Tokens.API = &APITokensService{tokensService{client, "/api/v1/tokens/api"}}
-	client.Tokens.Personal = &PersonalTokensService{tokensService{client, "/api/v1/tokens/personal"}}
+	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
 	client.Users = &UsersService{client, "/api/v1/users"}
-	client.Version = &VersionService{client, "/api/v1/version"}
-	client.VirtualFields = &VirtualFieldsService{client, "/api/v1/vfields"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
@@ -468,7 +444,7 @@ func (c *Client) checkLimit(req *http.Request) *LimitError {
 			StatusCode: http.StatusTooManyRequests,
 			Request:    req,
 			Header:     make(http.Header),
-			Body:       ioutil.NopCloser(strings.NewReader("")),
+			Body:       io.NopCloser(strings.NewReader("")),
 		}
 		return &LimitError{
 			Limit: limit,

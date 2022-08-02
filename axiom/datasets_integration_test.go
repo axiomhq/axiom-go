@@ -182,48 +182,11 @@ func (s *DatasetsTestSuite) Test() {
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
 
-	// Make sure we aren't to fast for the server.
-	time.Sleep(15 * time.Second)
-
-	// Get the dataset info and make sure four events have been ingested.
-	datasetInfo, err := s.client.Datasets.Info(s.ctx, s.dataset.ID)
-	s.Require().NoError(err)
-	s.Require().NotNil(datasetInfo)
-
-	s.Equal(s.dataset.Name, datasetInfo.Name)
-	s.EqualValues(8, datasetInfo.NumEvents)
-	s.NotEmpty(datasetInfo.Fields)
-
-	// Get the statistics of all datasets.
-	datasetStats, err := s.client.Datasets.Stats(s.ctx)
-	s.Require().NoError(err)
-	s.Require().NotNil(datasetStats)
-
-	// Get the fields of all datasets and make sure the fields of our dataset
-	// info match those.
-	datasetFields, err := s.client.Datasets.Fields(s.ctx)
-	s.Require().NoError(err)
-	s.Require().NotNil(datasetFields)
-
-	if fields := datasetFields[dataset.Name]; s.NotNil(fields, "no fields for dataset %s", dataset.Name) {
-		s.Equal(datasetInfo.Fields, fields, "dataset info fields do not match dataset %s entry in the global list of dataset fields", dataset.Name)
-	}
-
-	// Update a field of our dataset.
-	field, err := s.client.Datasets.UpdateField(s.ctx, s.dataset.ID, "response", axiom.FieldUpdateRequest{
-		Description: "HTTP status code returned as part of the response",
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(field)
-
-	s.Equal("response", field.Name)
-	s.Equal("HTTP status code returned as part of the response", field.Description)
-	s.Equal("integer", field.Type)
-
 	// Run a query and make sure we see some results.
+	now := time.Now()
 	simpleQuery := query.Query{
-		StartTime: time.Now().UTC().Add(-time.Minute),
-		EndTime:   time.Now().UTC(),
+		StartTime: now.Add(-time.Minute),
+		EndTime:   now,
 	}
 	simpleQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, simpleQuery, query.Options{
 		SaveKind: query.Analytics,
@@ -315,35 +278,4 @@ func (s *DatasetsTestSuite) Test() {
 
 	// HINT(lukasmalkmus): There are no blocks to trim in this test.
 	s.EqualValues(0, trimResult.BlocksDeleted)
-
-	// HINT(lukasmalkmus): Disable strict decoding for the query history. This
-	// is in place because the API returns a slightly different model with a lot
-	// of empty fields which are never set for a history query. Those are not
-	// part of the client side model for ease of use.
-	err = s.client.Options(axiom.SetStrictDecoding(false))
-	s.Require().NoError(err)
-	defer func() {
-		optsErr := s.client.Options(axiom.SetStrictDecoding(strictDecoding))
-		s.Require().NoError(optsErr)
-	}()
-
-	// Give the server some time to store the queries as they are processed
-	// asynchronously.
-	time.Sleep(time.Second * 15)
-
-	historyQuery, err := s.client.Datasets.History(s.ctx, simpleQueryResult.SavedQueryID)
-	s.Require().NoError(err)
-	s.Require().NotNil(historyQuery)
-
-	s.Equal(simpleQueryResult.SavedQueryID, historyQuery.ID)
-	s.Equal(query.Analytics, historyQuery.Kind)
-	s.EqualValues(simpleQuery, historyQuery.Query)
-
-	historyQuery, err = s.client.Datasets.History(s.ctx, aplQueryResult.SavedQueryID)
-	s.Require().NoError(err)
-	s.Require().NotNil(historyQuery)
-
-	s.Equal(aplQueryResult.SavedQueryID, historyQuery.ID)
-	s.Equal(query.APL, historyQuery.Kind)
-	s.EqualValues(aplQuery, historyQuery.Query)
 }

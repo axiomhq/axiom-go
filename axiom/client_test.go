@@ -224,19 +224,9 @@ func TestNewClient_Valid(t *testing.T) {
 	client := newClient(t)
 
 	// Are endpoints/resources present?
-	assert.NotNil(t, client.Dashboards)
 	assert.NotNil(t, client.Datasets)
-	assert.NotNil(t, client.Monitors)
-	assert.NotNil(t, client.Notifiers)
-	assert.NotNil(t, client.Organizations.Cloud)
-	assert.NotNil(t, client.Organizations.Selfhost)
-	assert.NotNil(t, client.StarredQueries)
-	assert.NotNil(t, client.Teams)
-	assert.NotNil(t, client.Tokens.API)
-	assert.NotNil(t, client.Tokens.Personal)
+	assert.NotNil(t, client.Organizations)
 	assert.NotNil(t, client.Users)
-	assert.NotNil(t, client.Version)
-	assert.NotNil(t, client.VirtualFields)
 
 	// Is default configuration present?
 	assert.Equal(t, endpoint, client.baseURL.String())
