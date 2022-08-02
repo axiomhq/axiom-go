@@ -17,10 +17,10 @@ func Example() {
 		log.Fatal(err)
 	}
 
-	version, err := client.Version.Get(context.Background())
+	user, err := client.Users.Current(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(version)
+	fmt.Printf("Hello %s!\n", user.Name)
 }

@@ -129,36 +129,6 @@ func (l *License) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Status is the status of the organization. It describes the usage of the plan
-// an organization or licensee is billed for.
-type Status struct {
-	// MonthlyIngestUsedGB is the data volume in gigabytes that has been used
-	// this month.
-	MonthlyIngestUsedGB float64 `json:"monthlyIngestUsedGB"`
-	// MonthlyIngestRemainingGB is the data volume in gigabytes that is
-	// remaining this month.
-	MonthlyIngestRemainingGB float64 `json:"monthlyIngestRemainingGB"`
-	// DatasetsUsed is the amount of datasets used.
-	DatasetsUsed int64 `json:"datasetsUsed"`
-	// DatasetsUsed is the amount of datasets remaining.
-	DatasetsRemaining int64 `json:"datasetsRemaining"`
-	// UsersUsed is the amount of users used.
-	UsersUsed int64 `json:"usersUsed"`
-	// UsersRemaining is the amount of users remaining.
-	UsersRemaining int64 `json:"usersRemaining"`
-}
-
-// SharedAccessKeys are the signing keys used to create shared access tokens
-// that can be used by a third party to run queries on behalf of the
-// organization. They can be rotated.
-type SharedAccessKeys struct {
-	// Primary signing key. Gets rotated to the secondary signing key after
-	// rotation.
-	Primary string `json:"primary"`
-	// Secondary signing key. Gets rotated out.
-	Secondary string `json:"secondary"`
-}
-
 // Organization represents an organization. For selfhost deployments, there is
 // only one main organization, therefor it is referred to as deployment.
 type Organization struct {
@@ -189,12 +159,6 @@ type Organization struct {
 	ModifiedAt time.Time `json:"metaModified"`
 	// Version of the organization.
 	Version string `json:"metaVersion"`
-}
-
-// OrganizationCreateUpdateRequest is a request used to update an organization.
-type OrganizationCreateUpdateRequest struct {
-	// Name of the organization. Restricted to 30 characters.
-	Name string `json:"name"`
 }
 
 type wrappedOrganization struct {
@@ -237,91 +201,4 @@ func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organizatio
 	}
 
 	return &res.Organization, nil
-}
-
-// Update the organization identified by the given id with the given properties.
-func (s *OrganizationsService) Update(ctx context.Context, id string, req OrganizationCreateUpdateRequest) (*Organization, error) {
-	path := s.basePath + "/" + id
-
-	var res wrappedOrganization
-	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
-		return nil, err
-	}
-
-	return &res.Organization, nil
-}
-
-// License gets an organizations license.
-func (s *OrganizationsService) License(ctx context.Context, id string) (*License, error) {
-	path := s.basePath + "/" + id + "/license"
-
-	var res License
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-// Status gets an organizations status.
-func (s *OrganizationsService) Status(ctx context.Context, id string) (*Status, error) {
-	path := s.basePath + "/" + id + "/status"
-
-	var res Status
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-// CloudOrganizationsService handles communication with the organization related
-// operations of the Axiom API. Some of these methods are only available on
-// Axiom Cloud. See OrganizationsService for methods, that exclusively work on
-// Axiom Selfhost.
-//
-// Axiom API Reference: /api/v1/orgs
-type CloudOrganizationsService struct {
-	OrganizationsService
-}
-
-// ViewSharedAccessKeys rotates the shared access signing keys for the
-// organization identified by the given id.
-func (s *CloudOrganizationsService) ViewSharedAccessKeys(ctx context.Context, id string) (*SharedAccessKeys, error) {
-	path := s.basePath + "/" + id + "/keys"
-
-	var res SharedAccessKeys
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-// RotateSharedAccessKeys rotates the shared access signing keys for the
-// organization identified by the given id.
-func (s *CloudOrganizationsService) RotateSharedAccessKeys(ctx context.Context, id string) (*SharedAccessKeys, error) {
-	path := s.basePath + "/" + id + "/rotate-keys"
-
-	var res SharedAccessKeys
-	if err := s.client.call(ctx, http.MethodPut, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-// Create an organization with the given properties.
-func (s *CloudOrganizationsService) Create(ctx context.Context, req OrganizationCreateUpdateRequest) (*Organization, error) {
-	var res wrappedOrganization
-	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
-		return nil, err
-	}
-
-	return &res.Organization, nil
-}
-
-// Delete the organization identified by the given id.
-func (s *CloudOrganizationsService) Delete(ctx context.Context, id string) error {
-	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }

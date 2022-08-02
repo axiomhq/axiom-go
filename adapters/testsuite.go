@@ -32,10 +32,15 @@ type TestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 	t.Helper()
 
+	// Adapters can pick up the dataset name from the environment. Make sure it
+	// is unset to avoid unexpected behavior.
 	os.Unsetenv("AXIOM_DATASET")
 
 	if accessToken == "" || !axiom.IsPersonalToken(accessToken) {
 		t.Fatal("adapter integration test needs a personal access token set")
+	}
+	if deploymentURL == "" {
+		t.Fatal("adapter integration test needs the deployment url set")
 	}
 	if adapterName == "" {
 		t.Fatal("adapter integration test needs the name of the adapter")
@@ -48,9 +53,13 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	t.Cleanup(cancel)
 
-	// Setup the client that will be used to setup the test environment.
-	client, err := newClient(
-		axiom.SetUserAgent("axiom-go-adapter-integration-test/" + datasetSuffix),
+	userAgent := fmt.Sprintf("axiom-go-adapter-%s-integration-test/%s", adapterName, datasetSuffix)
+	client, err := axiom.NewClient(
+		axiom.SetNoEnv(),
+		axiom.SetURL(deploymentURL),
+		axiom.SetAccessToken(accessToken),
+		axiom.SetOrgID(orgID),
+		axiom.SetUserAgent(userAgent),
 	)
 	require.NoError(t, err)
 
@@ -71,53 +80,12 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 		assert.NoError(t, deleteErr)
 	})
 
-	// Create the api token for the dataset.
-	token, err := client.Tokens.API.Create(ctx, axiom.TokenCreateUpdateRequest{
-		Name:        fmt.Sprintf("test-axiom-go-adapter-%s-%s", adapterName, datasetSuffix),
-		Description: "This is a test API token for adapter integration tests.",
-		Scopes:      []string{dataset.ID},
-		Permissions: []axiom.Permission{axiom.CanIngest},
-	})
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		deleteErr := client.Tokens.API.Delete(teardownContext(t), token.ID)
-		assert.NoError(t, deleteErr)
-	})
-
-	rawToken, err := client.Tokens.API.View(ctx, token.ID)
-	require.NoError(t, err)
-
-	// Create a client that uses the API token.
-	testClient, err := newClient(
-		axiom.SetUserAgent(fmt.Sprintf("axiom-go-adapter-%s-integration-test/%s", adapterName, datasetSuffix)),
-		axiom.SetAccessToken(rawToken.Token),
-	)
-	require.NoError(t, err)
-
 	// Run the test function with the test client.
-	testFunc(ctx, dataset.ID, testClient)
+	testFunc(ctx, dataset.ID, client)
 }
 
 func teardownContext(t *testing.T) context.Context {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	t.Cleanup(cancel)
 	return ctx
-}
-
-func newClient(additionalOptions ...axiom.Option) (*axiom.Client, error) {
-	options := []axiom.Option{axiom.SetNoEnv()}
-
-	if deploymentURL != "" {
-		options = append(options, axiom.SetURL(deploymentURL))
-	}
-	if accessToken != "" {
-		options = append(options, axiom.SetAccessToken(accessToken))
-	}
-	if orgID != "" {
-		options = append(options, axiom.SetOrgID(orgID))
-	}
-
-	options = append(options, additionalOptions...)
-
-	return axiom.NewClient(options...)
 }

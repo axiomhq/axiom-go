@@ -44,14 +44,20 @@ func SetOrgID(orgID string) Option {
 }
 
 // SetCloudConfig specifies all properties needed in order to successfully
-// connect to Axiom Cloud.
-func SetCloudConfig(accessToken, orgID string) Option {
+// connect to Axiom Cloud with a personal access token.
+func SetCloudConfig(personalAccessToken, orgID string) Option {
 	return func(c *Client) error {
 		return c.Options(
-			SetAccessToken(accessToken),
+			SetAccessToken(personalAccessToken),
 			SetOrgID(orgID),
 		)
 	}
+}
+
+// SetCloudConfigWithAPIToken specifies all properties needed in order to successfully
+// connect to Axiom Cloud with an API token.
+func SetCloudConfigWithAPIToken(apiToken string) Option {
+	return SetAccessToken(apiToken)
 }
 
 // SetSelfhostConfig specifies all properties needed in order to successfully

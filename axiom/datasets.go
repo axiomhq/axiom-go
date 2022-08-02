@@ -75,84 +75,6 @@ type Dataset struct {
 	CreatedAt time.Time `json:"created"`
 }
 
-// Field represents a field of an Axiom dataset.
-type Field struct {
-	// Name is the unique name of the field.
-	Name string `json:"name"`
-	// Description is the description of the field.
-	Description string `json:"description"`
-	// Type is the datatype of the field.
-	Type string `json:"type"`
-	// Unit is the unit of the field.
-	Unit string `json:"unit"`
-	// Hidden describes if the field is hidden or not.
-	Hidden bool `json:"hidden"`
-}
-
-// Fields maps a dataset to its fields.
-type Fields map[string][]*Field
-
-// DatasetStat represents the details of the information stored inside a
-// dataset.
-type DatasetStat struct {
-	// Name is the unique name of the dataset.
-	Name string `json:"name"`
-	// NumBlocks is the number of blocks of the dataset.
-	NumBlocks uint64 `json:"numBlocks"`
-	// NumEvents is the number of events of the dataset.
-	NumEvents uint64 `json:"numEvents"`
-	// NumFields is the number of fields of the dataset.
-	NumFields uint32 `json:"numFields"`
-	// InputBytes is the amount of data stored in the dataset.
-	InputBytes uint64 `json:"inputBytes"`
-	// InputBytesHuman is the amount of data stored in the dataset formatted in
-	// a human readable format.
-	InputBytesHuman string `json:"inputBytesHuman"`
-	// CompressedBytes is the amount of compressed data stored in the dataset.
-	CompressedBytes uint64 `json:"compressedBytes"`
-	// CompressedBytesHuman is the amount of compressed data stored in the
-	// dataset formatted in a human readable format.
-	CompressedBytesHuman string `json:"compressedBytesHuman"`
-	// MinTime is the time of the oldest event stored in the dataset.
-	MinTime time.Time `json:"minTime"`
-	// MaxTime is the time of the newest event stored in the dataset.
-	MaxTime time.Time `json:"maxTime"`
-	// CreatedBy is the ID of the user who created the dataset.
-	CreatedBy string `json:"who"`
-	// CreatedAt is the time the dataset was created.
-	CreatedAt time.Time `json:"created"`
-}
-
-// DatasetInfo represents the details of the information stored inside a dataset
-// including the fields that make up the dataset.
-type DatasetInfo struct {
-	*DatasetStat
-
-	// Fields are the fields of the dataset.
-	Fields []*Field `json:"fields"`
-}
-
-// DatasetStats are the statistics of all datasets as well as their aggregated
-// totals.
-type DatasetStats struct {
-	// Datasets are the individual statistics of all datasets.
-	Datasets []*DatasetStat `json:"datasets"`
-	// NumBlocks is the total number of blocks.
-	NumBlocks uint64 `json:"numBlocks"`
-	// NumEvents is the total number of events.
-	NumEvents uint64 `json:"numEvents"`
-	// InputBytes is the total amount of data stored.
-	InputBytes uint64 `json:"inputBytes"`
-	// InputBytesHuman is the total amount of data stored formatted in a human
-	// readable format.
-	InputBytesHuman string `json:"inputBytesHuman"`
-	// CompressedBytes is the total amount of compressed data stored.
-	CompressedBytes uint64 `json:"compressedBytes"`
-	// CompressedBytesHuman is the total amount of compressed data stored
-	// formatted in a human readable format.
-	CompressedBytesHuman string `json:"compressedBytesHuman"`
-}
-
 // TrimResult is the result of a trim operation.
 type TrimResult struct {
 	// BlocksDeleted is the amount of blocks deleted by the trim operation.
@@ -197,83 +119,6 @@ type DatasetCreateRequest struct {
 type DatasetUpdateRequest struct {
 	// Description of the dataset to update.
 	Description string `json:"description"`
-}
-
-// FieldUpdateRequest is a request used to update a field for a dataset.
-type FieldUpdateRequest struct {
-	// Description of the field to update.
-	Description string `json:"description"`
-	// Unit of the field to update.
-	Unit string `json:"unit"`
-	// Hidden status of the field to update.
-	Hidden bool `json:"hidden"`
-}
-
-// HistoryQuery represents a query stored inside the query history as it has
-// been run in the past and requested to be saved.
-type HistoryQuery struct {
-	// ID is the unique ID of the history query.
-	ID string `json:"id"`
-	// Kind of the starred query.
-	Kind query.Kind `json:"kind"`
-	// Dataset the history query belongs to.
-	Dataset string `json:"dataset"`
-	// Owner is the team or user ID of the history queries owner.
-	Owner string `json:"who"`
-	// Query is the actual query.
-	Query Query `json:"query"`
-	// CreatedAt is the time the history query was created.
-	CreatedAt time.Time `json:"created"`
-}
-
-// MarshalJSON implements `json.Marshaler`. It is in place to set the
-// appropriate query kind.
-func (h HistoryQuery) MarshalJSON() ([]byte, error) {
-	type localHistoryQuery HistoryQuery
-
-	// Make sure the `Kind` field matches if the query is an APL query.
-	if _, ok := h.Query.(apl.Query); ok {
-		h.Kind = query.APL
-	}
-
-	return json.Marshal(localHistoryQuery(h))
-}
-
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
-// query in to its appropriate type.
-func (h *HistoryQuery) UnmarshalJSON(b []byte) error {
-	type LocalHistoryQuery HistoryQuery
-	localHistoryQuery := struct {
-		*LocalHistoryQuery
-
-		Query json.RawMessage `json:"query"`
-	}{
-		LocalHistoryQuery: (*LocalHistoryQuery)(h),
-	}
-
-	if err := json.Unmarshal(b, &localHistoryQuery); err != nil {
-		return err
-	}
-
-	// Figure out if the query is an APL query or not and unmarshal into the
-	// appropriate type, should there be data to unmarshal.
-	if b = localHistoryQuery.Query; len(b) > 0 {
-		var err error
-		if h.Kind == query.APL {
-			var q apl.Query
-			err = json.Unmarshal(b, &q)
-			h.Query = q
-		} else {
-			var q query.Query
-			err = json.Unmarshal(b, &q)
-			h.Query = q
-		}
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 type wrappedDataset struct {
@@ -321,42 +166,6 @@ type IngestOptions struct {
 //
 // Axiom API Reference: /api/v1/datasets
 type DatasetsService service
-
-// Stats returns detailed statistics about all available datasets.
-//
-// This operation is expenssive and listing the datasets and then retreiving
-// the information of a specific dataset is preferred, when no aggregated
-// statistics across all datasets are needed.
-func (s *DatasetsService) Stats(ctx context.Context) (*DatasetStats, error) {
-	path := s.basePath + "/_stats"
-
-	var res *DatasetStats
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-// Fields returns the fields of every dataset.
-func (s *DatasetsService) Fields(ctx context.Context) (Fields, error) {
-	path := s.basePath + "/_fields"
-
-	var res []struct {
-		DatasetName string   `json:"datasetName"`
-		Fields      []*Field `json:"fields"`
-	}
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	resMap := make(Fields, len(res))
-	for _, fieldSet := range res {
-		resMap[fieldSet.DatasetName] = fieldSet.Fields
-	}
-
-	return resMap, nil
-}
 
 // List all available datasets.
 func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
@@ -407,34 +216,9 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 	return &res.Dataset, nil
 }
 
-// Update the named field of the dataset identified by the given id with the
-// given properties.
-func (s *DatasetsService) UpdateField(ctx context.Context, dataset, field string, req FieldUpdateRequest) (*Field, error) {
-	path := s.basePath + "/" + dataset + "/fields/" + field
-
-	var res Field
-	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
 // Delete the dataset identified by the given id.
 func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
-}
-
-// Info retrieves the information of the dataset identified by its id.
-func (s *DatasetsService) Info(ctx context.Context, id string) (*DatasetInfo, error) {
-	path := s.basePath + "/" + id + "/info"
-
-	var res DatasetInfo
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
 }
 
 // Trim the dataset identified by its id to a given length. The max duration
@@ -449,19 +233,6 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 	var res TrimResult
 	if err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
-		return nil, err
-	}
-
-	return &res, nil
-}
-
-// History retrieves the query stored inside the query history dataset
-// identified by its id.
-func (s *DatasetsService) History(ctx context.Context, id string) (*HistoryQuery, error) {
-	path := s.basePath + "/_history/" + id
-
-	var res HistoryQuery
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -139,7 +138,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*logrus.Logger, func()) {
 	logger.AddHook(hook)
 
 	// We don't want output in tests.
-	logger.Out = ioutil.Discard
+	logger.Out = io.Discard
 
 	return logger, func() { hook.Close(); srv.Close() }
 }
