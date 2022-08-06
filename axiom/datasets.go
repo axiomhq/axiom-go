@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 	"unicode"
@@ -173,6 +174,16 @@ type IngestStatus struct {
 	BlocksCreated uint32 `json:"blocksCreated"`
 	// WALLength is the length of the Write-Ahead Log.
 	WALLength uint32 `json:"walLength"`
+}
+
+func (s *IngestStatus) add(other *IngestStatus) {
+	s.Ingested += other.Ingested
+	s.Failed += other.Failed
+	s.ProcessedBytes += other.ProcessedBytes
+	s.BlocksCreated += other.BlocksCreated
+
+	// WALLength can't be computed, use the other value.
+	s.WALLength = other.WALLength
 }
 
 // IngestFailure describes the ingestion failure of a single event.
@@ -558,6 +569,48 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	}
 
 	return &res, nil
+}
+
+// IngestChannel ingests events from a channel into the dataset identified by
+// its id.
+// Restrictions for field names (JSON object keys) can be reviewed here:
+// https://www.axiom.co/docs/usage/field-restrictions.
+func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, opts IngestOptions) (*IngestStatus, error) {
+	eventBuf := make([]Event, 0, 1000)
+	ingestStatus := &IngestStatus{}
+loop:
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case event, ok := <-events:
+			if !ok {
+				break loop // channel is closed
+			}
+
+			eventBuf = append(eventBuf, event)
+
+			if len(eventBuf) == 1000 {
+				newIngestStatus, err := s.IngestEvents(ctx, id, opts, eventBuf...)
+				if err != nil {
+					log.Fatal(fmt.Errorf("failed to ingest events: %w", err))
+				}
+
+				ingestStatus.add(newIngestStatus)
+				eventBuf = eventBuf[:0]
+			}
+		}
+	}
+	if len(eventBuf) > 0 {
+		newIngestStatus, err := s.IngestEvents(ctx, id, opts, eventBuf...)
+		if err != nil {
+			log.Fatal(fmt.Errorf("failed to ingest events: %w", err))
+		}
+
+		ingestStatus.add(newIngestStatus)
+	}
+
+	return ingestStatus, nil
 }
 
 // Query executes the given query on the dataset identified by its id.
