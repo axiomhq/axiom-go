@@ -40,6 +40,13 @@ func messageCodeFromString(s string) (mc MessageCode, err error) {
 	return mc, err
 }
 
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MessageCode to its string representation because that's what the server
+// expects.
+func (mc MessageCode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(mc.String())
+}
+
 // UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
 // MessageCode from the string representation the server returns.
 func (mc *MessageCode) UnmarshalJSON(b []byte) (err error) {
@@ -53,7 +60,7 @@ func (mc *MessageCode) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
-// MessagePriority represents the priority of a message associated with a query.
+// MessageCode represents the priority of a message associated with a query.
 type MessagePriority uint8
 
 // All available message priorities.
@@ -89,6 +96,13 @@ func messagePriorityFromString(s string) (mp MessagePriority, err error) {
 	}
 
 	return mp, err
+}
+
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MessagePriority to its string representation because that's what the server
+// expects.
+func (mp MessagePriority) MarshalJSON() ([]byte, error) {
+	return json.Marshal(mp.String())
 }
 
 // UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
@@ -144,6 +158,16 @@ type Status struct {
 	MaxBlockTime time.Time `json:"maxBlockTime"`
 	// Messages associated with the query.
 	Messages []Message `json:"messages"`
+	// MinCursor is the id of the oldest row, as seen server side. May be lower
+	// than what the results include if the server scanned more data than
+	// included in the results. Can be used to efficiently resume time-sorted
+	// non-aggregating queries (i.e. filtering only).
+	MinCursor string `json:"minCursor"`
+	// MaxCursor is the id of the newest row, as seen server side. May be higher
+	// than what the results include if the server scanned more data than
+	// included in the results. Can be used to efficiently resume time-sorted
+	// non-aggregating queries (i.e. filtering only).
+	MaxCursor string `json:"maxCursor"`
 }
 
 // MarshalJSON implements `json.Marshaler`. It is in place to marshal the
@@ -179,10 +203,10 @@ func (s *Status) UnmarshalJSON(b []byte) error {
 type Message struct {
 	// Priority of the message.
 	Priority MessagePriority `json:"priority"`
-	// Count describes how often a message of this type was raised by the query.
-	Count uint `json:"count"`
 	// Code of the message.
 	Code MessageCode `json:"code"`
+	// Count describes how often a message of this type was raised by the query.
+	Count uint `json:"count"`
 	// Text is a human readable text representation of the message.
 	Text string `json:"msg"`
 }

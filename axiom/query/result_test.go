@@ -11,11 +11,26 @@ import (
 
 func TestStatus(t *testing.T) {
 	exp := Status{
-		ElapsedTime:    time.Second,
-		BlocksExamined: 10,
-		RowsExamined:   100000,
-		MaxBlockTime:   time.Now().UTC(),
-		MinBlockTime:   time.Now().UTC().Add(-time.Hour),
+		ElapsedTime:       time.Second,
+		BlocksExamined:    10,
+		RowsExamined:      100000,
+		RowsMatched:       2,
+		NumGroups:         1,
+		IsPartial:         true,
+		ContinuationToken: "123",
+		IsEstimate:        true,
+		MaxBlockTime:      time.Now().UTC(),
+		MinBlockTime:      time.Now().UTC().Add(-time.Hour),
+		Messages: []Message{
+			{
+				Priority: Error,
+				Code:     MissingColumn,
+				Count:    2,
+				Text:     "missing column",
+			},
+		},
+		MinCursor: "c776x1uafkpu-4918f6cb9000095-0",
+		MaxCursor: "c776x1uafnvq-4918f6cb9000095-1",
 	}
 
 	b, err := json.Marshal(exp)
@@ -32,20 +47,48 @@ func TestStatus(t *testing.T) {
 func TestStatus_MarshalJSON(t *testing.T) {
 	exp := `{
 		"elapsedTime": 1000000,
-		"blocksExamined": 0,
-		"rowsExamined": 0,
-		"rowsMatched": 0,
-		"numGroups": 0,
-		"isPartial": false,
-		"continuationToken": "",
-		"isEstimate": false,
-		"minBlockTime": "0001-01-01T00:00:00Z",
-		"maxBlockTime": "0001-01-01T00:00:00Z",
-		"messages": null
+		"blocksExamined": 10,
+		"rowsExamined": 100000,
+		"rowsMatched": 2,
+		"numGroups": 1,
+		"isPartial": true,
+		"continuationToken": "123",
+		"isEstimate": true,
+		"minBlockTime": "2022-08-15T10:55:53Z",
+		"maxBlockTime": "2022-08-15T11:55:53Z",
+		"messages": [
+			{
+				"priority": "error",
+				"code": "missing_column",
+				"count": 2,
+				"msg": "missing column"
+			}
+		],
+		"minCursor": "c776x1uafkpu-4918f6cb9000095-0",
+		"maxCursor": "c776x1uafnvq-4918f6cb9000095-1"
 	}`
 
 	act, err := Status{
-		ElapsedTime: time.Second,
+		ElapsedTime:       time.Second,
+		BlocksExamined:    10,
+		RowsExamined:      100000,
+		RowsMatched:       2,
+		NumGroups:         1,
+		IsPartial:         true,
+		ContinuationToken: "123",
+		IsEstimate:        true,
+		MinBlockTime:      mustTimeParse(t, time.RFC3339, "2022-08-15T10:55:53Z"),
+		MaxBlockTime:      mustTimeParse(t, time.RFC3339, "2022-08-15T11:55:53Z"),
+		Messages: []Message{
+			{
+				Priority: Error,
+				Code:     MissingColumn,
+				Count:    2,
+				Text:     "missing column",
+			},
+		},
+		MinCursor: "c776x1uafkpu-4918f6cb9000095-0",
+		MaxCursor: "c776x1uafnvq-4918f6cb9000095-1",
 	}.MarshalJSON()
 	require.NoError(t, err)
 	require.NotEmpty(t, act)
