@@ -69,9 +69,9 @@ type Limit struct {
 	Scope LimitScope
 	// The maximum limit a client is limited to for a specified time window
 	// which resets at the time indicated by `Reset`.
-	Limit int
+	Limit uint64
 	// The remaining count towards the maximum limit.
-	Remaining int
+	Remaining uint64
 	// The time at which the current limit time window will reset.
 	Reset time.Time
 
@@ -108,10 +108,10 @@ func parseLimitFromHeaders(r *http.Response, headerScope, headerLimit, headerRem
 		limit.Scope, _ = limitScopeFromString(v)
 	}
 	if v := r.Header.Get(headerLimit); v != "" {
-		limit.Limit, _ = strconv.Atoi(v)
+		limit.Limit, _ = strconv.ParseUint(v, 10, 64)
 	}
 	if v := r.Header.Get(headerRemaining); v != "" {
-		limit.Remaining, _ = strconv.Atoi(v)
+		limit.Remaining, _ = strconv.ParseUint(v, 10, 64)
 	}
 	if v := r.Header.Get(headerReset); v != "" {
 		if v, _ := strconv.ParseInt(v, 10, 64); v != 0 {
