@@ -46,7 +46,7 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 		t.Fatal("adapter integration test needs the name of the adapter")
 	}
 
-	if datasetSuffix = os.Getenv("AXIOM_DATASET_SUFFIX"); datasetSuffix == "" {
+	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
 

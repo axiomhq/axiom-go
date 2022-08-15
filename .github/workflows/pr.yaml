@@ -101,12 +101,25 @@ jobs:
           fail_ci_if_error: true
 
   ci-pass:
-    needs: test
-    name: CI Pass
+    name: Create CI Pass Check
+    needs:
+      - gen-diff
+      - lint
+      - test
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
+      - name: Eval failure
+        if: needs.gen-diff.result != 'success' || needs.lint.result != 'success' || needs.test.result != 'success'
+        run: echo "conclusion=failure" >> $GITHUB_ENV
+      - name: Eval success
+        if: needs.gen-diff.result == 'success' && needs.lint.result == 'success' && needs.test.result == 'success'
+        run: echo "conclusion=success" >> $GITHUB_ENV
       - uses: LouisBrunner/checks-action@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: CI Pass
-          conclusion: ${{ job.status }}
+          conclusion: ${{ env.conclusion }}
+      # Fail workflow if resulting check is also created as failed.
+      - if: ${{ env.conclusion != 'success' }}
+        run: exit 1
