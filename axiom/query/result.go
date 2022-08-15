@@ -60,7 +60,7 @@ func (mc *MessageCode) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
-// MessageCode represents the priority of a message associated with a query.
+// MessagePriority represents the priority of a message associated with a query.
 type MessagePriority uint8
 
 // All available message priorities.
