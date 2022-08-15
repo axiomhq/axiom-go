@@ -32,9 +32,8 @@ type TestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 	t.Helper()
 
-	// Adapters can pick up the dataset name from the environment. Make sure it
-	// is unset to avoid unexpected behavior.
-	os.Unsetenv("AXIOM_DATASET")
+	// Clear the environment to avoid unexpected behavior.
+	SafeClearEnv(t)
 
 	if accessToken == "" || !axiom.IsPersonalToken(accessToken) {
 		t.Fatal("adapter integration test needs a personal access token set")
@@ -50,7 +49,7 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 		datasetSuffix = "local"
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	t.Cleanup(cancel)
 
 	userAgent := fmt.Sprintf("axiom-go-adapter-%s-integration-test/%s", adapterName, datasetSuffix)
@@ -76,7 +75,8 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		deleteErr := client.Datasets.Delete(teardownContext(t), dataset.ID)
+		teardownCtx := teardownContext(t, time.Second*15)
+		deleteErr := client.Datasets.Delete(teardownCtx, dataset.ID)
 		assert.NoError(t, deleteErr)
 	})
 
@@ -84,8 +84,8 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 	testFunc(ctx, dataset.ID, client)
 }
 
-func teardownContext(t *testing.T) context.Context {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+func teardownContext(t *testing.T, timeout time.Duration) context.Context {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	t.Cleanup(cancel)
 	return ctx
 }

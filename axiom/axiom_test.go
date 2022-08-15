@@ -2,6 +2,7 @@ package axiom_test
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,8 +36,6 @@ func TestIsValidToken(t *testing.T) {
 }
 
 func TestValidateEnvironment(t *testing.T) {
-	t.Cleanup(os.Clearenv)
-
 	tests := []struct {
 		name        string
 		environment map[string]string
@@ -70,7 +69,7 @@ func TestValidateEnvironment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Clearenv()
+			safeClearEnv(t)
 
 			for k, v := range tt.environment {
 				os.Setenv(k, v)
@@ -80,4 +79,17 @@ func TestValidateEnvironment(t *testing.T) {
 			assert.Equal(t, tt.err, err)
 		})
 	}
+}
+
+// safeClearEnv clears the environment but restores it when the test finishes.
+func safeClearEnv(tb testing.TB) {
+	env := os.Environ()
+	os.Clearenv()
+	tb.Cleanup(func() {
+		os.Clearenv()
+		for _, e := range env {
+			pair := strings.SplitN(e, "=", 2)
+			os.Setenv(pair[0], pair[1])
+		}
+	})
 }

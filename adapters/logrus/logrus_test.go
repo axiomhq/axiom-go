@@ -16,12 +16,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/axiomhq/axiom-go/adapters"
 	"github.com/axiomhq/axiom-go/axiom"
 )
 
 // TestNew makes sure New() picks up the `AXIOM_DATASET` environment variable.
 func TestNew(t *testing.T) {
-	os.Clearenv()
+	adapters.SafeClearEnv(t)
 
 	os.Setenv("AXIOM_TOKEN", "xaat-test")
 	os.Setenv("AXIOM_ORG_ID", "123")

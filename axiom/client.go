@@ -40,8 +40,6 @@ const (
 var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
-//
-//nolint:structcheck // https://github.com/golangci/golangci-lint/issues/1517
 type service struct {
 	client   *Client
 	basePath string
@@ -195,13 +193,13 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
 	cloudURLSetByEnvironment := deploymentURL == CloudURL
 	cloudURLSet := cloudURLSetByOption || cloudURLSetByEnvironment
-	isAPIToken := IsAPIToken(c.accessToken) || IsAPIToken(accessToken)
 	isPersonalToken := IsPersonalToken(c.accessToken) || IsPersonalToken(accessToken)
-	if c.orgID == "" && !isAPIToken {
-		if (orgID == "" && cloudURLSet && isPersonalToken) || (c.noEnv && cloudURLSet) {
+	if c.orgID == "" && isPersonalToken {
+		if (orgID == "" && cloudURLSet) || (c.noEnv && cloudURLSet) {
 			return ErrMissingOrganizationID
+		} else if !c.noEnv {
+			addOption(SetOrgID(orgID))
 		}
-		addOption(SetOrgID(orgID))
 	}
 	return c.Options(options...)
 }
@@ -291,19 +289,15 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		}, err
 	}
 
-	var (
-		resp     *response
-		httpResp *http.Response
-	)
-
 	bck := backoff.NewExponentialBackOff()
 	bck.InitialInterval = 200 * time.Millisecond
 	bck.Multiplier = 2.0
 	bck.MaxElapsedTime = 10 * time.Second
 
+	var resp *response
 	err := backoff.Retry(func() error {
-		var err error
-		if httpResp, err = c.httpClient.Do(req); err != nil { //nolint:bodyclose // We close the body in the defer func below.
+		httpResp, err := c.httpClient.Do(req)
+		if err != nil {
 			return err
 		}
 
@@ -318,9 +312,9 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	}, bck)
 
 	defer func() {
-		if httpResp != nil {
-			_, _ = io.Copy(io.Discard, httpResp.Body)
-			_ = httpResp.Body.Close()
+		if resp != nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
 		}
 	}()
 
@@ -380,7 +374,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 				Limit:   resp.Limit,
 				Message: errResp.Message,
 
-				response: httpResp,
+				response: resp.Response,
 			}
 		}
 
