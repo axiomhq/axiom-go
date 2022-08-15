@@ -14,7 +14,7 @@ import (
 )
 
 func TestValidateCredentials(t *testing.T) {
-	os.Clearenv()
+	safeClearEnv(t)
 
 	os.Setenv("AXIOM_TOKEN", accessToken)
 	os.Setenv("AXIOM_ORG_ID", orgID)

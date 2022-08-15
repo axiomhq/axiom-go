@@ -11,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -41,8 +42,6 @@ func SetStrictDecoding(b bool) Option {
 }
 
 func TestNewClient(t *testing.T) {
-	t.Cleanup(os.Clearenv)
-
 	tests := []struct {
 		name        string
 		environment map[string]string
@@ -201,7 +200,7 @@ func TestNewClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Clearenv()
+			safeClearEnv(t)
 
 			for k, v := range tt.environment {
 				os.Setenv(k, v)
@@ -820,4 +819,17 @@ func mustTimeParse(tb testing.TB, layout, value string) time.Time {
 	ts, err := time.Parse(layout, value)
 	require.NoError(tb, err)
 	return ts
+}
+
+// safeClearEnv clears the environment but restores it when the test finishes.
+func safeClearEnv(tb testing.TB) {
+	env := os.Environ()
+	os.Clearenv()
+	tb.Cleanup(func() {
+		os.Clearenv()
+		for _, e := range env {
+			pair := strings.SplitN(e, "=", 2)
+			os.Setenv(pair[0], pair[1])
+		}
+	})
 }
