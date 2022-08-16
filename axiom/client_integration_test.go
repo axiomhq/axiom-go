@@ -38,7 +38,7 @@ type IntegrationTestSuite struct {
 
 	// Setup once per suite.
 	client      *axiom.Client
-	testUser    *axiom.AuthenticatedUser
+	testUser    *axiom.User
 	suiteCtx    context.Context
 	suiteCancel context.CancelFunc
 

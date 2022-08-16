@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -41,7 +40,6 @@ const (
 var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
-//nolint:structcheck // https://github.com/golangci/golangci-lint/issues/1517
 type service struct {
 	client   *Client
 	basePath string
@@ -77,23 +75,9 @@ type Client struct {
 	limitsMu sync.Mutex
 
 	// Services for communicating with different parts of the GitHub API.
-	Dashboards    *DashboardsService
 	Datasets      *DatasetsService
-	Monitors      *MonitorsService
-	Notifiers     *NotifiersService
-	Organizations struct {
-		Cloud    *CloudOrganizationsService
-		Selfhost *OrganizationsService
-	}
-	StarredQueries *StarredQueriesService
-	Teams          *TeamsService
-	Tokens         struct {
-		API      *APITokensService
-		Personal *PersonalTokensService
-	}
+	Organizations *OrganizationsService
 	Users         *UsersService
-	Version       *VersionService
-	VirtualFields *VirtualFieldsService
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
@@ -134,19 +118,9 @@ func NewClient(options ...Option) (*Client, error) {
 		}
 	}
 
-	client.Dashboards = &DashboardsService{client, "/api/v1/dashboards"}
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
-	client.Monitors = &MonitorsService{client, "/api/v1/monitors"}
-	client.Notifiers = &NotifiersService{client, "/api/v1/notifiers"}
-	client.Organizations.Cloud = &CloudOrganizationsService{OrganizationsService{client, "/api/v1/orgs"}}
-	client.Organizations.Selfhost = &OrganizationsService{client, "/api/v1/orgs"}
-	client.StarredQueries = &StarredQueriesService{client, "/api/v1/starred"}
-	client.Teams = &TeamsService{client, "/api/v1/teams"}
-	client.Tokens.API = &APITokensService{tokensService{client, "/api/v1/tokens/api"}}
-	client.Tokens.Personal = &PersonalTokensService{tokensService{client, "/api/v1/tokens/personal"}}
+	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
 	client.Users = &UsersService{client, "/api/v1/users"}
-	client.Version = &VersionService{client, "/api/v1/version"}
-	client.VirtualFields = &VirtualFieldsService{client, "/api/v1/vfields"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
@@ -219,13 +193,13 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
 	cloudURLSetByEnvironment := deploymentURL == CloudURL
 	cloudURLSet := cloudURLSetByOption || cloudURLSetByEnvironment
-	isAPIToken := IsAPIToken(c.accessToken) || IsAPIToken(accessToken)
 	isPersonalToken := IsPersonalToken(c.accessToken) || IsPersonalToken(accessToken)
-	if c.orgID == "" && !isAPIToken {
-		if (orgID == "" && cloudURLSet && isPersonalToken) || (c.noEnv && cloudURLSet) {
+	if c.orgID == "" && isPersonalToken {
+		if (orgID == "" && cloudURLSet) || (c.noEnv && cloudURLSet) {
 			return ErrMissingOrganizationID
+		} else if !c.noEnv {
+			addOption(SetOrgID(orgID))
 		}
-		addOption(SetOrgID(orgID))
 	}
 	return c.Options(options...)
 }
@@ -315,19 +289,15 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 		}, err
 	}
 
-	var (
-		resp     *response
-		httpResp *http.Response
-	)
-
 	bck := backoff.NewExponentialBackOff()
 	bck.InitialInterval = 200 * time.Millisecond
 	bck.Multiplier = 2.0
 	bck.MaxElapsedTime = 10 * time.Second
 
+	var resp *response
 	err := backoff.Retry(func() error {
-		var err error
-		if httpResp, err = c.httpClient.Do(req); err != nil { //nolint:bodyclose // We close the body in the defer func below.
+		httpResp, err := c.httpClient.Do(req)
+		if err != nil {
 			return err
 		}
 
@@ -342,9 +312,9 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 	}, bck)
 
 	defer func() {
-		if httpResp != nil {
-			_, _ = io.Copy(io.Discard, httpResp.Body)
-			_ = httpResp.Body.Close()
+		if resp != nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
 		}
 	}()
 
@@ -404,7 +374,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
 				Limit:   resp.Limit,
 				Message: errResp.Message,
 
-				response: httpResp,
+				response: resp.Response,
 			}
 		}
 
@@ -468,7 +438,7 @@ func (c *Client) checkLimit(req *http.Request) *LimitError {
 			StatusCode: http.StatusTooManyRequests,
 			Request:    req,
 			Header:     make(http.Header),
-			Body:       ioutil.NopCloser(strings.NewReader("")),
+			Body:       io.NopCloser(strings.NewReader("")),
 		}
 		return &LimitError{
 			Limit: limit,

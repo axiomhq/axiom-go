@@ -6,5 +6,5 @@
 // The base for every APL query is the `Query` type which wraps an APL query
 // string:
 //
-// 	q := apl.Query("...")
+//	q := apl.Query("...")
 package apl

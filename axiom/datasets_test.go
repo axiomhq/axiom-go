@@ -142,13 +142,13 @@ var expQueryRes = &query.Result{
 		RowsMatched:    142655,
 		NumGroups:      0,
 		IsPartial:      false,
-		MinBlockTime:   parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
-		MaxBlockTime:   parseTimeOrPanic(time.RFC3339Nano, "2020-11-27T12:06:38.966791794Z"),
+		MinBlockTime:   parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
+		MaxBlockTime:   parseTimeOrPanic("2020-11-27T12:06:38.966791794Z"),
 	},
 	Matches: []query.Entry{
 		{
-			Time:    parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.569475746Z"),
-			SysTime: parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
+			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
+			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
 			RowID:   "c776x1uafkpu-4918f6cb9000095-0",
 			Data: map[string]interface{}{
 				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
@@ -162,8 +162,8 @@ var expQueryRes = &query.Result{
 			},
 		},
 		{
-			Time:    parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.569479846Z"),
-			SysTime: parseTimeOrPanic(time.RFC3339Nano, "2020-11-19T11:06:31.581384524Z"),
+			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569479846Z"),
+			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
 			RowID:   "c776x1uafnvq-4918f6cb9000095-1",
 			Data: map[string]interface{}{
 				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
@@ -186,280 +186,12 @@ var expQueryRes = &query.Result{
 
 var expAPLQueryRes = &apl.Result{
 	Request: &query.Query{
-		StartTime: parseTimeOrPanic(time.RFC3339Nano, "2021-07-20T16:34:57.911170243Z"),
-		EndTime:   parseTimeOrPanic(time.RFC3339Nano, "2021-08-19T16:34:57.885821616Z"),
+		StartTime: parseTimeOrPanic("2021-07-20T16:34:57.911170243Z"),
+		EndTime:   parseTimeOrPanic("2021-08-19T16:34:57.885821616Z"),
 		Limit:     1000,
 	},
 	Result:   expQueryRes,
 	Datasets: []string{"test"},
-}
-
-func TestDatasetsService_Stats(t *testing.T) {
-	exp := &DatasetStats{
-		Datasets: []*DatasetStat{
-			{
-				Name:                 "test",
-				NumBlocks:            1,
-				NumEvents:            68459,
-				NumFields:            8,
-				InputBytes:           10383386,
-				InputBytesHuman:      "10 MB",
-				CompressedBytes:      2509224,
-				CompressedBytesHuman: "2.5 MB",
-				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
-				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
-				CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
-				CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
-			},
-			{
-				Name:                 "test1",
-				NumBlocks:            1,
-				NumEvents:            68459,
-				NumFields:            8,
-				InputBytes:           10383386,
-				InputBytesHuman:      "10 MB",
-				CompressedBytes:      2509224,
-				CompressedBytesHuman: "2.5 MB",
-				MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
-				MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
-				CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
-				CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
-			},
-		},
-		NumBlocks:            2,
-		NumEvents:            136918,
-		InputBytes:           666337356,
-		InputBytesHuman:      "666 MB",
-		CompressedBytes:      19049348,
-		CompressedBytesHuman: "19 MB",
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
-			"datasets": [
-				{
-					"name": "test",
-					"numBlocks": 1,
-					"numEvents": 68459,
-					"numFields": 8,
-					"inputBytes": 10383386,
-					"inputBytesHuman": "10 MB",
-					"compressedBytes": 2509224,
-					"compressedBytesHuman": "2.5 MB",
-					"minTime": "2020-11-17T22:30:59Z",
-					"maxTime": "2020-11-18T17:31:55Z",
-					"who": "f83e245a-afdc-47ad-a765-4addd1994321",
-					"created": "2020-11-18T21:30:20.623322799Z"
-				},
-				{
-					"name": "test1",
-					"numBlocks": 1,
-					"numEvents": 68459,
-					"numFields": 8,
-					"inputBytes": 10383386,
-					"inputBytesHuman": "10 MB",
-					"compressedBytes": 2509224,
-					"compressedBytesHuman": "2.5 MB",
-					"minTime": "2020-11-17T22:30:59Z",
-					"maxTime": "2020-11-18T17:31:55Z",
-					"who": "f83e245a-afdc-47ad-a765-4addd1994321",
-					"created": "2020-11-18T21:30:20.623322799Z"
-				}
-			],
-			"numBlocks": 2,
-			"numEvents": 136918,
-			"inputBytes": 666337356,
-			"inputBytesHuman": "666 MB",
-			"compressedBytes": 19049348,
-			"compressedBytesHuman": "19 MB"
-		}`)
-		assert.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/datasets/_stats", hf)
-	defer teardown()
-
-	res, err := client.Datasets.Stats(context.Background())
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
-}
-
-func TestDatasetsService_Fields(t *testing.T) {
-	exp := Fields{
-		"test": []*Field{
-			{
-				Name:        "_sysTime",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "_time",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "path",
-				Description: "",
-				Type:        "string",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "size",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "status",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-		},
-		"test1": []*Field{
-			{
-				Name:        "_sysTime",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "_time",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "path",
-				Description: "",
-				Type:        "string",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "size",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "status",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-		},
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `[
-			{
-				"datasetName": "test",
-				"fields": [{
-						"name": "_sysTime",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "_time",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "path",
-						"type": "string",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "size",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "status",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					}
-				]
-			},
-			{
-				"datasetName": "test1",
-				"fields": [{
-						"name": "_sysTime",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "_time",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "path",
-						"type": "string",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "size",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					},
-					{
-						"name": "status",
-						"type": "integer",
-						"unit": "",
-						"hidden": false,
-						"description": ""
-					}
-				]
-			}
-		]`)
-		assert.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/datasets/_fields", hf)
-	defer teardown()
-
-	res, err := client.Datasets.Fields(context.Background())
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
 }
 
 func TestDatasetsService_List(t *testing.T) {
@@ -600,41 +332,6 @@ func TestDatasetsService_Update(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
-func TestDatasetsService_UpdateField(t *testing.T) {
-	exp := &Field{
-		Name:        "status",
-		Description: "HTTP status code",
-		Type:        "integer",
-		Unit:        "",
-		Hidden:      false,
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPut, r.Method)
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
-			"name": "status",
-			"type": "integer",
-			"unit": "",
-			"hidden": false,
-			"description": "HTTP status code"
-		}`)
-		assert.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/datasets/test/fields/status", hf)
-	defer teardown()
-
-	res, err := client.Datasets.UpdateField(context.Background(), "test", "status", FieldUpdateRequest{
-		Description: "HTTP status code",
-	})
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
-}
-
 func TestDatasetsService_Delete(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodDelete, r.Method)
@@ -647,128 +344,6 @@ func TestDatasetsService_Delete(t *testing.T) {
 
 	err := client.Datasets.Delete(context.Background(), "test")
 	require.NoError(t, err)
-}
-
-func TestDatasetsService_Info(t *testing.T) {
-	exp := &DatasetInfo{
-		DatasetStat: &DatasetStat{
-			Name:                 "test",
-			NumBlocks:            1,
-			NumEvents:            68459,
-			NumFields:            8,
-			InputBytes:           10383386,
-			InputBytesHuman:      "10 MB",
-			CompressedBytes:      2509224,
-			CompressedBytesHuman: "2.5 MB",
-			MinTime:              mustTimeParse(t, time.RFC3339, "2020-11-17T22:30:59Z"),
-			MaxTime:              mustTimeParse(t, time.RFC3339, "2020-11-18T17:31:55Z"),
-			CreatedBy:            "f83e245a-afdc-47ad-a765-4addd1994321",
-			CreatedAt:            mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
-		},
-		Fields: []*Field{
-			{
-				Name:        "_sysTime",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "_time",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "path",
-				Description: "",
-				Type:        "string",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "size",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-			{
-				Name:        "status",
-				Description: "",
-				Type:        "integer",
-				Unit:        "",
-				Hidden:      false,
-			},
-		},
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
-			"name": "test",
-			"numBlocks": 1,
-			"numEvents": 68459,
-			"numFields": 8,
-			"inputBytes": 10383386,
-			"inputBytesHuman": "10 MB",
-			"compressedBytes": 2509224,
-			"compressedBytesHuman": "2.5 MB",
-			"minTime": "2020-11-17T22:30:59Z",
-			"maxTime": "2020-11-18T17:31:55Z",
-			"fields": [
-				{
-					"name": "_sysTime",
-					"type": "integer",
-            		"unit": "",
-            		"hidden": false,
-            		"description": ""
-				},
-				{
-					"name": "_time",
-					"type": "integer",
-            		"unit": "",
-            		"hidden": false,
-            		"description": ""
-				},
-				{
-					"name": "path",
-					"type": "string",
-            		"unit": "",
-            		"hidden": false,
-            		"description": ""
-				},
-				{
-					"name": "size",
-					"type": "integer",
-            		"unit": "",
-            		"hidden": false,
-            		"description": ""
-				},
-				{
-					"name": "status",
-					"type": "integer",
-					"unit": "",
-            		"hidden": false,
-            		"description": ""
-				}
-			],
-			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
-			"created": "2020-11-18T21:30:20.623322799Z"
-		}`)
-		assert.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/datasets/test/info", hf)
-	defer teardown()
-
-	res, err := client.Datasets.Info(context.Background(), "test")
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
 }
 
 func TestDatasetsService_Trim(t *testing.T) {
@@ -790,48 +365,6 @@ func TestDatasetsService_Trim(t *testing.T) {
 	defer teardown()
 
 	res, err := client.Datasets.Trim(context.Background(), "test", time.Hour)
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
-}
-
-func TestDatasetsService_History(t *testing.T) {
-	exp := &HistoryQuery{
-		ID:      "GHP2ufS7OYwMeBhXHj",
-		Kind:    query.Analytics,
-		Dataset: "test",
-		Owner:   "f83e245a-afdc-47ad-a765-4addd1994321",
-		Query: query.Query{
-			StartTime: mustTimeParse(t, time.RFC3339, "2020-11-18T13:00:00.000Z"),
-			EndTime:   mustTimeParse(t, time.RFC3339, "2020-11-25T14:00:00.000Z"),
-			Limit:     100,
-		},
-		CreatedAt: mustTimeParse(t, time.RFC3339, "2020-12-08T13:28:52.78954814Z"),
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodGet, r.Method)
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
-			"created": "2020-12-08T13:28:52.78954814Z",
-			"dataset": "test",
-			"id": "GHP2ufS7OYwMeBhXHj",
-			"kind": "analytics",
-			"query": {
-				"startTime": "2020-11-18T13:00:00.000Z",
-				"endTime": "2020-11-25T14:00:00.000Z",
-				"limit": 100
-			},
-			"who": "f83e245a-afdc-47ad-a765-4addd1994321"
-		}`)
-		assert.NoError(t, err)
-	}
-
-	client, teardown := setup(t, "/api/v1/datasets/_history/GHP2ufS7OYwMeBhXHj", hf)
-	defer teardown()
-
-	res, err := client.Datasets.History(context.Background(), "GHP2ufS7OYwMeBhXHj")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -1117,8 +650,8 @@ func assertValidJSON(t *testing.T, r io.Reader) bool {
 	return true
 }
 
-func parseTimeOrPanic(layout, value string) time.Time {
-	t, err := time.Parse(layout, value)
+func parseTimeOrPanic(value string) time.Time {
+	t, err := time.Parse(time.RFC3339Nano, value)
 	if err != nil {
 		panic(err)
 	}

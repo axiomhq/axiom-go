@@ -9,7 +9,7 @@ on:
       - main
 
 env:
-  GOVERSION: "1.17"
+  GOVERSION: "1.18"
 
 jobs:
   test:
@@ -90,12 +90,16 @@ jobs:
         run: axiom dataset delete -f $AXIOM_DATASET
 
   examples-pass:
+    name: Create Examples Pass Check
     needs: test
-    name: Examples Pass
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
       - uses: LouisBrunner/checks-action@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Examples Pass
-          conclusion: ${{ job.status }}
+          conclusion: ${{ needs.test.result }}
+      # Fail workflow if resulting check is also created as failed.
+      - if: ${{ needs.test.result != 'success' }}
+        run: exit 1

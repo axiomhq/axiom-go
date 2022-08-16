@@ -3,7 +3,7 @@
 //
 // The base for every query is the `Query` type:
 //
-// 	q := query.Query{
-// 		// ...
+//	q := query.Query{
+//		// ...
 //	}
 package query

@@ -110,3 +110,9 @@ func TestQuery_UnarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func mustTimeParse(tb testing.TB, layout, value string) time.Time {
+	ts, err := time.Parse(layout, value)
+	require.NoError(tb, err)
+	return ts
+}

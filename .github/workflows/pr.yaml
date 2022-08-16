@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - 1.17
           - 1.18
+          - 1.19
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -36,8 +36,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - 1.17
           - 1.18
+          - 1.19
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -56,8 +56,8 @@ jobs:
           - azure-1-staging
           - cloud-dev
         go:
-          - 1.17
           - 1.18
+          - 1.19
         include:
           - deployment: azure-1-staging
             axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
@@ -67,7 +67,7 @@ jobs:
             axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
             axiom_org_id: TESTING_CLOUD_DEV_ORG_ID
           - deployment: cloud-dev
-            go: 1.17
+            go: 1.18
             update-coverage: true
       max-parallel: 1
       fail-fast: false
@@ -93,7 +93,7 @@ jobs:
         if: failure()
         run: |
           curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
-          axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -n1 axiom dataset delete -f
+          axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
       - name: Update Coverage
         if: matrix.update-coverage
         uses: codecov/codecov-action@v2
@@ -101,12 +101,25 @@ jobs:
           fail_ci_if_error: true
 
   ci-pass:
-    needs: test
-    name: CI Pass
+    name: Create CI Pass Check
+    needs:
+      - gen-diff
+      - lint
+      - test
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
+      - name: Eval failure
+        if: needs.gen-diff.result != 'success' || needs.lint.result != 'success' || needs.test.result != 'success'
+        run: echo "conclusion=failure" >> $GITHUB_ENV
+      - name: Eval success
+        if: needs.gen-diff.result == 'success' && needs.lint.result == 'success' && needs.test.result == 'success'
+        run: echo "conclusion=success" >> $GITHUB_ENV
       - uses: LouisBrunner/checks-action@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: CI Pass
-          conclusion: ${{ job.status }}
+          conclusion: ${{ env.conclusion }}
+      # Fail workflow if resulting check is also created as failed.
+      - if: ${{ env.conclusion != 'success' }}
+        run: exit 1
