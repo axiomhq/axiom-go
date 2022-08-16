@@ -40,9 +40,9 @@ func TestAggregationOp_String(t *testing.T) {
 	assert.Empty(t, AggregationOp(0).String())
 	assert.Empty(t, emptyAggregationOp.String())
 	assert.Equal(t, emptyAggregationOp, AggregationOp(0))
-	assert.Contains(t, (OpCountDistinctIf + 1).String(), "AggregationOp(")
+	assert.Contains(t, (OpDistinctIf + 1).String(), "AggregationOp(")
 
-	for op := OpCount; op <= OpCountDistinctIf; op++ {
+	for op := OpCount; op <= OpDistinctIf; op++ {
 		s := op.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "AggregationOp(")
@@ -50,7 +50,7 @@ func TestAggregationOp_String(t *testing.T) {
 }
 
 func TestAggregationOpFromString(t *testing.T) {
-	for op := OpCount; op <= OpCountDistinctIf; op++ {
+	for op := OpCount; op <= OpDistinctIf; op++ {
 		s := op.String()
 
 		parsedOp, err := aggregationOpFromString(s)
