@@ -8,7 +8,7 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=AggregationOp -linecomment -output=aggregation_string.go
 
-// An AggregationOp can be applied on queries to aggrgate based on different
+// An AggregationOp can be applied on queries to aggregate based on different
 // conditions.
 type AggregationOp uint8
 
@@ -17,8 +17,9 @@ const (
 	emptyAggregationOp AggregationOp = iota //
 
 	// Works with all types, field should be `*`.
-	OpCount         // count
-	OpCountDistinct // distinct
+	OpCount    // count
+	OpDistinct // distinct
+	OpMakeSet  // makeset
 
 	// Only works for numbers.
 	OpSum               // sum
@@ -28,13 +29,15 @@ const (
 	OpTopk              // topk
 	OpPercentiles       // percentiles
 	OpHistogram         // histogram
-	OpVariance          // variance
 	OpStandardDeviation // stdev
+	OpVariance          // variance
+	OpArgMin            // argmin
+	OpArgMax            // argmax
 
 	// Read-only. Not to be used for query requests. Only in place to support
 	// the APL query result.
-	OpCountIf         // countif
-	OpCountDistinctIf // distinctif
+	OpCountIf    // countif
+	OpDistinctIf // distinctif
 )
 
 func aggregationOpFromString(s string) (op AggregationOp, err error) {
@@ -43,8 +46,10 @@ func aggregationOpFromString(s string) (op AggregationOp, err error) {
 		op = emptyAggregationOp
 	case OpCount.String():
 		op = OpCount
-	case OpCountDistinct.String():
-		op = OpCountDistinct
+	case OpDistinct.String():
+		op = OpDistinct
+	case OpMakeSet.String():
+		op = OpMakeSet
 	case OpSum.String():
 		op = OpSum
 	case OpAvg.String():
@@ -59,14 +64,18 @@ func aggregationOpFromString(s string) (op AggregationOp, err error) {
 		op = OpPercentiles
 	case OpHistogram.String():
 		op = OpHistogram
-	case OpVariance.String():
-		op = OpVariance
 	case OpStandardDeviation.String():
 		op = OpStandardDeviation
+	case OpVariance.String():
+		op = OpVariance
+	case OpArgMin.String():
+		op = OpArgMin
+	case OpArgMax.String():
+		op = OpArgMax
 	case OpCountIf.String():
 		op = OpCountIf
-	case OpCountDistinctIf.String():
-		op = OpCountDistinctIf
+	case OpDistinctIf.String():
+		op = OpDistinctIf
 	default:
 		err = fmt.Errorf("unknown aggregation operation %q", s)
 	}
@@ -102,7 +111,7 @@ type Aggregation struct {
 	Op AggregationOp `json:"op"`
 	// Field the aggregation operation is performed on.
 	Field string `json:"field"`
-	// Argument to the aggregation. Only valid for `OpCountDistinctIf`,
+	// Argument to the aggregation. Only valid for `OpDistinctIf`,
 	// `OpTopk`, `OpPercentiles` and `OpHistogram`
 	// aggregations.
 	Argument interface{} `json:"argument"`

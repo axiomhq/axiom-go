@@ -10,23 +10,26 @@ func _() {
 	var x [1]struct{}
 	_ = x[emptyAggregationOp-0]
 	_ = x[OpCount-1]
-	_ = x[OpCountDistinct-2]
-	_ = x[OpSum-3]
-	_ = x[OpAvg-4]
-	_ = x[OpMin-5]
-	_ = x[OpMax-6]
-	_ = x[OpTopk-7]
-	_ = x[OpPercentiles-8]
-	_ = x[OpHistogram-9]
-	_ = x[OpVariance-10]
+	_ = x[OpDistinct-2]
+	_ = x[OpMakeSet-3]
+	_ = x[OpSum-4]
+	_ = x[OpAvg-5]
+	_ = x[OpMin-6]
+	_ = x[OpMax-7]
+	_ = x[OpTopk-8]
+	_ = x[OpPercentiles-9]
+	_ = x[OpHistogram-10]
 	_ = x[OpStandardDeviation-11]
-	_ = x[OpCountIf-12]
-	_ = x[OpCountDistinctIf-13]
+	_ = x[OpVariance-12]
+	_ = x[OpArgMin-13]
+	_ = x[OpArgMax-14]
+	_ = x[OpCountIf-15]
+	_ = x[OpDistinctIf-16]
 }
 
-const _AggregationOp_name = "countdistinctsumavgminmaxtopkpercentileshistogramvariancestdevcountifdistinctif"
+const _AggregationOp_name = "countdistinctmakesetsumavgminmaxtopkpercentileshistogramstdevvarianceargminargmaxcountifdistinctif"
 
-var _AggregationOp_index = [...]uint8{0, 0, 5, 13, 16, 19, 22, 25, 29, 40, 49, 57, 62, 69, 79}
+var _AggregationOp_index = [...]uint8{0, 0, 5, 13, 20, 23, 26, 29, 32, 36, 47, 56, 61, 69, 75, 81, 88, 98}
 
 func (i AggregationOp) String() string {
 	if i >= AggregationOp(len(_AggregationOp_index)-1) {
