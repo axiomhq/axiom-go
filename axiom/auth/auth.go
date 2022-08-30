@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -9,7 +11,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
 	"github.com/axiomhq/axiom-go/axiom/auth/pkce"
@@ -20,8 +21,6 @@ const (
 	tokenPath   = "/oauth/token" //nolint:gosec // Sigh, this is not a hardcoded credential...
 	successPath = "/oauth/success"
 	errorPath   = "/oauth/error"
-
-	clientID = "13c885a8-f46a-4424-82d2-883cf7ccfe49"
 )
 
 // LoginFunc is a function that is called with the URL the user has to visit in
@@ -31,7 +30,7 @@ type LoginFunc func(ctx context.Context, loginURL string) error
 // Login to the given Axiom deployment and retrieve a Personal Access Token in
 // exchange. This will execute the OAuth2 Authorization Code Flow with Proof Key
 // for Code Exchange (PKCE).
-func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, error) {
+func Login(ctx context.Context, clientID, baseURL string, loginFunc LoginFunc) (string, error) {
 	u, err := url.ParseRequestURI(baseURL)
 	if err != nil {
 		return "", err
@@ -59,7 +58,7 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 
 	// Start a listener for the callback. We need to do this early in order to
 	// construct the correct URL for the callback.
-	lis, err := net.Listen("tcp", "localhost:0")
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return "", err
 	}
@@ -88,12 +87,13 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 		return "", err
 	}
 
-	state, err := uuid.NewUUID()
-	if err != nil {
+	stateBytes := make([]byte, 16)
+	if _, err = rand.Read(stateBytes); err != nil {
 		return "", err
 	}
+	state := hex.EncodeToString(stateBytes)
 
-	loginURL := config.AuthCodeURL(state.String(),
+	loginURL := config.AuthCodeURL(state,
 		codeVerifier.Challenge(method).AuthCodeOption(),
 		method.AuthCodeOption(),
 	)
@@ -116,7 +116,7 @@ func Login(ctx context.Context, baseURL string, loginFunc LoginFunc) (string, er
 		}
 
 		// Make sure state matches.
-		if r.FormValue("state") != state.String() {
+		if r.FormValue("state") != state {
 			callbackErrCh <- errors.New("invalid state")
 			http.Redirect(w, r, errorURL.String(), http.StatusFound)
 			return
