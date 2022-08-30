@@ -1,4 +1,3 @@
-//nolint:dupl // Fine to have a bit of duplication in a test file.
 package query
 
 import (

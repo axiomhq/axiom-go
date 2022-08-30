@@ -8,7 +8,7 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[emptyAggregationOp-0]
+	_ = x[OpUnknown-0]
 	_ = x[OpCount-1]
 	_ = x[OpDistinct-2]
 	_ = x[OpMakeSet-3]
@@ -27,9 +27,9 @@ func _() {
 	_ = x[OpDistinctIf-16]
 }
 
-const _AggregationOp_name = "countdistinctmakesetsumavgminmaxtopkpercentileshistogramstdevvarianceargminargmaxcountifdistinctif"
+const _AggregationOp_name = "unknowncountdistinctmakesetsumavgminmaxtopkpercentileshistogramstdevvarianceargminargmaxcountifdistinctif"
 
-var _AggregationOp_index = [...]uint8{0, 0, 5, 13, 20, 23, 26, 29, 32, 36, 47, 56, 61, 69, 75, 81, 88, 98}
+var _AggregationOp_index = [...]uint8{0, 7, 12, 20, 27, 30, 33, 36, 39, 43, 54, 63, 68, 76, 82, 88, 95, 105}
 
 func (i AggregationOp) String() string {
 	if i >= AggregationOp(len(_AggregationOp_index)-1) {

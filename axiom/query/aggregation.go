@@ -2,7 +2,6 @@ package query
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -14,7 +13,7 @@ type AggregationOp uint8
 
 // All available query aggregation operations.
 const (
-	emptyAggregationOp AggregationOp = iota //
+	OpUnknown AggregationOp = iota // unknown
 
 	// Works with all types, field should be `*`.
 	OpCount    // count
@@ -40,10 +39,8 @@ const (
 	OpDistinctIf // distinctif
 )
 
-func aggregationOpFromString(s string) (op AggregationOp, err error) {
+func aggregationOpFromString(s string) (op AggregationOp) {
 	switch strings.ToLower(s) {
-	case emptyAggregationOp.String():
-		op = emptyAggregationOp
 	case OpCount.String():
 		op = OpCount
 	case OpDistinct.String():
@@ -77,10 +74,10 @@ func aggregationOpFromString(s string) (op AggregationOp, err error) {
 	case OpDistinctIf.String():
 		op = OpDistinctIf
 	default:
-		err = fmt.Errorf("unknown aggregation operation %q", s)
+		op = OpUnknown
 	}
 
-	return op, err
+	return op
 }
 
 // MarshalJSON implements `json.Marshaler`. It is in place to marshal the
@@ -98,9 +95,9 @@ func (op *AggregationOp) UnmarshalJSON(b []byte) (err error) {
 		return err
 	}
 
-	*op, err = aggregationOpFromString(s)
+	*op = aggregationOpFromString(s)
 
-	return err
+	return nil
 }
 
 // Aggregation performed as part of a query.
