@@ -21,7 +21,7 @@ func TestLogin(t *testing.T) {
 	)
 	authHf := func(w http.ResponseWriter, r *http.Request) {
 		// Correct query parameters are present (or not)?
-		assert.Equal(t, "13c885a8-f46a-4424-82d2-883cf7ccfe49", r.FormValue("client_id"))
+		assert.Equal(t, "123", r.FormValue("client_id"))
 		assert.Empty(t, r.FormValue("client_secret"))
 		assert.Equal(t, "*", r.FormValue("scope"))
 		assert.Equal(t, "code", r.FormValue("response_type"))
@@ -46,7 +46,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	tokenHf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "13c885a8-f46a-4424-82d2-883cf7ccfe49", r.FormValue("client_id"))
+		assert.Equal(t, "123", r.FormValue("client_id"))
 		assert.Equal(t, "authorization_code", r.FormValue("grant_type"))
 		assert.Equal(t, "test-code", r.FormValue("code"))
 		assert.Equal(t, globalRedirectURI, r.FormValue("redirect_uri"))
@@ -93,7 +93,7 @@ func TestLogin(t *testing.T) {
 		return nil
 	}
 
-	token, err := auth.Login(context.Background(), srv.URL, loginFunc)
+	token, err := auth.Login(context.Background(), "123", srv.URL, loginFunc)
 	require.NoError(t, err)
 
 	assert.Equal(t, "test-token", token)
@@ -142,7 +142,7 @@ func TestLogin_AuthorizationError(t *testing.T) {
 		return nil
 	}
 
-	token, err := auth.Login(context.Background(), srv.URL, loginFunc)
+	token, err := auth.Login(context.Background(), "123", srv.URL, loginFunc)
 	assert.EqualError(t, err, "oauth2 authorization error \"access_denied\": user denied access")
 	assert.Empty(t, token)
 
@@ -192,7 +192,7 @@ func TestLogin_ExchangeError(t *testing.T) {
 		return nil
 	}
 
-	token, err := auth.Login(context.Background(), srv.URL, loginFunc)
+	token, err := auth.Login(context.Background(), "123", srv.URL, loginFunc)
 	assert.EqualError(t, err, "oauth2: cannot fetch token: 500 Internal Server Error\nResponse: Internal Server Error\n")
 	assert.Empty(t, token)
 
