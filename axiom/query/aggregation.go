@@ -16,9 +16,10 @@ const (
 	OpUnknown AggregationOp = iota // unknown
 
 	// Works with all types, field should be `*`.
-	OpCount    // count
-	OpDistinct // distinct
-	OpMakeSet  // makeset
+	OpCount     // count
+	OpDistinct  // distinct
+	OpMakeSet   // makeset
+	OpMakeSetIf // makesetif
 
 	// Only works for numbers.
 	OpSum               // sum
@@ -47,6 +48,8 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 		op = OpDistinct
 	case OpMakeSet.String():
 		op = OpMakeSet
+	case OpMakeSetIf.String():
+		op = OpMakeSetIf
 	case OpSum.String():
 		op = OpSum
 	case OpAvg.String():
