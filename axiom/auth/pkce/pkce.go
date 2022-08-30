@@ -24,7 +24,7 @@ type Method uint8
 // Available methods for creating the PKCE Code Challenge.
 //
 // If the client is capable of using MethodS256, it MUST use MethodS256, as
-// MethodS256 is Mandatory To Implement (MTI) on the server.  Clients are
+// MethodS256 is Mandatory To Implement (MTI) on the server. Clients are
 // permitted to use MethodPlain only if they cannot support MethodS256 for some
 // technical reason and know via out-of-band configuration that the server
 // supports MethodPlain.
@@ -41,9 +41,9 @@ const (
 // MethodFromString returns a `Method` from its string representation.
 func MethodFromString(s string) (Method, error) {
 	switch s {
-	case "plain":
+	case MethodPlain.String():
 		return MethodPlain, nil
-	case "S256":
+	case MethodS256.String():
 		return MethodS256, nil
 	}
 	return 0, fmt.Errorf("invalid method %q", s)
@@ -84,7 +84,7 @@ func VerifierFromString(s string) (v Verifier) {
 // the given `Method`.
 //
 // If the client is capable of using MethodS256, it MUST use MethodS256, as
-// MethodS256 is Mandatory To Implement (MTI) on the server.  Clients are
+// MethodS256 is Mandatory To Implement (MTI) on the server. Clients are
 // permitted to use MethodPlain only if they cannot support MethodS256 for some
 // technical reason and know via out-of-band configuration that the server
 // supports MethodPlain.
