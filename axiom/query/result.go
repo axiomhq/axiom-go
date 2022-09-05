@@ -222,7 +222,7 @@ type Entry struct {
 	RowID string `json:"_rowId"`
 	// Data contains the raw data of the event (with filters and aggregations
 	// applied).
-	Data map[string]interface{} `json:"data"`
+	Data map[string]any `json:"data"`
 }
 
 // Timeseries are queried time series.
@@ -248,7 +248,7 @@ type EntryGroup struct {
 	// ID is the unique the group.
 	ID uint64 `json:"id"`
 	// Group maps the fieldnames to the unique values for the entry.
-	Group map[string]interface{} `json:"group"`
+	Group map[string]any `json:"group"`
 	// Aggregations of the group.
 	Aggregations []EntryGroupAgg `json:"aggregations"`
 }
@@ -259,5 +259,5 @@ type EntryGroupAgg struct {
 	// is the uppercased string representation of the aggregation operation.
 	Alias string `json:"op"`
 	// Value is the result value of the aggregation.
-	Value interface{} `json:"value"`
+	Value any `json:"value"`
 }

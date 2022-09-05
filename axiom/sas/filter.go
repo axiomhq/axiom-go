@@ -7,7 +7,7 @@ import "github.com/axiomhq/axiom-go/axiom/query"
 type filter struct {
 	Op            query.FilterOp `json:"op"`
 	Field         string         `json:"fd"`
-	Value         interface{}    `json:"vl"`
+	Value         any            `json:"vl"`
 	CaseSensitive bool           `json:"cs"`
 	Children      []filter       `json:"ch,omitempty"`
 }

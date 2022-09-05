@@ -206,7 +206,7 @@ func (c *Client) populateClientFromEnvironment() (err error) {
 
 // call creates a new API request and executes it. The response body is JSON
 // decoded or directly written to v, depending on v being an io.Writer or not.
-func (c *Client) call(ctx context.Context, method, path string, body, v interface{}) error {
+func (c *Client) call(ctx context.Context, method, path string, body, v any) error {
 	req, err := c.newRequest(ctx, method, path, body)
 	if err != nil {
 		return err
@@ -219,7 +219,7 @@ func (c *Client) call(ctx context.Context, method, path string, body, v interfac
 // newRequest creates an API request. If specified, the value pointed to by body
 // will be included as the request body. If it is not an io.Reader, it will be
 // included as a JSON encoded request body.
-func (c *Client) newRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) newRequest(ctx context.Context, method, path string, body any) (*http.Request, error) {
 	rel, err := url.ParseRequestURI(path)
 	if err != nil {
 		return nil, err
@@ -278,7 +278,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body inter
 // not.
 // If the rate limit is exceeded and reset time is in the future, it returns
 // `*LimitError` immediately without making an API call.
-func (c *Client) do(req *http.Request, v interface{}) (*response, error) {
+func (c *Client) do(req *http.Request, v any) (*response, error) {
 	// If we've hit the rate limit, don't make further requests before
 	// the reset time.
 	if err := c.checkLimit(req); err != nil {

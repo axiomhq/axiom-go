@@ -144,7 +144,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*log.Logger, func()) {
 }
 
 // JSONEqExp is like assert.JSONEq() but excludes the given fields.
-func JSONEqExp(t assert.TestingT, expected string, actual string, excludedFields []string, msgAndArgs ...interface{}) bool {
+func JSONEqExp(t assert.TestingT, expected string, actual string, excludedFields []string, msgAndArgs ...any) bool {
 	type tHelper interface {
 		Helper()
 	}
@@ -153,7 +153,7 @@ func JSONEqExp(t assert.TestingT, expected string, actual string, excludedFields
 		h.Helper()
 	}
 
-	var expectedJSONAsInterface, actualJSONAsInterface map[string]interface{}
+	var expectedJSONAsInterface, actualJSONAsInterface map[string]any
 
 	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
 		return assert.Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)

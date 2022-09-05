@@ -59,7 +59,7 @@ const (
 )
 
 // An Event is a map of key-value pairs.
-type Event map[string]interface{}
+type Event map[string]any
 
 // Dataset represents an Axiom dataset.
 type Dataset struct {
@@ -126,9 +126,9 @@ type wrappedDataset struct {
 
 	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
 	// package so we just ignore it for now.
-	IntegrationConfigs interface{} `json:"integrationConfigs,omitempty"`
-	IntegrationFilters interface{} `json:"integrationFilters,omitempty"`
-	QuickQueries       interface{} `json:"quickQueries,omitempty"`
+	IntegrationConfigs any `json:"integrationConfigs,omitempty"`
+	IntegrationFilters any `json:"integrationFilters,omitempty"`
+	QuickQueries       any `json:"quickQueries,omitempty"`
 }
 
 type datasetTrimRequest struct {
@@ -407,7 +407,7 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 	var (
 		res struct {
 			query.Result
-			FieldsMeta interface{} `json:"fieldsMeta"`
+			FieldsMeta any `json:"fieldsMeta"`
 		}
 		resp *response
 	)
@@ -439,7 +439,7 @@ func (s *DatasetsService) APLQuery(ctx context.Context, q apl.Query, opts apl.Op
 	var (
 		res struct {
 			apl.Result
-			FieldsMeta interface{} `json:"fieldsMetaMap"`
+			FieldsMeta any `json:"fieldsMetaMap"`
 		}
 		resp *response
 	)

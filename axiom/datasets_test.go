@@ -150,7 +150,7 @@ var expQueryRes = &query.Result{
 			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
 			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
 			RowID:   "c776x1uafkpu-4918f6cb9000095-0",
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
 				"bytes":       float64(0),
 				"referrer":    "-",
@@ -165,7 +165,7 @@ var expQueryRes = &query.Result{
 			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569479846Z"),
 			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
 			RowID:   "c776x1uafnvq-4918f6cb9000095-1",
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
 				"bytes":       float64(0),
 				"referrer":    "-",
@@ -712,7 +712,7 @@ func TestDetectContentType(t *testing.T) {
 
 func assertValidJSON(t *testing.T, r io.Reader) {
 	dec := json.NewDecoder(r)
-	var v interface{}
+	var v any
 	for dec.More() {
 		err := dec.Decode(&v)
 		assert.NoError(t, err)
