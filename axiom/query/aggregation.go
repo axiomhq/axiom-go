@@ -16,10 +16,9 @@ const (
 	OpUnknown AggregationOp = iota // unknown
 
 	// Works with all types, field should be `*`.
-	OpCount     // count
-	OpDistinct  // distinct
-	OpMakeSet   // makeset
-	OpMakeSetIf // makesetif
+	OpCount    // count
+	OpDistinct // distinct
+	OpMakeSet  // makeset
 
 	// Only works for numbers.
 	OpSum               // sum
@@ -38,6 +37,7 @@ const (
 	// the APL query result.
 	OpCountIf    // countif
 	OpDistinctIf // distinctif
+	OpMakeSetIf  // makesetif
 )
 
 func aggregationOpFromString(s string) (op AggregationOp) {
@@ -48,8 +48,6 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 		op = OpDistinct
 	case OpMakeSet.String():
 		op = OpMakeSet
-	case OpMakeSetIf.String():
-		op = OpMakeSetIf
 	case OpSum.String():
 		op = OpSum
 	case OpAvg.String():
@@ -76,6 +74,8 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 		op = OpCountIf
 	case OpDistinctIf.String():
 		op = OpDistinctIf
+	case OpMakeSetIf.String():
+		op = OpMakeSetIf
 	default:
 		op = OpUnknown
 	}
@@ -114,5 +114,5 @@ type Aggregation struct {
 	// Argument to the aggregation. Only valid for `OpDistinctIf`,
 	// `OpTopk`, `OpPercentiles` and `OpHistogram`
 	// aggregations.
-	Argument interface{} `json:"argument"`
+	Argument any `json:"argument"`
 }

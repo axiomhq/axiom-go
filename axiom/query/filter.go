@@ -119,7 +119,7 @@ type Filter struct {
 	// Field the filter operation is performed on.
 	Field string `json:"field"`
 	// Value to perform the filter operation against.
-	Value interface{} `json:"value"`
+	Value any `json:"value"`
 	// CaseSensitive specifies if the filter is case sensitive or not. Only
 	// valid for OpStartsWith, OpNotStartsWith, OpEndsWith, OpNotEndsWith,
 	// OpContains and OpNotContains.

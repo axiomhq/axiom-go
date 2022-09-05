@@ -166,7 +166,7 @@ type wrappedOrganization struct {
 
 	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
 	// package so we just ignore it for now.
-	ExternalPlan interface{} `json:"externalPlan,omitempty"`
+	ExternalPlan any `json:"externalPlan,omitempty"`
 }
 
 // OrganizationsService handles communication with the organization related

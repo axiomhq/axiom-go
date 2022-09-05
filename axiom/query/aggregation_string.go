@@ -12,25 +12,25 @@ func _() {
 	_ = x[OpCount-1]
 	_ = x[OpDistinct-2]
 	_ = x[OpMakeSet-3]
-	_ = x[OpMakeSetIf-4]
-	_ = x[OpSum-5]
-	_ = x[OpAvg-6]
-	_ = x[OpMin-7]
-	_ = x[OpMax-8]
-	_ = x[OpTopk-9]
-	_ = x[OpPercentiles-10]
-	_ = x[OpHistogram-11]
-	_ = x[OpStandardDeviation-12]
-	_ = x[OpVariance-13]
-	_ = x[OpArgMin-14]
-	_ = x[OpArgMax-15]
-	_ = x[OpCountIf-16]
-	_ = x[OpDistinctIf-17]
+	_ = x[OpSum-4]
+	_ = x[OpAvg-5]
+	_ = x[OpMin-6]
+	_ = x[OpMax-7]
+	_ = x[OpTopk-8]
+	_ = x[OpPercentiles-9]
+	_ = x[OpHistogram-10]
+	_ = x[OpStandardDeviation-11]
+	_ = x[OpVariance-12]
+	_ = x[OpArgMin-13]
+	_ = x[OpArgMax-14]
+	_ = x[OpCountIf-15]
+	_ = x[OpDistinctIf-16]
+	_ = x[OpMakeSetIf-17]
 }
 
-const _AggregationOp_name = "unknowncountdistinctmakesetmakesetifsumavgminmaxtopkpercentileshistogramstdevvarianceargminargmaxcountifdistinctif"
+const _AggregationOp_name = "unknowncountdistinctmakesetsumavgminmaxtopkpercentileshistogramstdevvarianceargminargmaxcountifdistinctifmakesetif"
 
-var _AggregationOp_index = [...]uint8{0, 7, 12, 20, 27, 36, 39, 42, 45, 48, 52, 63, 72, 77, 85, 91, 97, 104, 114}
+var _AggregationOp_index = [...]uint8{0, 7, 12, 20, 27, 30, 33, 36, 39, 43, 54, 63, 68, 76, 82, 88, 95, 105, 114}
 
 func (i AggregationOp) String() string {
 	if i >= AggregationOp(len(_AggregationOp_index)-1) {
