@@ -4,33 +4,32 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=limitType,LimitScope -linecomment -output=limit_string.go
 
 const (
-	headerRateScope     = "X-RateLimit-Scope"
-	headerRateLimit     = "X-RateLimit-Limit"
-	headerRateRemaining = "X-RateLimit-Remaining"
-	headerRateReset     = "X-RateLimit-Reset"
+	headerIngestLimit     = "X-IngestLimit-Limit"
+	headerIngestRemaining = "X-IngestLimit-Remaining"
+	headerIngestReset     = "X-IngestLimit-Reset"
 
 	headerQueryLimit     = "X-QueryLimit-Limit"
 	headerQueryRemaining = "X-QueryLimit-Remaining"
 	headerQueryReset     = "X-QueryLimit-Reset"
 
-	headerIngestLimit     = "X-IngestLimit-Limit"
-	headerIngestRemaining = "X-IngestLimit-Remaining"
-	headerIngestReset     = "X-IngestLimit-Reset"
+	headerRateScope     = "X-RateLimit-Scope"
+	headerRateLimit     = "X-RateLimit-Limit"
+	headerRateRemaining = "X-RateLimit-Remaining"
+	headerRateReset     = "X-RateLimit-Reset"
 )
 
 type limitType uint8
 
 const (
-	limitRate   limitType = iota + 1 // rate
+	limitIngest limitType = iota + 1 // ingest
 	limitQuery                       // query
-	limitIngest                      // ingest
+	limitRate                        // rate
 )
 
 // LimitScope is the scope of a limit.
@@ -57,7 +56,6 @@ func limitScopeFromString(s string) (ls LimitScope, err error) {
 	default:
 		err = fmt.Errorf("unknown limit scope %q", s)
 	}
-
 	return ls, err
 }
 
@@ -80,21 +78,21 @@ type Limit struct {
 
 // String returns a string representation of the rate.
 //
-// It implements `Stringer`.
+// It implements `fmt.Stringer`.
 func (l Limit) String() string {
-	return fmt.Sprintf("%d/%d remaining until %s", l.Remaining, l.Limit, l.Reset)
+	return fmt.Sprintf("%d/%d %s remaining until %s", l.Remaining, l.Limit, l.limitType, l.Reset)
 }
 
 // parseLimit parses the limit related headers from a `*http.Response`.
 func parseLimit(r *http.Response) Limit {
 	var limit Limit
-	if strings.HasSuffix(r.Request.URL.Path, "/ingest") {
+	if hasHeaders(r, headerIngestLimit, headerIngestRemaining, headerIngestReset) {
 		limit = parseLimitFromHeaders(r, "", headerIngestLimit, headerIngestRemaining, headerIngestReset)
 		limit.limitType = limitIngest
-	} else if strings.HasSuffix(r.Request.URL.Path, "/query") || strings.HasSuffix(r.Request.URL.Path, "/_apl") {
+	} else if hasHeaders(r, headerQueryLimit, headerQueryRemaining, headerQueryReset) {
 		limit = parseLimitFromHeaders(r, "", headerQueryLimit, headerQueryRemaining, headerQueryReset)
 		limit.limitType = limitQuery
-	} else {
+	} else if hasHeaders(r, headerRateScope, headerRateLimit, headerRateRemaining, headerRateReset) {
 		limit = parseLimitFromHeaders(r, headerRateScope, headerRateLimit, headerRateRemaining, headerRateReset)
 		limit.limitType = limitRate
 	}
@@ -119,4 +117,14 @@ func parseLimitFromHeaders(r *http.Response, headerScope, headerLimit, headerRem
 		}
 	}
 	return limit
+}
+
+// hasHeaders returns true if the response has all the given headers populated.
+func hasHeaders(r *http.Response, headers ...string) bool {
+	for _, header := range headers {
+		if r.Header.Get(header) == "" {
+			return false
+		}
+	}
+	return true
 }

@@ -14,7 +14,6 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -70,10 +69,6 @@ type Client struct {
 	noEnv          bool
 	noLimiting     bool
 
-	// Rate limit for the client as determined by the most recent API call.
-	limits   map[string]Limit
-	limitsMu sync.Mutex
-
 	// Services for communicating with different parts of the GitHub API.
 	Datasets      *DatasetsService
 	Organizations *OrganizationsService
@@ -104,8 +99,6 @@ func NewClient(options ...Option) (*Client, error) {
 		userAgent: "axiom-go",
 
 		httpClient: DefaultHTTPClient(),
-
-		limits: make(map[string]Limit),
 	}
 
 	// Try to get module version to include in the user agent.
@@ -276,19 +269,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 // do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
-// If the rate limit is exceeded and reset time is in the future, it returns
-// `*LimitError` immediately without making an API call.
 func (c *Client) do(req *http.Request, v any) (*response, error) {
-	// If we've hit the rate limit, don't make further requests before
-	// the reset time.
-	if err := c.checkLimit(req); err != nil {
-		return &response{
-			Response: err.response,
-
-			Limit: err.Limit,
-		}, err
-	}
-
 	bck := backoff.NewExponentialBackOff()
 	bck.InitialInterval = 200 * time.Millisecond
 	bck.Multiplier = 2.0
@@ -321,10 +302,6 @@ func (c *Client) do(req *http.Request, v any) (*response, error) {
 	if err != nil {
 		return resp, err
 	}
-
-	c.limitsMu.Lock()
-	c.limits[resp.Limit.limitType.String()] = resp.Limit
-	c.limitsMu.Unlock()
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		// Handle a generic HTTP error if the response is not JSON formatted.
@@ -398,49 +375,4 @@ func (c *Client) do(req *http.Request, v any) (*response, error) {
 	}
 
 	return resp, nil
-}
-
-// checkLimit checks if *LimitError can be immediately returned from
-// `Client.do`, and if so, returns it so that `Client.do` can skip making an API
-// call unnecessarily.
-func (c *Client) checkLimit(req *http.Request) *LimitError {
-	if !c.noLimiting {
-		return nil
-	}
-
-	var lt limitType
-	if strings.HasSuffix(req.URL.Path, "/ingest") {
-		lt = limitIngest
-	} else if strings.HasSuffix(req.URL.Path, "/query") || strings.HasSuffix(req.URL.Path, "/_apl") {
-		lt = limitQuery
-	} else {
-		return nil
-	}
-
-	c.limitsMu.Lock()
-	defer c.limitsMu.Unlock()
-
-	limit, ok := c.limits[lt.String()]
-	if !ok {
-		return nil
-	}
-
-	if !limit.Reset.IsZero() && limit.Remaining == 0 && time.Now().Before(limit.Reset) {
-		// Create a fake response.
-		resp := &http.Response{
-			Status:     http.StatusText(http.StatusTooManyRequests),
-			StatusCode: http.StatusTooManyRequests,
-			Request:    req,
-			Header:     make(http.Header),
-			Body:       io.NopCloser(strings.NewReader("")),
-		}
-		return &LimitError{
-			Limit:   limit,
-			Message: fmt.Sprintf("%s limit exceeded, not making remote request", lt.String()),
-
-			response: resp,
-		}
-	}
-
-	return nil
 }
