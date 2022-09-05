@@ -8,14 +8,14 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[limitRate-1]
+	_ = x[limitIngest-1]
 	_ = x[limitQuery-2]
-	_ = x[limitIngest-3]
+	_ = x[limitRate-3]
 }
 
-const _limitType_name = "ratequeryingest"
+const _limitType_name = "ingestqueryrate"
 
-var _limitType_index = [...]uint8{0, 4, 9, 15}
+var _limitType_index = [...]uint8{0, 6, 11, 15}
 
 func (i limitType) String() string {
 	i -= 1

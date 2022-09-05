@@ -507,110 +507,6 @@ func TestClient_do_RateLimit(t *testing.T) {
 	assert.Equal(t, expErr.Limit, resp.Limit)
 }
 
-func TestClient_do_IngestLimit_ShortCircuit(t *testing.T) {
-	// Truncated time for testing as the `Error()` method for the `LimitError`
-	// uses `time.Until()` which will yield different milliseconds when
-	// comparing the time values on `errors.Is()`.
-	reset := time.Now().Add(time.Hour).Truncate(time.Second)
-
-	expErr := &LimitError{
-		Limit: Limit{
-			Limit:     1000,
-			Remaining: 0,
-			Reset:     reset,
-
-			limitType: limitIngest,
-		},
-		Message: "ingest limit exceeded, not making remote request",
-	}
-
-	var exceeded bool
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set(headerIngestLimit, "1000")
-		w.Header().Set(headerIngestRemaining, "0")
-		w.Header().Set(headerIngestReset, strconv.FormatInt(reset.Unix(), 10))
-
-		if !exceeded {
-			_, _ = w.Write([]byte(`{"status":"ok"}`))
-		} else {
-			w.WriteHeader(http.StatusTooManyRequests)
-			assert.NoError(t, json.NewEncoder(w).Encode(Error{
-				Message: "rate limit exceeded",
-			}))
-		}
-		exceeded = true
-	}
-
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
-
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
-	require.NoError(t, err)
-
-	// First request should succeed with no rate limit remaining.
-	resp, err := client.do(req, nil)
-	require.NoError(t, err)
-
-	assert.EqualValues(t, "", resp.Limit.Scope.String()) // Ingest limit has no scope.
-	assert.EqualValues(t, 1000, resp.Limit.Limit)
-	assert.EqualValues(t, 0, resp.Limit.Remaining)
-	assert.EqualValues(t, reset, resp.Limit.Reset)
-	assert.Equal(t, limitIngest, resp.Limit.limitType)
-
-	// Second request should short circuit as the client is aware that there is
-	// no rate remaining.
-	resp, err = client.do(req, nil)
-	if assert.ErrorIs(t, err, expErr) {
-		assert.EqualError(t, err, "ingest limit exceeded, not making remote request: try again in 59m59s")
-	}
-	assert.Equal(t, expErr.Limit, resp.Limit)
-}
-
-func TestClient_do_RateLimit_NoLimiting(t *testing.T) {
-	// Truncated time for testing as the `Error()` method for the `LimitError`
-	// uses `time.Until()` which will yield different milliseconds when
-	// comparing the time values on `errors.Is()`.
-	reset := time.Now().Add(time.Hour).Truncate(time.Second)
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set(headerRateScope, "anonymous")
-		w.Header().Set(headerRateLimit, "1000")
-		w.Header().Set(headerRateRemaining, "0")
-		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
-
-		_, _ = w.Write([]byte(`{"status":"ok"}`))
-	}
-
-	client, teardown := setup(t, "/", hf, SetNoLimiting())
-	defer teardown()
-
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
-	require.NoError(t, err)
-
-	// First request should succeed with no rate limit remaining.
-	resp, err := client.do(req, nil)
-	require.NoError(t, err)
-
-	assert.EqualValues(t, "anonymous", resp.Limit.Scope.String())
-	assert.EqualValues(t, 1000, resp.Limit.Limit)
-	assert.EqualValues(t, 0, resp.Limit.Remaining)
-	assert.EqualValues(t, reset, resp.Limit.Reset)
-	assert.Equal(t, limitRate, resp.Limit.limitType)
-
-	// Second request should succeed as well as there is no client side limiting
-	// happening.
-	resp, err = client.do(req, nil)
-	require.NoError(t, err)
-
-	assert.EqualValues(t, "anonymous", resp.Limit.Scope.String())
-	assert.EqualValues(t, 1000, resp.Limit.Limit)
-	assert.EqualValues(t, 0, resp.Limit.Remaining)
-	assert.EqualValues(t, reset, resp.Limit.Reset)
-	assert.Equal(t, limitRate, resp.Limit.limitType)
-}
-
 func TestClient_do_UnprivilegedToken(t *testing.T) {
 	client, teardown := setup(t, "/", nil)
 	defer teardown()
@@ -762,7 +658,7 @@ func TestAPITokenPathRegex(t *testing.T) {
 // setup sets up a test HTTP server along with a client that is configured to
 // talk to that test server. Tests should pass a handler function which provides
 // the response for the API method being tested.
-func setup(t *testing.T, path string, handler http.HandlerFunc, options ...Option) (*Client, func()) {
+func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()) {
 	t.Helper()
 
 	r := http.NewServeMux()
@@ -782,17 +678,14 @@ func setup(t *testing.T, path string, handler http.HandlerFunc, options ...Optio
 	}))
 	srv := httptest.NewServer(r)
 
-	clientOptions := []Option{
+	client, err := NewClient(
 		SetURL(srv.URL),
 		SetAccessToken(personalToken),
 		SetOrgID(orgID),
 		SetClient(srv.Client()),
 		SetStrictDecoding(true),
 		SetNoEnv(),
-	}
-	clientOptions = append(clientOptions, options...)
-
-	client, err := NewClient(clientOptions...)
+	)
 	require.NoError(t, err)
 
 	return client, func() { srv.Close() }

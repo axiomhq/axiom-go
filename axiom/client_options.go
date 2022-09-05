@@ -99,12 +99,3 @@ func SetNoEnv() Option {
 		return nil
 	}
 }
-
-// SetNoLimiting prevents the client from performing client side request
-// limting.
-func SetNoLimiting() Option {
-	return func(c *Client) error {
-		c.noLimiting = true
-		return nil
-	}
-}
