@@ -22,6 +22,7 @@ jobs:
           - apl
           - ingestevent
           - ingestfile
+          # - ingesthackernews # HINT(lukasmalkmus): We do not test this example as it takes too long!
           - logrus
           - query
           - zap

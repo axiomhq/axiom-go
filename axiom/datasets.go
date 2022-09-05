@@ -239,8 +239,9 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 	return &res, nil
 }
 
-// Ingest data into the dataset identified by its id. Restrictions for field
-// names (JSON object keys) can be reviewed here:
+// Ingest data into the dataset identified by its id.
+//
+// Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
 	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
@@ -277,6 +278,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 }
 
 // IngestEvents ingests events into the dataset identified by its id.
+//
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
@@ -302,6 +304,60 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 			encErr error
 		)
 		for _, event := range events {
+			if encErr = enc.Encode(event); encErr != nil {
+				break
+			}
+		}
+
+		if closeErr := zsw.Close(); encErr == nil {
+			// If we have no error from encoding but from closing, capture that
+			// one.
+			encErr = closeErr
+		}
+		_ = pw.CloseWithError(encErr)
+	}()
+
+	req, err := s.client.newRequest(ctx, http.MethodPost, path, pr)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", NDJSON.String())
+	req.Header.Set("Content-Encoding", Zstd.String())
+
+	var res IngestStatus
+	if _, err = s.client.do(req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// IngestChannel ingests events from a channel into the dataset identified by
+// its id. As it keeps a connection open until the channel is closed, it is not
+// advised to use this method for long-running ingestions.
+//
+// Restrictions for field names (JSON object keys) can be reviewed here:
+// https://www.axiom.co/docs/usage/field-restrictions.
+func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, opts IngestOptions) (*IngestStatus, error) {
+	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	pr, pw := io.Pipe()
+	go func() {
+		zsw, wErr := zstd.NewWriter(pw)
+		if wErr != nil {
+			_ = pw.CloseWithError(wErr)
+			return
+		}
+
+		var (
+			enc    = json.NewEncoder(zsw)
+			encErr error
+		)
+		for event := range events {
 			if encErr = enc.Encode(event); encErr != nil {
 				break
 			}

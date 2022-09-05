@@ -1,5 +1,12 @@
 # Examples
 
+This directory contains examples that showcase the usage of Axiom Go. Each
+example is a self-contained Go package that can be run with `go run`:
+
+```shell
+go run ./{example}
+```
+
 ## Before you start
 
 Axiom Go and the Adapters automatically pick up their configuration from the
@@ -7,6 +14,13 @@ environment, if not otherwise specified. To learn more about configuration,
 check the [Documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go).
 
 To quickstart, export the environment variables below.
+
+💡 _If you have the [Axiom CLI](https://direnv.net/) installed and are
+logged in, you can easily export most of the required environment variables:_
+
+```shell
+eval $(axiom config export -f)
+```
 
 ### When using Axiom Cloud
 
@@ -32,6 +46,8 @@ To quickstart, export the environment variables below.
 - [ingestevent](ingestevent/main.go): How to ingest events into Axiom.
 - [ingestfile](ingestfile/main.go): How to ingest the contents of a file into
   Axiom and compress them on the fly.
+- [ingesthackernews](ingesthackernews/main.go): How to ingest the contents of
+  Hacker News into Axiom.
 - [query](query/main.go): How to query a dataset using the datatypes provided by
   Axiom Go.
 

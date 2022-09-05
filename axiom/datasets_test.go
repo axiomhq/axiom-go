@@ -502,6 +502,79 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestDatasetsService_IngestChannel(t *testing.T) {
+	exp := &IngestStatus{
+		Ingested:       2,
+		Failed:         0,
+		Failures:       []*IngestFailure{},
+		ProcessedBytes: 630,
+		BlocksCreated:  0,
+		WALLength:      2,
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		assertValidJSON(t, zsr)
+		zsr.Close()
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err = fmt.Fprint(w, `{
+			"ingested": 2,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client, teardown := setup(t, "/api/v1/datasets/test/ingest", hf)
+	defer teardown()
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	eventCh := make(chan Event)
+	go func() {
+		for _, e := range events {
+			eventCh <- e
+		}
+		close(eventCh)
+	}()
+
+	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh, IngestOptions{})
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 // TODO(lukasmalkmus): Write an ingest test that contains some failures in the
 // server response.
 
@@ -637,17 +710,14 @@ func TestDetectContentType(t *testing.T) {
 	}
 }
 
-func assertValidJSON(t *testing.T, r io.Reader) bool {
+func assertValidJSON(t *testing.T, r io.Reader) {
 	dec := json.NewDecoder(r)
+	var v interface{}
 	for dec.More() {
-		var v interface{}
-		if err := dec.Decode(&v); !assert.NoError(t, err) {
-			return false
-		} else if !assert.NotEmpty(t, v) {
-			return false
-		}
+		err := dec.Decode(&v)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, v)
 	}
-	return true
 }
 
 func parseTimeOrPanic(value string) time.Time {
