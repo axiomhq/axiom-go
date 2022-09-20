@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/axiomhq/axiom-go/adapters"
 	adapter "github.com/axiomhq/axiom-go/adapters/zap"
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/test/adapters"
 )
 
 func Test(t *testing.T) {
-	adapters.TestAdapter(t, "zap", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.Test(t, "zap", func(_ context.Context, dataset string, client *axiom.Client) {
 		core, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),

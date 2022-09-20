@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 func TestOptions_optionsFromURLValues(t *testing.T) {
@@ -48,8 +49,8 @@ func TestOptions_urlValues(t *testing.T) {
 				},
 			},
 		},
-		MinStartTime: mustTimeParse(t, time.RFC3339, "2022-01-01T00:00:00Z"),
-		MaxEndTime:   mustTimeParse(t, time.RFC3339, "2023-01-01T00:00:00Z"),
+		MinStartTime: testhelper.MustTimeParse(t, time.RFC3339, "2022-01-01T00:00:00Z"),
+		MaxEndTime:   testhelper.MustTimeParse(t, time.RFC3339, "2023-01-01T00:00:00Z"),
 	}
 
 	q, err := options.urlValues()
@@ -90,12 +91,12 @@ func TestOptions_validate(t *testing.T) {
 	err = options.validate()
 	assert.EqualError(t, err, "minimum start time is required")
 
-	options.MinStartTime = mustTimeParse(t, time.RFC3339, "2022-01-01T00:00:00Z")
+	options.MinStartTime = testhelper.MustTimeParse(t, time.RFC3339, "2022-01-01T00:00:00Z")
 
 	err = options.validate()
 	assert.EqualError(t, err, "maximum end time is required")
 
-	options.MaxEndTime = mustTimeParse(t, time.RFC3339, "2023-01-01T00:00:00Z")
+	options.MaxEndTime = testhelper.MustTimeParse(t, time.RFC3339, "2023-01-01T00:00:00Z")
 
 	err = options.validate()
 	assert.NoError(t, err)

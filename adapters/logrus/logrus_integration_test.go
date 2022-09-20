@@ -9,13 +9,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/adapters"
 	adapter "github.com/axiomhq/axiom-go/adapters/logrus"
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/test/adapters"
 )
 
 func Test(t *testing.T) {
-	adapters.TestAdapter(t, "logrus", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.Test(t, "logrus", func(_ context.Context, dataset string, client *axiom.Client) {
 		hook, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),

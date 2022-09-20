@@ -10,18 +10,16 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
-	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/klauspost/compress/gzhttp"
-)
 
-// CloudURL is the url of the cloud hosted version of Axiom.
-const CloudURL = "https://cloud.axiom.co"
+	"github.com/axiomhq/axiom-go/internal/config"
+	"github.com/axiomhq/axiom-go/internal/version"
+)
 
 const (
 	headerAuthorization  = "Authorization"
@@ -59,9 +57,7 @@ func DefaultHTTPClient() *http.Client {
 
 // Client provides the Axiom HTTP API operations.
 type Client struct {
-	baseURL     *url.URL
-	accessToken string
-	orgID       string
+	config config.Config
 
 	httpClient     *http.Client
 	userAgent      string
@@ -96,19 +92,16 @@ type Client struct {
 // the settings or user profile page on Axiom.
 func NewClient(options ...Option) (*Client, error) {
 	client := &Client{
+		config: config.Default(),
+
 		userAgent: "axiom-go",
 
 		httpClient: DefaultHTTPClient(),
 	}
 
-	// Try to get module version to include in the user agent.
-	if info, ok := debug.ReadBuildInfo(); ok {
-		for _, dep := range info.Deps {
-			if dep.Path == "github.com/axiomhq/axiom-go" {
-				client.userAgent += fmt.Sprintf("/%s", dep.Version)
-				break
-			}
-		}
+	// Include module version to in the user agent.
+	if v := version.Get(); v != "" {
+		client.userAgent += fmt.Sprintf("/%s", v)
 	}
 
 	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
@@ -120,8 +113,15 @@ func NewClient(options ...Option) (*Client, error) {
 		return nil, err
 	}
 
-	// Make sure to populate remaining fields from the environment or fail.
-	return client, client.populateClientFromEnvironment()
+	// Make sure to populate remaining fields from the environment, if not
+	// explicitly disabled.
+	if !client.noEnv {
+		if err := client.config.IncorporateEnvironment(); err != nil {
+			return nil, err
+		}
+	}
+
+	return client, client.config.Validate()
 }
 
 // Options applies Options to the Client.
@@ -137,7 +137,7 @@ func (c *Client) Options(options ...Option) error {
 // ValidateCredentials makes sure the client can properly authenticate against
 // the configured Axiom deployment.
 func (c *Client) ValidateCredentials(ctx context.Context) error {
-	if IsPersonalToken(c.accessToken) {
+	if config.IsPersonalToken(c.config.AccessToken()) {
 		_, err := c.Users.Current(ctx)
 		return err
 	}
@@ -146,55 +146,6 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 	// token is valid.
 	// return ErrInvalidToken
 	return nil
-}
-
-// populateClientFromEnvironment populates the client with values from the
-// environment. It omits properties that have already been set by user options.
-func (c *Client) populateClientFromEnvironment() (err error) {
-	var (
-		deploymentURL = os.Getenv("AXIOM_URL")
-		accessToken   = os.Getenv("AXIOM_TOKEN")
-		orgID         = os.Getenv("AXIOM_ORG_ID")
-
-		options   = make([]Option, 0)
-		addOption = func(option Option) {
-			options = append(options, option)
-		}
-	)
-
-	// When the base url is not set, use `AXIOM_URL` or default to the Axiom
-	// Cloud url.
-	if c.baseURL == nil {
-		if deploymentURL == "" || c.noEnv {
-			deploymentURL = CloudURL
-		}
-		addOption(SetURL(deploymentURL))
-	}
-
-	// When the access token is not set, use `AXIOM_TOKEN`.
-	if c.accessToken == "" {
-		if accessToken == "" || c.noEnv {
-			return ErrMissingAccessToken
-		}
-		addOption(SetAccessToken(accessToken))
-	}
-
-	// When the organization ID is not set, use `AXIOM_ORG_ID`. In case the url
-	// is the Axiom Cloud url and the access token is a personal token, the
-	// organization ID is explicitly required and an error is returned, if it is
-	// not set.
-	cloudURLSetByOption := c.baseURL != nil && c.baseURL.String() == CloudURL
-	cloudURLSetByEnvironment := deploymentURL == CloudURL
-	cloudURLSet := cloudURLSetByOption || cloudURLSetByEnvironment
-	isPersonalToken := IsPersonalToken(c.accessToken) || IsPersonalToken(accessToken)
-	if c.orgID == "" && isPersonalToken {
-		if (orgID == "" && cloudURLSet) || (c.noEnv && cloudURLSet) {
-			return ErrMissingOrganizationID
-		} else if !c.noEnv {
-			addOption(SetOrgID(orgID))
-		}
-	}
-	return c.Options(options...)
 }
 
 // call creates a new API request and executes it. The response body is JSON
@@ -217,9 +168,9 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 	if err != nil {
 		return nil, err
 	}
-	u := c.baseURL.ResolveReference(rel)
+	endpoint := c.config.BaseURL().ResolveReference(rel)
 
-	if IsAPIToken(c.accessToken) && !validOnlyAPITokenPaths.MatchString(u.Path) {
+	if config.IsAPIToken(c.config.AccessToken()) && !validOnlyAPITokenPaths.MatchString(endpoint.Path) {
 		return nil, ErrUnprivilegedToken
 	}
 
@@ -237,7 +188,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, u.String(), r)
+	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), r)
 	if err != nil {
 		return nil, err
 	}
@@ -250,13 +201,13 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 	}
 
 	// Set authorization header, if present.
-	if c.accessToken != "" {
-		req.Header.Set(headerAuthorization, "Bearer "+c.accessToken)
+	if c.config.AccessToken() != "" {
+		req.Header.Set(headerAuthorization, "Bearer "+c.config.AccessToken())
 	}
 
 	// Set organization ID header when using a personal token.
-	if IsPersonalToken(c.accessToken) && c.orgID != "" {
-		req.Header.Set(headerOrganizationID, c.orgID)
+	if config.IsPersonalToken(c.config.AccessToken()) && c.config.OrganizationID() != "" {
+		req.Header.Set(headerOrganizationID, c.config.OrganizationID())
 	}
 
 	// Set other headers.

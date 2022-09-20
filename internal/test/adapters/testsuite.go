@@ -13,8 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/config"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
+// TODO(lukasmalkmus): Use internal/config.
 var (
 	accessToken   = os.Getenv("AXIOM_TOKEN")
 	orgID         = os.Getenv("AXIOM_ORG_ID")
@@ -27,15 +30,15 @@ var (
 // adapter to be tested as well as the target dataset.
 type TestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 
-// TestAdapter tests the given adapter with the given test function. It takes
-// care of setting up all surroundings for the test.
-func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
+// Test tests the given adapter with the given test function. It takes care of
+// setting up all surroundings for the test.
+func Test(t *testing.T, adapterName string, testFunc TestFunc) {
 	t.Helper()
 
 	// Clear the environment to avoid unexpected behavior.
-	SafeClearEnv(t)
+	testhelper.SafeClearEnv(t)
 
-	if accessToken == "" || !axiom.IsPersonalToken(accessToken) {
+	if accessToken == "" || !config.IsPersonalToken(accessToken) {
 		t.Fatal("adapter integration test needs a personal access token set")
 	}
 	if deploymentURL == "" {
@@ -57,7 +60,7 @@ func TestAdapter(t *testing.T, adapterName string, testFunc TestFunc) {
 		axiom.SetNoEnv(),
 		axiom.SetURL(deploymentURL),
 		axiom.SetAccessToken(accessToken),
-		axiom.SetOrgID(orgID),
+		axiom.SetOrganizationID(orgID),
 		axiom.SetUserAgent(userAgent),
 	)
 	require.NoError(t, err)

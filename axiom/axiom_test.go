@@ -2,38 +2,19 @@ package axiom_test
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/config"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-//nolint:gosec // Chill bro, those are just for testing.
 const (
-	apiTokenStr         = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	personalTokenStr    = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	unspecifiedTokenStr = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	apiToken      = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	personalToken = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
 )
-
-func TestIsAPIToken(t *testing.T) {
-	assert.True(t, axiom.IsAPIToken(apiTokenStr))
-	assert.False(t, axiom.IsAPIToken(personalTokenStr))
-	assert.False(t, axiom.IsAPIToken(unspecifiedTokenStr))
-}
-
-func TestIsPersonalToken(t *testing.T) {
-	assert.False(t, axiom.IsPersonalToken(apiTokenStr))
-	assert.True(t, axiom.IsPersonalToken(personalTokenStr))
-	assert.False(t, axiom.IsPersonalToken(unspecifiedTokenStr))
-}
-
-func TestIsValidToken(t *testing.T) {
-	assert.True(t, axiom.IsValidToken(apiTokenStr))
-	assert.True(t, axiom.IsValidToken(personalTokenStr))
-	assert.False(t, axiom.IsValidToken(unspecifiedTokenStr))
-}
 
 func TestValidateEnvironment(t *testing.T) {
 	tests := []struct {
@@ -43,33 +24,46 @@ func TestValidateEnvironment(t *testing.T) {
 	}{
 		{
 			name: "no environment",
-			err:  axiom.ErrMissingAccessToken,
+			err:  config.ErrMissingAccessToken,
 		},
 		{
 			name: "bad environment",
 			environment: map[string]string{
 				"AXIOM_ORG_ID": "mycompany-1234",
 			},
-			err: axiom.ErrMissingAccessToken,
+			err: config.ErrMissingAccessToken,
 		},
 		{
 			name: "cloud environment",
 			environment: map[string]string{
-				"AXIOM_TOKEN":  personalTokenStr,
+				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": "mycompany-1234",
+			},
+		},
+		{
+			name: "cloud environment with api token",
+			environment: map[string]string{
+				"AXIOM_TOKEN": apiToken,
 			},
 		},
 		{
 			name: "selfhost environment",
 			environment: map[string]string{
 				"AXIOM_URL":   "https://axiom.internal.mycompany.org",
-				"AXIOM_TOKEN": personalTokenStr,
+				"AXIOM_TOKEN": personalToken,
+			},
+		},
+		{
+			name: "selfhost environment with api token",
+			environment: map[string]string{
+				"AXIOM_URL":   "https://axiom.internal.mycompany.org",
+				"AXIOM_TOKEN": apiToken,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			safeClearEnv(t)
+			testhelper.SafeClearEnv(t)
 
 			for k, v := range tt.environment {
 				os.Setenv(k, v)
@@ -79,17 +73,4 @@ func TestValidateEnvironment(t *testing.T) {
 			assert.Equal(t, tt.err, err)
 		})
 	}
-}
-
-// safeClearEnv clears the environment but restores it when the test finishes.
-func safeClearEnv(tb testing.TB) {
-	env := os.Environ()
-	os.Clearenv()
-	tb.Cleanup(func() {
-		os.Clearenv()
-		for _, e := range env {
-			pair := strings.SplitN(e, "=", 2)
-			os.Setenv(pair[0], pair[1])
-		}
-	})
 }

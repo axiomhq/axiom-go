@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 // HINT(lukasmalkmus): Most of the tests below just test against the "cloud"
@@ -23,18 +25,18 @@ func TestOrganizationsService_List(t *testing.T) {
 			Name:          "Axiom Industries Ltd",
 			Slug:          "",
 			Plan:          Basic,
-			PlanCreated:   mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+			PlanCreated:   testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			Trial:         false,
-			LastUsageSync: mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
+			LastUsageSync: testhelper.MustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
 			Role:          RoleAdmin,
 			PrimaryEmail:  "herb@axiom.sh",
 			License: License{
 				ID:              "98baf1f7-0b51-403f-abc1-2ee91972a225",
 				Issuer:          "console.dev.axiomtestlabs.co",
 				IssuedTo:        "testorg-9t84.LAMdQbdnHiGOYCKLp0",
-				IssuedAt:        mustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
-				ValidFrom:       mustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
-				ExpiresAt:       mustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
+				IssuedAt:        testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
+				ValidFrom:       testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
+				ExpiresAt:       testhelper.MustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
 				Tier:            Enterprise,
 				MonthlyIngestGB: 100,
 				MaxUsers:        50,
@@ -49,8 +51,8 @@ func TestOrganizationsService_List(t *testing.T) {
 				},
 				Error: "",
 			},
-			CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-			ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
+			CreatedAt:  testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+			ModifiedAt: testhelper.MustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 			Version:    "1615469248501218883",
 		},
 	}
@@ -114,18 +116,18 @@ func TestOrganizationsService_Get(t *testing.T) {
 		Name:          "Axiom Industries Ltd",
 		Slug:          "",
 		Plan:          Basic,
-		PlanCreated:   mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		PlanCreated:   testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Trial:         false,
-		LastUsageSync: mustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
+		LastUsageSync: testhelper.MustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
 		Role:          RoleAdmin,
 		PrimaryEmail:  "herb@axiom.sh",
 		License: License{
 			ID:              "98baf1f7-0b51-403f-abc1-2ee91972a225",
 			Issuer:          "console.dev.axiomtestlabs.co",
 			IssuedTo:        "testorg-9t84.LAMdQbdnHiGOYCKLp0",
-			IssuedAt:        mustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
-			ValidFrom:       mustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
-			ExpiresAt:       mustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
+			IssuedAt:        testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
+			ValidFrom:       testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
+			ExpiresAt:       testhelper.MustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
 			Tier:            Enterprise,
 			MonthlyIngestGB: 100,
 			MaxUsers:        50,
@@ -140,8 +142,8 @@ func TestOrganizationsService_Get(t *testing.T) {
 			},
 			Error: "",
 		},
-		CreatedAt:  mustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-		ModifiedAt: mustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
+		CreatedAt:  testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		ModifiedAt: testhelper.MustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 		Version:    "1615469248501218883",
 	}
 

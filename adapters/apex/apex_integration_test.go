@@ -9,13 +9,13 @@ import (
 	"github.com/apex/log"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/adapters"
 	adapter "github.com/axiomhq/axiom-go/adapters/apex"
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/test/adapters"
 )
 
 func Test(t *testing.T) {
-	adapters.TestAdapter(t, "apex", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.Test(t, "apex", func(_ context.Context, dataset string, client *axiom.Client) {
 		handler, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),

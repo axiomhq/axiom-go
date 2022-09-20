@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 var (
@@ -29,8 +30,8 @@ var (
 				Value:         "vercel",
 				CaseSensitive: true,
 			},
-			MinStartTime: mustTimeParse(t, time.RFC3339, "2022-01-01T00:00:00Z"),
-			MaxEndTime:   mustTimeParse(t, time.RFC3339, "2023-01-01T00:00:00Z"),
+			MinStartTime: testhelper.MustTimeParse(t, time.RFC3339, "2022-01-01T00:00:00Z"),
+			MaxEndTime:   testhelper.MustTimeParse(t, time.RFC3339, "2023-01-01T00:00:00Z"),
 		}
 	}
 )
@@ -101,10 +102,4 @@ func TestVerifyToken(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.True(t, ok)
-}
-
-func mustTimeParse(tb testing.TB, layout, value string) time.Time { //nolint:unparam // No need to optimitze this.
-	ts, err := time.Parse(layout, value)
-	require.NoError(tb, err)
-	return ts
 }

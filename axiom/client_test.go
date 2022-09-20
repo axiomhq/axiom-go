@@ -11,25 +11,24 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/internal/config"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 const (
-	endpoint = "http://axiom.local"
-	// apiToken is a placeholder API token.
-	apiToken = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	// personalToken is a placeholder personal token.
-	personalToken = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
-	// orgID is a placeholder organization id.
-	orgID = "awkward-identifier-c3po"
+	endpoint       = "http://axiom.local"
+	apiToken       = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	personalToken  = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
+	organizationID = "awkward-identifier-c3po"
 )
 
-var tokenRe = regexp.MustCompile("xa(a|p|)t-[a-zA-z0-9]{8}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{12}")
+var tokenRe = regexp.MustCompile("xa(a|p)t-[a-zA-z0-9]{8}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{4}-[a-zA-z0-9]{12}")
 
 // SetStrictDecoding is a special testing-only client option that - when set to
 // 'true' - failes JSON response decoding if fields not present in the
@@ -50,14 +49,14 @@ func TestNewClient(t *testing.T) {
 	}{
 		{
 			name: "no environment no options",
-			err:  ErrMissingAccessToken,
+			err:  config.ErrMissingAccessToken,
 		},
 		{
 			name: "no environment accessToken option",
 			options: []Option{
 				SetAccessToken(personalToken),
 			},
-			err: ErrMissingOrganizationID,
+			err: config.ErrMissingOrganizationID,
 		},
 		{
 			name: "no environment accessToken option with API token",
@@ -66,45 +65,45 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "orgID environment no options",
+			name: "organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_TOKEN": personalToken,
 			},
-			err: ErrMissingOrganizationID,
+			err: config.ErrMissingOrganizationID,
 		},
 		{
-			name: "orgID environment no options with API token",
+			name: "organizationID environment no options with API token",
 			environment: map[string]string{
 				"AXIOM_TOKEN": apiToken,
 			},
 		},
 		{
-			name: "no environment accessToken and orgID option",
+			name: "no environment accessToken and organizationID option",
 			options: []Option{
 				SetAccessToken(personalToken),
-				SetOrgID(orgID),
+				SetOrganizationID(organizationID),
 			},
 		},
 		{
-			name: "accessToken and orgID environment no options",
+			name: "accessToken and organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 		},
 		{
-			name: "accessToken environment orgID option",
+			name: "accessToken environment organizationID option",
 			environment: map[string]string{
 				"AXIOM_TOKEN": personalToken,
 			},
 			options: []Option{
-				SetOrgID(orgID),
+				SetOrganizationID(organizationID),
 			},
 		},
 		{
-			name: "orgID environment accessToken option",
+			name: "organizationID environment accessToken option",
 			environment: map[string]string{
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
 				SetAccessToken(personalToken),
@@ -125,82 +124,82 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "accessToken and orgID environment cloudUrl option",
+			name: "accessToken and organizationID environment cloudUrl option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
-				SetURL(CloudURL),
+				SetURL(config.CloudURL().String()),
 			},
 		},
 		{
-			name: "accessToken and orgID environment enhanced cloudUrl option",
+			name: "accessToken and organizationID environment enhanced cloudUrl option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
-				SetURL(CloudURL + "/"),
+				SetURL(config.CloudURL().String() + "/"),
 			},
 		},
 		{
-			name: "cloudUrl accessToken and orgID environment no options",
+			name: "cloudUrl accessToken and organizationID environment no options",
 			environment: map[string]string{
-				"AXIOM_URL":    CloudURL,
+				"AXIOM_URL":    config.CloudURL().String(),
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 		},
 		{
-			name: "enhanced cloudUrl, accessToken and orgID environment no options",
+			name: "enhanced cloudUrl, accessToken and organizationID environment no options",
 			environment: map[string]string{
-				"AXIOM_URL":    CloudURL + "/",
+				"AXIOM_URL":    config.CloudURL().String() + "/",
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 		},
 		{
-			name: "dev url, accessToken and orgID environment no options",
+			name: "dev url, accessToken and organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_URL":    "https://dev.axiom.co",
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 		},
 		{
-			name: "cloudUrl and accessToken environment orgID option",
+			name: "cloudUrl and accessToken environment organizationID option",
 			environment: map[string]string{
-				"AXIOM_URL":   CloudURL,
+				"AXIOM_URL":   config.CloudURL().String(),
 				"AXIOM_TOKEN": personalToken,
 			},
 			options: []Option{
-				SetOrgID(orgID),
+				SetOrganizationID(organizationID),
 			},
 		},
 		{
-			name: "accessToken and orgID environment noEnv option",
+			name: "accessToken and organizationID environment noEnv option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
-				"AXIOM_ORG_ID": orgID,
+				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
 				SetNoEnv(),
 			},
-			err: ErrMissingAccessToken,
+			err: config.ErrMissingAccessToken,
 		},
 		{
 			name: "no environment noEnv, cloudUrl and accessToken option with API token",
 			options: []Option{
 				SetNoEnv(),
-				SetURL(CloudURL),
+				SetURL(config.CloudURL().String()),
 				SetAccessToken(apiToken),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			safeClearEnv(t)
+			testhelper.SafeClearEnv(t)
 
 			for k, v := range tt.environment {
 				os.Setenv(k, v)
@@ -209,11 +208,9 @@ func TestNewClient(t *testing.T) {
 			client, err := NewClient(tt.options...)
 			if tt.err != nil {
 				assert.ErrorIs(t, err, tt.err)
-			} else {
-				if assert.NoError(t, err) {
-					assert.Regexp(t, tokenRe, client.accessToken)
-					assert.NotEmpty(t, client.baseURL)
-				}
+			} else if assert.NoError(t, err) {
+				assert.Regexp(t, tokenRe, client.config.AccessToken())
+				assert.NotEmpty(t, client.config.BaseURL())
 			}
 		})
 	}
@@ -228,9 +225,9 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.NotNil(t, client.Users)
 
 	// Is default configuration present?
-	assert.Equal(t, endpoint, client.baseURL.String())
-	assert.Equal(t, personalToken, client.accessToken)
-	assert.Empty(t, client.orgID)
+	assert.Equal(t, endpoint, client.config.BaseURL().String())
+	assert.Equal(t, personalToken, client.config.AccessToken())
+	assert.Empty(t, client.config.OrganizationID())
 	assert.NotNil(t, client.httpClient)
 	assert.NotEmpty(t, client.userAgent)
 	assert.False(t, client.strictDecoding)
@@ -247,7 +244,7 @@ func TestClient_Options_SetAccessToken(t *testing.T) {
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, client.accessToken)
+	assert.Equal(t, exp, client.config.AccessToken())
 }
 
 func TestClient_Options_SetClient(t *testing.T) {
@@ -267,25 +264,25 @@ func TestClient_Options_SetClient(t *testing.T) {
 func TestClient_Options_SetCloudConfig(t *testing.T) {
 	client := newClient(t)
 
-	opt := SetCloudConfig(personalToken, orgID)
+	opt := SetCloudConfig(personalToken, organizationID)
 
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, personalToken, client.accessToken)
-	assert.Equal(t, orgID, client.orgID)
+	assert.Equal(t, personalToken, client.config.AccessToken())
+	assert.Equal(t, organizationID, client.config.OrganizationID())
 }
 
-func TestClient_Options_SetOrgID(t *testing.T) {
+func TestClient_Options_SetOrganizationID(t *testing.T) {
 	client := newClient(t)
 
-	exp := orgID
-	opt := SetOrgID(exp)
+	exp := organizationID
+	opt := SetOrganizationID(exp)
 
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, client.orgID)
+	assert.Equal(t, exp, client.config.OrganizationID())
 }
 
 func TestClient_Options_SetSelfhostConfig(t *testing.T) {
@@ -296,8 +293,8 @@ func TestClient_Options_SetSelfhostConfig(t *testing.T) {
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, endpoint, client.baseURL.String())
-	assert.Equal(t, personalToken, client.accessToken)
+	assert.Equal(t, endpoint, client.config.BaseURL().String())
+	assert.Equal(t, personalToken, client.config.AccessToken())
 }
 
 func TestClient_Options_SetURL(t *testing.T) {
@@ -309,7 +306,7 @@ func TestClient_Options_SetURL(t *testing.T) {
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, client.baseURL.String())
+	assert.Equal(t, exp, client.config.BaseURL().String())
 }
 
 func TestClient_Options_SetUserAgent(t *testing.T) {
@@ -666,8 +663,8 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 		assert.NotEmpty(t, r.Header.Get("Authorization"), "no authorization header present on the request")
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Accept"), "bad accept header present on the request")
 		assert.Equal(t, "axiom-go", r.Header.Get("User-Agent"), "bad user-agent header present on the request")
-		if orgIDHeader := r.Header.Get("X-Axiom-Org-Id"); orgIDHeader != "" {
-			assert.Equal(t, orgID, orgIDHeader, "bad x-axiom-org-id header present on the request")
+		if organizationIDHeader := r.Header.Get("X-Axiom-Org-Id"); organizationIDHeader != "" {
+			assert.Equal(t, organizationID, organizationIDHeader, "bad x-axiom-org-id header present on the request")
 		}
 
 		if r.ContentLength > 0 {
@@ -681,7 +678,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	client, err := NewClient(
 		SetURL(srv.URL),
 		SetAccessToken(personalToken),
-		SetOrgID(orgID),
+		SetOrganizationID(organizationID),
 		SetClient(srv.Client()),
 		SetStrictDecoding(true),
 		SetNoEnv(),
@@ -704,23 +701,4 @@ func newClient(t *testing.T) *Client {
 	require.NoError(t, err)
 
 	return client
-}
-
-func mustTimeParse(tb testing.TB, layout, value string) time.Time {
-	ts, err := time.Parse(layout, value)
-	require.NoError(tb, err)
-	return ts
-}
-
-// safeClearEnv clears the environment but restores it when the test finishes.
-func safeClearEnv(tb testing.TB) {
-	env := os.Environ()
-	os.Clearenv()
-	tb.Cleanup(func() {
-		os.Clearenv()
-		for _, e := range env {
-			pair := strings.SplitN(e, "=", 2)
-			os.Setenv(pair[0], pair[1])
-		}
-	})
 }

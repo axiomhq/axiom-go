@@ -8,18 +8,6 @@ import (
 )
 
 var (
-	// ErrInvalidToken is returned when the access token is invalid.
-	ErrInvalidToken = errors.New("invalid access token")
-
-	// ErrMissingAccessToken is raised when an access token is not provided. Set
-	// it manually using the SetAccessToken option or export `AXIOM_TOKEN`.
-	ErrMissingAccessToken = errors.New("missing access token")
-
-	// ErrMissingOrganizationID is raised when an organization ID is not
-	// provided. Set it manually using the SetOrgID option or export
-	// `AXIOM_ORG_ID`.
-	ErrMissingOrganizationID = errors.New("missing organization id")
-
 	// ErrUnauthorized is raised when the user or token misses permissions to
 	// perform the requested operation.
 	ErrUnauthorized = errors.New("insufficient permissions")
