@@ -16,6 +16,7 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom/apl"
 	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 const actQueryResp = `{
@@ -201,7 +202,7 @@ func TestDatasetsService_List(t *testing.T) {
 			Name:        "test",
 			Description: "",
 			CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
-			CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
+			CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
 		},
 	}
 
@@ -235,7 +236,7 @@ func TestDatasetsService_Get(t *testing.T) {
 		Name:        "test",
 		Description: "This is a test description",
 		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
-		CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
+		CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -267,7 +268,7 @@ func TestDatasetsService_Create(t *testing.T) {
 		Name:        "test",
 		Description: "This is a test description",
 		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
-		CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -303,7 +304,7 @@ func TestDatasetsService_Update(t *testing.T) {
 		Name:        "test",
 		Description: "This is the new description",
 		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
-		CreatedAt:   mustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -598,8 +599,8 @@ func TestDatasetsService_Query(t *testing.T) {
 	defer teardown()
 
 	res, err := client.Datasets.Query(context.Background(), "test", query.Query{
-		StartTime: mustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
-		EndTime:   mustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
+		StartTime: testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
+		EndTime:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
 	}, query.Options{
 		StreamingDuration: time.Second,
 		NoCache:           true,

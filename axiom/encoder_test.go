@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/testdata"
+	"github.com/axiomhq/axiom-go/internal/test/testdata"
 )
 
 func TestGzipEncoder(t *testing.T) {
@@ -54,7 +54,7 @@ func TestZstdEncoder(t *testing.T) {
 func BenchmarkEncoder(b *testing.B) {
 	data := testdata.Load(b)
 
-	tests := []struct {
+	benchmarks := []struct {
 		name    string
 		encoder ContentEncoder
 	}{
@@ -67,10 +67,10 @@ func BenchmarkEncoder(b *testing.B) {
 			encoder: ZstdEncoder,
 		},
 	}
-	for _, tt := range tests {
-		b.Run(fmt.Sprintf("encoder=%s", tt.name), func(b *testing.B) {
+	for _, bb := range benchmarks {
+		b.Run(fmt.Sprintf("encoder=%s", bb.name), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				r, err := tt.encoder(bytes.NewReader(data))
+				r, err := bb.encoder(bytes.NewReader(data))
 				require.NoError(b, err)
 
 				n, err := io.Copy(io.Discard, r)

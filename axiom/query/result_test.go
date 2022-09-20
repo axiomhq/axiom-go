@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 func TestStatus(t *testing.T) {
@@ -77,8 +79,8 @@ func TestStatus_MarshalJSON(t *testing.T) {
 		IsPartial:         true,
 		ContinuationToken: "123",
 		IsEstimate:        true,
-		MinBlockTime:      mustTimeParse(t, time.RFC3339, "2022-08-15T10:55:53Z"),
-		MaxBlockTime:      mustTimeParse(t, time.RFC3339, "2022-08-15T11:55:53Z"),
+		MinBlockTime:      testhelper.MustTimeParse(t, time.RFC3339, "2022-08-15T10:55:53Z"),
+		MaxBlockTime:      testhelper.MustTimeParse(t, time.RFC3339, "2022-08-15T11:55:53Z"),
 		Messages: []Message{
 			{
 				Priority: Error,

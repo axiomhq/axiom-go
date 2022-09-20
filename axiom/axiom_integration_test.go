@@ -11,10 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 func TestValidateCredentials(t *testing.T) {
-	safeClearEnv(t)
+	testhelper.SafeClearEnv(t)
 
 	os.Setenv("AXIOM_TOKEN", accessToken)
 	os.Setenv("AXIOM_ORG_ID", orgID)

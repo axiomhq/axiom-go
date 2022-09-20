@@ -2,31 +2,19 @@ package axiom
 
 import (
 	"context"
-	"strings"
+
+	"github.com/axiomhq/axiom-go/internal/config"
 )
-
-// IsAPIToken returns true if the given access token is an API token.
-func IsAPIToken(token string) bool {
-	return strings.HasPrefix(token, "xaat-")
-}
-
-// IsPersonalToken returns true if the given access token is a personal token.
-func IsPersonalToken(token string) bool {
-	return strings.HasPrefix(token, "xapt-")
-}
-
-// IsValidToken returns true if the given access token is a valid Axiom access
-// token.
-func IsValidToken(token string) bool {
-	return IsAPIToken(token) || IsPersonalToken(token)
-}
 
 // ValidateEnvironment returns nil if the environment variables, needed to
 // configure a new Client, are present and syntactically valid. Otherwise, it
 // returns an appropriate error.
 func ValidateEnvironment() error {
-	var client Client
-	return client.populateClientFromEnvironment()
+	var cfg config.Config
+	if err := cfg.IncorporateEnvironment(); err != nil {
+		return err
+	}
+	return cfg.Validate()
 }
 
 // ValidateCredentials returns nil if the environment variables that configure a
