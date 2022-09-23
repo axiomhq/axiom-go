@@ -78,7 +78,7 @@ type Dataset struct {
 // TrimResult is the result of a trim operation.
 type TrimResult struct {
 	// BlocksDeleted is the amount of blocks deleted by the trim operation.
-	BlocksDeleted int `json:"numDeleted"`
+	BlocksDeleted int `json:"numDeleted"` // Deprecated: BlocksDeleted is deprecated and will be removed in the future.
 }
 
 // IngestStatus is the status after an event ingestion operation.
