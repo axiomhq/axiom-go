@@ -348,7 +348,7 @@ func TestDatasetsService_Delete(t *testing.T) {
 
 func TestDatasetsService_Trim(t *testing.T) {
 	exp := &TrimResult{
-		BlocksDeleted: 1,
+		BlocksDeleted: 0,
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -356,7 +356,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
-			"numDeleted": 1
+			"numDeleted": 0
 		}`)
 		assert.NoError(t, err)
 	}
