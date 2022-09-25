@@ -63,8 +63,7 @@ func TestHook(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, teardown := setup(t, hf)
-	defer teardown()
+	logger := setup(t, hf)
 
 	logger.
 		WithTime(now).
@@ -93,8 +92,7 @@ func TestHook_FlushFullBatch(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, teardown := setup(t, hf)
-	defer teardown()
+	logger := setup(t, hf)
 
 	for i := 0; i <= 1024; i++ {
 		logger.Info("my message")
@@ -117,12 +115,14 @@ func TestHook_FlushFullBatch(t *testing.T) {
 // configured to talk to that test server through an Axiom hook. Tests should
 // pass a handler function which provides the response for the API method being
 // tested.
-func setup(t *testing.T, h http.HandlerFunc) (*logrus.Logger, func()) {
+func setup(t *testing.T, hf http.HandlerFunc) *logrus.Logger {
 	t.Helper()
 
-	srv := httptest.NewServer(h)
+	srv := httptest.NewServer(hf)
+	t.Cleanup(srv.Close)
 
 	client, err := axiom.NewClient(
+		axiom.SetNoEnv(),
 		axiom.SetURL(srv.URL),
 		axiom.SetAccessToken("xaat-test"),
 		axiom.SetClient(srv.Client()),
@@ -134,6 +134,7 @@ func setup(t *testing.T, h http.HandlerFunc) (*logrus.Logger, func()) {
 		SetDataset("test"),
 	)
 	require.NoError(t, err)
+	t.Cleanup(hook.Close)
 
 	logger := logrus.New()
 	logger.AddHook(hook)
@@ -141,5 +142,5 @@ func setup(t *testing.T, h http.HandlerFunc) (*logrus.Logger, func()) {
 	// We don't want output in tests.
 	logger.Out = io.Discard
 
-	return logger, func() { hook.Close(); srv.Close() }
+	return logger
 }
