@@ -72,10 +72,11 @@ func TestCore(t *testing.T) {
 // setup sets up a test HTTP server along with a zap logger that is configured
 // to talk to that test server through an Axiom WriteSyncer. Tests should pass a
 // handler function which provides the response for the API method being tested.
-func setup(t *testing.T, h http.HandlerFunc) (*zap.Logger, func()) {
+func setup(t *testing.T, hf http.HandlerFunc) (*zap.Logger, func()) {
 	t.Helper()
 
-	srv := httptest.NewServer(h)
+	srv := httptest.NewServer(hf)
+	t.Cleanup(srv.Close)
 
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
@@ -93,8 +94,5 @@ func setup(t *testing.T, h http.HandlerFunc) (*zap.Logger, func()) {
 
 	logger := zap.New(core)
 
-	return logger, func() {
-		defer srv.Close()
-		require.NoError(t, logger.Sync())
-	}
+	return logger, func() { require.NoError(t, logger.Sync()) }
 }
