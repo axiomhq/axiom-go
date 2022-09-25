@@ -1,5 +1,4 @@
-// The purpose of this example is to show how to stream the contents of a JSON
-// logfile and gzip them on the fly.
+// The purpose of this example is to show how to send events to Axiom.
 package main
 
 import (

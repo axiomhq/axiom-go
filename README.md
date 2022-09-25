@@ -134,6 +134,42 @@ for _, fail := range res.Failures {
 }
 ```
 
+### OpenTelemetry
+
+To instrument your application with OpenTelemetry, you can use the `otel` helper
+package to configure the OpenTelemetry SDK to talk to Axiom.
+
+#### Traces
+
+```go
+// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` (when using a personal token) for
+// Axiom Cloud.
+// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost.
+
+import "github.com/axiomhq/axiom-go/axiom"
+
+// ...
+
+ctx := context.Background()
+
+// 1. Initialize OpenTelemetry.
+close, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0")
+if err != nil {
+	log.Fatal(err)
+}
+defer func() {
+	if err := close(); err != nil {
+		log.Fatal(err)
+	}
+}()
+
+// 2. Instrument ⚡
+tr := otel.Tracer("main")
+
+ctx, span := tr.Start(ctx, "foo")
+defer span.End()
+```
+
 For more sample code snippets, head over to the [examples](examples) directory.
 
 ## Documentation
