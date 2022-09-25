@@ -24,6 +24,7 @@ jobs:
           - ingestfile
           # - ingesthackernews # HINT(lukasmalkmus): We do not test this example as it takes too long!
           - logrus
+          - oteltraces
           - query
           - zap
         include:
@@ -46,6 +47,7 @@ jobs:
           - example: logrus
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+          - example: oteltraces
           - example: query
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json

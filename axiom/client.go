@@ -99,7 +99,7 @@ func NewClient(options ...Option) (*Client, error) {
 		httpClient: DefaultHTTPClient(),
 	}
 
-	// Include module version to in the user agent.
+	// Include module version in the user agent.
 	if v := version.Get(); v != "" {
 		client.userAgent += fmt.Sprintf("/%s", v)
 	}

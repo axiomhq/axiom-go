@@ -59,3 +59,8 @@ eval $(axiom config export -f)
   [Logrus](https://github.com/sirupsen/logrus) logging package.
 - [zap](zap/main.go): How to ship logs to Axiom using the popular
   [Zap](https://github.com/uber-go/zap) logging package.
+
+## OpenTelemetry usage
+
+- [oteltraces](oteltraces/main.go): How to ship traces to Axiom using the
+  OpenTelemetry Go SDK and the Axiom SDKs `otel` helper package.
