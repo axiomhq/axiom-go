@@ -16,7 +16,7 @@ import (
 )
 
 func Test(t *testing.T) {
-	adapters.Test(t, "zap", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.IntegrationTest(t, "zap", func(_ context.Context, dataset string, client *axiom.Client) {
 		core, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),
@@ -25,8 +25,8 @@ func Test(t *testing.T) {
 
 		logger := zap.New(core)
 		t.Cleanup(func() {
-			syncErr := logger.Sync()
-			assert.NoError(t, syncErr)
+			err := logger.Sync()
+			assert.NoError(t, err)
 		})
 
 		logger.Info("This is awesome!", zap.String("mood", "hyped"))

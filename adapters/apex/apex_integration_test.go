@@ -15,7 +15,7 @@ import (
 )
 
 func Test(t *testing.T) {
-	adapters.Test(t, "apex", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.IntegrationTest(t, "apex", func(_ context.Context, dataset string, client *axiom.Client) {
 		handler, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),
