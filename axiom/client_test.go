@@ -355,8 +355,7 @@ func TestClient_do(t *testing.T) {
 		_, _ = fmt.Fprint(w, `{"A":"a"}`)
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	type foo struct {
 		A string
@@ -382,8 +381,7 @@ func TestClient_do_ioWriter(t *testing.T) {
 		_, _ = fmt.Fprint(w, content)
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -401,8 +399,7 @@ func TestClient_do_HTTPError(t *testing.T) {
 		_, _ = w.Write([]byte(http.StatusText(http.StatusBadRequest)))
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -425,8 +422,7 @@ func TestClient_do_HTTPError_JSON(t *testing.T) {
 		}))
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -449,8 +445,7 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 		}))
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -489,8 +484,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 		}))
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -505,8 +499,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 }
 
 func TestClient_do_UnprivilegedToken(t *testing.T) {
-	client, teardown := setup(t, "/", nil)
-	defer teardown()
+	client := setup(t, "/", nil)
 
 	err := client.Options(SetAccessToken("xaat-123"))
 	require.NoError(t, err)
@@ -520,8 +513,7 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -539,8 +531,7 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt, func(t *testing.T) {
-			client, teardown := setup(t, tt, hf)
-			defer teardown()
+			client := setup(t, tt, hf)
 
 			err := client.Options(SetAccessToken("xaat-123"))
 			require.NoError(t, err)
@@ -570,8 +561,7 @@ func TestClient_do_Backoff(t *testing.T) {
 		}
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -590,8 +580,7 @@ func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	client, teardown := setup(t, "/", hf)
-	defer teardown()
+	client := setup(t, "/", hf)
 
 	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -655,7 +644,7 @@ func TestAPITokenPathRegex(t *testing.T) {
 // setup sets up a test HTTP server along with a client that is configured to
 // talk to that test server. Tests should pass a handler function which provides
 // the response for the API method being tested.
-func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()) {
+func setup(t *testing.T, path string, handler http.HandlerFunc) *Client {
 	t.Helper()
 
 	r := http.NewServeMux()
@@ -673,7 +662,9 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 
 		handler.ServeHTTP(w, r)
 	}))
+
 	srv := httptest.NewServer(r)
+	t.Cleanup(srv.Close)
 
 	client, err := NewClient(
 		SetURL(srv.URL),
@@ -685,7 +676,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) (*Client, func()
 	)
 	require.NoError(t, err)
 
-	return client, func() { srv.Close() }
+	return client
 }
 
 // newClient returns a new client with stub properties for testing methods that

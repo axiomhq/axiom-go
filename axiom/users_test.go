@@ -34,8 +34,7 @@ func TestUsersService_Current(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client, teardown := setup(t, "/api/v1/user", hf)
-	defer teardown()
+	client := setup(t, "/api/v1/user", hf)
 
 	res, err := client.Users.Current(context.Background())
 	require.NoError(t, err)
