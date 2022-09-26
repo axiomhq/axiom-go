@@ -211,8 +211,6 @@ func (h *Hook) run(ctx context.Context, closeCh chan struct{}) {
 		h.ingest(ctx, events)
 
 		// Clear batch buffer.
-		// TODO(lukasmalkmus): In the future we might want to implement some
-		// kind of backoff and retry mechanism.
 		events = make([]axiom.Event, 0, batchSize)
 	}
 }
