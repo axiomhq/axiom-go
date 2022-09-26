@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/klauspost/compress/gzip"
+	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -44,10 +44,10 @@ func TestCore(t *testing.T) {
 
 	hasRun := false
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		gzr, err := gzip.NewReader(r.Body)
+		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		b, err := io.ReadAll(gzr)
+		b, err := io.ReadAll(zsr)
 		assert.NoError(t, err)
 
 		assert.JSONEq(t, exp, string(b))

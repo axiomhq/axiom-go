@@ -168,12 +168,12 @@ func (ws *WriteSyncer) Sync() error {
 	// Make sure to reset the buffer.
 	defer ws.buf.Reset()
 
-	r, err := axiom.GzipEncoder(&ws.buf)
+	r, err := axiom.ZstdEncoder(&ws.buf)
 	if err != nil {
 		return err
 	}
 
-	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Gzip, ws.ingestOptions)
+	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Zstd, ws.ingestOptions)
 	if err != nil {
 		return err
 	} else if res.Failed > 0 {
