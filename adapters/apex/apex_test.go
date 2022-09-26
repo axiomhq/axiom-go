@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"sync/atomic"
 	"testing"
@@ -18,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/test/adapters"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -64,7 +64,7 @@ func TestHandler(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := setup(t, hf)
+	logger := adapters.Setup(t, hf, setup(t))
 
 	logger.
 		WithField("key", "value").
@@ -92,7 +92,7 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := setup(t, hf)
+	logger := adapters.Setup(t, hf, setup(t))
 
 	for i := 0; i <= 1024; i++ {
 		logger.Info("my message")
@@ -111,37 +111,24 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 	assert.EqualValues(t, 1025, atomic.LoadUint64(&lines))
 }
 
-// setup sets up a test HTTP server along with a apex logger that is
-// configured to talk to that test server through an Axiom handler. Tests should
-// pass a handler function which provides the response for the API method being
-// tested.
-func setup(t *testing.T, hf http.HandlerFunc) *log.Logger {
-	t.Helper()
+func setup(t *testing.T) func(dataset string, client *axiom.Client) *log.Logger {
+	return func(dataset string, client *axiom.Client) *log.Logger {
+		t.Helper()
 
-	srv := httptest.NewServer(hf)
-	t.Cleanup(srv.Close)
+		handler, err := New(
+			SetClient(client),
+			SetDataset(dataset),
+		)
+		require.NoError(t, err)
+		t.Cleanup(handler.Close)
 
-	client, err := axiom.NewClient(
-		axiom.SetNoEnv(),
-		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xaat-test"),
-		axiom.SetClient(srv.Client()),
-	)
-	require.NoError(t, err)
+		logger := &log.Logger{
+			Handler: handler,
+			Level:   log.InfoLevel,
+		}
 
-	handler, err := New(
-		SetClient(client),
-		SetDataset("test"),
-	)
-	require.NoError(t, err)
-	t.Cleanup(handler.Close)
-
-	logger := &log.Logger{
-		Handler: handler,
-		Level:   log.InfoLevel,
+		return logger
 	}
-
-	return logger
 }
 
 // JSONEqExp is like assert.JSONEq() but excludes the given fields.

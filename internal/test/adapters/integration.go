@@ -17,33 +17,28 @@ import (
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-// TODO(lukasmalkmus): Use internal/config.
-var (
-	accessToken   = os.Getenv("AXIOM_TOKEN")
-	orgID         = os.Getenv("AXIOM_ORG_ID")
-	deploymentURL = os.Getenv("AXIOM_URL")
-	datasetSuffix = os.Getenv("AXIOM_DATASET_SUFFIX")
-)
+var datasetSuffix = os.Getenv("AXIOM_DATASET_SUFFIX")
 
-// TestFunc is a function that provides a client that is configured with an
-// API token for a unique test dataset. The client should be passed to the
-// adapter to be tested as well as the target dataset.
-type TestFunc func(ctx context.Context, dataset string, client *axiom.Client)
+// IntegrationTestFunc is a function that provides a client that is configured
+// with an API token for a unique test dataset. The client should be passed to
+// the adapter to be tested as well as the target dataset.
+type IntegrationTestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 
-// Test tests the given adapter with the given test function. It takes care of
-// setting up all surroundings for the test.
-func Test(t *testing.T, adapterName string, testFunc TestFunc) {
+// IntegrationTest tests the given adapter with the given test function. It
+// takes care of setting up all surroundings for the integration test.
+func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestFunc) {
 	t.Helper()
+
+	cfg := config.Default()
+	if err := cfg.IncorporateEnvironment(); err != nil {
+		t.Fatal(err)
+	} else if err = cfg.Validate(); err != nil {
+		t.Fatal(err)
+	}
 
 	// Clear the environment to avoid unexpected behavior.
 	testhelper.SafeClearEnv(t)
 
-	if accessToken == "" || !config.IsPersonalToken(accessToken) {
-		t.Fatal("adapter integration test needs a personal access token set")
-	}
-	if deploymentURL == "" {
-		t.Fatal("adapter integration test needs the deployment url set")
-	}
 	if adapterName == "" {
 		t.Fatal("adapter integration test needs the name of the adapter")
 	}
@@ -58,9 +53,9 @@ func Test(t *testing.T, adapterName string, testFunc TestFunc) {
 	userAgent := fmt.Sprintf("axiom-go-adapter-%s-integration-test/%s", adapterName, datasetSuffix)
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
-		axiom.SetURL(deploymentURL),
-		axiom.SetAccessToken(accessToken),
-		axiom.SetOrganizationID(orgID),
+		axiom.SetURL(cfg.BaseURL().String()),
+		axiom.SetAccessToken(cfg.AccessToken()),
+		axiom.SetOrganizationID(cfg.OrganizationID()),
 		axiom.SetUserAgent(userAgent),
 	)
 	require.NoError(t, err)
@@ -79,8 +74,8 @@ func Test(t *testing.T, adapterName string, testFunc TestFunc) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		teardownCtx := teardownContext(t, time.Second*15)
-		deleteErr := client.Datasets.Delete(teardownCtx, dataset.ID)
-		assert.NoError(t, deleteErr)
+		err := client.Datasets.Delete(teardownCtx, dataset.ID)
+		assert.NoError(t, err)
 	})
 
 	// Run the test function with the test client.

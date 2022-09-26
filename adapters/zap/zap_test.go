@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/internal/test/adapters"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -58,8 +58,23 @@ func TestCore(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, teardown := setup(t, hf)
-	defer teardown()
+	logger := adapters.Setup(t, hf, func(dataset string, client *axiom.Client) *zap.Logger {
+		t.Helper()
+
+		core, err := New(
+			SetClient(client),
+			SetDataset(dataset),
+		)
+		require.NoError(t, err)
+
+		logger := zap.New(core)
+		t.Cleanup(func() {
+			err := logger.Sync()
+			require.NoError(t, err)
+		})
+
+		return logger
+	})
 
 	// Timestamp field is set manually to make the JSONEq assertion pass.
 	logger.Info("my message", zap.String("key", "value"), zap.Time(axiom.TimestampField, now))
@@ -67,32 +82,4 @@ func TestCore(t *testing.T) {
 	require.NoError(t, logger.Sync())
 
 	assert.True(t, hasRun)
-}
-
-// setup sets up a test HTTP server along with a zap logger that is configured
-// to talk to that test server through an Axiom WriteSyncer. Tests should pass a
-// handler function which provides the response for the API method being tested.
-func setup(t *testing.T, hf http.HandlerFunc) (*zap.Logger, func()) {
-	t.Helper()
-
-	srv := httptest.NewServer(hf)
-	t.Cleanup(srv.Close)
-
-	client, err := axiom.NewClient(
-		axiom.SetNoEnv(),
-		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xaat-test"),
-		axiom.SetClient(srv.Client()),
-	)
-	require.NoError(t, err)
-
-	core, err := New(
-		SetClient(client),
-		SetDataset("test"),
-	)
-	require.NoError(t, err)
-
-	logger := zap.New(core)
-
-	return logger, func() { require.NoError(t, logger.Sync()) }
 }

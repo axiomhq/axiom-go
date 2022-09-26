@@ -15,7 +15,7 @@ import (
 )
 
 func Test(t *testing.T) {
-	adapters.Test(t, "logrus", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.IntegrationTest(t, "logrus", func(_ context.Context, dataset string, client *axiom.Client) {
 		hook, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),
