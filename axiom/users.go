@@ -81,7 +81,7 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 	path := "/api/v1/user"
 
 	var res User
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 

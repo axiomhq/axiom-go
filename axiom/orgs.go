@@ -179,7 +179,7 @@ type OrganizationsService service
 // List all available organizations.
 func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error) {
 	var res []*wrappedOrganization
-	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -196,7 +196,7 @@ func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organizatio
 	path := s.basePath + "/" + id
 
 	var res wrappedOrganization
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 

@@ -148,22 +148,22 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 	return nil
 }
 
-// call creates a new API request and executes it. The response body is JSON
+// Call creates a new API request and executes it. The response body is JSON
 // decoded or directly written to v, depending on v being an io.Writer or not.
-func (c *Client) call(ctx context.Context, method, path string, body, v any) error {
-	req, err := c.newRequest(ctx, method, path, body)
+func (c *Client) Call(ctx context.Context, method, path string, body, v any) error {
+	req, err := c.NewRequest(ctx, method, path, body)
 	if err != nil {
 		return err
-	} else if _, err = c.do(req, v); err != nil {
+	} else if _, err = c.Do(req, v); err != nil {
 		return err
 	}
 	return nil
 }
 
-// newRequest creates an API request. If specified, the value pointed to by body
+// NewRequest creates an API request. If specified, the value pointed to by body
 // will be included as the request body. If it is not an io.Reader, it will be
 // included as a JSON encoded request body.
-func (c *Client) newRequest(ctx context.Context, method, path string, body any) (*http.Request, error) {
+func (c *Client) NewRequest(ctx context.Context, method, path string, body any) (*http.Request, error) {
 	rel, err := url.ParseRequestURI(path)
 	if err != nil {
 		return nil, err
@@ -217,16 +217,16 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 	return req, nil
 }
 
-// do sends an API request and returns the API response. The response body is
+// Do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
-func (c *Client) do(req *http.Request, v any) (*response, error) {
+func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	bck := backoff.NewExponentialBackOff()
 	bck.InitialInterval = 200 * time.Millisecond
 	bck.Multiplier = 2.0
 	bck.MaxElapsedTime = 10 * time.Second
 
-	var resp *response
+	var resp *Response
 	err := backoff.Retry(func() error {
 		httpResp, err := c.httpClient.Do(req)
 		if err != nil {

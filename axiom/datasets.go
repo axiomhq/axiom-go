@@ -170,7 +170,7 @@ type DatasetsService service
 // List all available datasets.
 func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 	var res []*wrappedDataset
-	if err := s.client.call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -187,7 +187,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 	path := s.basePath + "/" + id
 
 	var res wrappedDataset
-	if err := s.client.call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, err
 	}
 
@@ -197,7 +197,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 // Create a dataset with the given properties.
 func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) (*Dataset, error) {
 	var res wrappedDataset
-	if err := s.client.call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, err
 	}
 
@@ -209,7 +209,7 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 	path := s.basePath + "/" + id
 
 	var res wrappedDataset
-	if err := s.client.call(ctx, http.MethodPut, path, req, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, err
 	}
 
@@ -218,7 +218,7 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 
 // Delete the dataset identified by the given id.
 func (s *DatasetsService) Delete(ctx context.Context, id string) error {
-	return s.client.call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
+	return s.client.Call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
 }
 
 // Trim the dataset identified by its id to a given length. The max duration
@@ -232,7 +232,7 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 	path := s.basePath + "/" + id + "/trim"
 
 	var res TrimResult
-	if err := s.client.call(ctx, http.MethodPost, path, req, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
 		return nil, err
 	}
 
@@ -244,12 +244,12 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
-	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, path, r)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 	}
 
 	var res IngestStatus
-	if _, err = s.client.do(req, &res); err != nil {
+	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, err
 	}
 
@@ -286,7 +286,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 		return &IngestStatus{}, nil
 	}
 
-	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 		_ = pw.CloseWithError(encErr)
 	}()
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, path, pr)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +326,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	req.Header.Set("Content-Encoding", Zstd.String())
 
 	var res IngestStatus
-	if _, err = s.client.do(req, &res); err != nil {
+	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, err
 	}
 
@@ -340,7 +340,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, opts IngestOptions) (*IngestStatus, error) {
-	path, err := addOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		_ = pw.CloseWithError(encErr)
 	}()
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, path, pr)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +380,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	req.Header.Set("Content-Encoding", Zstd.String())
 
 	var res IngestStatus
-	if _, err = s.client.do(req, &res); err != nil {
+	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, err
 	}
 
@@ -394,12 +394,12 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 			opts.SaveKind, query.Analytics, query.Stream)
 	}
 
-	path, err := addOptions(s.basePath+"/"+id+"/query", opts)
+	path, err := AddOptions(s.basePath+"/"+id+"/query", opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, path, q)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, q)
 	if err != nil {
 		return nil, err
 	}
@@ -409,9 +409,9 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 			query.Result
 			FieldsMeta any `json:"fieldsMeta"`
 		}
-		resp *response
+		resp *Response
 	)
-	if resp, err = s.client.do(req, &res); err != nil {
+	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, err
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
@@ -422,12 +422,12 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 // APLQuery executes the given query specified using the Axiom Processing
 // Language (APL).
 func (s *DatasetsService) APLQuery(ctx context.Context, q apl.Query, opts apl.Options) (*apl.Result, error) {
-	path, err := addOptions(s.basePath+"/_apl", opts)
+	path, err := AddOptions(s.basePath+"/_apl", opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, path, aplQueryRequest{
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
 		Query:     string(q),
 		StartTime: opts.StartTime,
 		EndTime:   opts.EndTime,
@@ -441,9 +441,9 @@ func (s *DatasetsService) APLQuery(ctx context.Context, q apl.Query, opts apl.Op
 			apl.Result
 			FieldsMeta any `json:"fieldsMetaMap"`
 		}
-		resp *response
+		resp *Response
 	)
-	if resp, err = s.client.do(req, &res); err != nil {
+	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, err
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
