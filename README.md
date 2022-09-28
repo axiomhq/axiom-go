@@ -146,7 +146,13 @@ package to configure the OpenTelemetry SDK to talk to Axiom.
 // Axiom Cloud.
 // Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost.
 
-import "github.com/axiomhq/axiom-go/axiom"
+import (
+	"log"
+
+	"go.opentelemetry.io/otel"
+
+	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
+)
 
 // ...
 
