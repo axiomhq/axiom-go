@@ -324,7 +324,7 @@ func TestClient_Options_SetUserAgent(t *testing.T) {
 func TestClient_newRequest_BadURL(t *testing.T) {
 	client := newClient(t)
 
-	_, err := client.newRequest(context.Background(), http.MethodGet, ":", nil)
+	_, err := client.NewRequest(context.Background(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
 
 	if assert.IsType(t, new(url.Error), err) {
@@ -341,7 +341,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 func TestClient_newRequest_EmptyBody(t *testing.T) {
 	client := newClient(t)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	assert.Empty(t, req.Body)
@@ -361,11 +361,11 @@ func TestClient_do(t *testing.T) {
 		A string
 	}
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	var body foo
-	_, err = client.do(req, &body)
+	_, err = client.Do(req, &body)
 	require.NoError(t, err)
 
 	assert.Equal(t, foo{"a"}, body)
@@ -383,11 +383,11 @@ func TestClient_do_ioWriter(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	var buf bytes.Buffer
-	_, err = client.do(req, &buf)
+	_, err = client.Do(req, &buf)
 	require.NoError(t, err)
 
 	assert.Equal(t, content, buf.String())
@@ -401,10 +401,10 @@ func TestClient_do_HTTPError(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	if _, err = client.do(req, nil); assert.ErrorIs(t, err, &Error{
+	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, &Error{
 		Status:  http.StatusBadRequest,
 		Message: http.StatusText(http.StatusBadRequest),
 	}) {
@@ -424,10 +424,10 @@ func TestClient_do_HTTPError_JSON(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	if _, err = client.do(req, nil); assert.ErrorIs(t, err, &Error{
+	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, &Error{
 		Status:  http.StatusBadRequest,
 		Message: "This is a Bad Request error",
 	}) {
@@ -447,10 +447,10 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	_, err = client.do(req, nil)
+	_, err = client.Do(req, nil)
 	assert.ErrorIs(t, err, ErrUnauthenticated)
 }
 
@@ -486,11 +486,11 @@ func TestClient_do_RateLimit(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	// Request should fail with a `*LimitError`.
-	resp, err := client.do(req, nil)
+	resp, err := client.Do(req, nil)
 
 	if assert.ErrorIs(t, err, expErr) {
 		assert.EqualError(t, err, "rate limit exceeded: try again in 59m59s")
@@ -504,7 +504,7 @@ func TestClient_do_UnprivilegedToken(t *testing.T) {
 	err := client.Options(SetAccessToken("xaat-123"))
 	require.NoError(t, err)
 
-	_, err = client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	_, err = client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.ErrorIs(t, err, ErrUnprivilegedToken)
 }
 
@@ -515,10 +515,10 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	_, err = client.do(req, nil)
+	_, err = client.Do(req, nil)
 	assert.IsType(t, new(url.Error), err)
 }
 
@@ -536,10 +536,10 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 			err := client.Options(SetAccessToken("xaat-123"))
 			require.NoError(t, err)
 
-			req, err := client.newRequest(context.Background(), http.MethodGet, tt, nil)
+			req, err := client.NewRequest(context.Background(), http.MethodGet, tt, nil)
 			require.Nil(t, err)
 
-			_, err = client.do(req, nil)
+			_, err = client.Do(req, nil)
 			require.NoError(t, err)
 		})
 	}
@@ -563,10 +563,10 @@ func TestClient_do_Backoff(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	resp, err := client.do(req, nil)
+	resp, err := client.Do(req, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, 4, currentCalls)
@@ -582,10 +582,10 @@ func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
 
 	client := setup(t, "/", hf)
 
-	req, err := client.newRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	resp, err := client.do(req, nil)
+	resp, err := client.Do(req, nil)
 	require.Error(t, err, "got status code 400")
 
 	assert.Equal(t, 1, currentCalls)
