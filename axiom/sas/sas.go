@@ -26,8 +26,6 @@ var tokenCodec = base64.URLEncoding
 // Create creates a shared access signature using the given signing key and
 // valid for the given options. The returned string is a query string that can
 // be attached to a URL.
-//
-// Shared access is only supported on Axiom Cloud.
 func Create(keyStr string, options Options) (string, error) {
 	token, err := CreateToken(keyStr, options)
 	if err != nil {
@@ -58,8 +56,6 @@ func Create(keyStr string, options Options) (string, error) {
 //
 // This function is only useful if the intention is to create the shared access
 // signature manually and without the help of `Create`.
-//
-// Shared access is only supported on Axiom Cloud.
 func CreateToken(keyStr string, options Options) (string, error) {
 	if err := options.validate(); err != nil {
 		return "", err

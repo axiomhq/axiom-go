@@ -14,7 +14,7 @@ type Config struct {
 	// the 'Authorization' header. It must be a personal or an API token.
 	accessToken string
 	// organizationID is the Axiom organization ID that will be set on the
-	// 'X-Axiom-Org-Id' header. Not required for API tokens or Axiom Selfhost.
+	// 'X-Axiom-Org-Id' header. Not required for API tokens.
 	organizationID string
 }
 
@@ -105,7 +105,7 @@ func (c Config) Validate() error {
 		return ErrInvalidToken
 	}
 
-	// The organization ID is not required for API tokens or Axiom Selfhost.
+	// The organization ID is not required for API tokens.
 	if c.organizationID == "" && IsPersonalToken(c.accessToken) && c.baseURL.String() == cloudURL.String() {
 		return ErrMissingOrganizationID
 	}

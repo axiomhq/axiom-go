@@ -3,8 +3,7 @@
 // capabilities to a dataset for a given time window and with a global filter
 // applied on behalf of an organization. A SAS is an URL query string composed
 // of a set of query parameters that make up the payload for a signature and the
-// signature itself. That signature is a SAT. Shared access is only supported on
-// Axiom Cloud.
+// cryptographic signature itself. That cryptographic signature is a SAT.
 //
 // To create a SAS string, that can be attached to a query request, use the
 // high-level `Create()` function. The returned string is an already url-encoded

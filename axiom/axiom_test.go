@@ -34,29 +34,15 @@ func TestValidateEnvironment(t *testing.T) {
 			err: config.ErrMissingAccessToken,
 		},
 		{
-			name: "cloud environment",
+			name: "good environment",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": "mycompany-1234",
 			},
 		},
 		{
-			name: "cloud environment with api token",
+			name: "good environment with api token",
 			environment: map[string]string{
-				"AXIOM_TOKEN": apiToken,
-			},
-		},
-		{
-			name: "selfhost environment",
-			environment: map[string]string{
-				"AXIOM_URL":   "https://axiom.internal.mycompany.org",
-				"AXIOM_TOKEN": personalToken,
-			},
-		},
-		{
-			name: "selfhost environment with api token",
-			environment: map[string]string{
-				"AXIOM_URL":   "https://axiom.internal.mycompany.org",
 				"AXIOM_TOKEN": apiToken,
 			},
 		},

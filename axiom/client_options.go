@@ -27,17 +27,17 @@ func SetAccessToken(accessToken string) Option {
 }
 
 // SetOrganizationID specifies the organization ID to use when connecting to
-// Axiom Cloud. When a personal access token is used, this method can be used to
-// switch between organizations without creating a new client instance.
+// Axiom. When a personal token is used, this method can be used to switch
+// between organizations without creating a new client instance.
 //
 // Can also be specified using the `AXIOM_ORG_ID` environment variable.
 func SetOrganizationID(organizationID string) Option {
 	return func(c *Client) error { return c.config.Options(config.SetOrganizationID(organizationID)) }
 }
 
-// SetCloudConfig specifies all properties needed in order to successfully
-// connect to Axiom Cloud with a personal access token.
-func SetCloudConfig(personalAccessToken, organizationID string) Option {
+// SetPersonalTokenConfig specifies all properties needed in order to
+// successfully connect to Axiom with a personal token.
+func SetPersonalTokenConfig(personalAccessToken, organizationID string) Option {
 	return func(c *Client) error {
 		return c.Options(
 			SetAccessToken(personalAccessToken),
@@ -46,21 +46,10 @@ func SetCloudConfig(personalAccessToken, organizationID string) Option {
 	}
 }
 
-// SetCloudConfigWithAPIToken specifies all properties needed in order to successfully
-// connect to Axiom Cloud with an API token.
-func SetCloudConfigWithAPIToken(apiToken string) Option {
+// SetAPITokenConfig specifies all properties needed in order to successfully
+// connect to Axiom with an API token.
+func SetAPITokenConfig(apiToken string) Option {
 	return SetAccessToken(apiToken)
-}
-
-// SetSelfhostConfig specifies all properties needed in order to successfully
-// connect to an Axiom Selfhost deployment.
-func SetSelfhostConfig(deploymentURL, accessToken string) Option {
-	return func(c *Client) error {
-		return c.Options(
-			SetURL(deploymentURL),
-			SetAccessToken(accessToken),
-		)
-	}
 }
 
 // SetClient specifies a custom http client that should be used to make

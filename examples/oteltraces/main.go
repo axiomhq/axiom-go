@@ -14,10 +14,6 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_TOKEN` and `AXIOM_ORG_ID` (when using a personal token) for
-	// Axiom Cloud.
-	// Export `AXIOM_URL` and `AXIOM_TOKEN` for Axiom Selfhost.
-
 	ctx := context.Background()
 
 	// 1. Initialize OpenTelemetry.

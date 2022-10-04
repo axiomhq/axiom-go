@@ -15,29 +15,23 @@ check the [Documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go).
 
 To quickstart, export the environment variables below.
 
-💡 _If you have the [Axiom CLI](https://direnv.net/) installed and are
+💡 _If you have the [Axiom CLI](github.com/axiomhq/cli) installed and are
 logged in, you can easily export most of the required environment variables:_
 
 ```shell
 eval $(axiom config export -f)
 ```
 
-### When using Axiom Cloud
+### Required environment variables
 
-- `AXIOM_TOKEN`: **API** or **Personal Access** token. Can be created under
+- `AXIOM_TOKEN`: **API** or **Personal** token. Can be created under
   `Settings > API Tokens` or `Profile`. For security reasons it is advised to
   use an API token with minimal privileges only.
-- `AXIOM_ORG_ID`: Organization identifier of the organization to use on Axiom
-  Cloud (when using a personal access token).
-- `AXIOM_DATASET`: Dataset to use. Must exist prior to using it.
-
-### When using Axiom Selfhost
-
-- `AXIOM_URL`: URL of the Axiom deployment to use.
-- `AXIOM_TOKEN`: **API** or **Personal Access** token. Can be created under
-  `Settings > API Tokens` or `Profile`. For security reasons it is advised to
-  use an API token with minimal privileges only.
-- `AXIOM_DATASET`: Dataset to use. Must exist prior to using it.
+- `AXIOM_ORG_ID`: Organization identifier of the organization to (when using a
+  personal token).
+- `AXIOM_DATASET`: Dataset to use. Must exist prior to using it. You can use
+  [Axiom CLI](github.com/axiomhq/cli) to create a dataset:
+  `axiom dataset create`.
 
 ## Package usage
 

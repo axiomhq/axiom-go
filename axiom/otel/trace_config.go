@@ -46,7 +46,7 @@ func SetAccessToken(accessToken string) TraceOption {
 }
 
 // SetOrganizationID specifies the organization ID to use when connecting to
-// Axiom Cloud. When a personal access token is used, this method can be used to
+// Axiom. When a personal access token is used, this method can be used to
 // switch between organizations without creating a new client instance.
 //
 // Can also be specified using the `AXIOM_ORG_ID` environment variable.

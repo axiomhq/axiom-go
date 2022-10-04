@@ -27,8 +27,7 @@ const (
 // order to authenticate.
 type LoginFunc func(ctx context.Context, loginURL string) error
 
-// Login to the given Axiom deployment and retrieve a Personal Access Token in
-// exchange. This will execute the OAuth2 Authorization Code Flow with Proof Key
+// Login to the given Axiom deployment and retrieve a personal token in exchange. This will execute the OAuth2 Authorization Code Flow with Proof Key
 // for Code Exchange (PKCE).
 func Login(ctx context.Context, clientID, baseURL string, loginFunc LoginFunc) (string, error) {
 	u, err := url.ParseRequestURI(baseURL)
