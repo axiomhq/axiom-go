@@ -3,7 +3,7 @@
 
 <div align="center">
 
-[![Go Reference][gopkg_badge]][gopkg] 
+[![Go Reference][gopkg_badge]][gopkg]
 [![Workflow][workflow_badge]][workflow]
 [![Latest Release][release_badge]][release]
 [![License][license_badge]][license]
@@ -50,7 +50,7 @@ if err != nil {
 	return err
 }
 
-res, err := client.Datasets.APLQuery(ctx, apl.Query(`['my-dataset'] | where foo == 'bar' | limit 100`), apl.Options{})
+res, err := client.Datasets.APLQuery("['my-dataset'] | where foo == 'bar' | limit 100"), apl.Options{})
 if err != nil {
 	return err
 }
