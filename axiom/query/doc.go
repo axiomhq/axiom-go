@@ -4,4 +4,11 @@
 // Usage:
 //
 //	import "github.com/axiomhq/axiom-go/axiom/query"
+
+// The base for every APL query is the [Query] type which return a new query
+// builder:
+//
+//	q := query.Query("dataset").
+//		// ...
+//		Build()
 package query
