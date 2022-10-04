@@ -51,30 +51,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deployment:
-          - azure-1-staging
-          - cloud-dev
         go:
           - 1.18
           - 1.19
-        include:
-          - deployment: azure-1-staging
-            axiom_url: TESTING_AZURE_1_STAGING_DEPLOYMENT_URL
-            axiom_token: TESTING_AZURE_1_STAGING_ACCESS_TOKEN
-          - deployment: cloud-dev
-            axiom_url: TESTING_CLOUD_DEV_DEPLOYMENT_URL
-            axiom_token: TESTING_CLOUD_DEV_ACCESS_TOKEN
-            axiom_org_id: TESTING_CLOUD_DEV_ORG_ID
-          - deployment: cloud-dev
-            go: 1.18
-            update-coverage: true
-            update-goreportcard: true
       max-parallel: 1
       fail-fast: false
     env:
-      AXIOM_URL: ${{ secrets[matrix.axiom_url] }}
-      AXIOM_TOKEN: ${{ secrets[matrix.axiom_token] }}
-      AXIOM_ORG_ID: ${{ secrets[matrix.axiom_org_id] }}
+      AXIOM_URL: ${{ secrets.TESTING_CLOUD_DEV_DEPLOYMENT_URL }}
+      AXIOM_TOKEN: ${{ secrets.TESTING_CLOUD_DEV_ACCESS_TOKEN }}
+      AXIOM_ORG_ID: ${{ secrets.TESTING_CLOUD_DEV_ORG_ID }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
       - uses: actions/checkout@v3
@@ -94,11 +79,3 @@ jobs:
         run: |
           curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
-      - name: Update Coverage
-        if: matrix.update-coverage
-        uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-      - name: Update Go Report Card
-        if: matrix.update-goreportcard
-        uses: creekorful/goreportcard-action@v1.0
