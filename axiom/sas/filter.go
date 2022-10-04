@@ -1,21 +1,21 @@
 package sas
 
-import "github.com/axiomhq/axiom-go/axiom/query"
+import "github.com/axiomhq/axiom-go/axiom/querylegacy"
 
-// filter is like `Filter` but with different, smaller, two letter
-// struct tags to reduce the size of its JSON representation.
+// filter is like `Filter` but with different, smaller, two letter struct tags
+// to reduce the size of its JSON representation.
 type filter struct {
-	Op            query.FilterOp `json:"op"`
-	Field         string         `json:"fd"`
-	Value         any            `json:"vl"`
-	CaseSensitive bool           `json:"cs"`
-	Children      []filter       `json:"ch,omitempty"`
+	Op            querylegacy.FilterOp `json:"op"`
+	Field         string               `json:"fd"`
+	Value         any                  `json:"vl"`
+	CaseSensitive bool                 `json:"cs"`
+	Children      []filter             `json:"ch,omitempty"`
 }
 
-// filterFromQueryFilter creates a `filter` from the
-// values of a `query.Filter`. This function calls itself recursively to handle
-// nested filters.
-func filterFromQueryFilter(qf query.Filter) filter {
+// filterFromQueryFilter creates a `filter` from the values of a
+// `querylegacy.Filter`. This function calls itself recursively to handle nested
+// filters.
+func filterFromQueryFilter(qf querylegacy.Filter) filter {
 	f := filter{
 		Op:            qf.Op,
 		Field:         qf.Field,
@@ -30,10 +30,10 @@ func filterFromQueryFilter(qf query.Filter) filter {
 	return f
 }
 
-// toQueryFilter creates a `query.Filter` from the `filter`. This function calls
-// itself recursively to handle nested filters.
-func (f filter) toQueryFilter() query.Filter {
-	qf := query.Filter{
+// toQueryFilter creates a `querylegacy.Filter` from the `filter`. This function
+// calls itself recursively to handle nested filters.
+func (f filter) toQueryFilter() querylegacy.Filter {
+	qf := querylegacy.Filter{
 		Op:            f.Op,
 		Field:         f.Field,
 		Value:         f.Value,

@@ -15,7 +15,7 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/apl"
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 const ingestData = `[
@@ -184,12 +184,12 @@ func (s *DatasetsTestSuite) Test() {
 
 	// Run a query and make sure we see some results.
 	now := time.Now()
-	simpleQuery := query.Query{
+	simpleQuery := querylegacy.Query{
 		StartTime: now.Add(-time.Minute),
 		EndTime:   now,
 	}
-	simpleQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, simpleQuery, query.Options{
-		SaveKind: query.Analytics,
+	simpleQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, simpleQuery, querylegacy.Options{
+		SaveKind: querylegacy.Analytics,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(simpleQueryResult)
@@ -204,7 +204,7 @@ func (s *DatasetsTestSuite) Test() {
 
 	// Run another query but using APL.
 	aplQuery := apl.Query(fmt.Sprintf("['%s']", s.dataset.ID))
-	aplQueryResult, err := s.client.Datasets.APLQuery(s.ctx, aplQuery, apl.Options{
+	aplQueryResult, err := s.client.Datasets.Query(s.ctx, aplQuery, apl.Options{
 		Save: true,
 	})
 	s.Require().NoError(err)
@@ -219,24 +219,24 @@ func (s *DatasetsTestSuite) Test() {
 	s.Len(aplQueryResult.Matches, 8)
 	s.Contains(aplQueryResult.Datasets, s.dataset.ID)
 
-	// Run a more complex query.
-	complexQuery := query.Query{
+	// Run a more complex querylegacy.
+	complexQuery := querylegacy.Query{
 		StartTime: time.Now().UTC().Add(-time.Minute),
 		EndTime:   time.Now().UTC(),
-		Aggregations: []query.Aggregation{
+		Aggregations: []querylegacy.Aggregation{
 			{
 				Alias: "event_count",
-				Op:    query.OpCount,
+				Op:    querylegacy.OpCount,
 				Field: "*",
 			},
 		},
 		GroupBy: []string{"success", "remote_ip"},
-		Filter: query.Filter{
-			Op:    query.OpEqual,
+		Filter: querylegacy.Filter{
+			Op:    querylegacy.OpEqual,
 			Field: "response",
 			Value: 304,
 		},
-		Order: []query.Order{
+		Order: []querylegacy.Order{
 			{
 				Field: "success",
 				Desc:  true,
@@ -246,20 +246,20 @@ func (s *DatasetsTestSuite) Test() {
 				Desc:  false,
 			},
 		},
-		VirtualFields: []query.VirtualField{
+		VirtualFields: []querylegacy.VirtualField{
 			{
 				Alias:      "success",
 				Expression: "response < 400",
 			},
 		},
-		Projections: []query.Projection{
+		Projections: []querylegacy.Projection{
 			{
 				Field: "remote_ip",
 				Alias: "ip",
 			},
 		},
 	}
-	complexQueryResult, err := s.client.Datasets.Query(s.ctx, s.dataset.ID, complexQuery, query.Options{})
+	complexQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, complexQuery, querylegacy.Options{})
 	s.Require().NoError(err)
 	s.Require().NotNil(complexQueryResult)
 

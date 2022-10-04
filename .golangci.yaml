@@ -51,3 +51,9 @@ linters-settings:
     allow-leading-space: false
     require-explanation: true
     require-specific: true
+
+issues:
+  exclude-rules:
+    - linters:
+        - staticcheck
+      text: 'SA1019: "github.com/axiomhq/axiom-go/axiom/querylegacy" is deprecated'

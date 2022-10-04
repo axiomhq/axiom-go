@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom/apl"
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -135,8 +135,8 @@ const actAPLQueryResp = `{
 		]
 	}`
 
-var expQueryRes = &query.Result{
-	Status: query.Status{
+var expQueryRes = &querylegacy.Result{
+	Status: querylegacy.Status{
 		ElapsedTime:    542114 * time.Microsecond,
 		BlocksExamined: 4,
 		RowsExamined:   142655,
@@ -146,7 +146,7 @@ var expQueryRes = &query.Result{
 		MinBlockTime:   parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
 		MaxBlockTime:   parseTimeOrPanic("2020-11-27T12:06:38.966791794Z"),
 	},
-	Matches: []query.Entry{
+	Matches: []querylegacy.Entry{
 		{
 			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
 			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
@@ -178,15 +178,15 @@ var expQueryRes = &query.Result{
 			},
 		},
 	},
-	Buckets: query.Timeseries{
-		Series: []query.Interval{},
-		Totals: []query.EntryGroup{},
+	Buckets: querylegacy.Timeseries{
+		Series: []querylegacy.Interval{},
+		Totals: []querylegacy.EntryGroup{},
 	},
 	SavedQueryID: "fyTFUldK4Z5219rWaz",
 }
 
 var expAPLQueryRes = &apl.Result{
-	Request: &query.Query{
+	Request: &querylegacy.Query{
 		StartTime: parseTimeOrPanic("2021-07-20T16:34:57.911170243Z"),
 		EndTime:   parseTimeOrPanic("2021-08-19T16:34:57.885821616Z"),
 		Limit:     1000,
@@ -588,13 +588,13 @@ func TestDatasetsService_Query(t *testing.T) {
 
 	client := setup(t, "/api/v1/datasets/test/query", hf)
 
-	res, err := client.Datasets.Query(context.Background(), "test", query.Query{
+	res, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{
 		StartTime: testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
 		EndTime:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
-	}, query.Options{
+	}, querylegacy.Options{
 		StreamingDuration: time.Second,
 		NoCache:           true,
-		SaveKind:          query.Analytics,
+		SaveKind:          querylegacy.Analytics,
 	})
 	require.NoError(t, err)
 
@@ -604,8 +604,8 @@ func TestDatasetsService_Query(t *testing.T) {
 func TestDatasetsService_Query_InvalidSaveKind(t *testing.T) {
 	client := setup(t, "/api/v1/datasets/test/query", nil)
 
-	_, err := client.Datasets.Query(context.Background(), "test", query.Query{}, query.Options{
-		SaveKind: query.APL,
+	_, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{}, querylegacy.Options{
+		SaveKind: querylegacy.APL,
 	})
 	require.EqualError(t, err, `invalid query kind "apl": must be "analytics" or "stream"`)
 }
@@ -635,7 +635,7 @@ func TestDatasetsService_APLQuery(t *testing.T) {
 
 	client := setup(t, "/api/v1/datasets/_apl", hf)
 
-	res, err := client.Datasets.APLQuery(context.Background(),
+	res, err := client.Datasets.Query(context.Background(),
 		"['test'] | where response == 304", apl.Options{
 			StartTime: time.Now().Add(-5 * time.Minute),
 			Save:      true,

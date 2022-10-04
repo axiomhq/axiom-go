@@ -15,7 +15,7 @@ import (
 	"github.com/klauspost/compress/zstd"
 
 	"github.com/axiomhq/axiom-go/axiom/apl"
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
@@ -387,11 +387,16 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	return &res, nil
 }
 
-// Query executes the given query on the dataset identified by its id.
-func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, opts query.Options) (*query.Result, error) {
-	if opts.SaveKind == query.APL {
+// QueryLegacy executes the given legacy query on the dataset identified by its
+// id.
+//
+// Deprecated: Legacy queries will be replaced by queries specified using the
+// Axiom Processing Language (APL) and the legacy query API will be removed in
+// the future. Use github.com/axiomhq/axiom-go/axiom/query instead.
+func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
+	if opts.SaveKind == querylegacy.APL {
 		return nil, fmt.Errorf("invalid query kind %q: must be %q or %q",
-			opts.SaveKind, query.Analytics, query.Stream)
+			opts.SaveKind, querylegacy.Analytics, querylegacy.Stream)
 	}
 
 	path, err := AddOptions(s.basePath+"/"+id+"/query", opts)
@@ -406,7 +411,7 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 
 	var (
 		res struct {
-			query.Result
+			querylegacy.Result
 			FieldsMeta any `json:"fieldsMeta"`
 		}
 		resp *Response
@@ -419,9 +424,9 @@ func (s *DatasetsService) Query(ctx context.Context, id string, q query.Query, o
 	return &res.Result, nil
 }
 
-// APLQuery executes the given query specified using the Axiom Processing
+// Query executes the given query specified using the Axiom Processing
 // Language (APL).
-func (s *DatasetsService) APLQuery(ctx context.Context, q apl.Query, opts apl.Options) (*apl.Result, error) {
+func (s *DatasetsService) Query(ctx context.Context, q apl.Query, opts apl.Options) (*apl.Result, error) {
 	path, err := AddOptions(s.basePath+"/_apl", opts)
 	if err != nil {
 		return nil, err

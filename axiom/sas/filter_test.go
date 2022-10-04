@@ -5,18 +5,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 func TestFilter(t *testing.T) {
-	exp := query.Filter{
-		Op:            query.OpEqual,
+	exp := querylegacy.Filter{
+		Op:            querylegacy.OpEqual,
 		Field:         "customer",
 		Value:         "vercel",
 		CaseSensitive: true,
-		Children: []query.Filter{
+		Children: []querylegacy.Filter{
 			{
-				Op:            query.OpEqual,
+				Op:            querylegacy.OpEqual,
 				Field:         "project",
 				Value:         "project-123",
 				CaseSensitive: false,
@@ -31,7 +31,7 @@ func TestFilter(t *testing.T) {
 	assert.Equal(t, exp, queryAct)
 }
 
-func equalFilter(t *testing.T, exp query.Filter, act filter) {
+func equalFilter(t *testing.T, exp querylegacy.Filter, act filter) {
 	assert.Equal(t, exp.Op, act.Op)
 	assert.Equal(t, exp.Field, act.Field)
 	assert.Equal(t, exp.Value, act.Value)

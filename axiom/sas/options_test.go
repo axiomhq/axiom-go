@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -35,14 +35,14 @@ func TestOptions_urlValues(t *testing.T) {
 	options := Options{
 		OrganizationID: "axiom",
 		Dataset:        "logs",
-		Filter: query.Filter{
-			Op:            query.OpEqual,
+		Filter: querylegacy.Filter{
+			Op:            querylegacy.OpEqual,
 			Field:         "customer",
 			Value:         "vercel",
 			CaseSensitive: true,
-			Children: []query.Filter{
+			Children: []querylegacy.Filter{
 				{
-					Op:            query.OpEqual,
+					Op:            querylegacy.OpEqual,
 					Field:         "project",
 					Value:         "project-123",
 					CaseSensitive: false,
@@ -81,8 +81,8 @@ func TestOptions_validate(t *testing.T) {
 	err = options.validate()
 	assert.EqualError(t, err, "filter is required")
 
-	options.Filter = query.Filter{
-		Op:            query.OpEqual,
+	options.Filter = querylegacy.Filter{
+		Op:            querylegacy.OpEqual,
 		Field:         "customer",
 		Value:         "vercel",
 		CaseSensitive: true,

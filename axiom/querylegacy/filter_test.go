@@ -1,4 +1,4 @@
-package query
+package querylegacy
 
 import (
 	"encoding/json"
