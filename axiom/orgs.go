@@ -129,8 +129,7 @@ func (l *License) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Organization represents an organization. For selfhost deployments, there is
-// only one main organization, therefor it is referred to as deployment.
+// Organization represents an organization.
 type Organization struct {
 	// ID is the unique ID of the organization.
 	ID string `json:"id"`
@@ -170,8 +169,7 @@ type wrappedOrganization struct {
 }
 
 // OrganizationsService handles communication with the organization related
-// operations of the Axiom API. These methods can be used regardless of the
-// use of Axiom Cloud or Axiom Selfhost.
+// operations of the Axiom API.
 //
 // Axiom API Reference: /api/v1/orgs
 type OrganizationsService service

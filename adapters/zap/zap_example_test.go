@@ -9,9 +9,7 @@ import (
 )
 
 func Example() {
-	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` (when using a personal token) and
-	// `AXIOM_DATASET` for Axiom Cloud.
-	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
+	// Export `AXIOM_DATASET` in addition to the required environment variables.
 
 	core, err := adapter.New()
 	if err != nil {

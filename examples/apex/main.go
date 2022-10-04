@@ -1,23 +1,19 @@
-// The purpose of this example is to show how to integrate with apex.
+// The purpose of this example is to show how to integrate with apex/log.
 package main
 
 import (
-	stdlibLog "log"
-
 	"github.com/apex/log"
 
 	adapter "github.com/axiomhq/axiom-go/adapters/apex"
 )
 
 func main() {
-	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` (when using a personal token) and
-	// `AXIOM_DATASET` for Axiom Cloud.
-	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
+	// Export `AXIOM_DATASET` in addition to the required environment variables.
 
 	// 1. Setup the Axiom handler for apex.
 	handler, err := adapter.New()
 	if err != nil {
-		stdlibLog.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
 	// 2. Have all logs flushed before the application exits.

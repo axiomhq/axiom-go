@@ -261,16 +261,28 @@ func TestClient_Options_SetClient(t *testing.T) {
 	assert.Equal(t, exp, client.httpClient)
 }
 
-func TestClient_Options_SetCloudConfig(t *testing.T) {
+func TestClient_Options_SetPersonalTokenConfig(t *testing.T) {
 	client := newClient(t)
 
-	opt := SetCloudConfig(personalToken, organizationID)
+	opt := SetPersonalTokenConfig(personalToken, organizationID)
 
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
 	assert.Equal(t, personalToken, client.config.AccessToken())
 	assert.Equal(t, organizationID, client.config.OrganizationID())
+}
+
+func TestClient_Options_SetAPITokenConfig(t *testing.T) {
+	client := newClient(t)
+
+	opt := SetAPITokenConfig(apiToken)
+
+	err := client.Options(opt)
+	assert.NoError(t, err)
+
+	assert.Equal(t, apiToken, client.config.AccessToken())
+	assert.Empty(t, client.config.OrganizationID())
 }
 
 func TestClient_Options_SetOrganizationID(t *testing.T) {
@@ -283,18 +295,6 @@ func TestClient_Options_SetOrganizationID(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, exp, client.config.OrganizationID())
-}
-
-func TestClient_Options_SetSelfhostConfig(t *testing.T) {
-	client := newClient(t)
-
-	opt := SetSelfhostConfig(endpoint, personalToken)
-
-	err := client.Options(opt)
-	assert.NoError(t, err)
-
-	assert.Equal(t, endpoint, client.config.BaseURL().String())
-	assert.Equal(t, personalToken, client.config.AccessToken())
 }
 
 func TestClient_Options_SetURL(t *testing.T) {

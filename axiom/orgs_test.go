@@ -14,10 +14,6 @@ import (
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-// HINT(lukasmalkmus): Most of the tests below just test against the "cloud"
-// endpoints. However, this is fine as the implementation is just an extension
-// of the "selfhost" one.
-
 func TestOrganizationsService_List(t *testing.T) {
 	exp := []*Organization{
 		{

@@ -72,21 +72,14 @@ type Client struct {
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
-// configuration from the environment.
-//
-// To connect to Axiom Cloud:
+// configuration from the environment. To connect, export the following
+// environment variables:
 //
 //   - AXIOM_TOKEN
 //   - AXIOM_ORG_ID (only when using a personal token)
-//
-// To connect to an Axiom Selfhost:
-//
-//   - AXIOM_URL
-//   - AXIOM_TOKEN
-//
+
 // The configuration can be set manually using `Option` functions prefixed with
-// `Set`. Refer to `SetCloudConfig()` and `SetSelfhostConfig()`. Individual
-// properties can be overwritten as well.
+// `Set`.
 //
 // The access token must be an api or personal token which can be created on
 // the settings or user profile page on Axiom.

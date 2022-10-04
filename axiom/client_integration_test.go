@@ -22,7 +22,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&accessToken, "access-token", os.Getenv("AXIOM_TOKEN"), "Personal Access Token of the test user")
+	flag.StringVar(&accessToken, "access-token", os.Getenv("AXIOM_TOKEN"), "Personal token of the test user")
 	flag.StringVar(&orgID, "org-id", os.Getenv("AXIOM_ORG_ID"), "Organization ID of the organization the test user belongs to")
 	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
 	flag.StringVar(&datasetSuffix, "dataset-suffix", os.Getenv("AXIOM_DATASET_SUFFIX"), "Dataset suffix to append to test datasets")
@@ -32,9 +32,6 @@ func init() {
 // IntegrationTestSuite implements a base test suite for integration tests.
 type IntegrationTestSuite struct {
 	suite.Suite
-
-	// Generic properties.
-	isCloud bool
 
 	// Setup once per suite.
 	client      *axiom.Client
@@ -48,18 +45,14 @@ type IntegrationTestSuite struct {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
-	s.Require().NotEmpty(accessToken, "integration test needs a personal access token set")
+	s.Require().NotEmpty(accessToken, "integration test needs a personal token set")
 	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization ID or deployment url set")
 
-	if orgID != "" {
-		s.isCloud = true
-	}
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
 
 	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
-	s.T().Logf("cloud enabled: \"%t\"", s.isCloud)
 
 	s.newClient()
 

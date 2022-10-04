@@ -13,9 +13,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/schollz/progressbar/v3"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
 const (
@@ -24,9 +25,7 @@ const (
 )
 
 func main() {
-	// Export `AXIOM_TOKEN`, `AXIOM_ORG_ID` (when using a personal token) and
-	// `AXIOM_DATASET` for Axiom Cloud.
-	// Export `AXIOM_URL`, `AXIOM_TOKEN` and `AXIOM_DATASET` for Axiom Selfhost.
+	// Export `AXIOM_DATASET` in addition to the required environment variables.
 
 	dataset := os.Getenv("AXIOM_DATASET")
 	if dataset == "" {
@@ -66,11 +65,11 @@ func main() {
 	go func() {
 		for event := range eventCh {
 			progressEventCh <- event
-			bar.Add(1)
+			_ = bar.Add(1)
 		}
 		close(progressEventCh)
-		if err := bar.Finish(); err != nil {
-			log.Fatal(err)
+		if finishErr := bar.Finish(); finishErr != nil {
+			log.Fatal(finishErr)
 		}
 	}()
 
@@ -123,7 +122,6 @@ func generateIDs(max uint64) <-chan uint64 {
 		for i := uint64(0); i <= max; i++ {
 			ch <- i
 		}
-
 		close(ch)
 	}()
 	return ch
@@ -152,9 +150,11 @@ func fetchEvents(eventIDs <-chan uint64) <-chan axiom.Event {
 				if err != nil {
 					return err
 				}
-				defer res.Body.Close()
 
 				if err := json.NewDecoder(res.Body).Decode(&event); err != nil {
+					_ = res.Body.Close()
+					return err
+				} else if err = res.Body.Close(); err != nil {
 					return err
 				}
 

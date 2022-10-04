@@ -10,11 +10,9 @@
 // Construct a new Axiom client, then use the various services on the client to
 // access different parts of the Axiom API. The package automatically takes its
 // configuration from the environment if not specified otherwise. Refer to
-// `NewClient()` for details. The configuration also differs when connecting to
-// Axiom Cloud or Axiom Selfhost. Either way, the access token can be an API or
-// personal token. The API token however, will just allow ingestion or querying
-// into or from the datasets the token is valid for, depending on its
-// assigned permissions.
+// `NewClient()` for details. The access token can be an API or personal token.
+// The API token however, will just allow ingestion or querying into or from the
+// datasets the token is valid for, depending on its assigned permissions.
 //
 //	client, err := axiom.NewClient()
 //
