@@ -50,7 +50,7 @@ if err != nil {
 	return err
 }
 
-res, err := client.Datasets.APLQuery(context.Background(), apl.Query(`['my-dataset'] | where foo == 'bar' | limit 100`), apl.Options{})
+res, err := client.Datasets.APLQuery(ctx, apl.Query(`['my-dataset'] | where foo == 'bar' | limit 100`), apl.Options{})
 if err != nil {
 	return err
 }
