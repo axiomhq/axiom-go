@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 // Options represents the options for creating a shared access token or a shared
@@ -19,7 +19,7 @@ type Options struct {
 	Dataset string
 	// Filter is the top-level query filter to apply to all query requests
 	// the token and signature is valid for.
-	Filter query.Filter
+	Filter querylegacy.Filter
 	// MinStartTime is the earliest query start time the token and signature is
 	// valid for.
 	MinStartTime time.Time

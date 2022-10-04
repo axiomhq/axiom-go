@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 func main() {
@@ -27,10 +27,10 @@ func main() {
 	}
 
 	// 2. Query all events in the last minute ⚡
-	res, err := client.Datasets.Query(context.Background(), dataset, query.Query{
+	res, err := client.Datasets.QueryLegacy(context.Background(), dataset, querylegacy.Query{
 		StartTime: time.Now().Add(-time.Minute),
 		EndTime:   time.Now(),
-	}, query.Options{})
+	}, querylegacy.Options{})
 	if err != nil {
 		log.Fatal(err)
 	} else if len(res.Matches) == 0 {

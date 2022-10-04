@@ -4,7 +4,7 @@
 //
 //	import "github.com/axiomhq/axiom-go/axiom"
 //	import "github.com/axiomhq/axiom-go/axiom/apl" // When constructing APL queries
-//	import "github.com/axiomhq/axiom-go/axiom/query" // When constructing queries
+//	import "github.com/axiomhq/axiom-go/axiom/querylegacy" // When constructing legacy queries
 //	import "github.com/axiomhq/axiom-go/axiom/sas" // When using shared access
 //
 // Construct a new Axiom client, then use the various services on the client to

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -24,8 +24,8 @@ var (
 		return Options{
 			OrganizationID: "axiom",
 			Dataset:        "logs",
-			Filter: query.Filter{
-				Op:            query.OpEqual,
+			Filter: querylegacy.Filter{
+				Op:            querylegacy.OpEqual,
 				Field:         "customer",
 				Value:         "vercel",
 				CaseSensitive: true,
