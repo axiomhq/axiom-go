@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/axiomhq/axiom-go/axiom/apl"
+	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
@@ -183,16 +183,6 @@ var expQueryRes = &querylegacy.Result{
 		Totals: []querylegacy.EntryGroup{},
 	},
 	SavedQueryID: "fyTFUldK4Z5219rWaz",
-}
-
-var expAPLQueryRes = &apl.Result{
-	Request: &querylegacy.Query{
-		StartTime: parseTimeOrPanic("2021-07-20T16:34:57.911170243Z"),
-		EndTime:   parseTimeOrPanic("2021-08-19T16:34:57.885821616Z"),
-		Limit:     1000,
-	},
-	Result:   expQueryRes,
-	Datasets: []string{"test"},
 }
 
 func TestDatasetsService_List(t *testing.T) {
@@ -636,13 +626,15 @@ func TestDatasetsService_APLQuery(t *testing.T) {
 	client := setup(t, "/api/v1/datasets/_apl", hf)
 
 	res, err := client.Datasets.Query(context.Background(),
-		"['test'] | where response == 304", apl.Options{
+		"['test'] | where response == 304", query.Options{
 			StartTime: time.Now().Add(-5 * time.Minute),
 			Save:      true,
 		})
 	require.NoError(t, err)
 
-	assert.Equal(t, expAPLQueryRes, res)
+	// TODO(lukasmalkmus): Use `.Equal()` once the Query result type does not
+	// depend on the querylegacy package anymore.
+	assert.EqualValues(t, expQueryRes, res)
 }
 
 func TestDetectContentType(t *testing.T) {

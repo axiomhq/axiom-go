@@ -1,4 +1,4 @@
-package apl
+package query
 
 import (
 	"time"
@@ -18,7 +18,7 @@ type Options struct {
 	// HINT(lukasmalkmus): The server automatically sets the query kind to "apl"
 	// for queries going to the "/_apl" query endpoint. This allows us to set
 	// any value for the `saveAsKind` query param. For user experience, we use a
-	// bool here instead of forcing the user to set the value to `query.APL`.
+	// boolean here instead of forcing the user to set a concrete value.
 	Save bool `url:"saveAsKind,omitempty"`
 	// Format specifies the format of the APL query. Defaults to Legacy.
 	Format Format `url:"format"`
