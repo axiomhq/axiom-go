@@ -38,6 +38,8 @@ const (
 	OpCountIf    // countif
 	OpDistinctIf // distinctif
 	OpMakeSetIf  // makesetif
+	OpRate       // rate
+	OpPearson    // pearson_correlation
 )
 
 func aggregationOpFromString(s string) (op AggregationOp) {
@@ -76,6 +78,10 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 		op = OpDistinctIf
 	case OpMakeSetIf.String():
 		op = OpMakeSetIf
+	case OpRate.String():
+		op = OpRate
+	case OpPearson.String():
+		op = OpPearson
 	default:
 		op = OpUnknown
 	}
