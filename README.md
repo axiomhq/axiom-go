@@ -35,7 +35,7 @@ Create and use a client like this:
 ```go
 import (
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/apl"
+	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 client, err := axiom.NewClient()
@@ -50,7 +50,7 @@ if err != nil {
 	return err
 }
 
-res, err := client.Datasets.APLQuery("['my-dataset'] | where foo == 'bar' | limit 100"), apl.Options{})
+res, err := client.Datasets.Query("['my-dataset'] | where foo == 'bar' | limit 100"), query.Options{})
 if err != nil {
 	return err
 }

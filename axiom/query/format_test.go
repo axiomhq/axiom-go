@@ -1,4 +1,4 @@
-package apl
+package query
 
 import (
 	"net/url"

@@ -1,5 +1,5 @@
-// The purpose of this example is to show how to query a dataset using the Axiom
-// Processing Language (APL).
+// The purpose of this example is to show how to query a dataset using a legacy
+// query.
 package main
 
 import (
@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/apl"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 func main() {
@@ -26,9 +27,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 2. Query all events using APL ⚡
-	q := apl.Query(fmt.Sprintf("['%s']", dataset)) // E.g. ['test']
-	res, err := client.Datasets.Query(context.Background(), q, apl.Options{})
+	// 2. Query all events in the last minute ⚡
+	res, err := client.Datasets.QueryLegacy(context.Background(), dataset, querylegacy.Query{
+		StartTime: time.Now().Add(-time.Minute),
+		EndTime:   time.Now(),
+	}, querylegacy.Options{})
 	if err != nil {
 		log.Fatal(err)
 	} else if len(res.Matches) == 0 {

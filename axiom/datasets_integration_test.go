@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/apl"
+	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
@@ -203,8 +203,8 @@ func (s *DatasetsTestSuite) Test() {
 	s.Len(simpleQueryResult.Matches, 8)
 
 	// Run another query but using APL.
-	aplQuery := apl.Query(fmt.Sprintf("['%s']", s.dataset.ID))
-	aplQueryResult, err := s.client.Datasets.Query(s.ctx, aplQuery, apl.Options{
+	aplQuery := query.Query(fmt.Sprintf("['%s']", s.dataset.ID))
+	aplQueryResult, err := s.client.Datasets.Query(s.ctx, aplQuery, query.Options{
 		Save: true,
 	})
 	s.Require().NoError(err)
@@ -217,7 +217,6 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(8, aplQueryResult.Status.RowsExamined)
 	s.EqualValues(8, aplQueryResult.Status.RowsMatched)
 	s.Len(aplQueryResult.Matches, 8)
-	s.Contains(aplQueryResult.Datasets, s.dataset.ID)
 
 	// Run a more complex querylegacy.
 	complexQuery := querylegacy.Query{

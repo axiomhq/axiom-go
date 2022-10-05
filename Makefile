@@ -74,8 +74,8 @@ fmt: ## Format and simplify the source code using `gofmt`
 
 .PHONY: generate
 generate: \
-	axiom/apl/format_string.go \
 	axiom/auth/pkce/pkce_string.go \
+	axiom/query/format_string.go \
 	axiom/querylegacy/aggregation_string.go \
 	axiom/querylegacy/filter_string.go \
 	axiom/querylegacy/kind_string.go \

@@ -19,19 +19,19 @@ jobs:
       matrix:
         example:
           - apex
-          - apl
           - ingestevent
           - ingestfile
           # - ingesthackernews # HINT(lukasmalkmus): We do not test this example as it takes too long!
           - logrus
           - oteltraces
           - query
+          - querylegacy
           - zap
         include:
           - example: apex
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
-          - example: apl
+          - example: query
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
               axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
@@ -48,7 +48,7 @@ jobs:
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: oteltraces
-          - example: query
+          - example: querylegacy
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
               axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json

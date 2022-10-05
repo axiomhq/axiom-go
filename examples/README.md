@@ -35,15 +35,15 @@ eval $(axiom config export -f)
 
 ## Package usage
 
-- [apl](apl/main.go): How to query a dataset using the Kusto-like Axiom
-  Processing Language (APL).
 - [ingestevent](ingestevent/main.go): How to ingest events into Axiom.
 - [ingestfile](ingestfile/main.go): How to ingest the contents of a file into
   Axiom and compress them on the fly.
 - [ingesthackernews](ingesthackernews/main.go): How to ingest the contents of
   Hacker News into Axiom.
-- [query](query/main.go): How to query a dataset using the datatypes provided by
-  Axiom Go.
+- [query](query/main.go): How to query a dataset using the Kusto-like Axiom
+  Processing Language (APL).
+- [querylegacy](querylegacy/main.go): How to query a dataset using the legacy
+  query datatypes.
 
 ## Adapter usage
 

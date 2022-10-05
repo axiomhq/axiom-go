@@ -14,7 +14,7 @@ import (
 
 	"github.com/klauspost/compress/zstd"
 
-	"github.com/axiomhq/axiom-go/axiom/apl"
+	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
@@ -387,6 +387,43 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	return &res, nil
 }
 
+// Query executes the given query specified using the Axiom Processing
+// Language (APL).
+func (s *DatasetsService) Query(ctx context.Context, q query.Query, opts query.Options) (*query.Result, error) {
+	path, err := AddOptions(s.basePath+"/_apl", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
+		Query:     string(q),
+		StartTime: opts.StartTime,
+		EndTime:   opts.EndTime,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		res struct {
+			query.Result
+
+			// HINT(lukasmalkmus): Ignore those fields as they are not relevant
+			// for the user and will change with the new query result format.
+			Request    any `json:"request"`
+			Datasets   any `json:"datasetNames"`
+			FieldsMeta any `json:"fieldsMetaMap"`
+		}
+		resp *Response
+	)
+	if resp, err = s.client.Do(req, &res); err != nil {
+		return nil, err
+	}
+	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
+
+	return &res.Result, nil
+}
+
 // QueryLegacy executes the given legacy query on the dataset identified by its
 // id.
 //
@@ -412,39 +449,10 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 	var (
 		res struct {
 			querylegacy.Result
+
+			// HINT(lukasmalkmus): Ignore those fields as they are not relevant
+			// for the user.
 			FieldsMeta any `json:"fieldsMeta"`
-		}
-		resp *Response
-	)
-	if resp, err = s.client.Do(req, &res); err != nil {
-		return nil, err
-	}
-	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
-
-	return &res.Result, nil
-}
-
-// Query executes the given query specified using the Axiom Processing
-// Language (APL).
-func (s *DatasetsService) Query(ctx context.Context, q apl.Query, opts apl.Options) (*apl.Result, error) {
-	path, err := AddOptions(s.basePath+"/_apl", opts)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
-		Query:     string(q),
-		StartTime: opts.StartTime,
-		EndTime:   opts.EndTime,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		res struct {
-			apl.Result
-			FieldsMeta any `json:"fieldsMetaMap"`
 		}
 		resp *Response
 	)
