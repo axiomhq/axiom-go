@@ -78,11 +78,14 @@ type UsersService service
 
 // Current retrieves the authenticated user.
 func (s *UsersService) Current(ctx context.Context) (*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.Current")
+	defer span.End()
+
 	path := "/api/v1/user"
 
 	var res User
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	return &res, nil

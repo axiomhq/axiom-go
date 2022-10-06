@@ -127,7 +127,7 @@ type Result struct {
 	// Buckets are the time series buckets.
 	Buckets Timeseries `json:"buckets"`
 	// SavedQueryID is the ID of the query that generated this result when it
-	// was saved on the server. This is only set when the query was send with
+	// was saved on the server. This is only set when the query was sent with
 	// the `SaveKind` option specified.
 	SavedQueryID string `json:"-"`
 }
