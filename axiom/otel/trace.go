@@ -3,10 +3,10 @@ package otel
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -15,6 +15,15 @@ import (
 
 	"github.com/axiomhq/axiom-go/internal/version"
 )
+
+// UserAgentAttribute returns a new OpenTelemetry axiom-go user agent attribute.
+func UserAgentAttribute() attribute.KeyValue {
+	userAgent := "axiom-go"
+	if v := version.Get(); v != "" {
+		userAgent += fmt.Sprintf("/%s", v)
+	}
+	return semconv.HTTPUserAgentKey.String(userAgent)
+}
 
 // TraceExporter configures and returns a new exporter for OpenTelemetry spans.
 func TraceExporter(ctx context.Context, options ...TraceOption) (trace.SpanExporter, error) {
@@ -81,23 +90,19 @@ func TracerProvider(ctx context.Context, serviceName, serviceVersion string, opt
 		return nil, err
 	}
 
-	// Include module version in the user agent.
-	userAgent := "axiom-go"
-	if v := version.Get(); v != "" {
-		userAgent += fmt.Sprintf("/%s", v)
+	rs, err := resource.Merge(resource.Default(), resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(serviceName),
+		semconv.ServiceVersionKey.String(serviceVersion),
+		UserAgentAttribute(),
+	))
+	if err != nil {
+		return nil, err
 	}
-
-	hostname, _ := os.Hostname()
 
 	opts := []trace.TracerProviderOption{
 		trace.WithBatcher(exporter, trace.WithMaxQueueSize(10*1024)),
-		trace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(serviceName),
-			semconv.ServiceVersionKey.String(serviceVersion),
-			semconv.HostNameKey.String(hostname),
-			semconv.HTTPUserAgentKey.String(userAgent),
-		)),
+		trace.WithResource(rs),
 	}
 
 	return trace.NewTracerProvider(opts...), nil

@@ -13,6 +13,8 @@ import (
 	"unicode"
 
 	"github.com/klauspost/compress/zstd"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
@@ -78,7 +80,10 @@ type Dataset struct {
 // TrimResult is the result of a trim operation.
 type TrimResult struct {
 	// BlocksDeleted is the amount of blocks deleted by the trim operation.
-	BlocksDeleted int `json:"numDeleted"` // Deprecated: BlocksDeleted is deprecated and will be removed in the future.
+	//
+	// Deprecated: BlocksDeleted is deprecated and will be removed in the
+	// future.
+	BlocksDeleted int `json:"numDeleted"`
 }
 
 // IngestStatus is the status after an event ingestion operation.
@@ -169,9 +174,12 @@ type DatasetsService service
 
 // List all available datasets.
 func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.List")
+	defer span.End()
+
 	var res []*wrappedDataset
 	if err := s.client.Call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	datasets := make([]*Dataset, len(res))
@@ -184,11 +192,16 @@ func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 
 // Get a dataset by id.
 func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.Get", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+	))
+	defer span.End()
+
 	path := s.basePath + "/" + id
 
 	var res wrappedDataset
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	return &res.Dataset, nil
@@ -196,9 +209,15 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 
 // Create a dataset with the given properties.
 func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) (*Dataset, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.Create", trace.WithAttributes(
+		attribute.String("axiom.param.name", req.Name),
+		attribute.String("axiom.param.description", req.Description),
+	))
+	defer span.End()
+
 	var res wrappedDataset
 	if err := s.client.Call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	return &res.Dataset, nil
@@ -206,11 +225,17 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 
 // Update the dataset identified by the given id with the given properties.
 func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpdateRequest) (*Dataset, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.Update", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.description", req.Description),
+	))
+	defer span.End()
+
 	path := s.basePath + "/" + id
 
 	var res wrappedDataset
 	if err := s.client.Call(ctx, http.MethodPut, path, req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	return &res.Dataset, nil
@@ -218,13 +243,28 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 
 // Delete the dataset identified by the given id.
 func (s *DatasetsService) Delete(ctx context.Context, id string) error {
-	return s.client.Call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil)
+	ctx, span := s.client.trace(ctx, "Datasets.Delete", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+	))
+	defer span.End()
+
+	if err := s.client.Call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
 }
 
 // Trim the dataset identified by its id to a given length. The max duration
 // given will mark the oldest timestamp an event can have. Older ones will be
 // deleted from the dataset.
 func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.Duration) (*TrimResult, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.Trim", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.max_duration", maxDuration.String()),
+	))
+	defer span.End()
+
 	req := datasetTrimRequest{
 		MaxDuration: maxDuration.String(),
 	}
@@ -233,7 +273,7 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 	var res TrimResult
 	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	return &res, nil
@@ -244,21 +284,29 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.Ingest", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.content_type", typ.String()),
+		attribute.String("axiom.param.content_encoding", enc.String()),
+	))
+	defer span.End()
+
 	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	switch typ {
 	case JSON, NDJSON, CSV:
 		req.Header.Set("Content-Type", typ.String())
 	default:
-		return nil, ErrUnknownContentType
+		err = ErrUnknownContentType
+		return nil, spanError(span, err)
 	}
 
 	switch enc {
@@ -266,13 +314,16 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 	case Gzip, Zstd:
 		req.Header.Set("Content-Encoding", enc.String())
 	default:
-		return nil, ErrUnknownContentEncoding
+		err = ErrUnknownContentEncoding
+		return nil, spanError(span, err)
 	}
 
 	var res IngestStatus
 	if _, err = s.client.Do(req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
+
+	setIngestResultOnSpan(span, res)
 
 	return &res, nil
 }
@@ -282,13 +333,19 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.IngestEvents", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.Int("axiom.events_to_ingest", len(events)),
+	))
+	defer span.End()
+
 	if len(events) == 0 {
 		return &IngestStatus{}, nil
 	}
 
 	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	pr, pw := io.Pipe()
@@ -319,7 +376,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	req.Header.Set("Content-Type", NDJSON.String())
@@ -327,8 +384,10 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 
 	var res IngestStatus
 	if _, err = s.client.Do(req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
+
+	setIngestResultOnSpan(span, res)
 
 	return &res, nil
 }
@@ -340,9 +399,16 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, opts IngestOptions) (*IngestStatus, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.Int("axiom.channel.capacity", cap(events)),
+		attribute.Int("axiom.channel.length", len(events)),
+	))
+	defer span.End()
+
 	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	pr, pw := io.Pipe()
@@ -373,7 +439,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	req.Header.Set("Content-Type", NDJSON.String())
@@ -381,8 +447,10 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 
 	var res IngestStatus
 	if _, err = s.client.Do(req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
+
+	setIngestResultOnSpan(span, res)
 
 	return &res, nil
 }
@@ -390,9 +458,16 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 // Query executes the given query specified using the Axiom Processing
 // Language (APL).
 func (s *DatasetsService) Query(ctx context.Context, q query.Query, opts query.Options) (*query.Result, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(
+		attribute.String("axiom.param.query", string(q)),
+		attribute.String("axiom.param.start_time", opts.StartTime.String()),
+		attribute.String("axiom.param.end_time", opts.EndTime.String()),
+	))
+	defer span.End()
+
 	path, err := AddOptions(s.basePath+"/_apl", opts)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
@@ -401,7 +476,7 @@ func (s *DatasetsService) Query(ctx context.Context, q query.Query, opts query.O
 		EndTime:   opts.EndTime,
 	})
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	var (
@@ -417,9 +492,11 @@ func (s *DatasetsService) Query(ctx context.Context, q query.Query, opts query.O
 		resp *Response
 	)
 	if resp, err = s.client.Do(req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
+
+	setQueryResultOnSpan(span, res.Result)
 
 	return &res.Result, nil
 }
@@ -431,19 +508,25 @@ func (s *DatasetsService) Query(ctx context.Context, q query.Query, opts query.O
 // Axiom Processing Language (APL) and the legacy query API will be removed in
 // the future. Use github.com/axiomhq/axiom-go/axiom/query instead.
 func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.QueryLegacy", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+	))
+	defer span.End()
+
 	if opts.SaveKind == querylegacy.APL {
-		return nil, fmt.Errorf("invalid query kind %q: must be %q or %q",
+		err := fmt.Errorf("invalid query kind %q: must be %q or %q",
 			opts.SaveKind, querylegacy.Analytics, querylegacy.Stream)
+		return nil, spanError(span, err)
 	}
 
 	path, err := AddOptions(s.basePath+"/"+id+"/query", opts)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, q)
 	if err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	var (
@@ -457,9 +540,11 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		resp *Response
 	)
 	if resp, err = s.client.Do(req, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
+
+	setQueryResultOnSpan(span, query.Result(res.Result))
 
 	return &res.Result, nil
 }
@@ -509,4 +594,29 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 	r = io.MultiReader(alreadyRead, r)
 
 	return r, typ, nil
+}
+
+func setIngestResultOnSpan(span trace.Span, res IngestStatus) {
+	span.SetAttributes(
+		attribute.Int64("axiom.events.ingested", int64(res.Ingested)),
+		attribute.Int64("axiom.events.failed", int64(res.Failed)),
+		attribute.Int64("axiom.events.processed_bytes", int64(res.ProcessedBytes)),
+	)
+}
+
+func setQueryResultOnSpan(span trace.Span, res query.Result) {
+	span.SetAttributes(
+		attribute.Int64("axiom.result.matches", int64(res.Status.BlocksExamined)),
+		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
+		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
+		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
+		attribute.Int64("axiom.result.status.rows_matched", int64(res.Status.RowsMatched)),
+		attribute.Int64("axiom.result.status.num_groups", int64(res.Status.NumGroups)),
+		attribute.Bool("axiom.result.status.is_partial", res.Status.IsPartial),
+		attribute.Bool("axiom.result.status.is_estimate", res.Status.IsEstimate),
+		attribute.String("axiom.result.status.min_block_time", res.Status.MinBlockTime.String()),
+		attribute.String("axiom.result.status.max_block_time", res.Status.MaxBlockTime.String()),
+		attribute.String("axiom.result.status.min_cursor", res.Status.MinCursor),
+		attribute.String("axiom.result.status.max_cursor", res.Status.MaxCursor),
+	)
 }

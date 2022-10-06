@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"net/url"
 	"regexp"
 	"strings"
@@ -16,6 +17,11 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/klauspost/compress/gzhttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/axiomhq/axiom-go/internal/config"
 	"github.com/axiomhq/axiom-go/internal/version"
@@ -32,6 +38,8 @@ const (
 	defaultMediaType = "application/octet-stream"
 	mediaTypeJSON    = "application/json"
 	mediaTypeNDJSON  = "application/x-ndjson"
+
+	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
 
 var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
@@ -45,14 +53,20 @@ type service struct {
 // DefaultHTTPClient returns the default HTTP client used for making requests.
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
-		Transport: gzhttp.Transport(&http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout: 5 * time.Second,
-			}).DialContext,
-			TLSHandshakeTimeout: 5 * time.Second,
-			ForceAttemptHTTP2:   true,
-		}),
+		Transport: DefaultHTTPTransport(),
 	}
+}
+
+// DefaultHTTPTransport returns the default HTTP transport used for the default
+// HTTP client.
+func DefaultHTTPTransport() http.RoundTripper {
+	return otelhttp.NewTransport(gzhttp.Transport(&http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 5 * time.Second,
+		ForceAttemptHTTP2:   true,
+	}))
 }
 
 // Client provides the Axiom HTTP API operations.
@@ -64,6 +78,8 @@ type Client struct {
 	strictDecoding bool
 	noEnv          bool
 	noLimiting     bool
+
+	tracer trace.Tracer
 
 	// Services for communicating with different parts of the GitHub API.
 	Datasets      *DatasetsService
@@ -90,6 +106,8 @@ func NewClient(options ...Option) (*Client, error) {
 		userAgent: "axiom-go",
 
 		httpClient: DefaultHTTPClient(),
+
+		tracer: otel.Tracer(otelTracerName),
 	}
 
 	// Include module version in the user agent.
@@ -181,6 +199,7 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 		}
 	}
 
+	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
 	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), r)
 	if err != nil {
 		return nil, err
@@ -284,7 +303,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 		// Handle a properly JSON formatted Axiom API error response.
 		errResp := &Error{Status: statusCode}
-		if err := dec.Decode(&errResp); err != nil {
+		if err = dec.Decode(&errResp); err != nil {
 			return resp, fmt.Errorf("error decoding %d error response: %w", statusCode, err)
 		}
 
@@ -300,7 +319,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
-			_, err := io.Copy(w, resp.Body)
+			_, err = io.Copy(w, resp.Body)
 			return resp, err
 		}
 
@@ -316,4 +335,21 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	}
 
 	return resp, nil
+}
+
+func (c *Client) trace(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+	return c.tracer.Start(ctx, name, opts...)
+}
+
+func spanError(span trace.Span, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if span.IsRecording() {
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
+	}
+
+	return err
 }

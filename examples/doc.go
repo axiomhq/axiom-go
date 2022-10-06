@@ -1,2 +1,2 @@
-// Package examples contains code examples on how to use Axiom Go.
+// Package examples contains code examples on how to use axiom-go.
 package examples

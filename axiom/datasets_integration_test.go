@@ -182,11 +182,14 @@ func (s *DatasetsTestSuite) Test() {
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
 
-	// Run a query and make sure we see some results.
 	now := time.Now()
+	startTime := now.Add(-time.Minute)
+	endTime := now.Add(time.Minute)
+
+	// Run a query and make sure we see some results.
 	simpleQuery := querylegacy.Query{
-		StartTime: now.Add(-time.Minute),
-		EndTime:   now,
+		StartTime: startTime,
+		EndTime:   endTime,
 	}
 	simpleQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, simpleQuery, querylegacy.Options{
 		SaveKind: querylegacy.Analytics,
@@ -220,8 +223,8 @@ func (s *DatasetsTestSuite) Test() {
 
 	// Run a more complex querylegacy.
 	complexQuery := querylegacy.Query{
-		StartTime: time.Now().UTC().Add(-time.Minute),
-		EndTime:   time.Now().UTC(),
+		StartTime: startTime,
+		EndTime:   endTime,
 		Aggregations: []querylegacy.Aggregation{
 			{
 				Alias: "event_count",

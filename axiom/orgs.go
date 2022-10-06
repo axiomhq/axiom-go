@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Plan -linecomment -output=orgs_string.go
@@ -176,9 +179,12 @@ type OrganizationsService service
 
 // List all available organizations.
 func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error) {
+	ctx, span := s.client.trace(ctx, "Organizations.List")
+	defer span.End()
+
 	var res []*wrappedOrganization
 	if err := s.client.Call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	organizations := make([]*Organization, len(res))
@@ -191,11 +197,16 @@ func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error
 
 // Get an organization by id.
 func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organization, error) {
+	ctx, span := s.client.trace(ctx, "Organizations.Get", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+	))
+	defer span.End()
+
 	path := s.basePath + "/" + id
 
 	var res wrappedOrganization
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
-		return nil, err
+		return nil, spanError(span, err)
 	}
 
 	return &res.Organization, nil
