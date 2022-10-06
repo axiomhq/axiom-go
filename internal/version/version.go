@@ -15,7 +15,7 @@ func init() {
 	}
 }
 
-// Get returns the Go module version of the Axiom Go module.
+// Get returns the Go module version of the axiom-go module.
 func Get() string {
 	return version
 }
