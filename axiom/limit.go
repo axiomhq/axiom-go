@@ -22,6 +22,10 @@ const (
 	headerRateLimit     = "X-RateLimit-Limit"
 	headerRateRemaining = "X-RateLimit-Remaining"
 	headerRateReset     = "X-RateLimit-Reset"
+
+	// httpStatusLimitExceeded is a non-standard http status code returned by
+	// Axiom to indicate that the query and/or ingest limit has been reached.
+	httpStatusLimitExceeded = 430
 )
 
 type limitType uint8
