@@ -469,7 +469,6 @@ func TestClient_do_RateLimit(t *testing.T) {
 
 			limitType: limitRate,
 		},
-		Message: "rate limit exceeded",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -480,7 +479,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
 		w.WriteHeader(http.StatusTooManyRequests)
 		assert.NoError(t, json.NewEncoder(w).Encode(Error{
-			Message: "rate limit exceeded",
+			Message: "limit exceeded",
 		}))
 	}
 

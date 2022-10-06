@@ -51,8 +51,7 @@ func (e *Error) Is(target error) bool {
 
 // LimitError occurs when http status code 429 (TooManyRequests) is encountered.
 type LimitError struct {
-	Limit   Limit  `json:"-"`
-	Message string `json:"message"`
+	Limit Limit
 
 	response *http.Response
 }
@@ -61,8 +60,8 @@ type LimitError struct {
 //
 // It implements the `error` interface.
 func (e *LimitError) Error() string {
-	return fmt.Sprintf("%s: try again in %s",
-		e.Message, time.Until(e.Limit.Reset).Truncate(time.Second))
+	return fmt.Sprintf("%s limit exceeded: try again in %s",
+		e.Limit.limitType, time.Until(e.Limit.Reset).Truncate(time.Second))
 }
 
 // Is returns whether the provided error equals this error.
@@ -71,5 +70,5 @@ func (e *LimitError) Is(target error) bool {
 	if !ok {
 		return false
 	}
-	return e.Limit == v.Limit && e.Message == v.Message
+	return e.Limit == v.Limit
 }

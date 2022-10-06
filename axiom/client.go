@@ -248,6 +248,25 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	}
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
+		// Handle common http status codes by returning proper errors so it is
+		// possible to check for them using `errors.Is()`.
+		switch statusCode {
+		case http.StatusUnauthorized:
+			return resp, ErrUnauthenticated
+		case http.StatusForbidden:
+			return resp, ErrUnauthorized
+		case http.StatusNotFound:
+			return resp, ErrNotFound
+		case http.StatusConflict:
+			return resp, ErrExists
+		case http.StatusTooManyRequests, httpStatusLimitExceeded:
+			return resp, &LimitError{
+				Limit: resp.Limit,
+
+				response: resp.Response,
+			}
+		}
+
 		// Handle a generic HTTP error if the response is not JSON formatted.
 		if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
 			return resp, &Error{
@@ -274,28 +293,6 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		if errResp.Message == "" {
 			s := strings.ReplaceAll(buf.String(), "\n", " ")
 			errResp.Message = s
-			return resp, errResp
-		}
-
-		// In case everything went fine till this point, handle special errors
-		// and wrap them with our errors so user can check for them using
-		// `errors.Is()`.
-		switch statusCode {
-		case http.StatusUnauthorized:
-			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthenticated)
-		case http.StatusForbidden:
-			return resp, fmt.Errorf("%v: %w", errResp, ErrUnauthorized)
-		case http.StatusNotFound:
-			return resp, fmt.Errorf("%v: %w", errResp, ErrNotFound)
-		case http.StatusConflict:
-			return resp, fmt.Errorf("%v: %w", errResp, ErrExists)
-		case http.StatusTooManyRequests:
-			return resp, &LimitError{
-				Limit:   resp.Limit,
-				Message: errResp.Message,
-
-				response: resp.Response,
-			}
 		}
 
 		return resp, errResp
