@@ -84,7 +84,7 @@ type Handler struct {
 // control the Axiom client creation. To specify the dataset set `AXIOM_DATASET`
 // or use the `SetDataset()` option.
 //
-// An API token with `axiom.CanIngest` permission is sufficient enough.
+// An API token with `axiom.ingest` permission is sufficient enough.
 //
 // Additional options can be supplied to configure the `Handler`.
 //
