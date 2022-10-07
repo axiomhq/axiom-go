@@ -402,7 +402,6 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.Int("axiom.channel.capacity", cap(events)),
-		attribute.Int("axiom.channel.length", len(events)),
 	))
 	defer span.End()
 
