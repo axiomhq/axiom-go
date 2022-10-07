@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/internal/test/adapters"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
@@ -77,7 +78,10 @@ func TestCore(t *testing.T) {
 	})
 
 	// Timestamp field is set manually to make the JSONEq assertion pass.
-	logger.Info("my message", zap.String("key", "value"), zap.Time(axiom.TimestampField, now))
+	logger.Info("my message",
+		zap.String("key", "value"),
+		zap.Time(ingest.TimestampField, now),
+	)
 
 	require.NoError(t, logger.Sync())
 

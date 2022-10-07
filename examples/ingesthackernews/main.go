@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 const (
@@ -24,8 +26,13 @@ const (
 	maxWorkers = 100
 )
 
+var httpClient = axiom.DefaultHTTPClient()
+
 func main() {
 	// Export `AXIOM_DATASET` in addition to the required environment variables.
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
 	dataset := os.Getenv("AXIOM_DATASET")
 	if dataset == "" {
@@ -80,9 +87,9 @@ func main() {
 	}
 
 	// 6. Ingest ⚡
-	res, err := client.Datasets.IngestChannel(context.Background(), dataset, progressEventCh, axiom.IngestOptions{
-		TimestampField: "time",
-	})
+	res, err := client.Datasets.IngestChannel(ctx, dataset, progressEventCh,
+		ingest.SetTimestampField("time"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,7 +97,7 @@ func main() {
 	// 7. Make sure everything went smoothly.
 	//
 	// Note: If you ever make it here, you have ingested all of Hacknews into
-	// Axiom. Congratulations.. Or not?! 🤔
+	// Axiom. Congratulations... I guess?! 🤔
 	for _, fail := range res.Failures {
 		log.Print(fail.Error)
 	}

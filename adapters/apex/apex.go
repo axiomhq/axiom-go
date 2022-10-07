@@ -11,6 +11,7 @@ import (
 	"github.com/apex/log"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 var _ log.Handler = (*Handler)(nil)
@@ -56,7 +57,7 @@ func SetDataset(datasetName string) Option {
 
 // SetIngestOptions specifies the ingestion options to use for ingesting the
 // logs.
-func SetIngestOptions(opts axiom.IngestOptions) Option {
+func SetIngestOptions(opts ...ingest.Option) Option {
 	return func(h *Handler) error {
 		h.ingestOptions = opts
 		return nil
@@ -69,7 +70,7 @@ type Handler struct {
 	datasetName string
 
 	clientOptions []axiom.Option
-	ingestOptions axiom.IngestOptions
+	ingestOptions []ingest.Option
 
 	eventCh   chan axiom.Event
 	cancel    context.CancelFunc
@@ -147,7 +148,7 @@ func (h *Handler) HandleLog(entry *log.Entry) error {
 	}
 
 	// Set timestamp, severity and actual message.
-	event[axiom.TimestampField] = entry.Timestamp.Format(time.RFC3339Nano)
+	event[ingest.TimestampField] = entry.Timestamp.Format(time.RFC3339Nano)
 	event["severity"] = entry.Level.String()
 	event["message"] = entry.Message
 
@@ -202,7 +203,7 @@ func (h *Handler) ingest(ctx context.Context, events []axiom.Event) {
 		return
 	}
 
-	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, h.ingestOptions, events...)
+	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, events, h.ingestOptions...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to ingest batch of %d events: %s\n", len(events), err)
 	} else if res.Failed > 0 {

@@ -32,14 +32,9 @@ jobs:
           - example: apex
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
-          - example: query
-            setup: |
-              echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
-              axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
-              sleep 5
           - example: ingestevent
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'
           - example: ingestfile
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
@@ -48,7 +43,17 @@ jobs:
           - example: logrus
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+          - example: otelinstrument
+            verify: |
+              axiom dataset info _traces -f=json | jq -e 'any( .numEvents ; . >= 1 )'
           - example: oteltraces
+            verify: |
+              axiom dataset info _traces -f=json | jq -e 'any( .numEvents ; . >= 1 )'
+          - example: query
+            setup: |
+              echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
+              axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
+              sleep 5
           - example: querylegacy
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
