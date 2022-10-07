@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
 	"github.com/axiomhq/axiom-go/axiom"
 	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
 )
@@ -25,14 +23,8 @@ func main() {
 		}
 	}()
 
-	// 2. Optional: Instrument the HTTP client that will be used by axiom-go to
-	// make requests.
-	httpClient := axiom.DefaultHTTPClient()
-	httpClient.Transport = otelhttp.NewTransport(axiom.DefaultHTTPTransport())
-
-	// 3. Initialize the Axiom API client (and optionally pass the instrumented
-	// HTTP client from step two).
-	client, err := axiom.NewClient(axiom.SetClient(httpClient))
+	// 3. Initialize the Axiom API client.
+	client, err := axiom.NewClient()
 	if err != nil {
 		log.Fatal(err)
 	}

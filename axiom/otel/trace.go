@@ -16,12 +16,17 @@ import (
 	"github.com/axiomhq/axiom-go/internal/version"
 )
 
-// UserAgentAttribute returns a new OpenTelemetry axiom-go user agent attribute.
-func UserAgentAttribute() attribute.KeyValue {
-	userAgent := "axiom-go"
+var userAgent string
+
+func init() {
+	userAgent = "axiom-go"
 	if v := version.Get(); v != "" {
 		userAgent += fmt.Sprintf("/%s", v)
 	}
+}
+
+// UserAgentAttribute returns a new OpenTelemetry axiom-go user agent attribute.
+func UserAgentAttribute() attribute.KeyValue {
 	return semconv.HTTPUserAgentKey.String(userAgent)
 }
 
