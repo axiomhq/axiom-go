@@ -23,6 +23,7 @@ jobs:
           - ingestfile
           # - ingesthackernews # HINT(lukasmalkmus): We do not test this example as it takes too long!
           - logrus
+          - otelinstrument
           - oteltraces
           - query
           - querylegacy
