@@ -24,10 +24,11 @@ func main() {
 	}
 
 	// 2. Ingest ⚡
-	ev := axiom.Event{
-		"foo": "bar",
+	events := []axiom.Event{
+		{"foo": "bar"},
+		{"bar": "foo"},
 	}
-	res, err := client.Datasets.IngestEvents(context.Background(), dataset, axiom.IngestOptions{}, ev)
+	res, err := client.Datasets.IngestEvents(context.Background(), dataset, events)
 	if err != nil {
 		log.Fatal(err)
 	}

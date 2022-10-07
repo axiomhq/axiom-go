@@ -16,16 +16,12 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
-
-// TimestampField is the default field the server looks for a time to use as
-// ingestion time. If not present, the server will set the ingestion time by
-// itself.
-const TimestampField = "_time"
 
 var (
 	// ErrUnknownContentType is raised when the given content type is not valid.
@@ -86,30 +82,6 @@ type TrimResult struct {
 	BlocksDeleted int `json:"numDeleted"`
 }
 
-// IngestStatus is the status after an event ingestion operation.
-type IngestStatus struct {
-	// Ingested is the amount of events that have been ingested.
-	Ingested uint64 `json:"ingested"`
-	// Failed is the amount of events that failed to ingest.
-	Failed uint64 `json:"failed"`
-	// Failures are the ingestion failures, if any.
-	Failures []*IngestFailure `json:"failures"`
-	// ProcessedBytes is the number of bytes processed.
-	ProcessedBytes uint64 `json:"processedBytes"`
-	// BlocksCreated is the amount of blocks created.
-	BlocksCreated uint32 `json:"blocksCreated"`
-	// WALLength is the length of the Write-Ahead Log.
-	WALLength uint32 `json:"walLength"`
-}
-
-// IngestFailure describes the ingestion failure of a single event.
-type IngestFailure struct {
-	// Timestamp of the event that failed to ingest.
-	Timestamp time.Time `json:"timestamp"`
-	// Error that made the event fail to ingest.
-	Error string `json:"error"`
-}
-
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
 	// Name of the dataset to create. Restricted to 80 characters of [a-zA-Z0-9]
@@ -149,21 +121,6 @@ type aplQueryRequest struct {
 	StartTime time.Time `json:"startTime"`
 	// EndTime of the query. Optional.
 	EndTime time.Time `json:"endTime"`
-}
-
-// IngestOptions specifies the optional parameters for the Ingest and
-// IngestEvents method of the Datasets service.
-type IngestOptions struct {
-	// TimestampField defines a custom field to extract the ingestion timestamp
-	// from. Defaults to `_time`.
-	TimestampField string `url:"timestamp-field,omitempty"`
-	// TimestampFormat defines a custom format for the TimestampField.
-	// The reference time is `Mon Jan 2 15:04:05 -0700 MST 2006`, as specified
-	// in https://pkg.go.dev/time/?tab=doc#Parse.
-	TimestampFormat string `url:"timestamp-format,omitempty"`
-	// CSVDelimiter is the delimiter that separates CSV fields. Only valid when
-	// the content to be ingested is CSV formatted.
-	CSVDelimiter string `url:"csv-delimiter,omitempty"`
 }
 
 // DatasetsService handles communication with the dataset related operations of
@@ -283,13 +240,19 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
-func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, opts IngestOptions) (*IngestStatus, error) {
+func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.Ingest", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.String("axiom.param.content_type", typ.String()),
 		attribute.String("axiom.param.content_encoding", enc.String()),
 	))
 	defer span.End()
+
+	// Apply supplied options.
+	var opts ingest.Options
+	for _, option := range options {
+		option(&opts)
+	}
 
 	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
@@ -318,7 +281,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		return nil, spanError(span, err)
 	}
 
-	var res IngestStatus
+	var res ingest.Status
 	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
@@ -332,15 +295,21 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
-func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts IngestOptions, events ...Event) (*IngestStatus, error) {
+func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.IngestEvents", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.Int("axiom.events_to_ingest", len(events)),
 	))
 	defer span.End()
 
+	// Apply supplied options.
+	var opts ingest.Options
+	for _, option := range options {
+		option(&opts)
+	}
+
 	if len(events) == 0 {
-		return &IngestStatus{}, nil
+		return &ingest.Status{}, nil
 	}
 
 	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
@@ -382,7 +351,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
 
-	var res IngestStatus
+	var res ingest.Status
 	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
@@ -398,12 +367,18 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, opts Inge
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
-func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, opts IngestOptions) (*IngestStatus, error) {
+func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.Int("axiom.channel.capacity", cap(events)),
 	))
 	defer span.End()
+
+	// Apply supplied options.
+	var opts ingest.Options
+	for _, option := range options {
+		option(&opts)
+	}
 
 	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
@@ -444,7 +419,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
 
-	var res IngestStatus
+	var res ingest.Status
 	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
@@ -456,7 +431,19 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 
 // Query executes the given query specified using the Axiom Processing
 // Language (APL).
-func (s *DatasetsService) Query(ctx context.Context, q query.Query, opts query.Options) (*query.Result, error) {
+func (s *DatasetsService) Query(ctx context.Context, q query.Query, options ...query.Option) (*query.Result, error) {
+	// Apply supplied options.
+	opts := struct {
+		query.Options
+
+		Format string `url:"format"`
+	}{
+		Format: "legacy", // Hardcode legacy APL format for now.
+	}
+	for _, option := range options {
+		option(&opts.Options)
+	}
+
 	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(
 		attribute.String("axiom.param.query", string(q)),
 		attribute.String("axiom.param.start_time", opts.StartTime.String()),
@@ -595,7 +582,7 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 	return r, typ, nil
 }
 
-func setIngestResultOnSpan(span trace.Span, res IngestStatus) {
+func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
 	span.SetAttributes(
 		attribute.Int64("axiom.events.ingested", int64(res.Ingested)),
 		attribute.Int64("axiom.events.failed", int64(res.Failed)),

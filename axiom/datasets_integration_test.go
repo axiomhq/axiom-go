@@ -142,7 +142,7 @@ func (s *DatasetsTestSuite) Test() {
 		}
 	)
 	resetBuffer()
-	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, axiom.IngestOptions{})
+	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -153,7 +153,7 @@ func (s *DatasetsTestSuite) Test() {
 
 	// ... but gzip encoded...
 	resetBuffer(axiom.GzipEncoder)
-	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip, axiom.IngestOptions{})
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -164,7 +164,7 @@ func (s *DatasetsTestSuite) Test() {
 
 	// ... but zstd encoded...
 	resetBuffer(axiom.ZstdEncoder)
-	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd, axiom.IngestOptions{})
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -174,7 +174,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... and a map.
-	ingestStatus, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, axiom.IngestOptions{}, ingestEvents...)
+	ingestStatus, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, ingestEvents)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -186,43 +186,35 @@ func (s *DatasetsTestSuite) Test() {
 	startTime := now.Add(-time.Minute)
 	endTime := now.Add(time.Minute)
 
-	// Run a query and make sure we see some results.
-	simpleQuery := querylegacy.Query{
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
-	simpleQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, simpleQuery, querylegacy.Options{
-		SaveKind: querylegacy.Analytics,
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(simpleQueryResult)
-
-	// This needs to pass in order for the history query test to have an input.
-	s.Require().NotEmpty(simpleQueryResult.SavedQueryID)
-
-	// s.EqualValues(1, simpleQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
-	s.EqualValues(8, simpleQueryResult.Status.RowsExamined)
-	s.EqualValues(8, simpleQueryResult.Status.RowsMatched)
-	s.Len(simpleQueryResult.Matches, 8)
-
-	// Run another query but using APL.
+	// Run a simple APL query.
 	aplQuery := query.Query(fmt.Sprintf("['%s']", s.dataset.ID))
-	aplQueryResult, err := s.client.Datasets.Query(s.ctx, aplQuery, query.Options{
-		Save: true,
-	})
+	aplQueryResult, err := s.client.Datasets.Query(s.ctx, aplQuery,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+	)
 	s.Require().NoError(err)
 	s.Require().NotNil(aplQueryResult)
-
-	// This needs to pass in order for the history query test to have an input.
-	s.Require().NotEmpty(aplQueryResult.SavedQueryID)
 
 	// s.EqualValues(1, aplQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
 	s.EqualValues(8, aplQueryResult.Status.RowsExamined)
 	s.EqualValues(8, aplQueryResult.Status.RowsMatched)
 	s.Len(aplQueryResult.Matches, 8)
 
-	// Run a more complex querylegacy.
-	complexQuery := querylegacy.Query{
+	// Also run a legacy query and make sure we see some results.
+	legacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, querylegacy.Query{
+		StartTime: startTime,
+		EndTime:   endTime,
+	}, querylegacy.Options{})
+	s.Require().NoError(err)
+	s.Require().NotNil(legacyQueryResult)
+
+	// s.EqualValues(1, legacyQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
+	s.EqualValues(8, legacyQueryResult.Status.RowsExamined)
+	s.EqualValues(8, legacyQueryResult.Status.RowsMatched)
+	s.Len(legacyQueryResult.Matches, 8)
+
+	// Run a more complex legacy query.
+	complexLegacyQuery := querylegacy.Query{
 		StartTime: startTime,
 		EndTime:   endTime,
 		Aggregations: []querylegacy.Aggregation{
@@ -261,14 +253,15 @@ func (s *DatasetsTestSuite) Test() {
 			},
 		},
 	}
-	complexQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, complexQuery, querylegacy.Options{})
-	s.Require().NoError(err)
-	s.Require().NotNil(complexQueryResult)
 
-	s.EqualValues(8, complexQueryResult.Status.RowsExamined)
-	s.EqualValues(8, complexQueryResult.Status.RowsMatched)
-	if s.Len(complexQueryResult.Buckets.Totals, 2) {
-		agg := complexQueryResult.Buckets.Totals[0].Aggregations[0]
+	complexLegacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, complexLegacyQuery, querylegacy.Options{})
+	s.Require().NoError(err)
+	s.Require().NotNil(complexLegacyQueryResult)
+
+	s.EqualValues(8, complexLegacyQueryResult.Status.RowsExamined)
+	s.EqualValues(8, complexLegacyQueryResult.Status.RowsMatched)
+	if s.Len(complexLegacyQueryResult.Buckets.Totals, 2) {
+		agg := complexLegacyQueryResult.Buckets.Totals[0].Aggregations[0]
 		s.EqualValues("event_count", agg.Alias)
 		s.EqualValues(4, agg.Value)
 	}

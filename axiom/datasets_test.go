@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
@@ -356,10 +357,10 @@ func TestDatasetsService_Trim(t *testing.T) {
 }
 
 func TestDatasetsService_Ingest(t *testing.T) {
-	exp := &IngestStatus{
+	exp := &ingest.Status{
 		Ingested:       2,
 		Failed:         0,
-		Failures:       []*IngestFailure{},
+		Failures:       []*ingest.Failure{},
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
@@ -411,21 +412,21 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		}
 	]`)
 
-	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, Identity, IngestOptions{
-		TimestampField:  "time",
-		TimestampFormat: "2/Jan/2006:15:04:05 +0000",
-		CSVDelimiter:    ";", // Obviously not valid for JSON, but perfectly fine to test for its presence in this test.
-	})
+	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, Identity,
+		ingest.SetTimestampField("time"),
+		ingest.SetTimestampFormat("2/Jan/2006:15:04:05 +0000"),
+		ingest.SetCSVDelimiter(";"), // Obviously not valid for JSON, but perfectly fine to test for its presence in this test.
+	)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
 }
 
 func TestDatasetsService_IngestEvents(t *testing.T) {
-	exp := &IngestStatus{
+	exp := &ingest.Status{
 		Ingested:       2,
 		Failed:         0,
-		Failures:       []*IngestFailure{},
+		Failures:       []*ingest.Failure{},
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
@@ -479,17 +480,17 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		},
 	}
 
-	res, err := client.Datasets.IngestEvents(context.Background(), "test", IngestOptions{}, events...)
+	res, err := client.Datasets.IngestEvents(context.Background(), "test", events)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
 }
 
 func TestDatasetsService_IngestChannel(t *testing.T) {
-	exp := &IngestStatus{
+	exp := &ingest.Status{
 		Ingested:       2,
 		Failed:         0,
-		Failures:       []*IngestFailure{},
+		Failures:       []*ingest.Failure{},
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
@@ -551,7 +552,7 @@ func TestDatasetsService_IngestChannel(t *testing.T) {
 		close(eventCh)
 	}()
 
-	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh, IngestOptions{})
+	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -561,6 +562,39 @@ func TestDatasetsService_IngestChannel(t *testing.T) {
 // server response.
 
 func TestDatasetsService_Query(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("content-type"))
+
+		var req aplQueryRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if assert.NoError(t, err) {
+			assert.EqualValues(t, "['test'] | where response == 304", req.Query)
+			assert.NotEmpty(t, req.StartTime)
+			assert.Empty(t, req.EndTime)
+		}
+
+		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err = fmt.Fprint(w, actAPLQueryResp)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "/api/v1/datasets/_apl", hf)
+
+	res, err := client.Datasets.Query(context.Background(),
+		"['test'] | where response == 304",
+		query.SetStartTime(time.Now().Add(-5*time.Minute)),
+	)
+	require.NoError(t, err)
+
+	// TODO(lukasmalkmus): Use `.Equal()` once the Query result type does not
+	// depend on the querylegacy package anymore.
+	assert.EqualValues(t, expQueryRes, res)
+}
+
+func TestDatasetsService_QueryLegacy(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
@@ -591,50 +625,13 @@ func TestDatasetsService_Query(t *testing.T) {
 	assert.Equal(t, expQueryRes, res)
 }
 
-func TestDatasetsService_Query_InvalidSaveKind(t *testing.T) {
+func TestDatasetsService_QueryInvalid_InvalidSaveKind(t *testing.T) {
 	client := setup(t, "/api/v1/datasets/test/query", nil)
 
 	_, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{}, querylegacy.Options{
 		SaveKind: querylegacy.APL,
 	})
 	require.EqualError(t, err, `invalid query kind "apl": must be "analytics" or "stream"`)
-}
-
-func TestDatasetsService_APLQuery(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("content-type"))
-
-		assert.Equal(t, "true", r.URL.Query().Get("saveAsKind"))
-		assert.Equal(t, "legacy", r.URL.Query().Get("format"))
-
-		var req aplQueryRequest
-		err := json.NewDecoder(r.Body).Decode(&req)
-		if assert.NoError(t, err) {
-			assert.EqualValues(t, "['test'] | where response == 304", req.Query)
-			assert.NotEmpty(t, req.StartTime)
-			assert.Empty(t, req.EndTime)
-		}
-
-		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err = fmt.Fprint(w, actAPLQueryResp)
-		assert.NoError(t, err)
-	}
-
-	client := setup(t, "/api/v1/datasets/_apl", hf)
-
-	res, err := client.Datasets.Query(context.Background(),
-		"['test'] | where response == 304", query.Options{
-			StartTime: time.Now().Add(-5 * time.Minute),
-			Save:      true,
-		})
-	require.NoError(t, err)
-
-	// TODO(lukasmalkmus): Use `.Equal()` once the Query result type does not
-	// depend on the querylegacy package anymore.
-	assert.EqualValues(t, expQueryRes, res)
 }
 
 func TestDetectContentType(t *testing.T) {
@@ -644,18 +641,25 @@ func TestDetectContentType(t *testing.T) {
 		want    ContentType
 		wantErr string
 	}{
+		// FIXME(lukasmalkmus): The function incorrectly detects the content
+		// type as NDJSON as it strips newline characters from the input.
+		// {
+		// 	name:  "json - pretty",
+		// 	input: "{\n\"a\":\"b\"\n}",
+		// 	want:  JSON,
+		// },
 		{
-			name:  JSON.String(),
+			name:  "json - multiline",
 			input: `[{"a":"b"}, {"c":"d"}]`,
 			want:  JSON,
 		},
 		{
-			name:  NDJSON.String(),
+			name:  "ndjson - single line",
 			input: `{"a":"b"}`,
 			want:  NDJSON,
 		},
 		{
-			name: NDJSON.String(),
+			name: "ndjson - single line",
 			input: `{"a":"b"}
 				{"c":"d"}`,
 			want: NDJSON,
@@ -680,13 +684,17 @@ func TestDetectContentType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, got, err := DetectContentType(strings.NewReader(tt.input))
-			if tt.want > 0 {
-				require.NoError(t, err)
-				assert.Equal(t, tt.want.String(), got.String())
-			} else {
+			r, got, err := DetectContentType(strings.NewReader(tt.input))
+			if tt.wantErr != "" {
 				assert.EqualError(t, err, tt.wantErr)
+				return
 			}
+			require.NoError(t, err)
+
+			if b, err := io.ReadAll(r); assert.NoError(t, err) {
+				assert.Equal(t, tt.input, string(b))
+			}
+			assert.Equal(t, tt.want.String(), got.String())
 		})
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 var _ zapcore.WriteSyncer = (*WriteSyncer)(nil)
@@ -20,7 +21,7 @@ var _ zapcore.WriteSyncer = (*WriteSyncer)(nil)
 // Matches https://github.com/uber-go/zap/blob/master/config.go#L98 but modifies
 // the timestamp field to be Axiom compatible.
 var encoderConfig = zapcore.EncoderConfig{
-	TimeKey:        axiom.TimestampField, // Modified
+	TimeKey:        ingest.TimestampField, // Modified
 	LevelKey:       "level",
 	NameKey:        "logger",
 	CallerKey:      "caller",
@@ -70,7 +71,7 @@ func SetDataset(datasetName string) Option {
 
 // SetIngestOptions specifies the ingestion options to use for ingesting the
 // logs.
-func SetIngestOptions(opts axiom.IngestOptions) Option {
+func SetIngestOptions(opts ...ingest.Option) Option {
 	return func(ws *WriteSyncer) error {
 		ws.ingestOptions = opts
 		return nil
@@ -93,7 +94,7 @@ type WriteSyncer struct {
 	datasetName string
 
 	clientOptions []axiom.Option
-	ingestOptions axiom.IngestOptions
+	ingestOptions []ingest.Option
 	levelEnabler  zapcore.LevelEnabler
 
 	buf    bytes.Buffer
@@ -173,7 +174,7 @@ func (ws *WriteSyncer) Sync() error {
 		return err
 	}
 
-	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Zstd, ws.ingestOptions)
+	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Zstd, ws.ingestOptions...)
 	if err != nil {
 		return err
 	} else if res.Failed > 0 {

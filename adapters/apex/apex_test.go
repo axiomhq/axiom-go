@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/internal/test/adapters"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
@@ -56,7 +57,7 @@ func TestHandler(t *testing.T) {
 		b, err := io.ReadAll(zsr)
 		assert.NoError(t, err)
 
-		JSONEqExp(t, exp, string(b), []string{axiom.TimestampField})
+		JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
 
 		atomic.AddUint64(&hasRun, 1)
 

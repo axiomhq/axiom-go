@@ -28,7 +28,7 @@ func main() {
 
 	// 2. Query all events using APL ⚡
 	q := query.Query(fmt.Sprintf("['%s']", dataset)) // E.g. ['test']
-	res, err := client.Datasets.Query(context.Background(), q, query.Options{})
+	res, err := client.Datasets.Query(context.Background(), q)
 	if err != nil {
 		log.Fatal(err)
 	} else if len(res.Matches) == 0 {

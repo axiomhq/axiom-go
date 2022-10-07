@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 var _ logrus.Hook = (*Hook)(nil)
@@ -56,7 +57,7 @@ func SetDataset(datasetName string) Option {
 
 // SetIngestOptions specifies the ingestion options to use for ingesting the
 // logs.
-func SetIngestOptions(opts axiom.IngestOptions) Option {
+func SetIngestOptions(opts ...ingest.Option) Option {
 	return func(h *Hook) error {
 		h.ingestOptions = opts
 		return nil
@@ -78,7 +79,7 @@ type Hook struct {
 	datasetName string
 
 	clientOptions []axiom.Option
-	ingestOptions axiom.IngestOptions
+	ingestOptions []ingest.Option
 	levels        []logrus.Level
 
 	eventCh   chan axiom.Event
@@ -165,7 +166,7 @@ func (h *Hook) Fire(entry *logrus.Entry) error {
 	}
 
 	// Set timestamp, severity and actual message.
-	event[axiom.TimestampField] = entry.Time.Format(time.RFC3339Nano)
+	event[ingest.TimestampField] = entry.Time.Format(time.RFC3339Nano)
 	event["severity"] = entry.Level.String()
 	event["message"] = entry.Message
 
@@ -220,7 +221,7 @@ func (h *Hook) ingest(ctx context.Context, events []axiom.Event) {
 		return
 	}
 
-	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, h.ingestOptions, events...)
+	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, events, h.ingestOptions...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to ingest batch of %d events: %s\n", len(events), err)
 	} else if res.Failed > 0 {
