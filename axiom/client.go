@@ -18,7 +18,6 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/klauspost/compress/gzhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -60,13 +59,13 @@ func DefaultHTTPClient() *http.Client {
 // DefaultHTTPTransport returns the default HTTP transport used for the default
 // HTTP client.
 func DefaultHTTPTransport() http.RoundTripper {
-	return otelhttp.NewTransport(gzhttp.Transport(&http.Transport{
+	return gzhttp.Transport(&http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout: 5 * time.Second,
 		}).DialContext,
 		TLSHandshakeTimeout: 5 * time.Second,
 		ForceAttemptHTTP2:   true,
-	}))
+	})
 }
 
 // Client provides the Axiom HTTP API operations.
