@@ -57,29 +57,36 @@ Create and use a client like this:
 
 ```go
 import (
-  "github.com/axiomhq/axiom-go/axiom"
-  "github.com/axiomhq/axiom-go/axiom/query"
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/axiomhq/axiom-go/axiom"
 )
 
-client, err := axiom.NewClient()
-if err != nil {
-  return err
-}
+func main() {
+	ctx := context.Background()
 
-_, err := client.Datasets.IngestEvents(ctx, "my-dataset", []axiom.Event{
-  {"foo": "bar"},
-  {"bar": "foo"},
-})
-if err != nil {
-  return err
-}
+	client, err := axiom.NewClient()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-res, err := client.Datasets.Query("['my-dataset'] | where foo == 'bar' | limit 100")})
-if err != nil {
-  return err
-}
-for _, match := range res.Matches {
-  fmt.Println(match.Data)
+	_, err = client.Datasets.IngestEvents(ctx, "my-dataset", []axiom.Event{
+		{"foo": "bar"},
+		{"bar": "foo"},
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	res, err := client.Datasets.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, match := range res.Matches {
+		fmt.Println(match.Data)
+	}
 }
 ```
 
