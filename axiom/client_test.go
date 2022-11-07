@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -545,31 +547,56 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 }
 
 func TestClient_do_Backoff(t *testing.T) {
-	var currentCalls int
+	payload := `{"foo":"bar"}`
+
+	var (
+		internalServerErrorCalled bool
+		badGatewayCalled          bool
+		gatewayTimeoutCalled      bool
+	)
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		currentCalls++
-		switch currentCalls {
-		case 1:
-			w.WriteHeader(http.StatusInternalServerError)
-		case 2:
-			w.WriteHeader(http.StatusBadGateway)
-		case 3:
-			w.WriteHeader(http.StatusGatewayTimeout)
-		default:
-			w.WriteHeader(http.StatusOK)
+		header := http.StatusOK
+		switch {
+		case !internalServerErrorCalled:
+			internalServerErrorCalled = true
+			header = http.StatusInternalServerError
+		case !badGatewayCalled:
+			badGatewayCalled = true
+			header = http.StatusBadGateway
+		case !gatewayTimeoutCalled:
+			gatewayTimeoutCalled = true
+			header = http.StatusGatewayTimeout
 		}
+
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		assert.Equal(t, payload, string(b))
+
+		w.WriteHeader(header)
 	}
 
 	client := setup(t, "/", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	// Wrap with an io.TeeReader as http.NewRequest checks for some special
+	// readers it can read in full to optimize the request.
+	var r io.Reader = strings.NewReader(payload)
+	r = io.TeeReader(r, io.Discard)
+	req, err := client.NewRequest(context.Background(), http.MethodPost, "/", r)
 	require.NoError(t, err)
+
+	// Make sure the request body can be re-read.
+	req.GetBody = func() (io.ReadCloser, error) {
+		return io.NopCloser(strings.NewReader(payload)), nil
+	}
 
 	resp, err := client.Do(req, nil)
 	require.NoError(t, err)
 
-	assert.Equal(t, 4, currentCalls)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.True(t, internalServerErrorCalled)
+	assert.True(t, badGatewayCalled)
+	assert.True(t, gatewayTimeoutCalled)
 }
 
 func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {

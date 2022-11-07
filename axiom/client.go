@@ -233,27 +233,46 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 // JSON decoded or directly written to v, depending on v being an io.Writer or
 // not.
 func (c *Client) Do(req *http.Request, v any) (*Response, error) {
-	bck := backoff.NewExponentialBackOff()
-	bck.InitialInterval = 200 * time.Millisecond
-	bck.Multiplier = 2.0
-	bck.MaxElapsedTime = 10 * time.Second
+	var (
+		resp *Response
+		err  error
+	)
+	if req.GetBody != nil {
+		bck := backoff.NewExponentialBackOff()
+		bck.InitialInterval = 200 * time.Millisecond
+		bck.Multiplier = 2.0
+		bck.MaxElapsedTime = 10 * time.Second
 
-	var resp *Response
-	err := backoff.Retry(func() error {
-		httpResp, err := c.httpClient.Do(req)
-		if err != nil {
-			return err
+		err = backoff.Retry(func() error {
+			var httpResp *http.Response
+			if httpResp, err = c.httpClient.Do(req); err != nil {
+				return err
+			}
+			resp = newResponse(httpResp)
+
+			// We should only retry in the case the status code is >= 500, anything
+			// below isn't worth retrying.
+			if code := resp.StatusCode; code >= 500 {
+				_, _ = io.Copy(io.Discard, resp.Body)
+				_ = resp.Body.Close()
+
+				// Reset the requests body, so it can be re-read.
+				if req.Body, err = req.GetBody(); err != nil {
+					return backoff.Permanent(err)
+				}
+
+				return fmt.Errorf("got status code %d", code)
+			}
+
+			return nil
+		}, bck)
+	} else {
+		var httpResp *http.Response
+		if httpResp, err = c.httpClient.Do(req); err != nil {
+			return nil, err
 		}
-
 		resp = newResponse(httpResp)
-
-		// We should only retry in the case the status code is >= 500, anything below isn't worth retrying.
-		if code := resp.StatusCode; code >= 500 {
-			return fmt.Errorf("got status code %d", code)
-		}
-
-		return nil
-	}, bck)
+	}
 
 	defer func() {
 		if resp != nil {
