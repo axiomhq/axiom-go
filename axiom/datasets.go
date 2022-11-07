@@ -317,36 +317,48 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		return nil, spanError(span, err)
 	}
 
-	pr, pw := io.Pipe()
-	go func() {
+	getBody := func() (io.ReadCloser, error) {
+		pr, pw := io.Pipe()
+
 		zsw, wErr := zstd.NewWriter(pw)
 		if wErr != nil {
-			_ = pw.CloseWithError(wErr)
-			return
+			_ = pr.Close()
+			_ = pw.Close()
+			return nil, wErr
 		}
 
-		var (
-			enc    = json.NewEncoder(zsw)
-			encErr error
-		)
-		for _, event := range events {
-			if encErr = enc.Encode(event); encErr != nil {
-				break
+		go func() {
+			var (
+				enc    = json.NewEncoder(zsw)
+				encErr error
+			)
+			for _, event := range events {
+				if encErr = enc.Encode(event); encErr != nil {
+					break
+				}
 			}
-		}
 
-		if closeErr := zsw.Close(); encErr == nil {
-			// If we have no error from encoding but from closing, capture that
-			// one.
-			encErr = closeErr
-		}
-		_ = pw.CloseWithError(encErr)
-	}()
+			if closeErr := zsw.Close(); encErr == nil {
+				// If we have no error from encoding but from closing, capture that
+				// one.
+				encErr = closeErr
+			}
+			_ = pw.CloseWithError(encErr)
+		}()
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
+		return pr, nil
+	}
+
+	r, err := getBody()
 	if err != nil {
 		return nil, spanError(span, err)
 	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+	req.GetBody = getBody
 
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
@@ -362,11 +374,13 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 }
 
 // IngestChannel ingests events from a channel into the dataset identified by
-// its id. As it keeps a connection open until the channel is closed, it is not
-// advised to use this method for long-running ingestions.
+// its id.
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
+//
+// As this method keeps a connection open until the channel is closed, it is not
+// advised to use this method for long-running ingestions.
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -385,36 +399,48 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		return nil, spanError(span, err)
 	}
 
-	pr, pw := io.Pipe()
-	go func() {
+	getBody := func() (io.ReadCloser, error) {
+		pr, pw := io.Pipe()
+
 		zsw, wErr := zstd.NewWriter(pw)
 		if wErr != nil {
-			_ = pw.CloseWithError(wErr)
-			return
+			_ = pr.Close()
+			_ = pw.Close()
+			return nil, wErr
 		}
 
-		var (
-			enc    = json.NewEncoder(zsw)
-			encErr error
-		)
-		for event := range events {
-			if encErr = enc.Encode(event); encErr != nil {
-				break
+		go func() {
+			var (
+				enc    = json.NewEncoder(zsw)
+				encErr error
+			)
+			for event := range events {
+				if encErr = enc.Encode(event); encErr != nil {
+					break
+				}
 			}
-		}
 
-		if closeErr := zsw.Close(); encErr == nil {
-			// If we have no error from encoding but from closing, capture that
-			// one.
-			encErr = closeErr
-		}
-		_ = pw.CloseWithError(encErr)
-	}()
+			if closeErr := zsw.Close(); encErr == nil {
+				// If we have no error from encoding but from closing, capture that
+				// one.
+				encErr = closeErr
+			}
+			_ = pw.CloseWithError(encErr)
+		}()
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
+		return pr, nil
+	}
+
+	r, err := getBody()
 	if err != nil {
 		return nil, spanError(span, err)
 	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+	req.GetBody = getBody
 
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
