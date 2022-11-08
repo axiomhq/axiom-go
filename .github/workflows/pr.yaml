@@ -49,7 +49,6 @@ jobs:
     name: Test
     needs: lint
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       matrix:
         go:
@@ -74,9 +73,14 @@ jobs:
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - run: make test-integration
+      - name: Test (Unit)
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: make test
+      - name: Test (Integration)
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: make test-integration
       - name: Cleanup (On Test Failure)
-        if: failure()
+        if: failure() && github.event.pull_request.head.repo.full_name == github.repository
         run: |
           curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
