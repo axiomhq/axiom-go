@@ -374,7 +374,8 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		assert.Equal(t, "2/Jan/2006:15:04:05 +0000", r.URL.Query().Get("timestamp-format"))
 		assert.Equal(t, ";", r.URL.Query().Get("csv-delimiter"))
 
-		w.Header().Set("Content-Type", mediaTypeJSON)
+		_ = assertValidJSON(t, r.Body)
+
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"ingested": 2,
@@ -440,7 +441,8 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		assertValidJSON(t, zsr)
+		events := assertValidJSON(t, zsr)
+		assert.Len(t, events, 2)
 		zsr.Close()
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
@@ -511,7 +513,8 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		assertValidJSON(t, zsr)
+		events := assertValidJSON(t, zsr)
+		assert.Len(t, events, 2)
 		zsr.Close()
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
@@ -576,7 +579,8 @@ func TestDatasetsService_IngestChannel(t *testing.T) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
 
-		assertValidJSON(t, zsr)
+		events := assertValidJSON(t, zsr)
+		assert.Len(t, events, 2)
 		zsr.Close()
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
@@ -628,85 +632,6 @@ func TestDatasetsService_IngestChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
-}
-
-func TestDatasetsService_IngestChannel_Retry(t *testing.T) {
-	exp := &ingest.Status{
-		Ingested:       2,
-		Failed:         0,
-		Failures:       []*ingest.Failure{},
-		ProcessedBytes: 630,
-		BlocksCreated:  0,
-		WALLength:      2,
-	}
-
-	hasErrored := false
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		if !hasErrored {
-			hasErrored = true
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
-		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
-
-		zsr, err := zstd.NewReader(r.Body)
-		require.NoError(t, err)
-
-		assertValidJSON(t, zsr)
-		zsr.Close()
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err = fmt.Fprint(w, `{
-			"ingested": 2,
-			"failed": 0,
-			"failures": [],
-			"processedBytes": 630,
-			"blocksCreated": 0,
-			"walLength": 2
-		}`)
-		assert.NoError(t, err)
-	}
-
-	client := setup(t, "/api/v1/datasets/test/ingest", hf)
-
-	events := []Event{
-		{
-			"time":        "17/May/2015:08:05:32 +0000",
-			"remote_ip":   "93.180.71.3",
-			"remote_user": "-",
-			"request":     "GET /downloads/product_1 HTTP/1.1",
-			"response":    304,
-			"bytes":       0,
-			"referrer":    "-",
-			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-		},
-		{
-			"time":        "17/May/2015:08:05:32 +0000",
-			"remote_ip":   "93.180.71.3",
-			"remote_user": "-",
-			"request":     "GET /downloads/product_1 HTTP/1.1",
-			"response":    304,
-			"bytes":       0,
-			"referrer":    "-",
-			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-		},
-	}
-
-	eventCh := make(chan Event)
-	go func() {
-		for _, e := range events {
-			eventCh <- e
-		}
-		close(eventCh)
-	}()
-
-	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
-	assert.True(t, hasErrored)
 }
 
 // TODO(lukasmalkmus): Write an ingest test that contains some failures in the
@@ -850,14 +775,19 @@ func TestDetectContentType(t *testing.T) {
 	}
 }
 
-func assertValidJSON(t *testing.T, r io.Reader) {
-	dec := json.NewDecoder(r)
-	var v any
+func assertValidJSON(t *testing.T, r io.Reader) []any {
+	var (
+		dec = json.NewDecoder(r)
+		vs  []any
+	)
 	for dec.More() {
+		var v any
 		err := dec.Decode(&v)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, v)
+		vs = append(vs, v)
 	}
+	return vs
 }
 
 func parseTimeOrPanic(value string) time.Time {
