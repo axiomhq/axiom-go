@@ -399,48 +399,38 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		return nil, spanError(span, err)
 	}
 
-	getBody := func() (io.ReadCloser, error) {
-		pr, pw := io.Pipe()
+	pr, pw := io.Pipe()
 
-		zsw, wErr := zstd.NewWriter(pw)
-		if wErr != nil {
-			_ = pr.Close()
-			_ = pw.Close()
-			return nil, wErr
+	zsw, err := zstd.NewWriter(pw)
+	if err != nil {
+		_ = pr.Close()
+		_ = pw.Close()
+		return nil, err
+	}
+
+	go func() {
+		var (
+			enc    = json.NewEncoder(zsw)
+			encErr error
+		)
+		for event := range events {
+			if encErr = enc.Encode(event); encErr != nil {
+				break
+			}
 		}
 
-		go func() {
-			var (
-				enc    = json.NewEncoder(zsw)
-				encErr error
-			)
-			for event := range events {
-				if encErr = enc.Encode(event); encErr != nil {
-					break
-				}
-			}
+		if closeErr := zsw.Close(); encErr == nil {
+			// If we have no error from encoding but from closing, capture that
+			// one.
+			encErr = closeErr
+		}
+		_ = pw.CloseWithError(encErr)
+	}()
 
-			if closeErr := zsw.Close(); encErr == nil {
-				// If we have no error from encoding but from closing, capture that
-				// one.
-				encErr = closeErr
-			}
-			_ = pw.CloseWithError(encErr)
-		}()
-
-		return pr, nil
-	}
-
-	r, err := getBody()
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
-
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
-	if err != nil {
-		return nil, spanError(span, err)
-	}
-	req.GetBody = getBody
 
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
