@@ -16,10 +16,7 @@ import (
 
 var _ log.Handler = (*Handler)(nil)
 
-const (
-	batchSize    = 1024
-	sendInterval = time.Second
-)
+const defaultBatchSize = 1024
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
 // manually using the SetDataset option or export `AXIOM_DATASET`.
@@ -73,7 +70,6 @@ type Handler struct {
 	ingestOptions []ingest.Option
 
 	eventCh   chan axiom.Event
-	cancel    context.CancelFunc
 	closeCh   chan struct{}
 	closeOnce sync.Once
 }
@@ -93,7 +89,7 @@ type Handler struct {
 // calling `Close()`.
 func New(options ...Option) (*Handler, error) {
 	handler := &Handler{
-		eventCh: make(chan axiom.Event, 1),
+		eventCh: make(chan axiom.Event, defaultBatchSize),
 		closeCh: make(chan struct{}),
 	}
 
@@ -120,10 +116,19 @@ func New(options ...Option) (*Handler, error) {
 		}
 	}
 
-	// Run background scheduler.
-	var ctx context.Context
-	ctx, handler.cancel = context.WithCancel(context.Background())
-	go handler.run(ctx, handler.closeCh)
+	// Run background ingest.
+	go func() {
+		defer close(handler.closeCh)
+
+		res, err := handler.client.Datasets.IngestChannel(context.Background(), handler.datasetName, handler.eventCh, handler.ingestOptions...)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to ingest events: %s\n", err)
+		} else if res.Failed > 0 {
+			// Best effort on notifying the user about the ingest failure.
+			fmt.Fprintf(os.Stderr, "event at %s failed to ingest: %s\n",
+				res.Failures[0].Timestamp, res.Failures[0].Error)
+		}
+	}()
 
 	return handler, nil
 }
@@ -133,7 +138,6 @@ func New(options ...Option) (*Handler, error) {
 func (h *Handler) Close() {
 	h.closeOnce.Do(func() {
 		close(h.eventCh)
-		h.cancel()
 		<-h.closeCh
 	})
 }
@@ -155,60 +159,4 @@ func (h *Handler) HandleLog(entry *log.Entry) error {
 	h.eventCh <- event
 
 	return nil
-}
-
-func (h *Handler) run(ctx context.Context, closeCh chan struct{}) {
-	defer close(closeCh)
-
-	t := time.NewTicker(sendInterval)
-	defer t.Stop()
-
-	events := make([]axiom.Event, 0, batchSize)
-
-	defer func() {
-		flushCtx, flushCancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer flushCancel()
-		h.ingest(flushCtx, events)
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-			if len(events) == 0 {
-				continue
-			}
-		case event, ok := <-h.eventCh:
-			if !ok {
-				continue
-			}
-
-			events = append(events, event)
-
-			if len(events) < batchSize {
-				continue
-			}
-		}
-
-		h.ingest(ctx, events)
-
-		// Clear batch buffer.
-		events = make([]axiom.Event, 0, batchSize)
-	}
-}
-
-func (h *Handler) ingest(ctx context.Context, events []axiom.Event) {
-	if len(events) == 0 {
-		return
-	}
-
-	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, events, h.ingestOptions...)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to ingest batch of %d events: %s\n", len(events), err)
-	} else if res.Failed > 0 {
-		// Best effort on notifying the user about the ingest failure.
-		fmt.Fprintf(os.Stderr, "event at %s failed to ingest: %s\n",
-			res.Failures[0].Timestamp, res.Failures[0].Error)
-	}
 }
