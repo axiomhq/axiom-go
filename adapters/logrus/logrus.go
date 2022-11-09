@@ -16,10 +16,7 @@ import (
 
 var _ logrus.Hook = (*Hook)(nil)
 
-const (
-	batchSize    = 1024
-	sendInterval = time.Second
-)
+const defaultBatchSize = 1024
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
 // manually using the SetDataset option or export `AXIOM_DATASET`.
@@ -83,7 +80,6 @@ type Hook struct {
 	levels        []logrus.Level
 
 	eventCh   chan axiom.Event
-	cancel    context.CancelFunc
 	closeCh   chan struct{}
 	closeOnce sync.Once
 }
@@ -105,7 +101,7 @@ func New(options ...Option) (*Hook, error) {
 	hook := &Hook{
 		levels: logrus.AllLevels,
 
-		eventCh: make(chan axiom.Event, 1),
+		eventCh: make(chan axiom.Event, defaultBatchSize),
 		closeCh: make(chan struct{}),
 	}
 
@@ -132,10 +128,19 @@ func New(options ...Option) (*Hook, error) {
 		}
 	}
 
-	// Run background scheduler.
-	var ctx context.Context
-	ctx, hook.cancel = context.WithCancel(context.Background())
-	go hook.run(ctx, hook.closeCh)
+	// Run background ingest.
+	go func() {
+		defer close(hook.closeCh)
+
+		res, err := hook.client.Datasets.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to ingest events: %s\n", err)
+		} else if res.Failed > 0 {
+			// Best effort on notifying the user about the ingest failure.
+			fmt.Fprintf(os.Stderr, "event at %s failed to ingest: %s\n",
+				res.Failures[0].Timestamp, res.Failures[0].Error)
+		}
+	}()
 
 	return hook, nil
 }
@@ -146,7 +151,6 @@ func New(options ...Option) (*Hook, error) {
 func (h *Hook) Close() {
 	h.closeOnce.Do(func() {
 		close(h.eventCh)
-		h.cancel()
 		<-h.closeCh
 	})
 }
@@ -173,60 +177,4 @@ func (h *Hook) Fire(entry *logrus.Entry) error {
 	h.eventCh <- event
 
 	return nil
-}
-
-func (h *Hook) run(ctx context.Context, closeCh chan struct{}) {
-	defer close(closeCh)
-
-	t := time.NewTicker(sendInterval)
-	defer t.Stop()
-
-	events := make([]axiom.Event, 0, batchSize)
-
-	defer func() {
-		flushCtx, flushCancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer flushCancel()
-		h.ingest(flushCtx, events)
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-			if len(events) == 0 {
-				continue
-			}
-		case event, ok := <-h.eventCh:
-			if !ok {
-				continue
-			}
-
-			events = append(events, event)
-
-			if len(events) < batchSize {
-				continue
-			}
-		}
-
-		h.ingest(ctx, events)
-
-		// Clear batch buffer.
-		events = make([]axiom.Event, 0, batchSize)
-	}
-}
-
-func (h *Hook) ingest(ctx context.Context, events []axiom.Event) {
-	if len(events) == 0 {
-		return
-	}
-
-	res, err := h.client.Datasets.IngestEvents(ctx, h.datasetName, events, h.ingestOptions...)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to ingest batch of %d events: %s\n", len(events), err)
-	} else if res.Failed > 0 {
-		// Best effort on notifying the user about the ingest failure.
-		fmt.Fprintf(os.Stderr, "event at %s failed to ingest: %s\n",
-			res.Failures[0].Timestamp, res.Failures[0].Error)
-	}
 }
