@@ -3,7 +3,7 @@ package logrus
 import (
 	"context"
 	"errors"
-	"fmt"
+	stdlog "log"
 	"os"
 	"sync"
 	"time"
@@ -132,12 +132,14 @@ func New(options ...Option) (*Hook, error) {
 	go func() {
 		defer close(hook.closeCh)
 
+		logger := stdlog.New(os.Stderr, "[AXIOM|LOGRUS]", 0)
+
 		res, err := hook.client.Datasets.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to ingest events: %s\n", err)
+			logger.Printf("failed to ingest events: %s\n", err)
 		} else if res.Failed > 0 {
 			// Best effort on notifying the user about the ingest failure.
-			fmt.Fprintf(os.Stderr, "event at %s failed to ingest: %s\n",
+			logger.Printf("event at %s failed to ingest: %s\n",
 				res.Failures[0].Timestamp, res.Failures[0].Error)
 		}
 	}()
