@@ -387,107 +387,78 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 //
 // Events are ingested in batches. A batch is either 1024 events for unbuffered
 // channels or the capacity of the channel for buffered channels. A batch is
-// sent to the server as soon as it is full or after one second or when the
+// sent to the server as soon as it is full, after one second or when the
 // channel is closed.
+//
+// The method returns with an error when the context is marked as done or an
+// error occurs when sending the events to the server. A partial ingestion is
+// possible and the returned ingest status is valid to use. When the context is
+// marked as done, no attempt is made to send the buffered events to the server.
+//
+// The method returns without an error if the channel is closed and the buffered
+// events are successfully sent to the server.
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
-	const (
-		defaultBatchSize    = 1024
-		defaultSendInterval = time.Second
-	)
-
 	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.Int("axiom.channel.capacity", cap(events)),
 	))
 	defer span.End()
 
-	var (
-		errCh        = make(chan error)
-		ingestStatus ingest.Status
-	)
-	go func() {
-		defer close(errCh)
+	// Batch is either 1024 events for unbuffered channels or the capacity of
+	// the channel for buffered channels.
+	batchSize := 1024
+	if cap(events) != 0 {
+		batchSize = cap(events)
+	}
+	batch := make([]Event, 0, batchSize)
 
-		// Batch is either 1024 events for unbuffered channels or the capacity
-		// of the channel for buffered channels.
-		batchSize := defaultBatchSize
-		if cap(events) != 0 {
-			batchSize = cap(events)
-		}
-		batch := make([]Event, 0, batchSize)
+	// Also flush on a per second basis.
+	const flushInterval = time.Second
+	t := time.NewTicker(flushInterval)
+	defer t.Stop()
 
-		ingestBatch := func(ctx context.Context) error {
-			if len(batch) == 0 {
-				return nil
-			}
-
-			// Reset batch buffer after attempted ingest, regardless of the
-			// outcome.
-			defer func() {
-				batch = make([]Event, 0, batchSize)
-			}()
-
-			res, err := s.IngestEvents(ctx, id, batch, options...)
-			if err != nil {
-				return err
-			}
-
-			ingestStatus.Add(res)
-
-			return nil
-		}
-
-		t := time.NewTicker(defaultSendInterval)
-		defer t.Stop()
-
-		for {
-			select {
-			case <-ctx.Done():
-				flushCtx, flushCancel := context.WithTimeout(context.Background(), 10*time.Second)
-				defer flushCancel()
-
-				if err := ingestBatch(flushCtx); err != nil {
-					errCh <- err
-					return
-				}
-
-				errCh <- ctx.Err()
-				return
-			case event, ok := <-events:
-				if !ok {
-					flushCtx, flushCancel := context.WithTimeout(context.Background(), 10*time.Second)
-					defer flushCancel()
-
-					if err := ingestBatch(flushCtx); err != nil {
-						errCh <- err
-					}
-
-					return
-				}
-
-				batch = append(batch, event)
-
-				if len(batch) < batchSize {
-					continue
-				}
-			case <-t.C:
-			}
-
-			if err := ingestBatch(ctx); err != nil {
-				errCh <- err
-				return
-			}
-		}
+	var ingestStatus ingest.Status
+	defer func() {
+		setIngestResultOnSpan(span, ingestStatus)
 	}()
 
-	var err error
-	if err = <-errCh; err != nil {
-		err = spanError(span, err)
+	flush := func() error {
+		if len(batch) > 0 {
+			res, err := s.IngestEvents(ctx, id, batch, options...)
+			if err != nil {
+				return fmt.Errorf("failed to ingest events: %w", err)
+			}
+			ingestStatus.Add(res)
+			t.Reset(flushInterval) // Reset the ticker.
+			batch = batch[:0]      // Clear the batch.
+		}
+		return nil
 	}
 
-	setIngestResultOnSpan(span, ingestStatus)
+loop:
+	for {
+		select {
+		case <-ctx.Done():
+			return &ingestStatus, spanError(span, ctx.Err())
+		case event, ok := <-events:
+			if !ok {
+				break loop // Channel is closed.
+			}
+			batch = append(batch, event)
 
-	return &ingestStatus, err
+			if len(batch) >= batchSize {
+				if err := flush(); err != nil {
+					return &ingestStatus, spanError(span, err)
+				}
+			}
+		case <-t.C:
+			if err := flush(); err != nil {
+				return &ingestStatus, spanError(span, err)
+			}
+		}
+	}
+
+	return &ingestStatus, spanError(span, flush())
 }
 
 // Query executes the given query specified using the Axiom Processing
