@@ -136,7 +136,7 @@ func generateIDs(max uint64) <-chan uint64 {
 
 func fetchEvents(eventIDs <-chan uint64) <-chan axiom.Event {
 	var (
-		eventCh        = make(chan axiom.Event, maxWorkers*10)
+		eventCh        = make(chan axiom.Event, 1024)
 		workerErrGroup errgroup.Group
 	)
 
