@@ -18,6 +18,16 @@ type Status struct {
 	WALLength uint32 `json:"walLength"`
 }
 
+// Add adds the status of another ingestion operation to the current status.
+func (s *Status) Add(other *Status) {
+	s.Ingested += other.Ingested
+	s.Failed += other.Failed
+	s.Failures = append(s.Failures, other.Failures...)
+	s.ProcessedBytes += other.ProcessedBytes
+	s.BlocksCreated += other.BlocksCreated
+	s.WALLength = other.WALLength
+}
+
 // Failure describes the ingestion failure of a single event.
 type Failure struct {
 	// Timestamp of the event that failed to ingest.

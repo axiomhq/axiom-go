@@ -561,11 +561,10 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 	assert.True(t, hasErrored)
 }
 
-func TestDatasetsService_IngestChannel(t *testing.T) {
+func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,
 		Failed:         0,
-		Failures:       []*ingest.Failure{},
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
@@ -632,6 +631,236 @@ func TestDatasetsService_IngestChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
+}
+
+func TestDatasetsService_IngestChannel_Buffered(t *testing.T) {
+	exp := &ingest.Status{
+		Ingested:       2,
+		Failed:         0,
+		ProcessedBytes: 1260,
+		BlocksCreated:  0,
+		WALLength:      2,
+	}
+
+	handlerInvokedCount := 0
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		handlerInvokedCount++
+
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		events := assertValidJSON(t, zsr)
+		assert.Len(t, events, 1)
+		zsr.Close()
+
+		// For the sake of simplicity in this handler, we'll just return the
+		// same WAL length for each request.
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err = fmt.Fprint(w, `{
+			"ingested": 1,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "/api/v1/datasets/test/ingest", hf)
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	eventCh := make(chan Event, 1)
+	go func() {
+		for _, e := range events {
+			eventCh <- e
+		}
+		close(eventCh)
+	}()
+
+	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+	assert.Equal(t, 2, handlerInvokedCount)
+}
+
+func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
+	exp := &ingest.Status{
+		Ingested:       2,
+		Failed:         0,
+		ProcessedBytes: 1260,
+		BlocksCreated:  0,
+		WALLength:      2,
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		events := assertValidJSON(t, zsr)
+		assert.Len(t, events, 1)
+		zsr.Close()
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err = fmt.Fprint(w, `{
+			"ingested": 1,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "/api/v1/datasets/test/ingest", hf)
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	eventCh := make(chan Event)
+	go func() {
+		for _, e := range events {
+			eventCh <- e
+			time.Sleep(time.Second + 250*time.Millisecond)
+		}
+		close(eventCh)
+	}()
+
+	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
+	exp := &ingest.Status{
+		Ingested:       2,
+		Failed:         0,
+		ProcessedBytes: 1260,
+		BlocksCreated:  0,
+		WALLength:      2,
+	}
+
+	handlerInvokedCount := 0
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		handlerInvokedCount++
+
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		events := assertValidJSON(t, zsr)
+		assert.Len(t, events, 1)
+		zsr.Close()
+
+		// For the sake of simplicity in this handler, we'll just return the
+		// same WAL length for each request.
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err = fmt.Fprint(w, `{
+			"ingested": 1,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "/api/v1/datasets/test/ingest", hf)
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	eventCh := make(chan Event, 2)
+	go func() {
+		for _, e := range events {
+			eventCh <- e
+			time.Sleep(time.Second + 250*time.Millisecond)
+		}
+		close(eventCh)
+	}()
+
+	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+	assert.Equal(t, 2, handlerInvokedCount)
 }
 
 // TODO(lukasmalkmus): Write an ingest test that contains some failures in the
