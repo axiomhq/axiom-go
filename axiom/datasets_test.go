@@ -660,14 +660,14 @@ func TestDatasetsService_IngestChannel_Buffered(t *testing.T) {
 		// For the sake of simplicity in this handler, we'll just return the
 		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err = fmt.Fprint(w, `{
-			"ingested": 1,
+		_, err = fmt.Fprintf(w, `{
+			"ingested": %d,
 			"failed": 0,
 			"failures": [],
-			"processedBytes": 630,
+			"processedBytes": %d,
 			"blocksCreated": 0,
 			"walLength": 2
-		}`)
+		}`, len(events), len(events)*630)
 		assert.NoError(t, err)
 	}
 
@@ -732,15 +732,17 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 		assert.Len(t, events, 1)
 		zsr.Close()
 
+		// For the sake of simplicity in this handler, we'll just return the
+		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err = fmt.Fprint(w, `{
-			"ingested": 1,
+		_, err = fmt.Fprintf(w, `{
+			"ingested": %d,
 			"failed": 0,
 			"failures": [],
-			"processedBytes": 630,
+			"processedBytes": %d,
 			"blocksCreated": 0,
 			"walLength": 2
-		}`)
+		}`, len(events), len(events)*630)
 		assert.NoError(t, err)
 	}
 
@@ -773,6 +775,8 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 	go func() {
 		for _, e := range events {
 			eventCh <- e
+			// Simulate a slow producer which should trigger the ticker based
+			// batch flush in the IngestChannel method.
 			time.Sleep(time.Second + 250*time.Millisecond)
 		}
 		close(eventCh)
@@ -811,14 +815,14 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 		// For the sake of simplicity in this handler, we'll just return the
 		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err = fmt.Fprint(w, `{
-			"ingested": 1,
+		_, err = fmt.Fprintf(w, `{
+			"ingested": %d,
 			"failed": 0,
 			"failures": [],
-			"processedBytes": 630,
+			"processedBytes": %d,
 			"blocksCreated": 0,
 			"walLength": 2
-		}`)
+		}`, len(events), len(events)*630)
 		assert.NoError(t, err)
 	}
 
@@ -851,6 +855,8 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 	go func() {
 		for _, e := range events {
 			eventCh <- e
+			// Simulate a slow producer which should trigger the ticker based
+			// batch flush in the IngestChannel method.
 			time.Sleep(time.Second + 250*time.Millisecond)
 		}
 		close(eventCh)
