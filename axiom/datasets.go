@@ -240,6 +240,9 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
+//
+// The reader is streamed to the server until EOF is reached on a single
+// connection. Keep that in mind when dealing with slow readers.
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.Ingest", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -295,6 +298,9 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
+//
+// For ingesting large amounts of data, consider using the `Ingest` or
+// `IngestChannel` method.
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.IngestEvents", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -379,70 +385,109 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 //
-// As this method keeps a connection open until the channel is closed, it is not
-// advised to use this method for long-running ingestions.
+// Events are ingested in batches. A batch is either 1024 events for unbuffered
+// channels or the capacity of the channel for buffered channels. A batch is
+// sent to the server as soon as it is full or after one second or when the
+// channel is closed.
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
+	const (
+		defaultBatchSize    = 1024
+		defaultSendInterval = time.Second
+	)
+
 	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.Int("axiom.channel.capacity", cap(events)),
 	))
 	defer span.End()
 
-	// Apply supplied options.
-	var opts ingest.Options
-	for _, option := range options {
-		option(&opts)
-	}
-
-	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
-	if err != nil {
-		return nil, spanError(span, err)
-	}
-
-	pr, pw := io.Pipe()
-
-	zsw, err := zstd.NewWriter(pw)
-	if err != nil {
-		_ = pr.Close()
-		_ = pw.Close()
-		return nil, err
-	}
-
+	var (
+		errCh        = make(chan error)
+		ingestStatus ingest.Status
+	)
 	go func() {
-		var (
-			enc    = json.NewEncoder(zsw)
-			encErr error
-		)
-		for event := range events {
-			if encErr = enc.Encode(event); encErr != nil {
-				break
+		defer close(errCh)
+
+		// Batch is either 1024 events for unbuffered channels or the capacity
+		// of the channel for buffered channels.
+		batchSize := defaultBatchSize
+		if cap(events) != 0 {
+			batchSize = cap(events)
+		}
+		batch := make([]Event, 0, batchSize)
+
+		ingestBatch := func(ctx context.Context) error {
+			if len(batch) == 0 {
+				return nil
+			}
+
+			// Reset batch buffer after attempted ingest, regardless of the
+			// outcome.
+			defer func() {
+				batch = make([]Event, 0, batchSize)
+			}()
+
+			res, err := s.IngestEvents(ctx, id, batch, options...)
+			if err != nil {
+				return err
+			}
+
+			ingestStatus.Add(res)
+
+			return nil
+		}
+
+		t := time.NewTicker(defaultSendInterval)
+		defer t.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				flushCtx, flushCancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer flushCancel()
+
+				if err := ingestBatch(flushCtx); err != nil {
+					errCh <- err
+					return
+				}
+
+				errCh <- ctx.Err()
+				return
+			case event, ok := <-events:
+				if !ok {
+					flushCtx, flushCancel := context.WithTimeout(context.Background(), 10*time.Second)
+					defer flushCancel()
+
+					if err := ingestBatch(flushCtx); err != nil {
+						errCh <- err
+					}
+
+					return
+				}
+
+				batch = append(batch, event)
+
+				if len(batch) < batchSize {
+					continue
+				}
+			case <-t.C:
+			}
+
+			if err := ingestBatch(ctx); err != nil {
+				errCh <- err
+				return
 			}
 		}
-
-		if closeErr := zsw.Close(); encErr == nil {
-			// If we have no error from encoding but from closing, capture that
-			// one.
-			encErr = closeErr
-		}
-		_ = pw.CloseWithError(encErr)
 	}()
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, pr)
-	if err != nil {
-		return nil, spanError(span, err)
+	var err error
+	if err = <-errCh; err != nil {
+		err = spanError(span, err)
 	}
 
-	req.Header.Set("Content-Type", NDJSON.String())
-	req.Header.Set("Content-Encoding", Zstd.String())
+	setIngestResultOnSpan(span, ingestStatus)
 
-	var res ingest.Status
-	if _, err = s.client.Do(req, &res); err != nil {
-		return nil, spanError(span, err)
-	}
-
-	setIngestResultOnSpan(span, res)
-
-	return &res, nil
+	return &ingestStatus, err
 }
 
 // Query executes the given query specified using the Axiom Processing
