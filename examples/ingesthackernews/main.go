@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -104,7 +103,7 @@ func main() {
 }
 
 func getMaxItemID() (uint64, error) {
-	res, err := http.Get(baseURL + "/v0/maxitem.json")
+	res, err := httpClient.Get(baseURL + "/v0/maxitem.json")
 	if err != nil {
 		return 0, fmt.Errorf("failed to get maxitem.json: %w", err)
 	}
@@ -151,17 +150,17 @@ func fetchEvents(eventIDs <-chan uint64) <-chan axiom.Event {
 
 	for i := 0; i < maxWorkers; i++ {
 		workerErrGroup.Go(func() error {
-			var event axiom.Event
 			for id := range eventIDs {
-				res, err := http.Get(fmt.Sprintf("%s/v0/item/%d.json", baseURL, id))
+				resp, err := httpClient.Get(fmt.Sprintf("%s/v0/item/%d.json", baseURL, id))
 				if err != nil {
 					return err
 				}
 
-				if err := json.NewDecoder(res.Body).Decode(&event); err != nil {
-					_ = res.Body.Close()
+				var event axiom.Event
+				if err := json.NewDecoder(resp.Body).Decode(&event); err != nil {
+					_ = resp.Body.Close()
 					return err
-				} else if err = res.Body.Close(); err != nil {
+				} else if err = resp.Body.Close(); err != nil {
 					return err
 				}
 
