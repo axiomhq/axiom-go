@@ -386,9 +386,9 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 // https://www.axiom.co/docs/usage/field-restrictions.
 //
 // Events are ingested in batches. A batch is either 1024 events for unbuffered
-// channels or the capacity of the channel for buffered channels. A batch is
-// sent to the server as soon as it is full, after one second or when the
-// channel is closed.
+// channels or the capacity of the channel for buffered channels. The maximum
+// batch size is 1024*10. A batch is sent to the server as soon as it is full,
+// after one second or when the channel is closed.
 //
 // The method returns with an error when the context is marked as done or an
 // error occurs when sending the events to the server. A partial ingestion is
@@ -405,9 +405,11 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	defer span.End()
 
 	// Batch is either 1024 events for unbuffered channels or the capacity of
-	// the channel for buffered channels.
+	// the channel for buffered channels. The maximum batch size is 1024*10.
 	batchSize := 1024
-	if cap(events) != 0 {
+	if cap(events) > batchSize*10 {
+		batchSize *= 10
+	} else if cap(events) > 0 {
 		batchSize = cap(events)
 	}
 	batch := make([]Event, 0, batchSize)
@@ -423,15 +425,18 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	}()
 
 	flush := func() error {
-		if len(batch) > 0 {
-			res, err := s.IngestEvents(ctx, id, batch, options...)
-			if err != nil {
-				return fmt.Errorf("failed to ingest events: %w", err)
-			}
-			ingestStatus.Add(res)
-			t.Reset(flushInterval) // Reset the ticker.
-			batch = batch[:0]      // Clear the batch.
+		if len(batch) == 0 {
+			return nil
 		}
+
+		res, err := s.IngestEvents(ctx, id, batch, options...)
+		if err != nil {
+			return fmt.Errorf("failed to ingest events: %w", err)
+		}
+		ingestStatus.Add(res)
+		t.Reset(flushInterval) // Reset the ticker.
+		batch = batch[:0]      // Clear the batch.
+
 		return nil
 	}
 
