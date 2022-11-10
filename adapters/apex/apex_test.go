@@ -95,7 +95,7 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 
 	logger := adapters.Setup(t, hf, setup(t))
 
-	for i := 0; i <= 1024; i++ {
+	for i := 0; i <= 1000; i++ {
 		logger.Info("my message")
 	}
 
@@ -103,13 +103,13 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 	time.Sleep(250 * time.Millisecond)
 
 	// Should have a full batch right away.
-	assert.EqualValues(t, 1024, atomic.LoadUint64(&lines))
+	assert.EqualValues(t, 1000, atomic.LoadUint64(&lines))
 
 	// Wait for timer based handler flush.
 	time.Sleep(1250 * time.Millisecond)
 
 	// Should have received the last event.
-	assert.EqualValues(t, 1025, atomic.LoadUint64(&lines))
+	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
 }
 
 func setup(t *testing.T) func(dataset string, client *axiom.Client) *log.Logger {
