@@ -19,6 +19,7 @@ const (
 	OpCount    // count
 	OpDistinct // distinct
 	OpMakeSet  // makeset
+	OpMakeList // makelist
 
 	// Only works for numbers.
 	OpSum               // sum
@@ -50,6 +51,8 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 		op = OpDistinct
 	case OpMakeSet.String():
 		op = OpMakeSet
+	case OpMakeList.String():
+		op = OpMakeList
 	case OpSum.String():
 		op = OpSum
 	case OpAvg.String():
