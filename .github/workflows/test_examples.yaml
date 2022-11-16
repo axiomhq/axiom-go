@@ -15,7 +15,10 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'axiomhq'
+    if: |
+      (github.event.pull_request.head.repo.full_name == github.repository ||
+         github.event.push.head.repo.full_name == github.repository) &&
+         github.repository_owner == 'axiomhq'
     strategy:
       matrix:
         example:
