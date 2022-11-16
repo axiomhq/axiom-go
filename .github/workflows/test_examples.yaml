@@ -110,7 +110,7 @@ jobs:
       # Skipping example tests will pass this step.
       - if: env.conclusion == 'skipped'
         run: echo "conclusion=success" >> $GITHUB_ENV
-      - uses: LouisBrunner/checks-action@v1.2.0
+      - uses: LouisBrunner/checks-action@v1.5.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Examples Pass
