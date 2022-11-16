@@ -36,11 +36,18 @@ const (
 
 	// Read-only. Not to be used for query requests. Only in place to support
 	// the APL query result.
-	OpCountIf    // countif
-	OpDistinctIf // distinctif
-	OpMakeSetIf  // makesetif
-	OpRate       // rate
-	OpPearson    // pearson_correlation
+	OpCountIf             // countif
+	OpDistinctIf          // distinctif
+	OpSumIf               // sumif
+	OpAvgIf               // avgif
+	OpMinIf               // minif
+	OpMaxIf               // maxif
+	OpStandardDeviationIf // stdevif
+	OpVarianceIf          // varianceif
+	OpMakeSetIf           // makesetif
+	OpMakeListIf          // makelistif
+	OpRate                // rate
+	OpPearson             // pearson_correlation
 )
 
 func aggregationOpFromString(s string) (op AggregationOp) {
@@ -79,8 +86,22 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 		op = OpCountIf
 	case OpDistinctIf.String():
 		op = OpDistinctIf
+	case OpSumIf.String():
+		op = OpSumIf
+	case OpAvgIf.String():
+		op = OpAvgIf
+	case OpMinIf.String():
+		op = OpMinIf
+	case OpMaxIf.String():
+		op = OpMaxIf
+	case OpStandardDeviationIf.String():
+		op = OpStandardDeviationIf
+	case OpVarianceIf.String():
+		op = OpVarianceIf
 	case OpMakeSetIf.String():
 		op = OpMakeSetIf
+	case OpMakeListIf.String():
+		op = OpMakeListIf
 	case OpRate.String():
 		op = OpRate
 	case OpPearson.String():
