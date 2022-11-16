@@ -43,33 +43,43 @@ Otherwise create a personal token in
 `AXIOM_TOKEN`. Set `AXIOM_ORG_ID` to the organization ID from the settings page
 of the organization you want to access.
 
+You can also configure the client using
+[options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option) passed to
+the `axiom.NewClient` function:
+
+```go
+client, err := axiom.NewClient(
+  SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
+)
+```
+
 Create and use a client like this:
 
 ```go
 import (
-	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/query"
+  "github.com/axiomhq/axiom-go/axiom"
+  "github.com/axiomhq/axiom-go/axiom/query"
 )
 
 client, err := axiom.NewClient()
 if err != nil {
-	return err
+  return err
 }
 
 _, err := client.Datasets.IngestEvents(ctx, "my-dataset", []axiom.Event{
-	{"foo": "bar"},
-	{"bar": "foo"},
+  {"foo": "bar"},
+  {"bar": "foo"},
 })
 if err != nil {
-	return err
+  return err
 }
 
 res, err := client.Datasets.Query("['my-dataset'] | where foo == 'bar' | limit 100")})
 if err != nil {
-	return err
+  return err
 }
 for _, match := range res.Matches {
-	fmt.Println(match.Data)
+  fmt.Println(match.Data)
 }
 ```
 
