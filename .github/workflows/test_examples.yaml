@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event.pull_request.head.repo.full_name == github.repository ||
-         github.event.push.head.repo.full_name == github.repository) &&
-         github.repository_owner == 'axiomhq'
+      github.event.push.head.repo.full_name == github.repository) &&
+      github.repository_owner == 'axiomhq'
     strategy:
       matrix:
         example:
@@ -101,20 +101,10 @@ jobs:
         run: axiom dataset delete -f $AXIOM_DATASET
 
   examples-pass:
-    name: Create Examples Pass Check
+    name: Examples Pass
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: always()
     steps:
-      - run: echo "conclusion=${{ needs.test.result }}" >> $GITHUB_ENV
-      # Skipping example tests will pass this step.
-      - if: env.conclusion == 'skipped'
-        run: echo "conclusion=success" >> $GITHUB_ENV
-      - uses: LouisBrunner/checks-action@v1.5.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: Examples Pass
-          conclusion: ${{ env.conclusion }}
-      # Fail workflow if resulting check is also created as failed.
-      - if: ${{ env.conclusion != 'success' }}
+      - if: needs.test.result != 'success' && needs.test.result != 'skipped'
         run: exit 1
