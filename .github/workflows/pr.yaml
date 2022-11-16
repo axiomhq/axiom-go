@@ -100,7 +100,7 @@ jobs:
       - name: Eval success
         if: needs.gen-diff.result == 'success' && needs.lint.result == 'success' && needs.test.result == 'success'
         run: echo "conclusion=success" >> $GITHUB_ENV
-      - uses: LouisBrunner/checks-action@v1.2.0
+      - uses: LouisBrunner/checks-action@v1.5.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: CI Pass
