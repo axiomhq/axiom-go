@@ -15,7 +15,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.repository_owner == 'axiomhq'
     strategy:
       matrix:
         example:
@@ -103,11 +103,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
+      - run: echo "conclusion=${{ needs.test.result }}" >> $GITHUB_ENV
+      # Skipping example tests will pass this step.
+      - if: env.conclusion == 'skipped'
+        run: echo "conclusion=success" >> $GITHUB_ENV
       - uses: LouisBrunner/checks-action@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Examples Pass
-          conclusion: ${{ needs.test.result }}
+          conclusion: ${{ env.conclusion }}
       # Fail workflow if resulting check is also created as failed.
-      - if: ${{ needs.test.result != 'success' }}
+      - if: ${{ env.conclusion != 'success' }}
         run: exit 1
