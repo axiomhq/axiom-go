@@ -86,25 +86,16 @@ jobs:
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
 
   ci-pass:
-    name: Create CI Pass Check
+    name: CI Pass
     needs:
       - gen-diff
       - lint
       - test
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: always()
     steps:
-      - name: Eval failure
-        if: needs.gen-diff.result != 'success' || needs.lint.result != 'success' || needs.test.result != 'success'
-        run: echo "conclusion=failure" >> $GITHUB_ENV
-      - name: Eval success
-        if: needs.gen-diff.result == 'success' && needs.lint.result == 'success' && needs.test.result == 'success'
-        run: echo "conclusion=success" >> $GITHUB_ENV
-      - uses: LouisBrunner/checks-action@v1.5.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: CI Pass
-          conclusion: ${{ env.conclusion }}
-      # Fail workflow if resulting check is also created as failed.
-      - if: ${{ env.conclusion != 'success' }}
+      - if: |
+          needs.gen-diff.result != 'success' ||
+          needs.lint.result != 'success' ||
+          needs.test.result != 'success'
         run: exit 1
