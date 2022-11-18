@@ -24,14 +24,14 @@ func TestValidateEnvironment(t *testing.T) {
 	}{
 		{
 			name: "no environment",
-			err:  config.ErrMissingAccessToken,
+			err:  config.ErrMissingToken,
 		},
 		{
 			name: "bad environment",
 			environment: map[string]string{
 				"AXIOM_ORG_ID": "mycompany-1234",
 			},
-			err: config.ErrMissingAccessToken,
+			err: config.ErrMissingToken,
 		},
 		{
 			name: "good environment",

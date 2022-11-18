@@ -5,8 +5,10 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 func main() {
@@ -24,9 +26,13 @@ func main() {
 	}
 
 	// 2. Ingest ⚡
+	//
+	// Set the events timestamp by specifying the "_time" field the server uses
+	// by default. Can be changed by using the `ingest.SetTimestampField` option
+	// when ingesting.
 	events := []axiom.Event{
-		{"foo": "bar"},
-		{"bar": "foo"},
+		{ingest.TimestampField: time.Now(), "foo": "bar"},
+		{ingest.TimestampField: time.Now(), "bar": "foo"},
 	}
 	res, err := client.Datasets.IngestEvents(context.Background(), dataset, events)
 	if err != nil {

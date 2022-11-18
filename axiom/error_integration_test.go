@@ -28,7 +28,7 @@ func (s *ErrorTestSuite) Test() {
 	s.Require().ErrorIs(err, axiom.ErrNotFound)
 
 	// Set invalid credentials...
-	err = s.client.Options(axiom.SetAccessToken("xapt-123"))
+	err = s.client.Options(axiom.SetToken("xapt-123"))
 	s.Require().NoError(err)
 
 	// ...and see the same request fail with a different error

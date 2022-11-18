@@ -67,11 +67,11 @@ func TraceExporter(ctx context.Context, options ...TraceOption) (trace.SpanExpor
 	if u.Scheme == "http" {
 		opts = append(opts, otlptracehttp.WithInsecure())
 	}
-	if config.AccessToken() != "" || config.OrganizationID() != "" {
+	if config.Token() != "" || config.OrganizationID() != "" {
 		headers := make(map[string]string, 2)
 
-		if config.AccessToken() != "" {
-			headers["Authorization"] = "Bearer " + config.AccessToken()
+		if config.Token() != "" {
+			headers["Authorization"] = "Bearer " + config.Token()
 		}
 		if config.OrganizationID() != "" {
 			headers["X-Axiom-Org-Id"] = config.OrganizationID()

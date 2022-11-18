@@ -21,7 +21,7 @@ func TestClient_Manual(t *testing.T) {
 
 	client, err := axiom.NewClient(
 		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xapt-123"),
+		axiom.SetToken("xapt-123"),
 		axiom.SetOrganizationID("123"),
 		axiom.SetClient(srv.Client()),
 		axiom.SetStrictDecoding(true),
@@ -57,7 +57,7 @@ func TestClient_Call(t *testing.T) {
 
 	client, err := axiom.NewClient(
 		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xapt-123"),
+		axiom.SetToken("xapt-123"),
 		axiom.SetOrganizationID("123"),
 		axiom.SetClient(srv.Client()),
 		axiom.SetStrictDecoding(true),

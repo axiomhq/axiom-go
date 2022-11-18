@@ -148,7 +148,7 @@ func (c *Client) Options(options ...Option) error {
 // ValidateCredentials makes sure the client can properly authenticate against
 // the configured Axiom deployment.
 func (c *Client) ValidateCredentials(ctx context.Context) error {
-	if config.IsPersonalToken(c.config.AccessToken()) {
+	if config.IsPersonalToken(c.config.Token()) {
 		_, err := c.Users.Current(ctx)
 		return err
 	}
@@ -181,7 +181,7 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 	}
 	endpoint := c.config.BaseURL().ResolveReference(rel)
 
-	if config.IsAPIToken(c.config.AccessToken()) && !validOnlyAPITokenPaths.MatchString(endpoint.Path) {
+	if config.IsAPIToken(c.config.Token()) && !validOnlyAPITokenPaths.MatchString(endpoint.Path) {
 		return nil, ErrUnprivilegedToken
 	}
 
@@ -213,12 +213,12 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 	}
 
 	// Set authorization header, if present.
-	if c.config.AccessToken() != "" {
-		req.Header.Set(headerAuthorization, "Bearer "+c.config.AccessToken())
+	if c.config.Token() != "" {
+		req.Header.Set(headerAuthorization, "Bearer "+c.config.Token())
 	}
 
 	// Set organization ID header when using a personal token.
-	if config.IsPersonalToken(c.config.AccessToken()) && c.config.OrganizationID() != "" {
+	if config.IsPersonalToken(c.config.Token()) && c.config.OrganizationID() != "" {
 		req.Header.Set(headerOrganizationID, c.config.OrganizationID())
 	}
 

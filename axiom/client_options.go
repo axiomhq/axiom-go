@@ -12,23 +12,24 @@ import (
 // performing an operation.
 type Option func(c *Client) error
 
-// SetURL sets the base URL used by the client.
+// SetURL specifies the base URL used by the client.
 //
 // Can also be specified using the `AXIOM_URL` environment variable.
 func SetURL(baseURL string) Option {
 	return func(c *Client) error { return c.config.Options(config.SetURL(baseURL)) }
 }
 
-// SetAccessToken specifies the access token to use.
+// SetToken specifies the token used by the client.
 //
 // Can also be specified using the `AXIOM_TOKEN` environment variable.
-func SetAccessToken(accessToken string) Option {
-	return func(c *Client) error { return c.config.Options(config.SetAccessToken(accessToken)) }
+func SetToken(accessToken string) Option {
+	return func(c *Client) error { return c.config.Options(config.SetToken(accessToken)) }
 }
 
-// SetOrganizationID specifies the organization ID to use when connecting to
-// Axiom. When a personal token is used, this method can be used to switch
-// between organizations without creating a new client instance.
+// SetOrganizationID specifies the organization ID used by the client.
+//
+// When a personal token is used, this method can be used to switch between
+// organizations by passing it to the client's `Options` method.
 //
 // Can also be specified using the `AXIOM_ORG_ID` environment variable.
 func SetOrganizationID(organizationID string) Option {
@@ -37,10 +38,10 @@ func SetOrganizationID(organizationID string) Option {
 
 // SetPersonalTokenConfig specifies all properties needed in order to
 // successfully connect to Axiom with a personal token.
-func SetPersonalTokenConfig(personalAccessToken, organizationID string) Option {
+func SetPersonalTokenConfig(personalToken, organizationID string) Option {
 	return func(c *Client) error {
 		return c.Options(
-			SetAccessToken(personalAccessToken),
+			SetToken(personalToken),
 			SetOrganizationID(organizationID),
 		)
 	}
@@ -49,22 +50,22 @@ func SetPersonalTokenConfig(personalAccessToken, organizationID string) Option {
 // SetAPITokenConfig specifies all properties needed in order to successfully
 // connect to Axiom with an API token.
 func SetAPITokenConfig(apiToken string) Option {
-	return SetAccessToken(apiToken)
+	return SetToken(apiToken)
 }
 
-// SetClient specifies a custom http client that should be used to make
+// SetClient specifies the custom http client used by the client to make
 // requests.
-func SetClient(client *http.Client) Option {
+func SetClient(httpClient *http.Client) Option {
 	return func(c *Client) error {
-		if client == nil {
+		if httpClient == nil {
 			return nil
 		}
-		c.httpClient = client
+		c.httpClient = httpClient
 		return nil
 	}
 }
 
-// SetUserAgent sets the user agent used by the client.
+// SetUserAgent specifies the user agent used by the client.
 func SetUserAgent(userAgent string) Option {
 	return func(c *Client) error {
 		c.userAgent = userAgent
@@ -73,7 +74,7 @@ func SetUserAgent(userAgent string) Option {
 }
 
 // SetNoEnv prevents the client from deriving its configuration from the
-// environment.
+// environment (by auto reading "AXIOM_*" environment variables).
 func SetNoEnv() Option {
 	return func(c *Client) error {
 		c.noEnv = true

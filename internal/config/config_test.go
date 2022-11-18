@@ -60,7 +60,7 @@ func TestConfig_IncorporateEnvironment(t *testing.T) {
 			},
 			want: Config{
 				baseURL:        cloudURL,
-				accessToken:    personalToken,
+				token:          personalToken,
 				organizationID: organizationID,
 			},
 		},
@@ -87,19 +87,19 @@ func TestConfig_Validate(t *testing.T) {
 	}{
 		{
 			name:   "no nothing",
-			expErr: ErrMissingAccessToken,
+			expErr: ErrMissingToken,
 		},
 		{
 			name: "missing organization id",
 			config: Config{
-				accessToken: personalToken,
+				token: personalToken,
 			},
 			expErr: ErrMissingOrganizationID,
 		},
 		{
 			name: "missing nothing",
 			config: Config{
-				accessToken:    personalToken,
+				token:          personalToken,
 				organizationID: organizationID,
 			},
 		},
