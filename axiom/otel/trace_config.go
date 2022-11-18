@@ -38,23 +38,21 @@ func SetURL(baseURL string) TraceOption {
 	return func(c *traceConfig) error { return c.Options(config.SetURL(baseURL)) }
 }
 
-// SetAccessToken specifies the access token to use.
+// SetToken specifies the authentication token used by the client.
 //
 // Can also be specified using the `AXIOM_TOKEN` environment variable.
-func SetAccessToken(accessToken string) TraceOption {
-	return func(c *traceConfig) error { return c.Options(config.SetAccessToken(accessToken)) }
+func SetToken(token string) TraceOption {
+	return func(c *traceConfig) error { return c.Options(config.SetToken(token)) }
 }
 
-// SetOrganizationID specifies the organization ID to use when connecting to
-// Axiom. When a personal access token is used, this method can be used to
-// switch between organizations without creating a new client instance.
+// SetOrganizationID specifies the organization ID used by the client.
 //
 // Can also be specified using the `AXIOM_ORG_ID` environment variable.
 func SetOrganizationID(organizationID string) TraceOption {
 	return func(c *traceConfig) error { return c.Options(config.SetOrganizationID(organizationID)) }
 }
 
-// SetAPIEndpoint sets the api endpoint used by the client.
+// SetAPIEndpoint specifies the api endpoint used by the client.
 func SetAPIEndpoint(path string) TraceOption {
 	return func(c *traceConfig) error {
 		c.APIEndpoint = path
@@ -62,7 +60,7 @@ func SetAPIEndpoint(path string) TraceOption {
 	}
 }
 
-// SetTimeout sets the http timeout used by the client.
+// SetTimeout specifies the http timeout used by the client.
 func SetTimeout(timeout time.Duration) TraceOption {
 	return func(c *traceConfig) error {
 		c.Timeout = timeout
@@ -71,7 +69,7 @@ func SetTimeout(timeout time.Duration) TraceOption {
 }
 
 // SetNoEnv prevents the client from deriving its configuration from the
-// environment (AXIOM_* environment variables).
+// environment (by auto reading "AXIOM_*" environment variables).
 func SetNoEnv() TraceOption {
 	return func(c *traceConfig) error {
 		c.NoEnv = true

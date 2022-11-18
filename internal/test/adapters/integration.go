@@ -60,7 +60,7 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
 		axiom.SetURL(cfg.BaseURL().String()),
-		axiom.SetAccessToken(cfg.AccessToken()),
+		axiom.SetToken(cfg.Token()),
 		axiom.SetOrganizationID(cfg.OrganizationID()),
 		axiom.SetUserAgent(userAgent),
 	)

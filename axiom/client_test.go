@@ -51,19 +51,19 @@ func TestNewClient(t *testing.T) {
 	}{
 		{
 			name: "no environment no options",
-			err:  config.ErrMissingAccessToken,
+			err:  config.ErrMissingToken,
 		},
 		{
-			name: "no environment accessToken option",
+			name: "no environment token option",
 			options: []Option{
-				SetAccessToken(personalToken),
+				SetToken(personalToken),
 			},
 			err: config.ErrMissingOrganizationID,
 		},
 		{
-			name: "no environment accessToken option with API token",
+			name: "no environment token option with API token",
 			options: []Option{
-				SetAccessToken(apiToken),
+				SetToken(apiToken),
 			},
 		},
 		{
@@ -80,21 +80,21 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "no environment accessToken and organizationID option",
+			name: "no environment token and organizationID option",
 			options: []Option{
-				SetAccessToken(personalToken),
+				SetToken(personalToken),
 				SetOrganizationID(organizationID),
 			},
 		},
 		{
-			name: "accessToken and organizationID environment no options",
+			name: "token and organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
 			},
 		},
 		{
-			name: "accessToken environment organizationID option",
+			name: "token environment organizationID option",
 			environment: map[string]string{
 				"AXIOM_TOKEN": personalToken,
 			},
@@ -103,30 +103,30 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "organizationID environment accessToken option",
+			name: "organizationID environment token option",
 			environment: map[string]string{
 				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
-				SetAccessToken(personalToken),
+				SetToken(personalToken),
 			},
 		},
 		{
-			name: "no environment url and accessToken option",
+			name: "no environment url and token option",
 			options: []Option{
 				SetURL(endpoint),
-				SetAccessToken(personalToken),
+				SetToken(personalToken),
 			},
 		},
 		{
-			name: "url and accessToken environment no options",
+			name: "url and token environment no options",
 			environment: map[string]string{
 				"AXIOM_URL":   endpoint,
 				"AXIOM_TOKEN": personalToken,
 			},
 		},
 		{
-			name: "accessToken and organizationID environment cloudUrl option",
+			name: "token and organizationID environment cloudUrl option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
@@ -136,7 +136,7 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "accessToken and organizationID environment enhanced cloudUrl option",
+			name: "token and organizationID environment enhanced cloudUrl option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
@@ -146,7 +146,7 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "cloudUrl accessToken and organizationID environment no options",
+			name: "cloudUrl token and organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_URL":    config.CloudURL().String(),
 				"AXIOM_TOKEN":  personalToken,
@@ -154,7 +154,7 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "enhanced cloudUrl, accessToken and organizationID environment no options",
+			name: "enhanced cloudUrl, token and organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_URL":    config.CloudURL().String() + "/",
 				"AXIOM_TOKEN":  personalToken,
@@ -162,7 +162,7 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "dev url, accessToken and organizationID environment no options",
+			name: "dev url, token and organizationID environment no options",
 			environment: map[string]string{
 				"AXIOM_URL":    "https://dev.axiom.co",
 				"AXIOM_TOKEN":  personalToken,
@@ -170,7 +170,7 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "cloudUrl and accessToken environment organizationID option",
+			name: "cloudUrl and token environment organizationID option",
 			environment: map[string]string{
 				"AXIOM_URL":   config.CloudURL().String(),
 				"AXIOM_TOKEN": personalToken,
@@ -180,7 +180,7 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "accessToken and organizationID environment noEnv option",
+			name: "token and organizationID environment noEnv option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
@@ -188,14 +188,14 @@ func TestNewClient(t *testing.T) {
 			options: []Option{
 				SetNoEnv(),
 			},
-			err: config.ErrMissingAccessToken,
+			err: config.ErrMissingToken,
 		},
 		{
-			name: "no environment noEnv, cloudUrl and accessToken option with API token",
+			name: "no environment noEnv, cloudUrl and token option with API token",
 			options: []Option{
 				SetNoEnv(),
 				SetURL(config.CloudURL().String()),
-				SetAccessToken(apiToken),
+				SetToken(apiToken),
 			},
 		},
 	}
@@ -211,7 +211,7 @@ func TestNewClient(t *testing.T) {
 			if tt.err != nil {
 				assert.ErrorIs(t, err, tt.err)
 			} else if assert.NoError(t, err) {
-				assert.Regexp(t, tokenRe, client.config.AccessToken())
+				assert.Regexp(t, tokenRe, client.config.Token())
 				assert.NotEmpty(t, client.config.BaseURL())
 			}
 		})
@@ -228,7 +228,7 @@ func TestNewClient_Valid(t *testing.T) {
 
 	// Is default configuration present?
 	assert.Equal(t, endpoint, client.config.BaseURL().String())
-	assert.Equal(t, personalToken, client.config.AccessToken())
+	assert.Equal(t, personalToken, client.config.Token())
 	assert.Empty(t, client.config.OrganizationID())
 	assert.NotNil(t, client.httpClient)
 	assert.NotEmpty(t, client.userAgent)
@@ -237,16 +237,16 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.False(t, client.noLimiting)
 }
 
-func TestClient_Options_SetAccessToken(t *testing.T) {
+func TestClient_Options_SetToken(t *testing.T) {
 	client := newClient(t)
 
 	exp := personalToken
-	opt := SetAccessToken(exp)
+	opt := SetToken(exp)
 
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, exp, client.config.AccessToken())
+	assert.Equal(t, exp, client.config.Token())
 }
 
 func TestClient_Options_SetClient(t *testing.T) {
@@ -271,7 +271,7 @@ func TestClient_Options_SetPersonalTokenConfig(t *testing.T) {
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, personalToken, client.config.AccessToken())
+	assert.Equal(t, personalToken, client.config.Token())
 	assert.Equal(t, organizationID, client.config.OrganizationID())
 }
 
@@ -283,7 +283,7 @@ func TestClient_Options_SetAPITokenConfig(t *testing.T) {
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.Equal(t, apiToken, client.config.AccessToken())
+	assert.Equal(t, apiToken, client.config.Token())
 	assert.Empty(t, client.config.OrganizationID())
 }
 
@@ -502,7 +502,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 func TestClient_do_UnprivilegedToken(t *testing.T) {
 	client := setup(t, "/", nil)
 
-	err := client.Options(SetAccessToken("xaat-123"))
+	err := client.Options(SetToken("xaat-123"))
 	require.NoError(t, err)
 
 	_, err = client.NewRequest(context.Background(), http.MethodGet, "/", nil)
@@ -534,7 +534,7 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 		t.Run(tt, func(t *testing.T) {
 			client := setup(t, tt, hf)
 
-			err := client.Options(SetAccessToken("xaat-123"))
+			err := client.Options(SetToken("xaat-123"))
 			require.NoError(t, err)
 
 			req, err := client.NewRequest(context.Background(), http.MethodGet, tt, nil)
@@ -694,7 +694,7 @@ func setup(t *testing.T, path string, handler http.HandlerFunc) *Client {
 
 	client, err := NewClient(
 		SetURL(srv.URL),
-		SetAccessToken(personalToken),
+		SetToken(personalToken),
 		SetOrganizationID(organizationID),
 		SetClient(srv.Client()),
 		SetStrictDecoding(true),
@@ -712,7 +712,7 @@ func newClient(t *testing.T) *Client {
 
 	client, err := NewClient(
 		SetURL(endpoint),
-		SetAccessToken(personalToken),
+		SetToken(personalToken),
 		SetNoEnv(),
 	)
 	require.NoError(t, err)

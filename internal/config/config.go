@@ -10,9 +10,9 @@ import (
 type Config struct {
 	// baseURL of the Axiom instance. Defaults to `CloudURL`.
 	baseURL *url.URL
-	// accessToken is the authentication token that will be set as 'Bearer' on
-	// the 'Authorization' header. It must be a personal or an API token.
-	accessToken string
+	// token is the authentication token that will be set as 'Bearer' on the
+	// 'Authorization' header. It must be an API or a personal token.
+	token string
 	// organizationID is the Axiom organization ID that will be set on the
 	// 'X-Axiom-Org-Id' header. Not required for API tokens.
 	organizationID string
@@ -30,9 +30,9 @@ func (c Config) BaseURL() *url.URL {
 	return c.baseURL
 }
 
-// AccessToken returns the access token.
-func (c Config) AccessToken() string {
-	return c.accessToken
+// Token returns the token.
+func (c Config) Token() string {
+	return c.token
 }
 
 // OrganizationID returns the organization ID.
@@ -45,9 +45,9 @@ func (c *Config) SetBaseURL(baseURL *url.URL) {
 	c.baseURL = baseURL
 }
 
-// SetAccessToken sets the access token.
-func (c *Config) SetAccessToken(accessToken string) {
-	c.accessToken = accessToken
+// SetToken sets the token.
+func (c *Config) SetToken(token string) {
+	c.token = token
 }
 
 // SetOrganizationID sets the organization ID.
@@ -70,7 +70,7 @@ func (c *Config) Options(options ...Option) error {
 func (c *Config) IncorporateEnvironment() error {
 	var (
 		envURL            = os.Getenv("AXIOM_URL")
-		envAccessToken    = os.Getenv("AXIOM_TOKEN")
+		envToken          = os.Getenv("AXIOM_TOKEN")
 		envOrganizationID = os.Getenv("AXIOM_ORG_ID")
 
 		options   = make([]Option, 0, 3)
@@ -81,8 +81,8 @@ func (c *Config) IncorporateEnvironment() error {
 		addOption(SetURL(envURL))
 	}
 
-	if envAccessToken != "" {
-		addOption(SetAccessToken(envAccessToken))
+	if envToken != "" {
+		addOption(SetToken(envToken))
 	}
 
 	if envOrganizationID != "" {
@@ -99,14 +99,14 @@ func (c Config) Validate() error {
 		c.baseURL = cloudURL
 	}
 
-	if c.accessToken == "" {
-		return ErrMissingAccessToken
-	} else if !IsValidToken(c.accessToken) {
+	if c.token == "" {
+		return ErrMissingToken
+	} else if !IsValidToken(c.token) {
 		return ErrInvalidToken
 	}
 
 	// The organization ID is not required for API tokens.
-	if c.organizationID == "" && IsPersonalToken(c.accessToken) && c.baseURL.String() == cloudURL.String() {
+	if c.organizationID == "" && IsPersonalToken(c.token) && c.baseURL.String() == cloudURL.String() {
 		return ErrMissingOrganizationID
 	}
 

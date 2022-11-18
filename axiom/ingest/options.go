@@ -1,8 +1,8 @@
 package ingest
 
-// TimestampField is the default field the server looks for a time to use as
-// ingestion time. If not present, the server will set the ingestion time by
-// itself.
+// TimestampField is the default field the server will look for a timestamp to
+// use as the ingestion time. If not present, the server will set the ingestion
+// time to the current server time.
 const TimestampField = "_time"
 
 // Options specifies the optional parameters for ingestion.

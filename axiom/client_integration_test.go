@@ -102,7 +102,7 @@ func newClient(additionalOptions ...axiom.Option) (*axiom.Client, error) {
 		options = append(options, axiom.SetURL(deploymentURL))
 	}
 	if accessToken != "" {
-		options = append(options, axiom.SetAccessToken(accessToken))
+		options = append(options, axiom.SetToken(accessToken))
 	}
 	if orgID != "" {
 		options = append(options, axiom.SetOrganizationID(orgID))

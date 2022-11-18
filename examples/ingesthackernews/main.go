@@ -87,6 +87,7 @@ func main() {
 
 	// 6. Ingest ⚡
 	res, err := client.Datasets.IngestChannel(ctx, dataset, progressEventCh,
+		// Have the server use the "time" field as the event timestamp.
 		ingest.SetTimestampField("time"),
 	)
 	if err != nil {

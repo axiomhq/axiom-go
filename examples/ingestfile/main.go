@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 func main() {
@@ -40,7 +41,10 @@ func main() {
 	// 4. Ingest ⚡
 	// Note the JSON content type and Gzip content encoding being set because
 	// the client does not auto sense them.
-	res, err := client.Datasets.Ingest(context.Background(), dataset, r, axiom.JSON, axiom.Gzip)
+	res, err := client.Datasets.Ingest(context.Background(), dataset, r, axiom.JSON, axiom.Gzip,
+		// Set a custom timestamp field (default used by the server is "_time").
+		ingest.SetTimestampField("timestamp"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}

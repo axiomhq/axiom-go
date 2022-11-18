@@ -41,7 +41,7 @@ jobs:
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'
           - example: ingestfile
             setup: |
-              echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
+              echo '[{"timestamp":"1668773301","mood":"hyped","msg":"This is awesome!"}]' >> logs.json
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
           - example: logrus

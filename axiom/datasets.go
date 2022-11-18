@@ -57,6 +57,11 @@ const (
 )
 
 // An Event is a map of key-value pairs.
+//
+// If you want to set a timestamp for the event you can either use
+// `ingest.TimestampField` as map key for the timestamp or specify any other
+// field that carries the timestamp by passing `ingest.SetTimestampField` to any
+// of the `Ingest*` methods as an option.
 type Event map[string]any
 
 // Dataset represents an Axiom dataset.
@@ -238,6 +243,12 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 // Ingest data into the dataset identified by its id.
 //
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the `ingest.SetTimestampField`
+// option. If not explicitly specified by `ingest.SetTimestampFormat`, the
+// timestamp format is auto detected.
+//
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
 //
@@ -295,6 +306,12 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 }
 
 // IngestEvents ingests events into the dataset identified by its id.
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the `ingest.SetTimestampField`
+// option. If not explicitly specified by `ingest.SetTimestampFormat`, the
+// timestamp format is auto detected.
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.
@@ -381,6 +398,12 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 
 // IngestChannel ingests events from a channel into the dataset identified by
 // its id.
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the `ingest.SetTimestampField`
+// option. If not explicitly specified by `ingest.SetTimestampFormat`, the
+// timestamp format is auto detected.
 //
 // Restrictions for field names (JSON object keys) can be reviewed here:
 // https://www.axiom.co/docs/usage/field-restrictions.

@@ -35,6 +35,12 @@ Install using `go get`:
 go get github.com/axiomhq/axiom-go/axiom
 ```
 
+Import the package:
+
+```go
+import "github.com/axiomhq/axiom-go/axiom"
+```
+
 If you use the [Axiom CLI](https://github.com/axiomhq/cli), run
 `eval $(axiom config export -f)` to configure your environment variables.
 
@@ -49,7 +55,7 @@ the `axiom.NewClient` function:
 
 ```go
 client, err := axiom.NewClient(
-  SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
+    SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
 )
 ```
 
@@ -57,36 +63,36 @@ Create and use a client like this:
 
 ```go
 import (
-	"context"
-	"fmt"
-	"log"
+    "context"
+    "fmt"
+    "log"
 
-	"github.com/axiomhq/axiom-go/axiom"
+    "github.com/axiomhq/axiom-go/axiom"
+    "github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 func main() {
-	ctx := context.Background()
+    ctx := context.Background()
 
-	client, err := axiom.NewClient()
-	if err != nil {
-		log.Fatalln(err)
-	}
+    client, err := axiom.NewClient()
+    if err != nil {
+        log.Fatalln(err)
+    }
+    
+    if _, err = client.Datasets.IngestEvents(ctx, "my-dataset", []axiom.Event{
+        {ingest.TimestampField: time.Now(), "foo": "bar"},
+        {ingest.TimestampField: time.Now(), "bar": "foo"},
+    }); err != nil {
+        log.Fatalln(err)
+    }
 
-	_, err = client.Datasets.IngestEvents(ctx, "my-dataset", []axiom.Event{
-		{"foo": "bar"},
-		{"bar": "foo"},
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	res, err := client.Datasets.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	for _, match := range res.Matches {
-		fmt.Println(match.Data)
-	}
+    res, err := client.Datasets.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
+    if err != nil {
+        log.Fatalln(err)
+    }
+    for _, match := range res.Matches {
+        fmt.Println(match.Data)
+    }
 }
 ```
 

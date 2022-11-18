@@ -22,7 +22,7 @@ func Setup[T any](t *testing.T, hf http.HandlerFunc, setupFunc func(dataset stri
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
 		axiom.SetURL(srv.URL),
-		axiom.SetAccessToken("xaat-test"),
+		axiom.SetToken("xaat-test"),
 		axiom.SetClient(srv.Client()),
 	)
 	require.NoError(t, err)

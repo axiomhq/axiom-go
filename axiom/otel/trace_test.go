@@ -33,7 +33,7 @@ func TestTracing(t *testing.T) {
 
 	close, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0",
 		axiotel.SetURL(srv.URL),
-		axiotel.SetAccessToken("xaat-test-token"),
+		axiotel.SetToken("xaat-test-token"),
 		axiotel.SetNoEnv(),
 	)
 	require.NoError(t, err)
