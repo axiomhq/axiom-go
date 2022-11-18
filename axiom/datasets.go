@@ -120,8 +120,8 @@ type datasetTrimRequest struct {
 }
 
 type aplQueryRequest struct {
-	// Query is the APL query string.
-	Query string `json:"apl"`
+	// APL is the APL query string.
+	APL string `json:"apl"`
 	// StartTime of the query. Optional.
 	StartTime time.Time `json:"startTime"`
 	// EndTime of the query. Optional.
@@ -489,7 +489,7 @@ loop:
 
 // Query executes the given query specified using the Axiom Processing
 // Language (APL).
-func (s *DatasetsService) Query(ctx context.Context, q query.Query, options ...query.Option) (*query.Result, error) {
+func (s *DatasetsService) Query(ctx context.Context, apl string, options ...query.Option) (*query.Result, error) {
 	// Apply supplied options.
 	opts := struct {
 		query.Options
@@ -503,7 +503,7 @@ func (s *DatasetsService) Query(ctx context.Context, q query.Query, options ...q
 	}
 
 	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(
-		attribute.String("axiom.param.query", string(q)),
+		attribute.String("axiom.param.apl", apl),
 		attribute.String("axiom.param.start_time", opts.StartTime.String()),
 		attribute.String("axiom.param.end_time", opts.EndTime.String()),
 	))
@@ -515,7 +515,7 @@ func (s *DatasetsService) Query(ctx context.Context, q query.Query, options ...q
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
-		Query:     string(q),
+		APL:       apl,
 		StartTime: opts.StartTime,
 		EndTime:   opts.EndTime,
 	})
@@ -588,7 +588,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 
-	setQueryResultOnSpan(span, query.Result(res.Result))
+	setLegacyQueryResultOnSpan(span, res.Result)
 
 	return &res.Result, nil
 }
@@ -648,7 +648,26 @@ func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
 	)
 }
 
+//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
 func setQueryResultOnSpan(span trace.Span, res query.Result) {
+	span.SetAttributes(
+		attribute.Int64("axiom.result.matches", int64(res.Status.BlocksExamined)),
+		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
+		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
+		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
+		attribute.Int64("axiom.result.status.rows_matched", int64(res.Status.RowsMatched)),
+		attribute.Int64("axiom.result.status.num_groups", int64(res.Status.NumGroups)),
+		attribute.Bool("axiom.result.status.is_partial", res.Status.IsPartial),
+		attribute.Bool("axiom.result.status.is_estimate", res.Status.IsEstimate),
+		attribute.String("axiom.result.status.min_block_time", res.Status.MinBlockTime.String()),
+		attribute.String("axiom.result.status.max_block_time", res.Status.MaxBlockTime.String()),
+		attribute.String("axiom.result.status.min_cursor", res.Status.MinCursor),
+		attribute.String("axiom.result.status.max_cursor", res.Status.MaxCursor),
+	)
+}
+
+//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
+func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
 	span.SetAttributes(
 		attribute.Int64("axiom.result.matches", int64(res.Status.BlocksExamined)),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),

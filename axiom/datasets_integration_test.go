@@ -187,8 +187,8 @@ func (s *DatasetsTestSuite) Test() {
 	endTime := now.Add(time.Minute)
 
 	// Run a simple APL query.
-	aplQuery := query.Query(fmt.Sprintf("['%s']", s.dataset.ID))
-	aplQueryResult, err := s.client.Datasets.Query(s.ctx, aplQuery,
+	apl := fmt.Sprintf("['%s']", s.dataset.ID)
+	aplQueryResult, err := s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
 		query.SetEndTime(endTime),
 	)
