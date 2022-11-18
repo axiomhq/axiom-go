@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	dataset := os.Getenv("AXIOM_DATASET")
 	if dataset == "" {

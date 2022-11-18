@@ -152,7 +152,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but gzip encoded...
-	resetBuffer(axiom.GzipEncoder)
+	resetBuffer(axiom.GzipEncoder())
 	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -163,7 +163,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but zstd encoded...
-	resetBuffer(axiom.ZstdEncoder)
+	resetBuffer(axiom.ZstdEncoder())
 	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)

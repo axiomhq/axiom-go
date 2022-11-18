@@ -28,7 +28,7 @@ const (
 var httpClient = axiom.DefaultHTTPClient()
 
 func main() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()

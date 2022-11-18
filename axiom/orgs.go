@@ -13,10 +13,10 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Plan -linecomment -output=orgs_string.go
 
-// Plan represents the plan of a deployment or organization.
+// Plan represents the plan of an [Organization].
 type Plan uint8
 
-// All available deployment or organization plans.
+// All available [Organization] plans.
 const (
 	emptyPlan Plan = iota //
 
@@ -45,14 +45,14 @@ func planFromString(s string) (plan Plan, err error) {
 	return plan, err
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the Plan
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the plan
 // to its string representation because that's what the server expects.
 func (p Plan) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
-// Plan from the string representation the server returns.
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// plan from the string representation the server returns.
 func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 	var s string
 	if err = json.Unmarshal(b, &s); err != nil {
@@ -64,7 +64,7 @@ func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
-// License of a deployment or organization.
+// License of an [Organization].
 type License struct {
 	// ID of the license.
 	ID string `json:"id"`
@@ -101,7 +101,7 @@ type License struct {
 	Error string `json:"error"`
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // MaxQueryWindow and MaxAuditWindow to seconds because that's what the server
 // expects.
 func (l License) MarshalJSON() ([]byte, error) {
@@ -114,7 +114,7 @@ func (l License) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localLicense(l))
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
 // MaxQueryWindow and MaxAuditWindow into a proper time.Duration value because
 // the server returns it in seconds.
 func (l *License) UnmarshalJSON(b []byte) error {
@@ -142,7 +142,7 @@ type Organization struct {
 	Slug string `json:"slug"`
 	// Trial describes if the plan is trialed or not.
 	Trial bool `json:"inTrial"`
-	// Plan the deployment or organization is on.
+	// Plan the organization is on.
 	Plan Plan `json:"plan"`
 	// PlanCreated is the time the plan was created.
 	PlanCreated time.Time `json:"planCreated"`
@@ -153,7 +153,7 @@ type Organization struct {
 	Role UserRole `json:"role"`
 	// PrimaryEmail of the user that issued the request.
 	PrimaryEmail string `json:"primaryEmail"`
-	// License of the deployment or organization.
+	// License of the organization.
 	License License `json:"license"`
 	// CreatedAt is the time the Organization was created.
 	CreatedAt time.Time `json:"metaCreated"`

@@ -6,15 +6,15 @@
 // cryptographic signature itself. That cryptographic signature is a SAT.
 //
 // To create a SAS string, that can be attached to a query request, use the
-// high-level `Create()` function. The returned string is an already url-encoded
+// high-level [Create] function. The returned string is an already url-encoded
 // query string.
 //
 // To create a SAT string for a sat of values that make up a signature, use
-// the low-level `CreateToken()` function. The returned string is an already
+// the low-level [CreateToken] function. The returned string is an already
 // base64 url-encoded string.
 //
-// To verify a SAS string against a signing key use the `Verify()` function.
+// To verify a SAS string against a signing key use the [Verify] function.
 //
 // To verify a SAT string against a signing key and a set of values use the
-// `VerifyToken()` function.
+// [VerifyToken] function.
 package sas

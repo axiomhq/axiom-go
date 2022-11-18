@@ -13,9 +13,9 @@ type traceConfig struct {
 
 	// APIEndpoint is the endpoint to use for the trace exporter.
 	APIEndpoint string
-	// Timeout is the timeout for the trace exporters underlying http client.
+	// Timeout is the timeout for the trace exporters underlying [http.Client].
 	Timeout time.Duration
-	// NoEnv disables the use of AXIOM_* environment variables.
+	// NoEnv disables the use of "AXIOM_*" environment variables.
 	NoEnv bool
 }
 
@@ -27,27 +27,27 @@ func defaultTraceConfig() traceConfig {
 }
 
 // A TraceOption modifies the behaviour of OpenTelemetry traces. Nonetheless,
-// the official OTEL_* environment variables are preferred over the options or
-// AXIOM_* environment variables.
+// the official "OTEL_*" environment variables are preferred over the options or
+// "AXIOM_*" environment variables.
 type TraceOption func(c *traceConfig) error
 
 // SetURL sets the base URL used by the client.
 //
-// Can also be specified using the `AXIOM_URL` environment variable.
+// Can also be specified using the "AXIOM_URL" environment variable.
 func SetURL(baseURL string) TraceOption {
 	return func(c *traceConfig) error { return c.Options(config.SetURL(baseURL)) }
 }
 
 // SetToken specifies the authentication token used by the client.
 //
-// Can also be specified using the `AXIOM_TOKEN` environment variable.
+// Can also be specified using the "AXIOM_TOKEN" environment variable.
 func SetToken(token string) TraceOption {
 	return func(c *traceConfig) error { return c.Options(config.SetToken(token)) }
 }
 
 // SetOrganizationID specifies the organization ID used by the client.
 //
-// Can also be specified using the `AXIOM_ORG_ID` environment variable.
+// Can also be specified using the "AXIOM_ORG_ID" environment variable.
 func SetOrganizationID(organizationID string) TraceOption {
 	return func(c *traceConfig) error { return c.Options(config.SetOrganizationID(organizationID)) }
 }

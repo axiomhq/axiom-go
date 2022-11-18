@@ -2,7 +2,7 @@ package config
 
 import "net/url"
 
-// An Option modifies the configuration. It is not safe for concurrent use.
+// An Option modifies the configuration.
 type Option func(config *Config) error
 
 // SetURL specifies the base URL to use.

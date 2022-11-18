@@ -23,13 +23,12 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
 
-var (
-	// ErrUnknownContentType is raised when the given content type is not valid.
-	ErrUnknownContentType = errors.New("unknown content type")
-	// ErrUnknownContentEncoding is raised when the given content encoding is
-	// not valid.
-	ErrUnknownContentEncoding = errors.New("unknown content encoding")
-)
+// ErrUnknownContentType is raised when the given [ContentType] is not valid.
+var ErrUnknownContentType = errors.New("unknown content type")
+
+// ErrUnknownContentEncoding is raised when the given [ContentEncoding] is not
+// valid.
+var ErrUnknownContentEncoding = errors.New("unknown content encoding")
 
 // ContentType describes the content type of the data to ingest.
 type ContentType uint8
@@ -50,18 +49,21 @@ type ContentEncoding uint8
 const (
 	// Identity marks the data as not being encoded.
 	Identity ContentEncoding = iota + 1 //
-	// Gzip marks the data as being gzip encoded. Preferred compression format.
+	// Gzip marks the data as being gzip encoded. A [GzipEncoder] can be used to
+	// encode the data.
 	Gzip // gzip
-	// Zstd marks the data as being zstd encoded.
+	// Zstd marks the data as being zstd encoded. A [ZstdEncoder] can be used to
+	// encode the data.
 	Zstd // zstd
 )
 
 // An Event is a map of key-value pairs.
 //
 // If you want to set a timestamp for the event you can either use
-// `ingest.TimestampField` as map key for the timestamp or specify any other
-// field that carries the timestamp by passing `ingest.SetTimestampField` to any
-// of the `Ingest*` methods as an option.
+// [ingest.TimestampField] as map key for the timestamp or specify any other
+// field that carries the timestamp by passing [ingest.SetTimestampField] to
+// [DatasetsService.Ingest], [DatasetsService.IngestEvents] or
+// [DatasetsService.IngestChannel] as an [Option].
 type Event map[string]any
 
 // Dataset represents an Axiom dataset.
@@ -245,15 +247,17 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 //
 // The timestamp of the events will be set by the server to the current server
 // time if the "_time" field is not set. The server can be instructed to use a
-// different field as the timestamp by setting the `ingest.SetTimestampField`
-// option. If not explicitly specified by `ingest.SetTimestampFormat`, the
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
 // timestamp format is auto detected.
 //
-// Restrictions for field names (JSON object keys) can be reviewed here:
-// https://www.axiom.co/docs/usage/field-restrictions.
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
 //
 // The reader is streamed to the server until EOF is reached on a single
 // connection. Keep that in mind when dealing with slow readers.
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
 func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.Ingest", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -309,15 +313,17 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 //
 // The timestamp of the events will be set by the server to the current server
 // time if the "_time" field is not set. The server can be instructed to use a
-// different field as the timestamp by setting the `ingest.SetTimestampField`
-// option. If not explicitly specified by `ingest.SetTimestampFormat`, the
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
 // timestamp format is auto detected.
 //
-// Restrictions for field names (JSON object keys) can be reviewed here:
-// https://www.axiom.co/docs/usage/field-restrictions.
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
 //
-// For ingesting large amounts of data, consider using the `Ingest` or
-// `IngestChannel` method.
+// For ingesting large amounts of data, consider using the
+// [DatasetsService.Ingest] or [DatasetsService.IngestChannel] method.
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.IngestEvents", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -362,8 +368,8 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 			}
 
 			if closeErr := zsw.Close(); encErr == nil {
-				// If we have no error from encoding but from closing, capture that
-				// one.
+				// If we have no error from encoding but from closing, capture
+				// that one.
 				encErr = closeErr
 			}
 			_ = pw.CloseWithError(encErr)
@@ -401,12 +407,12 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 //
 // The timestamp of the events will be set by the server to the current server
 // time if the "_time" field is not set. The server can be instructed to use a
-// different field as the timestamp by setting the `ingest.SetTimestampField`
-// option. If not explicitly specified by `ingest.SetTimestampFormat`, the
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
 // timestamp format is auto detected.
 //
-// Restrictions for field names (JSON object keys) can be reviewed here:
-// https://www.axiom.co/docs/usage/field-restrictions.
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
 //
 // Events are ingested in batches. A batch is either 1000 events for unbuffered
 // channels or the capacity of the channel for buffered channels. The maximum
@@ -420,6 +426,8 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 //
 // The method returns without an error if the channel is closed and the buffered
 // events are successfully sent to the server.
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.IngestChannel", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -550,7 +558,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 //
 // Deprecated: Legacy queries will be replaced by queries specified using the
 // Axiom Processing Language (APL) and the legacy query API will be removed in
-// the future. Use github.com/axiomhq/axiom-go/axiom/query instead.
+// the future. Use [DatasetsService.Query] instead.
 func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.QueryLegacy", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
@@ -593,9 +601,9 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 	return &res.Result, nil
 }
 
-// DetectContentType detects the content type of an io.Reader's data. The
-// returned io.Reader must be used instead of the passed one. Compressed content
-// is not detected.
+// DetectContentType detects the content type of a readers data. The returned
+// reader must be used instead of the passed one. Compressed content is not
+// detected.
 func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 	var (
 		br  = bufio.NewReader(r)

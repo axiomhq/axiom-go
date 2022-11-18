@@ -7,7 +7,7 @@ import (
 )
 
 // ValidateEnvironment returns nil if the environment variables, needed to
-// configure a new Client, are present and syntactically valid. Otherwise, it
+// configure a new [Client], are present and syntactically valid. Otherwise, it
 // returns an appropriate error.
 func ValidateEnvironment() error {
 	var cfg config.Config
@@ -18,7 +18,7 @@ func ValidateEnvironment() error {
 }
 
 // ValidateCredentials returns nil if the environment variables that configure a
-// Client are valid. Otherwise, it returns an appropriate error. This function
+// [Client] are valid. Otherwise, it returns an appropriate error. This function
 // establishes a connection to the configured Axiom deployment.
 func ValidateCredentials(ctx context.Context) error {
 	client, err := NewClient()

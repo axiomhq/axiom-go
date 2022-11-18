@@ -40,14 +40,14 @@ func messageCodeFromString(s string) (mc MessageCode, err error) {
 	return mc, err
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // MessageCode to its string representation because that's what the server
 // expects.
 func (mc MessageCode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(mc.String())
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
 // MessageCode from the string representation the server returns.
 func (mc *MessageCode) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -98,14 +98,14 @@ func messagePriorityFromString(s string) (mp MessagePriority, err error) {
 	return mp, err
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // MessagePriority to its string representation because that's what the server
 // expects.
 func (mp MessagePriority) MarshalJSON() ([]byte, error) {
 	return json.Marshal(mp.String())
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
 // MessagePriority from the string representation the server returns.
 func (mp *MessagePriority) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -128,7 +128,7 @@ type Result struct {
 	Buckets Timeseries `json:"buckets"`
 	// SavedQueryID is the ID of the query that generated this result when it
 	// was saved on the server. This is only set when the query was sent with
-	// the `SaveKind` option specified.
+	// [Options.SaveKind] specified.
 	SavedQueryID string `json:"-"`
 }
 
@@ -170,7 +170,7 @@ type Status struct {
 	MaxCursor string `json:"maxCursor"`
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // ElapsedTime into its microsecond representation because that's what the
 // server expects.
 func (s Status) MarshalJSON() ([]byte, error) {
@@ -182,7 +182,7 @@ func (s Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localStatus(s))
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
 // ElapsedTime into a proper time.Duration value because the server returns it
 // in microseconds.
 func (s *Status) UnmarshalJSON(b []byte) error {

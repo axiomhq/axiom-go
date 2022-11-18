@@ -15,7 +15,7 @@ type AggregationOp uint8
 const (
 	OpUnknown AggregationOp = iota // unknown
 
-	// Works with all types, field should be `*`.
+	// Works with all types, field should be "*"".
 	OpCount    // count
 	OpDistinct // distinct
 	OpMakeSet  // makeset
@@ -74,14 +74,14 @@ func aggregationOpFromString(s string) (op AggregationOp) {
 	return op
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // AggregationOp to its string representation because that's what the server
 // expects.
 func (op AggregationOp) MarshalJSON() ([]byte, error) {
 	return json.Marshal(op.String())
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
 // AggregationOp from the string representation the server returns.
 func (op *AggregationOp) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -102,8 +102,7 @@ type Aggregation struct {
 	Op AggregationOp `json:"op"`
 	// Field the aggregation operation is performed on.
 	Field string `json:"field"`
-	// Argument to the aggregation. Only valid for `OpDistinctIf`,
-	// `OpTopk`, `OpPercentiles` and `OpHistogram`
-	// aggregations.
+	// Argument to the aggregation. Only valid for [OpDistinctIf], [OpTopk],
+	// [OpPercentiles] and [OpHistogram] aggregations.
 	Argument any `json:"argument"`
 }

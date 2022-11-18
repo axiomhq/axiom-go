@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	dataset := os.Getenv("AXIOM_DATASET")
 	if dataset == "" {
@@ -28,7 +28,7 @@ func main() {
 	// 2. Ingest ⚡
 	//
 	// Set the events timestamp by specifying the "_time" field the server uses
-	// by default. Can be changed by using the `ingest.SetTimestampField` option
+	// by default. Can be changed by using the [ingest.SetTimestampField] option
 	// when ingesting.
 	events := []axiom.Event{
 		{ingest.TimestampField: time.Now(), "foo": "bar"},

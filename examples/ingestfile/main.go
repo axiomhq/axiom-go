@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	dataset := os.Getenv("AXIOM_DATASET")
 	if dataset == "" {
@@ -27,7 +27,8 @@ func main() {
 	defer f.Close()
 
 	// 2. Wrap it in a gzip enabled reader.
-	r, err := axiom.GzipEncoder(f)
+	encoder := axiom.GzipEncoder()
+	r, err := encoder(f)
 	if err != nil {
 		log.Fatal(err)
 	}

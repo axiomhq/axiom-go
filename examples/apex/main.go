@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	// 1. Setup the Axiom handler for apex.
 	handler, err := adapter.New()

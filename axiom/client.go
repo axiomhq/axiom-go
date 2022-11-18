@@ -50,15 +50,15 @@ type service struct {
 	basePath string
 }
 
-// DefaultHTTPClient returns the default HTTP client used for making requests.
+// DefaultHTTPClient returns the default [http.Client] used for making requests.
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultHTTPTransport(),
 	}
 }
 
-// DefaultHTTPTransport returns the default HTTP transport used for the default
-// HTTP client.
+// DefaultHTTPTransport returns the default [http.Client.Transport] used by
+// [DefaultHTTPClient].
 func DefaultHTTPTransport() http.RoundTripper {
 	return otelhttp.NewTransport(gzhttp.Transport(&http.Transport{
 		DialContext: (&net.Dialer{
@@ -93,12 +93,12 @@ type Client struct {
 //
 //   - AXIOM_TOKEN
 //   - AXIOM_ORG_ID (only when using a personal token)
-
-// The configuration can be set manually using `Option` functions prefixed with
-// `Set`.
 //
-// The access token must be an api or personal token which can be created on
-// the settings or user profile page on Axiom.
+// The configuration can be set manually using options which are prefixed with
+// "Set".
+//
+// The token must be an api or personal token which can be created on the
+// settings or user profile page on Axiom.
 func NewClient(options ...Option) (*Client, error) {
 	client := &Client{
 		config: config.Default(),
@@ -135,7 +135,7 @@ func NewClient(options ...Option) (*Client, error) {
 	return client, client.config.Validate()
 }
 
-// Options applies Options to the Client.
+// Options applies options to the client.
 func (c *Client) Options(options ...Option) error {
 	for _, option := range options {
 		if err := option(c); err != nil {
@@ -160,7 +160,7 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 }
 
 // Call creates a new API request and executes it. The response body is JSON
-// decoded or directly written to v, depending on v being an io.Writer or not.
+// decoded or directly written to v, depending on v being an [io.Writer] or not.
 func (c *Client) Call(ctx context.Context, method, path string, body, v any) error {
 	req, err := c.NewRequest(ctx, method, path, body)
 	if err != nil {
@@ -172,7 +172,7 @@ func (c *Client) Call(ctx context.Context, method, path string, body, v any) err
 }
 
 // NewRequest creates an API request. If specified, the value pointed to by body
-// will be included as the request body. If it is not an io.Reader, it will be
+// will be included as the request body. If it is not an [io.Reader], it will be
 // included as a JSON encoded request body.
 func (c *Client) NewRequest(ctx context.Context, method, path string, body any) (*http.Request, error) {
 	rel, err := url.ParseRequestURI(path)
@@ -230,7 +230,7 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 }
 
 // Do sends an API request and returns the API response. The response body is
-// JSON decoded or directly written to v, depending on v being an io.Writer or
+// JSON decoded or directly written to v, depending on v being an [io.Writer] or
 // not.
 func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	var (

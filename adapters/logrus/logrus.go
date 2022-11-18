@@ -19,7 +19,7 @@ var _ logrus.Hook = (*Hook)(nil)
 const defaultBatchSize = 1024
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
-// manually using the SetDataset option or export `AXIOM_DATASET`.
+// manually using the [SetDataset] option or export "AXIOM_DATASET".
 var ErrMissingDatasetName = errors.New("missing dataset name")
 
 // An Option modifies the behaviour of the Axiom hook.
@@ -34,8 +34,8 @@ func SetClient(client *axiom.Client) Option {
 }
 
 // SetClientOptions specifies the Axiom client options to pass to
-// `axiom.NewClient()`. `axiom.NewClient()` is only called if no client was
-// specified by the `SetClient` option.
+// [axiom.NewClient] which is only called if no [axiom.Client] was specified by
+// the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(h *Hook) error {
 		h.clientOptions = options
@@ -44,7 +44,7 @@ func SetClientOptions(options ...axiom.Option) Option {
 }
 
 // SetDataset specifies the dataset to ingest the logs into. Can also be
-// specified using the `AXIOM_DATASET` environment variable.
+// specified using the "AXIOM_DATASET" environment variable.
 func SetDataset(datasetName string) Option {
 	return func(h *Hook) error {
 		h.datasetName = datasetName
@@ -61,8 +61,8 @@ func SetIngestOptions(opts ...ingest.Option) Option {
 	}
 }
 
-// SetLevels sets the logrus levels that the Axiom hook will create log entries
-// for.
+// SetLevels sets the logrus levels that the Axiom [Hook] will create log
+// entries for.
 func SetLevels(levels ...logrus.Level) Option {
 	return func(h *Hook) error {
 		h.levels = levels
@@ -70,7 +70,7 @@ func SetLevels(levels ...logrus.Level) Option {
 	}
 }
 
-// Hook implements a `logrus.Hook` used for shipping logs to Axiom.
+// Hook implements a [logrus.Hook] used for shipping logs to Axiom.
 type Hook struct {
 	client      *axiom.Client
 	datasetName string
@@ -84,19 +84,21 @@ type Hook struct {
 	closeOnce sync.Once
 }
 
-// New creates a new `Hook` configured to ingest logs to the Axiom deployment
-// and dataset as specified by the environment. Refer to `axiom.NewClient()` for
-// more details on how configuring the Axiom deployment works or pass the
-// `SetClient()` option to pass a custom client or `SetClientOptions()` to
-// control the Axiom client creation. To specify the dataset set `AXIOM_DATASET`
-// or use the `SetDataset()` option.
+// New creates a new hook that ingests logs into Axiom. It automatically takes
+// its configuration from the environment. To connect, export the following
+// environment variables:
 //
-// An API token with `ingest` permission is sufficient enough.
+//   - AXIOM_TOKEN
+//   - AXIOM_ORG_ID (only when using a personal token)
+//   - AXIOM_DATASET
 //
-// Additional options can be supplied to configure the `Hook`.
+// The configuration can be set manually using options which are prefixed with
+// "Set".
+//
+// An api token with "ingest" permission is sufficient enough.
 //
 // A hook needs to be closed properly to make sure all logs are sent by calling
-// `Close()`.
+// [Hook.Close].
 func New(options ...Option) (*Hook, error) {
 	hook := &Hook{
 		levels: logrus.AllLevels,
@@ -120,7 +122,7 @@ func New(options ...Option) (*Hook, error) {
 		}
 	}
 
-	// When the dataset name is not set, use `AXIOM_DATASET`.
+	// When the dataset name is not set, use "AXIOM_DATASET".
 	if hook.datasetName == "" {
 		hook.datasetName = os.Getenv("AXIOM_DATASET")
 		if hook.datasetName == "" {
@@ -148,8 +150,8 @@ func New(options ...Option) (*Hook, error) {
 }
 
 // Close the hook and make sure all events are flushed. This should be
-// registered with `logrus.RegisterExitHandler(h.Close)`. Closing the hook
-// renders it unusable for further use.
+// registered with [logrus.RegisterExitHandler]. Closing the hook renders it
+// unusable for further use.
 func (h *Hook) Close() {
 	h.closeOnce.Do(func() {
 		close(h.eventCh)
@@ -157,12 +159,12 @@ func (h *Hook) Close() {
 	})
 }
 
-// Levels implements `logrus.Hook`.
+// Levels implements [logrus.Hook].
 func (h *Hook) Levels() []logrus.Level {
 	return h.levels
 }
 
-// Fire implements `logrus.Hook`.
+// Fire implements [logrus.Hook].
 func (h *Hook) Fire(entry *logrus.Entry) error {
 	event := axiom.Event{}
 

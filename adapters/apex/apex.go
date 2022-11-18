@@ -19,7 +19,7 @@ var _ log.Handler = (*Handler)(nil)
 const defaultBatchSize = 1024
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
-// manually using the SetDataset option or export `AXIOM_DATASET`.
+// manually using the [SetDataset] option or export "AXIOM_DATASET".
 var ErrMissingDatasetName = errors.New("missing dataset name")
 
 // An Option modifies the behaviour of the Axiom handler.
@@ -34,8 +34,8 @@ func SetClient(client *axiom.Client) Option {
 }
 
 // SetClientOptions specifies the Axiom client options to pass to
-// `axiom.NewClient()`. `axiom.NewClient()` is only called if no client was
-// specified by the `SetClient` option.
+// [axiom.NewClient] which is only called if no [axiom.Client] was specified by
+// the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(h *Handler) error {
 		h.clientOptions = options
@@ -44,7 +44,7 @@ func SetClientOptions(options ...axiom.Option) Option {
 }
 
 // SetDataset specifies the dataset to ingest the logs into. Can also be
-// specified using the `AXIOM_DATASET` environment variable.
+// specified using the "AXIOM_DATASET" environment variable.
 func SetDataset(datasetName string) Option {
 	return func(h *Handler) error {
 		h.datasetName = datasetName
@@ -61,7 +61,7 @@ func SetIngestOptions(opts ...ingest.Option) Option {
 	}
 }
 
-// Handler implements a `log.Handler` used for shipping logs to Axiom.
+// Handler implements a [log.Handler] used for shipping logs to Axiom.
 type Handler struct {
 	client      *axiom.Client
 	datasetName string
@@ -74,19 +74,21 @@ type Handler struct {
 	closeOnce sync.Once
 }
 
-// New creates a new `Handler` configured to ingest logs to the Axiom deployment
-// and dataset as specified by the environment. Refer to `axiom.NewClient()` for
-// more details on how configuring the Axiom deployment works or pass the
-// `SetClient()` option to pass a custom client or `SetClientOptions()` to
-// control the Axiom client creation. To specify the dataset set `AXIOM_DATASET`
-// or use the `SetDataset()` option.
+// New creates a new handler that ingests logs into Axiom. It automatically
+// takes its configuration from the environment. To connect, export the
+// following environment variables:
 //
-// An API token with `ingest` permission is sufficient enough.
+//   - AXIOM_TOKEN
+//   - AXIOM_ORG_ID (only when using a personal token)
+//   - AXIOM_DATASET
 //
-// Additional options can be supplied to configure the `Handler`.
+// The configuration can be set manually using options which are prefixed with
+// "Set".
+//
+// An api token with "ingest" permission is sufficient enough.
 //
 // A handler needs to be closed properly to make sure all logs are sent by
-// calling `Close()`.
+// calling [Handler.Close].
 func New(options ...Option) (*Handler, error) {
 	handler := &Handler{
 		eventCh: make(chan axiom.Event, defaultBatchSize),
@@ -108,7 +110,7 @@ func New(options ...Option) (*Handler, error) {
 		}
 	}
 
-	// When the dataset name is not set, use `AXIOM_DATASET`.
+	// When the dataset name is not set, use "AXIOM_DATASET".
 	if handler.datasetName == "" {
 		handler.datasetName = os.Getenv("AXIOM_DATASET")
 		if handler.datasetName == "" {
@@ -144,7 +146,7 @@ func (h *Handler) Close() {
 	})
 }
 
-// HandleLog implements `log.Handler`.
+// HandleLog implements [log.Handler].
 func (h *Handler) HandleLog(entry *log.Entry) error {
 	event := axiom.Event{}
 
