@@ -36,7 +36,7 @@ var encoderConfig = zapcore.EncoderConfig{
 }
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
-// manually using the SetDataset option or export `AXIOM_DATASET`.
+// manually using the [SetDataset] option or export "AXIOM_DATASET".
 var ErrMissingDatasetName = errors.New("missing dataset name")
 
 // An Option modifies the behaviour of the Axiom WriteSyncer.
@@ -51,8 +51,8 @@ func SetClient(client *axiom.Client) Option {
 }
 
 // SetClientOptions specifies the Axiom client options to pass to
-// `axiom.NewClient()`. `axiom.NewClient()` is only called if no client was
-// specified by the `SetClient` option.
+// [axiom.NewClient] which is only called if no [axiom.Client] was specified by
+// the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(ws *WriteSyncer) error {
 		ws.clientOptions = options
@@ -61,7 +61,7 @@ func SetClientOptions(options ...axiom.Option) Option {
 }
 
 // SetDataset specifies the dataset to ingest the logs into. Can also be
-// specified using the `AXIOM_DATASET` environment variable.
+// specified using the "AXIOM_DATASET" environment variable.
 func SetDataset(datasetName string) Option {
 	return func(ws *WriteSyncer) error {
 		ws.datasetName = datasetName
@@ -78,8 +78,8 @@ func SetIngestOptions(opts ...ingest.Option) Option {
 	}
 }
 
-// SetLevelEnabler sets the level enabler that the Axiom WriteSyncer will us to
-// determine if logs will be shipped to Axiom.
+// SetLevelEnabler sets the level enabler that the Axiom [WriteSyncer] will us
+// to determine if logs will be shipped to Axiom.
 func SetLevelEnabler(levelEnabler zapcore.LevelEnabler) Option {
 	return func(ws *WriteSyncer) error {
 		ws.levelEnabler = levelEnabler
@@ -87,7 +87,7 @@ func SetLevelEnabler(levelEnabler zapcore.LevelEnabler) Option {
 	}
 }
 
-// WriteSyncer implements a `zapcore.WriteSyncer` used for shipping logs to
+// WriteSyncer implements a [zapcore.WriteSyncer] used for shipping logs to
 // Axiom.
 type WriteSyncer struct {
 	client      *axiom.Client
@@ -101,16 +101,18 @@ type WriteSyncer struct {
 	bufMtx sync.Mutex
 }
 
-// New creates a new `zapcore.Core` configured to ingest logs to the Axiom
-// deployment and dataset as specified by the environment. Refer to
-// `axiom.NewClient()` for more details on how configuring the Axiom deployment
-// works or pass the `SetClient()` option to pass a custom client or
-// `SetClientOptions()` to control the Axiom client creation. To specify the
-// dataset set `AXIOM_DATASET` or use the `SetDataset()` option.
+// New creates a new [zapcore.Core] that ingests logs into Axiom. It
+// automatically takes its configuration from the environment. To connect,
+// export the following environment variables:
 //
-// An API token with `ingest` permission is sufficient enough.
+//   - AXIOM_TOKEN
+//   - AXIOM_ORG_ID (only when using a personal token)
+//   - AXIOM_DATASET
 //
-// Additional options can be supplied to configure the `zapcore.Core`.
+// The configuration can be set manually using options which are prefixed with
+// "Set".
+//
+// An api token with "ingest" permission is sufficient enough.
 func New(options ...Option) (zapcore.Core, error) {
 	ws := &WriteSyncer{
 		levelEnabler: zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
@@ -133,7 +135,7 @@ func New(options ...Option) (zapcore.Core, error) {
 		}
 	}
 
-	// When the dataset name is not set, use `AXIOM_DATASET`.
+	// When the dataset name is not set, use "AXIOM_DATASET".
 	if ws.datasetName == "" {
 		if ws.datasetName = os.Getenv("AXIOM_DATASET"); ws.datasetName == "" {
 			return nil, ErrMissingDatasetName
@@ -145,7 +147,7 @@ func New(options ...Option) (zapcore.Core, error) {
 	return zapcore.NewCore(enc, ws, ws.levelEnabler), nil
 }
 
-// Write implements `zapcore.WriteSyncer`.
+// Write implements [zapcore.WriteSyncer].
 func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 	ws.bufMtx.Lock()
 	defer ws.bufMtx.Unlock()
@@ -153,9 +155,9 @@ func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 	return ws.buf.Write(p)
 }
 
-// Sync implements `zapcore.WriteSyncer`.
+// Sync implements [zapcore.WriteSyncer].
 func (ws *WriteSyncer) Sync() error {
-	// Best effort context timeout. A `Sync()` should never take that long.
+	// Best effort context timeout. A sync should never take that long.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -169,7 +171,7 @@ func (ws *WriteSyncer) Sync() error {
 	// Make sure to reset the buffer.
 	defer ws.buf.Reset()
 
-	r, err := axiom.ZstdEncoder(&ws.buf)
+	r, err := axiom.ZstdEncoder()(&ws.buf)
 	if err != nil {
 		return err
 	}

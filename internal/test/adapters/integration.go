@@ -21,7 +21,7 @@ import (
 var datasetSuffix = os.Getenv("AXIOM_DATASET_SUFFIX")
 
 // IntegrationTestFunc is a function that provides a client that is configured
-// with an API token for a unique test dataset. The client should be passed to
+// with an api token for a unique test dataset. The client should be passed to
 // the adapter to be tested as well as the target dataset.
 type IntegrationTestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 

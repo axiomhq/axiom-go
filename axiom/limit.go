@@ -36,10 +36,10 @@ const (
 	limitRate                        // rate
 )
 
-// LimitScope is the scope of a limit.
+// LimitScope is the scope of a [Limit].
 type LimitScope uint8
 
-// All available limit scopes.
+// All available [Limit] scopes.
 const (
 	LimitScopeUnknown      LimitScope = iota // unknown
 	LimitScopeUser                           // user
@@ -70,7 +70,7 @@ type Limit struct {
 	// Scope a limit is enforced for. Only present on rate limited requests.
 	Scope LimitScope
 	// The maximum limit a client is limited to for a specified time window
-	// which resets at the time indicated by `Reset`.
+	// which resets at the time indicated by [Limit.Reset].
 	Limit uint64
 	// The remaining count towards the maximum limit.
 	Remaining uint64
@@ -80,14 +80,14 @@ type Limit struct {
 	limitType limitType
 }
 
-// String returns a string representation of the rate.
+// String returns a string representation of the limit.
 //
-// It implements `fmt.Stringer`.
+// It implements [fmt.Stringer].
 func (l Limit) String() string {
 	return fmt.Sprintf("%d/%d %s remaining until %s", l.Remaining, l.Limit, l.limitType, l.Reset)
 }
 
-// parseLimit parses the limit related headers from a `*http.Response`.
+// parseLimit parses the limit related headers from a http response.
 func parseLimit(r *http.Response) Limit {
 	var limit Limit
 	if hasHeaders(r, headerIngestLimit, headerIngestRemaining, headerIngestReset) {
@@ -103,7 +103,7 @@ func parseLimit(r *http.Response) Limit {
 	return limit
 }
 
-// parseLimitFromHeaders parses the named headers from a `*http.Response`.
+// parseLimitFromHeaders parses the named headers from a  http response.
 func parseLimitFromHeaders(r *http.Response, headerScope, headerLimit, headerRemaining, headerReset string) Limit {
 	var limit Limit
 	if v := r.Header.Get(headerScope); v != "" {

@@ -18,7 +18,7 @@ import (
 func TestGzipEncoder(t *testing.T) {
 	exp := "Some fox jumps over a fence."
 
-	r, err := GzipEncoder(strings.NewReader(exp))
+	r, err := GzipEncoder()(strings.NewReader(exp))
 	require.NoError(t, err)
 	require.NotNil(t, r)
 
@@ -38,7 +38,7 @@ func TestGzipEncoder(t *testing.T) {
 func TestZstdEncoder(t *testing.T) {
 	exp := "Some fox jumps over a fence."
 
-	r, err := ZstdEncoder(strings.NewReader(exp))
+	r, err := ZstdEncoder()(strings.NewReader(exp))
 	require.NoError(t, err)
 
 	zsr, err := zstd.NewReader(r)
@@ -60,11 +60,11 @@ func BenchmarkEncoder(b *testing.B) {
 	}{
 		{
 			name:    "gzip",
-			encoder: GzipEncoder,
+			encoder: GzipEncoder(),
 		},
 		{
 			name:    "zstd",
-			encoder: ZstdEncoder,
+			encoder: ZstdEncoder(),
 		},
 	}
 	for _, bb := range benchmarks {

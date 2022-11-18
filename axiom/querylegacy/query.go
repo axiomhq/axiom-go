@@ -45,9 +45,9 @@ type Query struct {
 	ContinuationToken string `json:"continuationToken"`
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
-// Resolutions zero value to its proper string representation because that's
-// what the server expects.
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
+// queries resolution zero value to its proper string representation because
+// that's what the server expects.
 func (q Query) MarshalJSON() ([]byte, error) {
 	type LocalQuery Query
 	localQuery := struct {
@@ -69,9 +69,9 @@ func (q Query) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localQuery)
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
-// Resolution string value to a proper time.Duration because that's what the
-// server returns.
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// queries resolution string value to a proper time.Duration because that's what
+// the server returns.
 func (q *Query) UnmarshalJSON(b []byte) error {
 	type LocalQuery Query
 	localQuery := struct {
@@ -97,7 +97,7 @@ func (q *Query) UnmarshalJSON(b []byte) error {
 
 // Order specifies the order a queries result will be in.
 type Order struct {
-	// Field to order on. Must be present in `GroupBy` or used by an
+	// Field to order on. Must be present in [Query.GroupBy] or used by an
 	// aggregation.
 	Field string `json:"field"`
 	// Desc specifies if the field is ordered ascending or descending.

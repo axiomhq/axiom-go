@@ -9,7 +9,7 @@ import (
 )
 
 func Example() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	core, err := adapter.New()
 	if err != nil {

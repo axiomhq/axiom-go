@@ -22,7 +22,7 @@ import (
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-// TestNew makes sure New() picks up the `AXIOM_DATASET` environment variable.
+// TestNew makes sure New() picks up the "AXIOM_DATASET" environment variable.
 func TestNew(t *testing.T) {
 	testhelper.SafeClearEnv(t)
 

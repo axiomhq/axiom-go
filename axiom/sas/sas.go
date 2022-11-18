@@ -55,7 +55,7 @@ func Create(keyStr string, options Options) (string, error) {
 // for the given options.
 //
 // This function is only useful if the intention is to create the shared access
-// signature manually and without the help of `Create`.
+// signature manually and without the help of [Create].
 func CreateToken(keyStr string, options Options) (string, error) {
 	if err := options.validate(); err != nil {
 		return "", err
@@ -77,10 +77,10 @@ func CreateToken(keyStr string, options Options) (string, error) {
 // Verify the given shared access signature string using the given signing key.
 //
 // An error is returend if the signature can't be processed. It will always
-// return `false` in that case.
+// return "false" in that case.
 //
-// If no error is returned it returns `true` if the signature is valid.
-// Otherwise it returns `false`.
+// If no error is returned it returns "true" if the signature is valid.
+// Otherwise it returns "false".
 func Verify(keyStr, signature string) (bool, Options, error) {
 	q, err := url.ParseQuery(signature)
 	if err != nil {
@@ -111,14 +111,14 @@ func Verify(keyStr, signature string) (bool, Options, error) {
 	return hmac.Equal(givenTokenBytes, computedToken), options, nil
 }
 
-// VerifyToken the the validity of given shared access token for the given Options
-// using the given signing key.
+// VerifyToken the the validity of given shared access token for the given
+// options using the given signing key.
 //
 // An error is returend if the signature can't be processed. It will always
-// return `false` in that case.
+// return "false" in that case.
 //
-// If no error is returned it returns `true` if the signature is valid.
-// Otherwise it returns `false`.
+// If no error is returned it returns "true" if the signature is valid.
+// Otherwise it returns "false".
 func VerifyToken(keyStr, token string, options Options) (bool, error) {
 	q, err := options.urlValues()
 	if err != nil {

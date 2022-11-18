@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	// Export `AXIOM_DATASET` in addition to the required environment variables.
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
 
 	// 1. Setup the Axiom core for zap.
 	core, err := adapter.New()

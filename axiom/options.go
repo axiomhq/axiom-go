@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-// AddOptions adds the parameters in opt as URL query parameters to s. opt must
+// AddOptions adds the parameters in opt as url query parameters to s. opt must
 // be a struct whose fields may contain "url" tags.
 //
 // Ref: https://github.com/google/go-github/blob/master/github/github.go#L232.

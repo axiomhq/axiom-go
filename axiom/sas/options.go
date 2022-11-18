@@ -17,8 +17,8 @@ type Options struct {
 	OrganizationID string
 	// Dataset name the token and signature is valid for.
 	Dataset string
-	// Filter is the top-level query filter to apply to all query requests
-	// the token and signature is valid for.
+	// Filter is the top-level query filter to apply to all query requests the
+	// token and signature is valid for.
 	Filter querylegacy.Filter
 	// MinStartTime is the earliest query start time the token and signature is
 	// valid for.
@@ -28,7 +28,7 @@ type Options struct {
 	MaxEndTime time.Time
 }
 
-// optionsFromURLValues returns `Options` from the given `url.Values`.
+// optionsFromURLValues returns options from the given url query values.
 func optionsFromURLValues(q url.Values) (options Options, err error) {
 	options = Options{
 		OrganizationID: q.Get(queryOrgID),
@@ -55,7 +55,7 @@ func optionsFromURLValues(q url.Values) (options Options, err error) {
 	return options, nil
 }
 
-// urlValues returns the options as `url.Values`.
+// urlValues returns the options as  url query values.
 func (o Options) urlValues() (url.Values, error) {
 	// The filter is encoded as a JSON string.
 	filterStr, err := json.Marshal(filterFromQueryFilter(o.Filter))

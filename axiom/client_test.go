@@ -61,7 +61,7 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingOrganizationID,
 		},
 		{
-			name: "no environment token option with API token",
+			name: "no environment token option with api token",
 			options: []Option{
 				SetToken(apiToken),
 			},
@@ -74,7 +74,7 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingOrganizationID,
 		},
 		{
-			name: "organizationID environment no options with API token",
+			name: "organizationID environment no options with api token",
 			environment: map[string]string{
 				"AXIOM_TOKEN": apiToken,
 			},
@@ -191,7 +191,7 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingToken,
 		},
 		{
-			name: "no environment noEnv, cloudUrl and token option with API token",
+			name: "no environment noEnv, cloudUrl and token option with api token",
 			options: []Option{
 				SetNoEnv(),
 				SetURL(config.CloudURL().String()),
@@ -457,9 +457,9 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 }
 
 func TestClient_do_RateLimit(t *testing.T) {
-	// Truncated time for testing as the `Error()` method for the `LimitError`
-	// uses `time.Until()` which will yield different milliseconds when
-	// comparing the time values on `errors.Is()`.
+	// Truncated time for testing as the "LimitError.Error" method uses
+	// "time.Until" which will yield different milliseconds when comparing the
+	// time values with "errors.Is".
 	reset := time.Now().Add(time.Hour).Truncate(time.Second)
 
 	expErr := &LimitError{
@@ -490,7 +490,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	// Request should fail with a `*LimitError`.
+	// Request should fail with a "*LimitError".
 	resp, err := client.Do(req, nil)
 
 	if assert.ErrorIs(t, err, expErr) {
