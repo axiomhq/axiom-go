@@ -21,56 +21,6 @@ import (
 )
 
 const actQueryResp = `{
-		"status": {
-			"elapsedTime": 542114,
-			"blocksExamined": 4,
-			"rowsExamined": 142655,
-			"rowsMatched": 142655,
-			"numGroups": 0,
-			"isPartial": false,
-			"cacheStatus": 1,
-			"minBlockTime": "2020-11-19T11:06:31.569475746Z",
-			"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
-		},
-		"matches": [
-			{
-				"_time": "2020-11-19T11:06:31.569475746Z",
-				"_sysTime": "2020-11-19T11:06:31.581384524Z",
-				"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
-				"data": {
-					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-					"bytes": 0,
-					"referrer": "-",
-					"remote_ip": "93.180.71.3",
-					"remote_user": "-",
-					"request": "GET /downloads/product_1 HTTP/1.1",
-					"response": 304,
-					"time": "17/May/2015:08:05:32 +0000"
-				}
-			},
-			{
-				"_time": "2020-11-19T11:06:31.569479846Z",
-				"_sysTime": "2020-11-19T11:06:31.581384524Z",
-				"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
-				"data": {
-					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-					"bytes": 0,
-					"referrer": "-",
-					"remote_ip": "93.180.71.3",
-					"remote_user": "-",
-					"request": "GET /downloads/product_1 HTTP/1.1",
-					"response": 304,
-					"time": "17/May/2015:08:05:23 +0000"
-				}
-			}
-		],
-		"buckets": {
-			"series": [],
-			"totals": []
-		}
-	}`
-
-const actAPLQueryResp = `{
 		"request": {
 			"startTime": "2021-07-20T16:34:57.911170243Z",
 			"endTime": "2021-08-19T16:34:57.885821616Z",
@@ -136,55 +86,159 @@ const actAPLQueryResp = `{
 		]
 	}`
 
-var expQueryRes = &querylegacy.Result{
-	Status: querylegacy.Status{
-		ElapsedTime:    542114 * time.Microsecond,
-		BlocksExamined: 4,
-		RowsExamined:   142655,
-		RowsMatched:    142655,
-		NumGroups:      0,
-		IsPartial:      false,
-		MinBlockTime:   parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
-		MaxBlockTime:   parseTimeOrPanic("2020-11-27T12:06:38.966791794Z"),
-	},
-	Matches: []querylegacy.Entry{
-		{
-			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
-			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
-			RowID:   "c776x1uafkpu-4918f6cb9000095-0",
-			Data: map[string]any{
-				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-				"bytes":       float64(0),
-				"referrer":    "-",
-				"remote_ip":   "93.180.71.3",
-				"remote_user": "-",
-				"request":     "GET /downloads/product_1 HTTP/1.1",
-				"response":    float64(304),
-				"time":        "17/May/2015:08:05:32 +0000",
+const actLegacyQueryResp = `{
+		"status": {
+			"elapsedTime": 542114,
+			"blocksExamined": 4,
+			"rowsExamined": 142655,
+			"rowsMatched": 142655,
+			"numGroups": 0,
+			"isPartial": false,
+			"cacheStatus": 1,
+			"minBlockTime": "2020-11-19T11:06:31.569475746Z",
+			"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
+		},
+		"matches": [
+			{
+				"_time": "2020-11-19T11:06:31.569475746Z",
+				"_sysTime": "2020-11-19T11:06:31.581384524Z",
+				"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
+				"data": {
+					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes": 0,
+					"referrer": "-",
+					"remote_ip": "93.180.71.3",
+					"remote_user": "-",
+					"request": "GET /downloads/product_1 HTTP/1.1",
+					"response": 304,
+					"time": "17/May/2015:08:05:32 +0000"
+				}
+			},
+			{
+				"_time": "2020-11-19T11:06:31.569479846Z",
+				"_sysTime": "2020-11-19T11:06:31.581384524Z",
+				"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
+				"data": {
+					"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes": 0,
+					"referrer": "-",
+					"remote_ip": "93.180.71.3",
+					"remote_user": "-",
+					"request": "GET /downloads/product_1 HTTP/1.1",
+					"response": 304,
+					"time": "17/May/2015:08:05:23 +0000"
+				}
+			}
+		],
+		"buckets": {
+			"series": [],
+			"totals": []
+		}
+	}`
+
+var (
+	//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
+	expQueryRes = &query.Result{
+		Status: query.Status{
+			ElapsedTime:    542114 * time.Microsecond,
+			BlocksExamined: 4,
+			RowsExamined:   142655,
+			RowsMatched:    142655,
+			NumGroups:      0,
+			IsPartial:      false,
+			MinBlockTime:   parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
+			MaxBlockTime:   parseTimeOrPanic("2020-11-27T12:06:38.966791794Z"),
+		},
+		Matches: []query.Entry{
+			{
+				Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
+				SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
+				RowID:   "c776x1uafkpu-4918f6cb9000095-0",
+				Data: map[string]any{
+					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes":       float64(0),
+					"referrer":    "-",
+					"remote_ip":   "93.180.71.3",
+					"remote_user": "-",
+					"request":     "GET /downloads/product_1 HTTP/1.1",
+					"response":    float64(304),
+					"time":        "17/May/2015:08:05:32 +0000",
+				},
+			},
+			{
+				Time:    parseTimeOrPanic("2020-11-19T11:06:31.569479846Z"),
+				SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
+				RowID:   "c776x1uafnvq-4918f6cb9000095-1",
+				Data: map[string]any{
+					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes":       float64(0),
+					"referrer":    "-",
+					"remote_ip":   "93.180.71.3",
+					"remote_user": "-",
+					"request":     "GET /downloads/product_1 HTTP/1.1",
+					"response":    float64(304),
+					"time":        "17/May/2015:08:05:23 +0000",
+				},
 			},
 		},
-		{
-			Time:    parseTimeOrPanic("2020-11-19T11:06:31.569479846Z"),
-			SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
-			RowID:   "c776x1uafnvq-4918f6cb9000095-1",
-			Data: map[string]any{
-				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-				"bytes":       float64(0),
-				"referrer":    "-",
-				"remote_ip":   "93.180.71.3",
-				"remote_user": "-",
-				"request":     "GET /downloads/product_1 HTTP/1.1",
-				"response":    float64(304),
-				"time":        "17/May/2015:08:05:23 +0000",
+		Buckets: query.Timeseries{
+			Series: []query.Interval{},
+			Totals: []query.EntryGroup{},
+		},
+		SavedQueryID: "fyTFUldK4Z5219rWaz",
+	}
+
+	//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
+	expLegacyQueryRes = &querylegacy.Result{
+		Status: querylegacy.Status{
+			ElapsedTime:    542114 * time.Microsecond,
+			BlocksExamined: 4,
+			RowsExamined:   142655,
+			RowsMatched:    142655,
+			NumGroups:      0,
+			IsPartial:      false,
+			MinBlockTime:   parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
+			MaxBlockTime:   parseTimeOrPanic("2020-11-27T12:06:38.966791794Z"),
+		},
+		Matches: []querylegacy.Entry{
+			{
+				Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
+				SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
+				RowID:   "c776x1uafkpu-4918f6cb9000095-0",
+				Data: map[string]any{
+					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes":       float64(0),
+					"referrer":    "-",
+					"remote_ip":   "93.180.71.3",
+					"remote_user": "-",
+					"request":     "GET /downloads/product_1 HTTP/1.1",
+					"response":    float64(304),
+					"time":        "17/May/2015:08:05:32 +0000",
+				},
+			},
+			{
+				Time:    parseTimeOrPanic("2020-11-19T11:06:31.569479846Z"),
+				SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
+				RowID:   "c776x1uafnvq-4918f6cb9000095-1",
+				Data: map[string]any{
+					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+					"bytes":       float64(0),
+					"referrer":    "-",
+					"remote_ip":   "93.180.71.3",
+					"remote_user": "-",
+					"request":     "GET /downloads/product_1 HTTP/1.1",
+					"response":    float64(304),
+					"time":        "17/May/2015:08:05:23 +0000",
+				},
 			},
 		},
-	},
-	Buckets: querylegacy.Timeseries{
-		Series: []querylegacy.Interval{},
-		Totals: []querylegacy.EntryGroup{},
-	},
-	SavedQueryID: "fyTFUldK4Z5219rWaz",
-}
+		Buckets: querylegacy.Timeseries{
+			Series: []querylegacy.Interval{},
+			Totals: []querylegacy.EntryGroup{},
+		},
+		SavedQueryID: "fyTFUldK4Z5219rWaz",
+	}
+)
 
 func TestDatasetsService_List(t *testing.T) {
 	exp := []*Dataset{
@@ -880,7 +934,7 @@ func TestDatasetsService_Query(t *testing.T) {
 		var req aplQueryRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if assert.NoError(t, err) {
-			assert.EqualValues(t, "['test'] | where response == 304", req.Query)
+			assert.EqualValues(t, "['test'] | where response == 304", req.APL)
 			assert.NotEmpty(t, req.StartTime)
 			assert.Empty(t, req.EndTime)
 		}
@@ -888,7 +942,7 @@ func TestDatasetsService_Query(t *testing.T) {
 		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err = fmt.Fprint(w, actAPLQueryResp)
+		_, err = fmt.Fprint(w, actQueryResp)
 		assert.NoError(t, err)
 	}
 
@@ -900,9 +954,7 @@ func TestDatasetsService_Query(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// TODO(lukasmalkmus): Use `.Equal()` once the Query result type does not
-	// depend on the querylegacy package anymore.
-	assert.EqualValues(t, expQueryRes, res)
+	assert.Equal(t, expQueryRes, res)
 }
 
 func TestDatasetsService_QueryLegacy(t *testing.T) {
@@ -917,7 +969,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, actQueryResp)
+		_, err := fmt.Fprint(w, actLegacyQueryResp)
 		assert.NoError(t, err)
 	}
 
@@ -933,7 +985,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, expQueryRes, res)
+	assert.Equal(t, expLegacyQueryRes, res)
 }
 
 func TestDatasetsService_QueryInvalid_InvalidSaveKind(t *testing.T) {
