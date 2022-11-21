@@ -38,9 +38,11 @@ func main() {
 
 func bar(ctx context.Context) {
 	tr := otel.Tracer("bar")
+
 	_, span := tr.Start(ctx, "bar")
-	span.SetAttributes(attribute.Key("testset").String("value"))
 	defer span.End()
+
+	span.SetAttributes(attribute.Key("testset").String("value"))
 
 	time.Sleep(time.Millisecond * 100)
 }

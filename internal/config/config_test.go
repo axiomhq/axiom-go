@@ -2,7 +2,6 @@ package config
 
 import (
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -70,7 +69,7 @@ func TestConfig_IncorporateEnvironment(t *testing.T) {
 			testhelper.SafeClearEnv(t)
 
 			for k, v := range tt.environment {
-				os.Setenv(k, v)
+				t.Setenv(k, v)
 			}
 
 			assert.Equal(t, tt.expErr, tt.baseConfig.IncorporateEnvironment())

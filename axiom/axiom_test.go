@@ -1,7 +1,6 @@
 package axiom_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -52,7 +51,7 @@ func TestValidateEnvironment(t *testing.T) {
 			testhelper.SafeClearEnv(t)
 
 			for k, v := range tt.environment {
-				os.Setenv(k, v)
+				t.Setenv(k, v)
 			}
 
 			err := axiom.ValidateEnvironment()

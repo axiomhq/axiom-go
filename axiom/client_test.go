@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -204,7 +203,7 @@ func TestNewClient(t *testing.T) {
 			testhelper.SafeClearEnv(t)
 
 			for k, v := range tt.environment {
-				os.Setenv(k, v)
+				t.Setenv(k, v)
 			}
 
 			client, err := NewClient(tt.options...)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -23,14 +22,14 @@ import (
 func TestNew(t *testing.T) {
 	testhelper.SafeClearEnv(t)
 
-	os.Setenv("AXIOM_TOKEN", "xaat-test")
-	os.Setenv("AXIOM_ORG_ID", "123")
+	t.Setenv("AXIOM_TOKEN", "xaat-test")
+	t.Setenv("AXIOM_ORG_ID", "123")
 
 	core, err := New()
 	require.ErrorIs(t, err, ErrMissingDatasetName)
 	require.Nil(t, core)
 
-	os.Setenv("AXIOM_DATASET", "test")
+	t.Setenv("AXIOM_DATASET", "test")
 
 	core, err = New()
 	require.NoError(t, err)
