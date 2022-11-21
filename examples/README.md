@@ -9,9 +9,10 @@ go run ./{example}
 
 ## Before you start
 
-Axiom Go and the Adapters automatically pick up their configuration from the
+Axiom Go and the adapters automatically pick up their configuration from the
 environment, if not otherwise specified. To learn more about configuration,
-check the [Documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go).
+check the
+[documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters).
 
 To quickstart, export the environment variables below.
 
@@ -56,5 +57,7 @@ eval $(axiom config export -f)
 
 ## OpenTelemetry usage
 
+- [otelinstrument](otelinstrument/main.go): How to instrument the Axiom Go
+  client using OpenTelemetry.
 - [oteltraces](oteltraces/main.go): How to ship traces to Axiom using the
   OpenTelemetry Go SDK and the Axiom SDKs `otel` helper package.
