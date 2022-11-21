@@ -957,6 +957,27 @@ func TestDatasetsService_Query(t *testing.T) {
 	assert.Equal(t, expQueryRes, res)
 }
 
+func TestDatasetsService_Query_WithGroupBy(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, _ = fmt.Fprint(w, `{
+			"request": {
+				"groupBy": [
+					"code",
+					"path"
+				]
+			}
+		}`)
+	}
+
+	client := setup(t, "/api/v1/datasets/_apl", hf)
+
+	res, err := client.Datasets.Query(context.Background(), "test")
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"code", "path"}, res.GroupBy)
+}
+
 func TestDatasetsService_QueryLegacy(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
