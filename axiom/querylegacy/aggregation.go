@@ -15,7 +15,7 @@ type AggregationOp uint8
 const (
 	OpUnknown AggregationOp = iota // unknown
 
-	// Works with all types, field should be "*"".
+	// Works with all types, field should be "*".
 	OpCount    // count
 	OpDistinct // distinct
 	OpMakeSet  // makeset
