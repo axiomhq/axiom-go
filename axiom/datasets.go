@@ -535,9 +535,27 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		res struct {
 			query.Result
 
+			// HINT(lukasmalkmus): Preserve the legacy request'S "groupBy" field
+			// for now.
+			LegacyRequest struct {
+				StartTime         any `json:"startTime"`
+				EndTime           any `json:"endTime"`
+				Resolution        any `json:"resolution"`
+				Aggregations      any `json:"aggregations"`
+				Filter            any `json:"filter"`
+				Order             any `json:"order"`
+				Limit             any `json:"limit"`
+				VirtualFields     any `json:"virtualFields"`
+				Projections       any `json:"project"`
+				Cursor            any `json:"cursor"`
+				IncludeCursor     any `json:"includeCursor"`
+				ContinuationToken any `json:"continuationToken"`
+
+				GroupBy []string `json:"groupBy"`
+			} `json:"request"`
+
 			// HINT(lukasmalkmus): Ignore those fields as they are not relevant
 			// for the user and will change with the new query result format.
-			Request    any `json:"request"`
 			Datasets   any `json:"datasetNames"`
 			FieldsMeta any `json:"fieldsMetaMap"`
 		}
@@ -547,6 +565,11 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		return nil, spanError(span, err)
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
+
+	// Preserve the "queryBy" field that is part of the legacy query request
+	// that is itself part of the query result (which will change in the
+	// future).
+	res.GroupBy = res.LegacyRequest.GroupBy
 
 	setQueryResultOnSpan(span, res.Result)
 
