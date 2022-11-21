@@ -4,7 +4,6 @@ package axiom_test
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -17,9 +16,9 @@ import (
 func TestValidateCredentials(t *testing.T) {
 	testhelper.SafeClearEnv(t)
 
-	os.Setenv("AXIOM_TOKEN", accessToken)
-	os.Setenv("AXIOM_ORG_ID", orgID)
-	os.Setenv("AXIOM_URL", deploymentURL)
+	t.Setenv("AXIOM_TOKEN", accessToken)
+	t.Setenv("AXIOM_ORG_ID", orgID)
+	t.Setenv("AXIOM_URL", deploymentURL)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	t.Cleanup(cancel)
