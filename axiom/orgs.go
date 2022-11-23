@@ -22,6 +22,7 @@ const (
 
 	Hobby      // hobby
 	Basic      // basic
+	Team       // team
 	Enterprise // enterprise
 	Comped     // comped
 )
@@ -34,6 +35,8 @@ func planFromString(s string) (plan Plan, err error) {
 		plan = Hobby
 	case Basic.String():
 		plan = Basic
+	case Team.String():
+		plan = Team
 	case Enterprise.String():
 		plan = Enterprise
 	case Comped.String():
@@ -78,8 +81,8 @@ type License struct {
 	ValidFrom time.Time `json:"validFrom"`
 	// ExpiresAt is the time the license expires.
 	ExpiresAt time.Time `json:"expiresAt"`
-	// Tier of the license.
-	Tier Plan `json:"tier"`
+	// Plan associated with the license.
+	Plan Plan `json:"tier"`
 	// MonthlyIngestGB is the monthly amount of data in gigabytes that can be
 	// ingested as part of the license.
 	MonthlyIngestGB uint64 `json:"monthlyIngestGb"`

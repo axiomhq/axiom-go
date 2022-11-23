@@ -11,13 +11,14 @@ func _() {
 	_ = x[emptyPlan-0]
 	_ = x[Hobby-1]
 	_ = x[Basic-2]
-	_ = x[Enterprise-3]
-	_ = x[Comped-4]
+	_ = x[Team-3]
+	_ = x[Enterprise-4]
+	_ = x[Comped-5]
 }
 
-const _Plan_name = "hobbybasicenterprisecomped"
+const _Plan_name = "hobbybasicteamenterprisecomped"
 
-var _Plan_index = [...]uint8{0, 0, 5, 10, 20, 26}
+var _Plan_index = [...]uint8{0, 0, 5, 10, 14, 24, 30}
 
 func (i Plan) String() string {
 	if i >= Plan(len(_Plan_index)-1) {
