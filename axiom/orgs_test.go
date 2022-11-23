@@ -33,7 +33,7 @@ func TestOrganizationsService_List(t *testing.T) {
 				IssuedAt:        testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 				ValidFrom:       testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 				ExpiresAt:       testhelper.MustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
-				Tier:            Enterprise,
+				Plan:            Enterprise,
 				MonthlyIngestGB: 100,
 				MaxUsers:        50,
 				MaxTeams:        10,
@@ -123,7 +123,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 			IssuedAt:        testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 			ValidFrom:       testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 			ExpiresAt:       testhelper.MustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
-			Tier:            Enterprise,
+			Plan:            Enterprise,
 			MonthlyIngestGB: 100,
 			MaxUsers:        50,
 			MaxTeams:        10,
@@ -247,7 +247,7 @@ func TestPlanFromString(t *testing.T) {
 func TestLicense(t *testing.T) {
 	exp := License{
 		ID:             "98baf1f7-0b51-403f-abc1-2ee91972a225",
-		Tier:           Hobby,
+		Plan:           Hobby,
 		MaxUsers:       50,
 		MaxTeams:       10,
 		MaxDatasets:    25,
