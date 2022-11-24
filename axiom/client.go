@@ -23,6 +23,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/axiomhq/axiom-go/axiom/ingest"
+	"github.com/axiomhq/axiom-go/axiom/query"
+	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/config"
 	"github.com/axiomhq/axiom-go/internal/version"
 )
@@ -354,6 +357,100 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	}
 
 	return resp, nil
+}
+
+// Ingest data into the dataset identified by its id.
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
+// timestamp format is auto detected.
+//
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
+//
+// The reader is streamed to the server until EOF is reached on a single
+// connection. Keep that in mind when dealing with slow readers.
+//
+// This function is an alias to [DatasetsService.Ingest].
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
+func (c *Client) Ingest(ctx context.Context, id string, r io.Reader, typ ContentType, enc ContentEncoding, options ...ingest.Option) (*ingest.Status, error) {
+	return c.Datasets.Ingest(ctx, id, r, typ, enc, options...)
+}
+
+// IngestEvents ingests events into the dataset identified by its id.
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
+// timestamp format is auto detected.
+//
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
+//
+// For ingesting large amounts of data, consider using the [Client.Ingest] or
+// [Client.IngestChannel] method.
+//
+// This function is an alias to [DatasetsService.IngestEvents].
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
+func (c *Client) IngestEvents(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
+	return c.Datasets.IngestEvents(ctx, id, events, options...)
+}
+
+// IngestChannel ingests events from a channel into the dataset identified by
+// its id.
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
+// timestamp format is auto detected.
+//
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
+//
+// Events are ingested in batches. A batch is either 1000 events for unbuffered
+// channels or the capacity of the channel for buffered channels. The maximum
+// batch size is 1000. A batch is sent to the server as soon as it is full,
+// after one second or when the channel is closed.
+//
+// The method returns with an error when the context is marked as done or an
+// error occurs when sending the events to the server. A partial ingestion is
+// possible and the returned ingest status is valid to use. When the context is
+// marked as done, no attempt is made to send the buffered events to the server.
+//
+// The method returns without an error if the channel is closed and the buffered
+// events are successfully sent to the server.
+//
+// This function is an alias to [DatasetsService.IngestChannel].
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
+func (c *Client) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
+	return c.Datasets.IngestChannel(ctx, id, events, options...)
+}
+
+// Query executes the given query specified using the Axiom Processing
+// Language (APL).
+//
+// This function is an alias to [DatasetsService.Query].
+func (c *Client) Query(ctx context.Context, apl string, options ...query.Option) (*query.Result, error) {
+	return c.Datasets.Query(ctx, apl, options...)
+}
+
+// QueryLegacy executes the given legacy query on the dataset identified by its
+// id.
+//
+// This function is an alias to [DatasetsService.Query].
+//
+// Deprecated: Legacy queries will be replaced by queries specified using the
+// Axiom Processing Language (APL) and the legacy query API will be removed in
+// the future. Use [Client.Query] instead.
+func (c *Client) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
+	return c.Datasets.QueryLegacy(ctx, id, q, opts)
 }
 
 func (c *Client) trace(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
