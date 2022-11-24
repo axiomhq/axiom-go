@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// 2. Query all events in the last minute ⚡
-	res, err := client.Datasets.QueryLegacy(context.Background(), dataset, querylegacy.Query{
+	res, err := client.QueryLegacy(context.Background(), dataset, querylegacy.Query{
 		StartTime: time.Now().Add(-time.Minute),
 		EndTime:   time.Now(),
 	}, querylegacy.Options{})

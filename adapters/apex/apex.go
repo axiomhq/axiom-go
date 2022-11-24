@@ -124,7 +124,7 @@ func New(options ...Option) (*Handler, error) {
 
 		logger := stdlog.New(os.Stderr, "[AXIOM|APEX]", 0)
 
-		res, err := handler.client.Datasets.IngestChannel(context.Background(), handler.datasetName, handler.eventCh, handler.ingestOptions...)
+		res, err := handler.client.IngestChannel(context.Background(), handler.datasetName, handler.eventCh, handler.ingestOptions...)
 		if err != nil {
 			logger.Printf("failed to ingest events: %s\n", err)
 		} else if res.Failed > 0 {

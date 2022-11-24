@@ -136,7 +136,7 @@ func New(options ...Option) (*Hook, error) {
 
 		logger := stdlog.New(os.Stderr, "[AXIOM|LOGRUS]", 0)
 
-		res, err := hook.client.Datasets.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...)
+		res, err := hook.client.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...)
 		if err != nil {
 			logger.Printf("failed to ingest events: %s\n", err)
 		} else if res.Failed > 0 {
