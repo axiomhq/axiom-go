@@ -413,6 +413,22 @@ func TestClient_do_HTTPError(t *testing.T) {
 	}
 }
 
+func TestClient_do_HTTPError_Typed(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(http.StatusText(http.StatusForbidden)))
+	}
+
+	client := setup(t, "/", hf)
+
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, ErrUnauthorized) {
+		assert.EqualError(t, err, "insufficient permissions")
+	}
+}
+
 func TestClient_do_HTTPError_JSON(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)

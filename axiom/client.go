@@ -250,8 +250,8 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			}
 			resp = newResponse(httpResp)
 
-			// We should only retry in the case the status code is >= 500, anything
-			// below isn't worth retrying.
+			// We should only retry in the case the status code is >= 500,
+			// anything below isn't worth retrying.
 			if code := resp.StatusCode; code >= 500 {
 				_, _ = io.Copy(io.Discard, resp.Body)
 				_ = resp.Body.Close()
