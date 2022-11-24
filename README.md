@@ -79,14 +79,14 @@ func main() {
         log.Fatalln(err)
     }
     
-    if _, err = client.Datasets.IngestEvents(ctx, "my-dataset", []axiom.Event{
+    if _, err = client.IngestEvents(ctx, "my-dataset", []axiom.Event{
         {ingest.TimestampField: time.Now(), "foo": "bar"},
         {ingest.TimestampField: time.Now(), "bar": "foo"},
     }); err != nil {
         log.Fatalln(err)
     }
 
-    res, err := client.Datasets.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
+    res, err := client.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
     if err != nil {
         log.Fatalln(err)
     }

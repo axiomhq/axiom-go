@@ -176,7 +176,7 @@ func (ws *WriteSyncer) Sync() error {
 		return err
 	}
 
-	res, err := ws.client.Datasets.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Zstd, ws.ingestOptions...)
+	res, err := ws.client.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Zstd, ws.ingestOptions...)
 	if err != nil {
 		return err
 	} else if res.Failed > 0 {

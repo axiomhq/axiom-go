@@ -34,7 +34,7 @@ func main() {
 		{ingest.TimestampField: time.Now(), "foo": "bar"},
 		{ingest.TimestampField: time.Now(), "bar": "foo"},
 	}
-	res, err := client.Datasets.IngestEvents(context.Background(), dataset, events)
+	res, err := client.IngestEvents(context.Background(), dataset, events)
 	if err != nil {
 		log.Fatal(err)
 	}
