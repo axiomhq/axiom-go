@@ -81,6 +81,8 @@ type Dataset struct {
 }
 
 // TrimResult is the result of a trim operation.
+//
+// Deprecated: TrimResult is deprecated and will be removed in a future release.
 type TrimResult struct {
 	// BlocksDeleted is the amount of blocks deleted by the trim operation.
 	//
@@ -535,8 +537,8 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		res struct {
 			query.Result
 
-			// HINT(lukasmalkmus): Preserve the legacy request'S "groupBy" field
-			// for now.
+			// HINT(lukasmalkmus): Ignore these fields as they are not relevant
+			// for the user and will change with the new query result format.
 			LegacyRequest struct {
 				StartTime         any `json:"startTime"`
 				EndTime           any `json:"endTime"`
@@ -551,12 +553,10 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 				IncludeCursor     any `json:"includeCursor"`
 				ContinuationToken any `json:"continuationToken"`
 
+				// HINT(lukasmalkmus): Preserve the legacy request's "groupBy"
+				// field for now.
 				GroupBy []string `json:"groupBy"`
 			} `json:"request"`
-
-			// HINT(lukasmalkmus): Ignore those fields as they are not relevant
-			// for the user and will change with the new query result format.
-			Datasets   any `json:"datasetNames"`
 			FieldsMeta any `json:"fieldsMetaMap"`
 		}
 		resp *Response
@@ -608,8 +608,8 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		res struct {
 			querylegacy.Result
 
-			// HINT(lukasmalkmus): Ignore those fields as they are not relevant
-			// for the user.
+			// HINT(lukasmalkmus): Ignore these fields as they are not relevant
+			// for the user and will change with the new query result format.
 			FieldsMeta any `json:"fieldsMeta"`
 		}
 		resp *Response
@@ -679,10 +679,8 @@ func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
 	)
 }
 
-//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
 func setQueryResultOnSpan(span trace.Span, res query.Result) {
 	span.SetAttributes(
-		attribute.Int64("axiom.result.matches", int64(res.Status.BlocksExamined)),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
 		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
@@ -697,10 +695,8 @@ func setQueryResultOnSpan(span trace.Span, res query.Result) {
 	)
 }
 
-//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
 func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
 	span.SetAttributes(
-		attribute.Int64("axiom.result.matches", int64(res.Status.BlocksExamined)),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
 		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),

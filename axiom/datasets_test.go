@@ -137,8 +137,8 @@ const actLegacyQueryResp = `{
 	}`
 
 var (
-	//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
 	expQueryRes = &query.Result{
+		Datasets: []string{"test"},
 		Status: query.Status{
 			ElapsedTime:    542114 * time.Microsecond,
 			BlocksExamined: 4,
@@ -188,7 +188,6 @@ var (
 		SavedQueryID: "fyTFUldK4Z5219rWaz",
 	}
 
-	//nolint:dupl // This is fine to duplicate as legacy queries are deprecated.
 	expLegacyQueryRes = &querylegacy.Result{
 		Status: querylegacy.Status{
 			ElapsedTime:    542114 * time.Microsecond,
