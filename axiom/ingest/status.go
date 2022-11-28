@@ -13,8 +13,14 @@ type Status struct {
 	// ProcessedBytes is the number of bytes processed.
 	ProcessedBytes uint64 `json:"processedBytes"`
 	// BlocksCreated is the amount of blocks created.
+	//
+	// Deprecated: BlocksCreated is deprecated and will be removed in a future
+	// release.
 	BlocksCreated uint32 `json:"blocksCreated"`
 	// WALLength is the length of the Write-Ahead Log.
+	//
+	// Deprecated: WALLength is deprecated and will be removed in a future
+	// release.
 	WALLength uint32 `json:"walLength"`
 }
 
