@@ -679,7 +679,12 @@ func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
 	)
 }
 
+//nolint:dupl // We need to support both query packages and their types.
 func setQueryResultOnSpan(span trace.Span, res query.Result) {
+	if !span.IsRecording() {
+		return
+	}
+
 	span.SetAttributes(
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
@@ -695,7 +700,12 @@ func setQueryResultOnSpan(span trace.Span, res query.Result) {
 	)
 }
 
+//nolint:dupl // We need to support both query packages and their types.
 func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
+	if !span.IsRecording() {
+		return
+	}
+
 	span.SetAttributes(
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),

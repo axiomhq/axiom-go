@@ -458,14 +458,12 @@ func (c *Client) trace(ctx context.Context, name string, opts ...trace.SpanStart
 }
 
 func spanError(span trace.Span, err error) error {
-	if err == nil {
-		return nil
+	if err == nil || !span.IsRecording() {
+		return err
 	}
 
-	if span.IsRecording() {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-	}
+	span.SetStatus(codes.Error, err.Error())
+	span.RecordError(err)
 
 	return err
 }
