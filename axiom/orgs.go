@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Plan -linecomment -output=orgs_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Plan,PaymentStatus -linecomment -output=orgs_string.go
 
 // Plan represents the plan of an [Organization].
 type Plan uint8
@@ -63,6 +63,58 @@ func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 	}
 
 	*p, err = planFromString(s)
+
+	return err
+}
+
+// PaymentStatus represents the payment status of an [Organization].
+type PaymentStatus uint8
+
+// All available [Organization] payment statuses.
+const (
+	emptyPaymentStatus PaymentStatus = iota //
+
+	Success      // success
+	NotAvailable // na
+	Failed       // failed
+	Blocked      // blocked
+)
+
+func paymentStatusFromString(s string) (paymentStatus PaymentStatus, err error) {
+	switch s {
+	case emptyPaymentStatus.String():
+		paymentStatus = emptyPaymentStatus
+	case Success.String():
+		paymentStatus = Success
+	case NotAvailable.String():
+		paymentStatus = NotAvailable
+	case Failed.String():
+		paymentStatus = Failed
+	case Blocked.String():
+		paymentStatus = Blocked
+	default:
+		err = fmt.Errorf("unknown payment status %q", s)
+	}
+
+	return paymentStatus, err
+}
+
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
+// payment status to its string representation because that's what the server
+// expects.
+func (ps PaymentStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ps.String())
+}
+
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// payment status from the string representation the server returns.
+func (ps *PaymentStatus) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*ps, err = paymentStatusFromString(s)
 
 	return err
 }
@@ -158,20 +210,21 @@ type Organization struct {
 	PrimaryEmail string `json:"primaryEmail"`
 	// License of the organization.
 	License License `json:"license"`
-	// CreatedAt is the time the Organization was created.
+	// PaymentStatus is the status of the current payment for the organization.
+	PaymentStatus PaymentStatus `json:"paymentStatus"`
+	// CreatedAt is the time the organization was created.
 	CreatedAt time.Time `json:"metaCreated"`
-	// ModifiedAt is the time the Organization was last modified.
+	// ModifiedAt is the time the organization was last modified.
 	ModifiedAt time.Time `json:"metaModified"`
-	// Version of the organization.
-	Version string `json:"metaVersion"`
 }
 
 type wrappedOrganization struct {
 	Organization
 
-	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
-	// package so we just ignore it for now.
-	ExternalPlan any `json:"externalPlan,omitempty"`
+	// HINT(lukasmalkmus): Ignore these fields because they do not provide any
+	// value to the user.
+	ExternalPlan any `json:"externalPlan"`
+	Version      any `json:"metaVersion"`
 }
 
 // OrganizationsService handles communication with the organization related
