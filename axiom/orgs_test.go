@@ -47,9 +47,9 @@ func TestOrganizationsService_List(t *testing.T) {
 				},
 				Error: "",
 			},
-			CreatedAt:  testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-			ModifiedAt: testhelper.MustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-			Version:    "1615469248501218883",
+			PaymentStatus: Success,
+			CreatedAt:     testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+			ModifiedAt:    testhelper.MustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 		},
 	}
 
@@ -89,6 +89,7 @@ func TestOrganizationsService_List(t *testing.T) {
 					],
 					"error": ""
 				},
+				"paymentStatus": "success",
 				"metaCreated": "1970-01-01T00:00:00Z",
 				"metaModified": "2021-03-11T13:27:28.501218883Z",
 				"metaVersion": "1615469248501218883"
@@ -137,9 +138,9 @@ func TestOrganizationsService_Get(t *testing.T) {
 			},
 			Error: "",
 		},
-		CreatedAt:  testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
-		ModifiedAt: testhelper.MustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
-		Version:    "1615469248501218883",
+		PaymentStatus: Success,
+		CreatedAt:     testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
+		ModifiedAt:    testhelper.MustTimeParse(t, time.RFC3339, "2021-03-11T13:27:28.501218883Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -177,6 +178,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 				],
 				"error": ""
 			},
+			"paymentStatus": "success",
 			"metaCreated": "1970-01-01T00:00:00Z",
 			"metaModified": "2021-03-11T13:27:28.501218883Z",
 			"metaVersion": "1615469248501218883"
@@ -241,6 +243,58 @@ func TestPlanFromString(t *testing.T) {
 
 		assert.NotEmpty(t, s)
 		assert.Equal(t, plan, parsedPlan)
+	}
+}
+
+func TestPaymentStatus_Marshal(t *testing.T) {
+	exp := `{
+		"paymentStatus": "success"
+	}`
+
+	b, err := json.Marshal(struct {
+		PaymentStatus PaymentStatus `json:"paymentStatus"`
+	}{
+		PaymentStatus: Success,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestPaymentStatus_Unmarshal(t *testing.T) {
+	var act struct {
+		PaymentStatus PaymentStatus `json:"paymentStatus"`
+	}
+	err := json.Unmarshal([]byte(`{ "paymentStatus": "success" }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, Success, act.PaymentStatus)
+}
+
+func TestPaymentStatus_String(t *testing.T) {
+	// Check outer bounds.
+	assert.Empty(t, PaymentStatus(0).String())
+	assert.Empty(t, emptyPaymentStatus.String())
+	assert.Equal(t, emptyPaymentStatus, PaymentStatus(0))
+	assert.Contains(t, (Blocked + 1).String(), "PaymentStatus(")
+
+	for p := Success; p <= Blocked; p++ {
+		s := p.String()
+		assert.NotEmpty(t, s)
+		assert.NotContains(t, s, "PaymentStatus(")
+	}
+}
+
+func TestPaymentStatusFromString(t *testing.T) {
+	for paymentStatus := Success; paymentStatus <= Blocked; paymentStatus++ {
+		s := paymentStatus.String()
+
+		parsedPaymentStatus, err := paymentStatusFromString(s)
+		assert.NoError(t, err)
+
+		assert.NotEmpty(t, s)
+		assert.Equal(t, paymentStatus, parsedPaymentStatus)
 	}
 }
 
