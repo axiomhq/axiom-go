@@ -19,13 +19,8 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
+          check-latest: true
+          cache: true
       - run: make generate
       - run: git diff --exit-code
 
@@ -43,6 +38,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
+          check-latest: true
       - uses: golangci/golangci-lint-action@v3
 
   test:
@@ -66,13 +62,8 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
+          check-latest: true
+          cache: true
       - run: make test-integration
       - name: Cleanup (On Test Failure)
         if: failure()
