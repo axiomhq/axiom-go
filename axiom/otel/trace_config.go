@@ -6,7 +6,7 @@ import (
 	"github.com/axiomhq/axiom-go/internal/config"
 )
 
-const defaultTraceAPIEndpoint = "/api/v1/traces"
+const defaultTraceAPIEndpoint = "/v1/traces"
 
 type traceConfig struct {
 	config.Config

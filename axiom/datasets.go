@@ -135,7 +135,7 @@ type aplQueryRequest struct {
 // DatasetsService handles communication with the dataset related operations of
 // the Axiom API.
 //
-// Axiom API Reference: /api/v1/datasets
+// Axiom API Reference: /v1/datasets
 type DatasetsService service
 
 // List all available datasets.

@@ -45,7 +45,7 @@ const (
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
 
-var validOnlyAPITokenPaths = regexp.MustCompile(`^/api/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
+var validOnlyAPITokenPaths = regexp.MustCompile(`^/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
 type service struct {
@@ -118,9 +118,9 @@ func NewClient(options ...Option) (*Client, error) {
 		client.userAgent += fmt.Sprintf("/%s", v)
 	}
 
-	client.Datasets = &DatasetsService{client, "/api/v1/datasets"}
-	client.Organizations = &OrganizationsService{client, "/api/v1/orgs"}
-	client.Users = &UsersService{client, "/api/v1/users"}
+	client.Datasets = &DatasetsService{client, "/v1/datasets"}
+	client.Organizations = &OrganizationsService{client, "/v1/orgs"}
+	client.Users = &UsersService{client, "/v1/users"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {

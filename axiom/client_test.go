@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	endpoint       = "http://axiom.local"
+	endpoint       = "http://api.axiom.local"
 	apiToken       = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	personalToken  = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
 	organizationID = "awkward-identifier-c3po"
@@ -125,37 +125,37 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "token and organizationID environment cloudUrl option",
+			name: "token and organizationID environment apiUrl option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
-				SetURL(config.CloudURL().String()),
+				SetURL(config.APIURL().String()),
 			},
 		},
 		{
-			name: "token and organizationID environment enhanced cloudUrl option",
+			name: "token and organizationID environment enhanced apiUrl option",
 			environment: map[string]string{
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
 			},
 			options: []Option{
-				SetURL(config.CloudURL().String() + "/"),
+				SetURL(config.APIURL().String() + "/"),
 			},
 		},
 		{
-			name: "cloudUrl token and organizationID environment no options",
+			name: "apiUrl token and organizationID environment no options",
 			environment: map[string]string{
-				"AXIOM_URL":    config.CloudURL().String(),
+				"AXIOM_URL":    config.APIURL().String(),
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
 			},
 		},
 		{
-			name: "enhanced cloudUrl, token and organizationID environment no options",
+			name: "enhanced apiUrl, token and organizationID environment no options",
 			environment: map[string]string{
-				"AXIOM_URL":    config.CloudURL().String() + "/",
+				"AXIOM_URL":    config.APIURL().String() + "/",
 				"AXIOM_TOKEN":  personalToken,
 				"AXIOM_ORG_ID": organizationID,
 			},
@@ -169,9 +169,9 @@ func TestNewClient(t *testing.T) {
 			},
 		},
 		{
-			name: "cloudUrl and token environment organizationID option",
+			name: "apiUrl and token environment organizationID option",
 			environment: map[string]string{
-				"AXIOM_URL":   config.CloudURL().String(),
+				"AXIOM_URL":   config.APIURL().String(),
 				"AXIOM_TOKEN": personalToken,
 			},
 			options: []Option{
@@ -190,10 +190,10 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingToken,
 		},
 		{
-			name: "no environment noEnv, cloudUrl and token option with api token",
+			name: "no environment noEnv, apiUrl and token option with api token",
 			options: []Option{
 				SetNoEnv(),
-				SetURL(config.CloudURL().String()),
+				SetURL(config.APIURL().String()),
 				SetToken(apiToken),
 			},
 		},
@@ -542,8 +542,8 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {}
 
 	tests := []string{
-		"/api/v1/datasets/test/query",
-		"/api/v1/datasets/_apl",
+		"/v1/datasets/test/query",
+		"/v1/datasets/_apl",
 	}
 	for _, tt := range tests {
 		t.Run(tt, func(t *testing.T) {
@@ -639,39 +639,39 @@ func TestAPITokenPathRegex(t *testing.T) {
 		match bool
 	}{
 		{
-			input: "/api/v1/datasets/test/ingest",
+			input: "/v1/datasets/test/ingest",
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets/test/ingest?timestamp-format=unix",
+			input: "/v1/datasets/test/ingest?timestamp-format=unix",
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets/test/query",
+			input: "/v1/datasets/test/query",
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets/_apl",
+			input: "/v1/datasets/_apl",
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets/test/query?nocache=true",
+			input: "/v1/datasets/test/query?nocache=true",
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets/_apl?nocache=true",
+			input: "/v1/datasets/_apl?nocache=true",
 			match: true,
 		},
 		{
-			input: "/api/v1/datasets//query",
+			input: "/v1/datasets//query",
 			match: false,
 		},
 		{
-			input: "/api/v1/datasets/query",
+			input: "/v1/datasets/query",
 			match: false,
 		},
 		{
-			input: "/api/v1/datasets/test/elastic",
+			input: "/v1/datasets/test/elastic",
 			match: false,
 		},
 	}

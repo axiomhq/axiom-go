@@ -22,7 +22,7 @@ func TestTracing(t *testing.T) {
 		atomic.AddUint32(&handlerCalled, 1)
 
 		assert.Equal(t, "POST", r.Method)
-		assert.Equal(t, "/api/v1/traces", r.URL.Path)
+		assert.Equal(t, "/v1/traces", r.URL.Path)
 		assert.Equal(t, "application/x-protobuf", r.Header.Get("Content-Type"))
 
 		w.WriteHeader(http.StatusNoContent)
