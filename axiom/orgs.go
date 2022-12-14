@@ -223,8 +223,9 @@ type wrappedOrganization struct {
 
 	// HINT(lukasmalkmus): Ignore these fields because they do not provide any
 	// value to the user.
-	ExternalPlan any `json:"externalPlan"`
-	Version      any `json:"metaVersion"`
+	FirstFailedPayment any `json:"firstFailedPayment"`
+	ExternalPlan       any `json:"externalPlan"`
+	Version            any `json:"metaVersion"`
 }
 
 // OrganizationsService handles communication with the organization related
