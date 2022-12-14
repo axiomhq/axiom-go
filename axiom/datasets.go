@@ -124,12 +124,10 @@ type datasetTrimRequest struct {
 }
 
 type aplQueryRequest struct {
+	query.Options
+
 	// APL is the APL query string.
 	APL string `json:"apl"`
-	// StartTime of the query. Optional.
-	StartTime time.Time `json:"startTime"`
-	// EndTime of the query. Optional.
-	EndTime time.Time `json:"endTime"`
 }
 
 // DatasetsService handles communication with the dataset related operations of
@@ -504,7 +502,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	opts := struct {
 		query.Options
 
-		Format string `url:"format"`
+		Format string `url:"format" json:"-"`
 	}{
 		Format: "legacy", // Hardcode legacy APL format for now.
 	}
@@ -516,6 +514,8 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		attribute.String("axiom.param.apl", apl),
 		attribute.String("axiom.param.start_time", opts.StartTime.String()),
 		attribute.String("axiom.param.end_time", opts.EndTime.String()),
+		attribute.String("axiom.param.cursor", opts.Cursor),
+		attribute.Bool("axiom.param.include_cursor", opts.IncludeCursor),
 	))
 	defer span.End()
 
@@ -525,9 +525,9 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
-		APL:       apl,
-		StartTime: opts.StartTime,
-		EndTime:   opts.EndTime,
+		Options: opts.Options,
+
+		APL: apl,
 	})
 	if err != nil {
 		return nil, spanError(span, err)
