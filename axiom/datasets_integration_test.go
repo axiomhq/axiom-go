@@ -78,6 +78,14 @@ func TestDatasetsTestSuite(t *testing.T) {
 
 func (s *DatasetsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
+}
+
+func (s *DatasetsTestSuite) TearDownSuite() {
+	s.IntegrationTestSuite.TearDownSuite()
+}
+
+func (s *DatasetsTestSuite) SetupTest() {
+	s.IntegrationTestSuite.SetupTest()
 
 	var err error
 	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
@@ -88,7 +96,7 @@ func (s *DatasetsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.dataset)
 }
 
-func (s *DatasetsTestSuite) TearDownSuite() {
+func (s *DatasetsTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -97,7 +105,7 @@ func (s *DatasetsTestSuite) TearDownSuite() {
 	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
 	s.NoError(err)
 
-	s.IntegrationTestSuite.TearDownSuite()
+	s.IntegrationTestSuite.TearDownTest()
 }
 
 func (s *DatasetsTestSuite) Test() {
@@ -182,23 +190,23 @@ func (s *DatasetsTestSuite) Test() {
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
 
-	now := time.Now()
+	now := time.Now().Truncate(time.Second)
 	startTime := now.Add(-time.Minute)
 	endTime := now.Add(time.Minute)
 
 	// Run a simple APL query.
 	apl := fmt.Sprintf("['%s']", s.dataset.ID)
-	aplQueryResult, err := s.client.Datasets.Query(s.ctx, apl,
+	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
 		query.SetEndTime(endTime),
 	)
 	s.Require().NoError(err)
-	s.Require().NotNil(aplQueryResult)
+	s.Require().NotNil(queryResult)
 
-	// s.EqualValues(1, aplQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
-	s.EqualValues(8, aplQueryResult.Status.RowsExamined)
-	s.EqualValues(8, aplQueryResult.Status.RowsMatched)
-	s.Len(aplQueryResult.Matches, 8)
+	s.EqualValues(1, queryResult.Status.BlocksExamined)
+	s.EqualValues(8, queryResult.Status.RowsExamined)
+	s.EqualValues(8, queryResult.Status.RowsMatched)
+	s.Len(queryResult.Matches, 8)
 
 	// Also run a legacy query and make sure we see some results.
 	legacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, querylegacy.Query{
@@ -208,7 +216,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(legacyQueryResult)
 
-	// s.EqualValues(1, legacyQueryResult.Status.BlocksExamined) // FIXME(lukasmalkmus): For some reason we get "2" here?!
+	s.EqualValues(1, legacyQueryResult.Status.BlocksExamined)
 	s.EqualValues(8, legacyQueryResult.Status.RowsExamined)
 	s.EqualValues(8, legacyQueryResult.Status.RowsMatched)
 	s.Len(legacyQueryResult.Matches, 8)
@@ -273,4 +281,71 @@ func (s *DatasetsTestSuite) Test() {
 
 	// HINT(lukasmalkmus): There are no blocks to trim in this test.
 	s.EqualValues(0, trimResult.BlocksDeleted)
+}
+
+func (s *DatasetsTestSuite) TestCursor() {
+	// Let's ingest some data.
+	now := time.Now().Truncate(time.Second)
+	_, err := s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, []axiom.Event{
+		{ // Oldest
+			"_time": now.Add(-time.Second * 3),
+			"foo":   "bar",
+		},
+		{
+			"_time": now.Add(-time.Second * 2),
+			"foo":   "baz",
+		},
+		{ // Newest
+			"_time": now.Add(-time.Second * 1),
+			"foo":   "buz",
+		},
+	})
+	s.Require().NoError(err)
+
+	startTime := now.Add(-time.Minute)
+	endTime := now.Add(time.Minute)
+
+	// Query all events.
+	apl := fmt.Sprintf("['%s'] | sort by _time", s.dataset.ID)
+	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+	)
+	s.Require().NoError(err)
+
+	if s.Len(queryResult.Matches, 3) {
+		s.Equal("buz", queryResult.Matches[0].Data["foo"])
+		s.Equal("baz", queryResult.Matches[1].Data["foo"])
+		s.Equal("bar", queryResult.Matches[2].Data["foo"])
+	}
+
+	lastRowID := queryResult.Matches[1].RowID
+
+	// Query events with a cursor in ascending order.
+	apl = fmt.Sprintf("['%s'] | sort by _time asc | limit 2", s.dataset.ID)
+	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+		query.SetCursor(lastRowID),
+	)
+	s.Require().NoError(err)
+
+	if s.Len(queryResult.Matches, 2) {
+		s.Equal("bar", queryResult.Matches[0].Data["foo"])
+		s.Equal("baz", queryResult.Matches[1].Data["foo"])
+	}
+
+	// Query events with a cursor in descending order.
+	apl = fmt.Sprintf("['%s'] | sort by _time desc | limit 2", s.dataset.ID)
+	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+		query.SetCursor(lastRowID),
+	)
+	s.Require().NoError(err)
+
+	if s.Len(queryResult.Matches, 2) {
+		s.Equal("buz", queryResult.Matches[0].Data["foo"])
+		s.Equal("baz", queryResult.Matches[1].Data["foo"])
+	}
 }
