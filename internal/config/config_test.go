@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	endpoint         = "http://axiom.local"
+	endpoint         = "http://api.axiom.local"
 	apiToken         = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 	personalToken    = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
 	unspecifiedToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
@@ -58,7 +58,7 @@ func TestConfig_IncorporateEnvironment(t *testing.T) {
 				"AXIOM_ORG_ID": organizationID,
 			},
 			want: Config{
-				baseURL:        cloudURL,
+				baseURL:        apiURL,
 				token:          personalToken,
 				organizationID: organizationID,
 			},

@@ -2,19 +2,19 @@ package config
 
 import "net/url"
 
-const cloudURLStr = "https://cloud.axiom.co"
+const apiURLStr = "https://api.axiom.co"
 
-var cloudURL *url.URL
+var apiURL *url.URL
 
 func init() {
 	var err error
-	cloudURL, err = url.ParseRequestURI(cloudURLStr)
+	apiURL, err = url.ParseRequestURI(apiURLStr)
 	if err != nil {
 		panic(err)
 	}
 }
 
-// CloudURL is the url of the cloud hosted version of Axiom.
-func CloudURL() *url.URL {
-	return cloudURL
+// APIURL is the api url of the hosted version of Axiom.
+func APIURL() *url.URL {
+	return apiURL
 }

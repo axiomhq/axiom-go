@@ -21,7 +21,7 @@ type Config struct {
 // Default returns a default configuration with the base URL set.
 func Default() Config {
 	return Config{
-		baseURL: cloudURL,
+		baseURL: apiURL,
 	}
 }
 
@@ -96,7 +96,7 @@ func (c *Config) IncorporateEnvironment() error {
 func (c Config) Validate() error {
 	// Failsafe to protect against an empty baseURL.
 	if c.baseURL == nil {
-		c.baseURL = cloudURL
+		c.baseURL = apiURL
 	}
 
 	if c.token == "" {
@@ -106,7 +106,7 @@ func (c Config) Validate() error {
 	}
 
 	// The organization ID is not required for API tokens.
-	if c.organizationID == "" && IsPersonalToken(c.token) && c.baseURL.String() == cloudURL.String() {
+	if c.organizationID == "" && IsPersonalToken(c.token) && c.baseURL.String() == apiURL.String() {
 		return ErrMissingOrganizationID
 	}
 

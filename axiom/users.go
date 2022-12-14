@@ -73,7 +73,7 @@ type User struct {
 // UsersService handles communication with the user related operations of the
 // Axiom API.
 //
-// Axiom API Reference: /api/v1/users
+// Axiom API Reference: /v1/users
 type UsersService service
 
 // Current retrieves the authenticated user.
@@ -81,7 +81,7 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 	ctx, span := s.client.trace(ctx, "Users.Current")
 	defer span.End()
 
-	path := "/api/v1/user"
+	path := "/v1/user"
 
 	var res User
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {

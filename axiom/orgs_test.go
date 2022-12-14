@@ -98,7 +98,7 @@ func TestOrganizationsService_List(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/api/v1/orgs", hf)
+	client := setup(t, "/v1/orgs", hf)
 
 	res, err := client.Organizations.List(context.Background())
 	require.NoError(t, err)
@@ -186,7 +186,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/api/v1/orgs/axiom", hf)
+	client := setup(t, "/v1/orgs/axiom", hf)
 
 	res, err := client.Organizations.Get(context.Background(), "axiom")
 	require.NoError(t, err)
