@@ -320,13 +320,14 @@ func (s *DatasetsTestSuite) TestCursor() {
 	}
 
 	midRowID := queryResult.Matches[1].RowID
+	midTime := queryResult.Matches[1].Time
 
 	// Query events with a cursor in descending order.
 	apl = fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
+		query.SetStartTime(midTime.Add(-time.Nanosecond)),
 		query.SetEndTime(endTime),
-		query.SetCursor(midRowID),
+		query.SetCursor(midRowID, true),
 	)
 	s.Require().NoError(err)
 
@@ -339,8 +340,8 @@ func (s *DatasetsTestSuite) TestCursor() {
 	apl = fmt.Sprintf("['%s'] | sort by _time asc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-		query.SetCursor(midRowID),
+		query.SetEndTime(midTime.Add(time.Nanosecond)),
+		query.SetCursor(midRowID, true),
 	)
 	s.Require().NoError(err)
 

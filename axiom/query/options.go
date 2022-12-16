@@ -8,8 +8,11 @@ type Options struct {
 	StartTime time.Time `json:"startTime,omitempty"`
 	// EndTime of the query.
 	EndTime time.Time `json:"endTime,omitempty"`
-	// Cursor is the cursor to use for pagination.
+	// Cursor to use for pagination.
 	Cursor string `json:"cursor,omitempty"`
+	// IncludeCursor specifies whether the event that matches the cursor should
+	// be included in the result.
+	IncludeCursor bool `json:"includeCursor,omitempty"`
 }
 
 // An Option applies an optional parameter to a query.
@@ -25,7 +28,8 @@ func SetEndTime(endTime time.Time) Option {
 	return func(o *Options) { o.EndTime = endTime }
 }
 
-// SetCursor specifies the queries cursor.
-func SetCursor(cursor string) Option {
-	return func(o *Options) { o.Cursor = cursor }
+// SetCursor specifies the queries cursor. If include is set to true the event
+// that matches the cursor will be included in the result.
+func SetCursor(cursor string, include bool) Option {
+	return func(o *Options) { o.Cursor = cursor; o.IncludeCursor = include }
 }
