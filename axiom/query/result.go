@@ -131,10 +131,6 @@ type Result struct {
 	// GroupBy is a list of field names to group the query result by. Only valid
 	// when at least one aggregation is specified.
 	GroupBy []string `json:"-"`
-	// SavedQueryID is the ID of the query that generated this result when it
-	// was saved on the server. This is only set when the query was sent with
-	// the `SaveKind` option specified.
-	SavedQueryID string `json:"-"`
 }
 
 // Status is the status of a query result.

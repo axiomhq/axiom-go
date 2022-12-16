@@ -130,6 +130,47 @@ type aplQueryRequest struct {
 	APL string `json:"apl"`
 }
 
+type aplQueryResponse struct {
+	query.Result
+
+	// HINT(lukasmalkmus): Ignore these fields as they are not relevant for the
+	// user and/or will change with the new query result format.
+	LegacyRequest struct {
+		StartTime         any `json:"startTime"`
+		EndTime           any `json:"endTime"`
+		Resolution        any `json:"resolution"`
+		Aggregations      any `json:"aggregations"`
+		Filter            any `json:"filter"`
+		Order             any `json:"order"`
+		Limit             any `json:"limit"`
+		VirtualFields     any `json:"virtualFields"`
+		Projections       any `json:"project"`
+		Cursor            any `json:"cursor"`
+		IncludeCursor     any `json:"includeCursor"`
+		ContinuationToken any `json:"continuationToken"`
+
+		// HINT(lukasmalkmus): Preserve the legacy request's "groupBy"
+		// field for now. This is needed to properly render some results.
+		GroupBy []string `json:"groupBy"`
+	} `json:"request"`
+	FieldsMeta any `json:"fieldsMetaMap"`
+}
+
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// groupBy field of the legacy request that is part of the response into the
+// actual [query.Result.GroupBy] field.
+func (r *aplQueryResponse) UnmarshalJSON(b []byte) error {
+	type localResponse *aplQueryResponse
+
+	if err := json.Unmarshal(b, localResponse(r)); err != nil {
+		return err
+	}
+
+	r.GroupBy = r.LegacyRequest.GroupBy
+
+	return nil
+}
+
 // DatasetsService handles communication with the dataset related operations of
 // the Axiom API.
 //
@@ -443,7 +484,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	}
 	batch := make([]Event, 0, batchSize)
 
-	// Also flush on a per second basis.
+	// Flush on a per second basis.
 	const flushInterval = time.Second
 	t := time.NewTicker(flushInterval)
 	defer t.Stop()
@@ -469,14 +510,15 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		return nil
 	}
 
-loop:
 	for {
 		select {
 		case <-ctx.Done():
 			return &ingestStatus, spanError(span, ctx.Err())
 		case event, ok := <-events:
 			if !ok {
-				break loop // Channel is closed.
+				// Channel is closed.
+				err := flush()
+				return &ingestStatus, spanError(span, err)
 			}
 			batch = append(batch, event)
 
@@ -491,23 +533,19 @@ loop:
 			}
 		}
 	}
-
-	return &ingestStatus, spanError(span, flush())
 }
 
 // Query executes the given query specified using the Axiom Processing
 // Language (APL).
+//
+// To learn more about APL, please refer to [our documentation].
+//
+// [our documentation]: https://www.axiom.co/docs/apl/introduction
 func (s *DatasetsService) Query(ctx context.Context, apl string, options ...query.Option) (*query.Result, error) {
 	// Apply supplied options.
-	opts := struct {
-		query.Options
-
-		Format string `url:"format" json:"-"`
-	}{
-		Format: "legacy", // Hardcode legacy APL format for now.
-	}
+	var opts query.Options
 	for _, option := range options {
-		option(&opts.Options)
+		option(&opts)
 	}
 
 	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(
@@ -515,17 +553,24 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		attribute.String("axiom.param.start_time", opts.StartTime.String()),
 		attribute.String("axiom.param.end_time", opts.EndTime.String()),
 		attribute.String("axiom.param.cursor", opts.Cursor),
-		attribute.Bool("axiom.param.include_cursor", opts.IncludeCursor),
 	))
 	defer span.End()
 
-	path, err := AddOptions(s.basePath+"/_apl", opts)
+	// The only query parameters supported can be hardcoded as they are not
+	// configurable as of now.
+	queryParams := struct {
+		Format string `url:"format"`
+	}{
+		Format: "legacy", // Hardcode legacy APL format for now.
+	}
+
+	path, err := AddOptions(s.basePath+"/_apl", queryParams)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
-		Options: opts.Options,
+		Options: opts,
 
 		APL: apl,
 	})
@@ -533,43 +578,10 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		return nil, spanError(span, err)
 	}
 
-	var (
-		res struct {
-			query.Result
-
-			// HINT(lukasmalkmus): Ignore these fields as they are not relevant
-			// for the user and will change with the new query result format.
-			LegacyRequest struct {
-				StartTime         any `json:"startTime"`
-				EndTime           any `json:"endTime"`
-				Resolution        any `json:"resolution"`
-				Aggregations      any `json:"aggregations"`
-				Filter            any `json:"filter"`
-				Order             any `json:"order"`
-				Limit             any `json:"limit"`
-				VirtualFields     any `json:"virtualFields"`
-				Projections       any `json:"project"`
-				Cursor            any `json:"cursor"`
-				IncludeCursor     any `json:"includeCursor"`
-				ContinuationToken any `json:"continuationToken"`
-
-				// HINT(lukasmalkmus): Preserve the legacy request's "groupBy"
-				// field for now.
-				GroupBy []string `json:"groupBy"`
-			} `json:"request"`
-			FieldsMeta any `json:"fieldsMetaMap"`
-		}
-		resp *Response
-	)
-	if resp, err = s.client.Do(req, &res); err != nil {
+	var res aplQueryResponse
+	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
-	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
-
-	// Preserve the "queryBy" field that is part of the legacy query request
-	// that is itself part of the query result (which will change in the
-	// future).
-	res.GroupBy = res.LegacyRequest.GroupBy
 
 	setQueryResultOnSpan(span, res.Result)
 
