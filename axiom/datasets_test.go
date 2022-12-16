@@ -185,7 +185,6 @@ var (
 			Series: []query.Interval{},
 			Totals: []query.EntryGroup{},
 		},
-		SavedQueryID: "fyTFUldK4Z5219rWaz",
 	}
 
 	expLegacyQueryRes = &querylegacy.Result{
@@ -937,8 +936,6 @@ func TestDatasetsService_Query(t *testing.T) {
 			assert.NotEmpty(t, req.StartTime)
 			assert.Empty(t, req.EndTime)
 		}
-
-		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err = fmt.Fprint(w, actQueryResp)

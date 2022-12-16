@@ -319,33 +319,33 @@ func (s *DatasetsTestSuite) TestCursor() {
 		s.Equal("bar", queryResult.Matches[2].Data["foo"])
 	}
 
-	lastRowID := queryResult.Matches[1].RowID
-
-	// Query events with a cursor in ascending order.
-	apl = fmt.Sprintf("['%s'] | sort by _time asc | limit 2", s.dataset.ID)
-	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-		query.SetCursor(lastRowID),
-	)
-	s.Require().NoError(err)
-
-	if s.Len(queryResult.Matches, 2) {
-		s.Equal("bar", queryResult.Matches[0].Data["foo"])
-		s.Equal("baz", queryResult.Matches[1].Data["foo"])
-	}
+	midRowID := queryResult.Matches[1].RowID
 
 	// Query events with a cursor in descending order.
-	apl = fmt.Sprintf("['%s'] | sort by _time desc | limit 2", s.dataset.ID)
+	apl = fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
 		query.SetEndTime(endTime),
-		query.SetCursor(lastRowID),
+		query.SetCursor(midRowID),
 	)
 	s.Require().NoError(err)
 
 	if s.Len(queryResult.Matches, 2) {
 		s.Equal("buz", queryResult.Matches[0].Data["foo"])
+		s.Equal("baz", queryResult.Matches[1].Data["foo"])
+	}
+
+	// Query events with a cursor in ascending order.
+	apl = fmt.Sprintf("['%s'] | sort by _time asc", s.dataset.ID)
+	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+		query.SetCursor(midRowID),
+	)
+	s.Require().NoError(err)
+
+	if s.Len(queryResult.Matches, 2) {
+		s.Equal("bar", queryResult.Matches[0].Data["foo"])
 		s.Equal("baz", queryResult.Matches[1].Data["foo"])
 	}
 }

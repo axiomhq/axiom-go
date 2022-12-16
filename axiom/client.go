@@ -436,7 +436,11 @@ func (c *Client) IngestChannel(ctx context.Context, id string, events <-chan Eve
 // Query executes the given query specified using the Axiom Processing
 // Language (APL).
 //
+// To learn more about APL, please refer to [our documentation].
+//
 // This function is an alias to [DatasetsService.Query].
+//
+// [our documentation]: https://www.axiom.co/docs/apl/introduction
 func (c *Client) Query(ctx context.Context, apl string, options ...query.Option) (*query.Result, error) {
 	return c.Datasets.Query(ctx, apl, options...)
 }

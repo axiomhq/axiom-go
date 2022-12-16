@@ -5,14 +5,11 @@ import "time"
 // Options specifies the optional parameters for a query.
 type Options struct {
 	// StartTime of the query.
-	StartTime time.Time `url:"-" json:"startTime,omitempty"`
+	StartTime time.Time `json:"startTime,omitempty"`
 	// EndTime of the query.
-	EndTime time.Time `url:"-" json:"endTime,omitempty"`
+	EndTime time.Time `json:"endTime,omitempty"`
 	// Cursor is the cursor to use for pagination.
-	Cursor string `url:"-" json:"cursor,omitempty"`
-	// IncludeCursor specifies whether the cursor should be included in the
-	// request.
-	IncludeCursor bool `url:"-" json:"includeCursor,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
 }
 
 // An Option applies an optional parameter to a query.
@@ -30,5 +27,5 @@ func SetEndTime(endTime time.Time) Option {
 
 // SetCursor specifies the queries cursor.
 func SetCursor(cursor string) Option {
-	return func(o *Options) { o.Cursor = cursor; o.IncludeCursor = true }
+	return func(o *Options) { o.Cursor = cursor }
 }
