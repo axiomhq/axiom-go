@@ -319,12 +319,17 @@ func (s *DatasetsTestSuite) TestCursor() {
 		s.Equal("bar", queryResult.Matches[2].Data["foo"])
 	}
 
+	// HINT(lukasmalkmus): In a real-world scenario, the cursor would be
+	// retrieved from the query status MinCursor or MaxCursor fields, depending
+	// on the queries sort order.
 	midRowID := queryResult.Matches[1].RowID
 	midTime := queryResult.Matches[1].Time
 
 	// Query events with a cursor in descending order.
 	apl = fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		// HINT(lukasmalkmus): Start time is inclusive when sorting newest
+		// first.
 		query.SetStartTime(midTime.Add(-time.Nanosecond)),
 		query.SetEndTime(endTime),
 		query.SetCursor(midRowID, true),
@@ -340,6 +345,7 @@ func (s *DatasetsTestSuite) TestCursor() {
 	apl = fmt.Sprintf("['%s'] | sort by _time asc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
+		// HINT(lukasmalkmus): End time is inclusive when sorting newest first.
 		query.SetEndTime(midTime.Add(time.Nanosecond)),
 		query.SetCursor(midRowID, true),
 	)

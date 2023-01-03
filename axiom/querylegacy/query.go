@@ -7,9 +7,11 @@ import (
 
 // Query represents a query that gets executed on a dataset.
 type Query struct {
-	// StartTime of the query. Required.
+	// StartTime for the interval to query. If sorting with newest first the
+	// value is inclusive, otherwise exclusive. Required.
 	StartTime time.Time `json:"startTime"`
-	// EndTime of the query. Required.
+	// EndTime of the interval to query. If sorting with newest first the value
+	// is exclusive, otherwise inclusive. Required.
 	EndTime time.Time `json:"endTime"`
 	// Resolution of the queries graph. Valid values are the queries time
 	// range / 100 at maximum and / 1000 at minimum. Use zero value for
