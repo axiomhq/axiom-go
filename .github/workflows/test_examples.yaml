@@ -65,9 +65,9 @@ jobs:
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
       fail-fast: false
     env:
-      AXIOM_URL: ${{ secrets.TESTING_CLOUD_DEV_DEPLOYMENT_URL }}
-      AXIOM_TOKEN: ${{ secrets.TESTING_CLOUD_DEV_ACCESS_TOKEN }}
-      AXIOM_ORG_ID: ${{ secrets.TESTING_CLOUD_DEV_ORG_ID }}
+      AXIOM_URL: ${{ secrets.TESTING_DEV_API_URL }}
+      AXIOM_TOKEN: ${{ secrets.TESTING_DEV_TOKEN }}
+      AXIOM_ORG_ID: ${{ secrets.TESTING_DEV_ORG_ID }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v3
@@ -78,7 +78,7 @@ jobs:
           go-version-file: go.mod
       - name: Setup test dataset
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.9.0-rc.3 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go ${{ matrix.example }} example test"
       - name: Setup example
         if: matrix.setup
