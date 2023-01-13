@@ -25,8 +25,7 @@
   others, and are the perfect way to bring together data from different sources.
 
 For more information check out the [official documentation](https://axiom.co/docs)
-and our
-[community Slack](https://axiomfm.slack.com/join/shared_invite/zt-w7d1vepe-L0upiOL6n6MXfjr33sCBUQ).
+and our [community Slack](https://axiomfm.slack.com/join/shared_invite/zt-w7d1vepe-L0upiOL6n6MXfjr33sCBUQ).
 
 ## Quickstart
 
@@ -45,14 +44,12 @@ import "github.com/axiomhq/axiom-go/axiom"
 If you use the [Axiom CLI](https://github.com/axiomhq/cli), run
 `eval $(axiom config export -f)` to configure your environment variables.
 
-Otherwise create a personal token in
-[the Axiom settings](https://app.axiom.co/profile) and export it as
-`AXIOM_TOKEN`. Set `AXIOM_ORG_ID` to the organization ID from the settings page
-of the organization you want to access.
+Otherwise create a personal token in [the Axiom settings](https://app.axiom.co/profile)
+and export it as `AXIOM_TOKEN`. Set `AXIOM_ORG_ID` to the organization ID from
+the settings page of the organization you want to access.
 
-You can also configure the client using
-[options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option) passed to
-the `axiom.NewClient` function:
+You can also configure the client using [options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option)
+passed to the `axiom.NewClient` function:
 
 ```go
 client, err := axiom.NewClient(
@@ -63,6 +60,8 @@ client, err := axiom.NewClient(
 Create and use a client like this:
 
 ```go
+package main
+
 import (
     "context"
     "fmt"
@@ -98,6 +97,10 @@ func main() {
 ```
 
 For further examples, head over to the [examples](examples) directory.
+
+If you want to use a logging package, check if there is already an adapter in
+the [adapters](adapters) directory. We happily accept contributions for new
+adapters.
 
 ## License
 
