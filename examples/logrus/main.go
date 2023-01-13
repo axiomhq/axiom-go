@@ -35,5 +35,8 @@ func main() {
 
 	// 6. This makes sure logrus calls the registered exit handler. Alternaively
 	// hook.Close() can be called manually. It is safe to call multiple times.
+	//
+	// ❗THIS IS IMPORTANT❗ Without it, the logs will not be sent to Axiom as
+	// the buffer will not be flushed when the application exits.
 	logrus.Exit(0)
 }

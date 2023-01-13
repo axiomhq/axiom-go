@@ -22,6 +22,9 @@ func main() {
 	logger := zap.New(core)
 
 	// 3. Have all logs flushed before the application exits.
+	//
+	// ❗THIS IS IMPORTANT❗ Without it, the logs will not be sent to Axiom as
+	// the buffer will not be flushed when the application exits.
 	defer func() {
 		if syncErr := logger.Sync(); syncErr != nil {
 			log.Fatal(syncErr)

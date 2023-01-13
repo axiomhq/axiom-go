@@ -17,6 +17,9 @@ func main() {
 	}
 
 	// 2. Have all logs flushed before the application exits.
+	//
+	// ❗THIS IS IMPORTANT❗ Without it, the logs will not be sent to Axiom as
+	// the buffer will not be flushed when the application exits.
 	defer handler.Close()
 
 	// 3. Set the Axiom handler as handler for apex.
