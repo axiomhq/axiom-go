@@ -1,8 +1,11 @@
 package query
 
 import (
+	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/axiomhq/axiom-go/axiom/query/iter"
 )
 
 // Result is the result of an APL query.
@@ -41,6 +44,11 @@ type Table struct {
 	// [Column] at index 0 has the values for the [Field] at index 0). In case
 	// of sub-groups, rows will repeat the group value.
 	Columns []Column `json:"columns"`
+}
+
+// Rows returns an iterator over the rows build from the columns the table.
+func (t Table) Rows() iter.Iter[Row] {
+	return Rows(t.Columns)
 }
 
 // Field in a [Table].
@@ -109,6 +117,13 @@ type BucketInfo struct {
 
 // Column in a [Table] containing the raw values of a [Field].
 type Column []any
+
+// Values returns an iterator over the values of the column.
+func (c Column) Values() iter.Iter[any] {
+	return iter.Slice(c, func(_ context.Context, v any) (any, error) {
+		return v, nil
+	})
+}
 
 // Status of an APL query [Result].
 type Status struct {
