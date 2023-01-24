@@ -124,42 +124,10 @@ type aplQueryRequest struct {
 type aplQueryResponse struct {
 	query.Result
 
-	// HINT(lukasmalkmus): Ignore these fields as they are not relevant for the
-	// user and/or will change with the new query result format.
-	LegacyRequest struct {
-		StartTime         any `json:"startTime"`
-		EndTime           any `json:"endTime"`
-		Resolution        any `json:"resolution"`
-		Aggregations      any `json:"aggregations"`
-		Filter            any `json:"filter"`
-		Order             any `json:"order"`
-		Limit             any `json:"limit"`
-		VirtualFields     any `json:"virtualFields"`
-		Projections       any `json:"project"`
-		Cursor            any `json:"cursor"`
-		IncludeCursor     any `json:"includeCursor"`
-		ContinuationToken any `json:"continuationToken"`
-
-		// HINT(lukasmalkmus): Preserve the legacy request's "groupBy"
-		// field for now. This is needed to properly render some results.
-		GroupBy []string `json:"groupBy"`
-	} `json:"request"`
-	FieldsMeta any `json:"fieldsMetaMap"`
-}
-
-// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// groupBy field of the legacy request that is part of the response into the
-// actual [query.Result.GroupBy] field.
-func (r *aplQueryResponse) UnmarshalJSON(b []byte) error {
-	type localResponse *aplQueryResponse
-
-	if err := json.Unmarshal(b, localResponse(r)); err != nil {
-		return err
-	}
-
-	r.GroupBy = r.LegacyRequest.GroupBy
-
-	return nil
+	Format        any `json:"format"`
+	Request       any `json:"request"`
+	DatasetNames  any `json:"datasetNames"`
+	FieldsMetaMap any `json:"fieldsMetaMap"`
 }
 
 // DatasetsService handles communication with the dataset related operations of
@@ -362,7 +330,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 	}
 	res.TraceID = resp.TraceID()
 
-	setIngestResultOnSpan(span, res)
+	setIngestStatusOnSpan(span, res)
 
 	return &res, nil
 }
@@ -468,7 +436,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	}
 	res.TraceID = resp.TraceID()
 
-	setIngestResultOnSpan(span, res)
+	setIngestStatusOnSpan(span, res)
 
 	return &res, nil
 }
@@ -525,7 +493,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 
 	var ingestStatus ingest.Status
 	defer func() {
-		setIngestResultOnSpan(span, ingestStatus)
+		setIngestStatusOnSpan(span, ingestStatus)
 	}()
 
 	flush := func() error {
@@ -598,7 +566,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	queryParams := struct {
 		Format string `url:"format"`
 	}{
-		Format: "legacy", // Hardcode legacy APL format for now.
+		Format: "tabular", // Hardcode tabular result format for now.
 	}
 
 	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
@@ -627,7 +595,8 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	}
 	res.TraceID = resp.TraceID()
 
-	setQueryResultOnSpan(span, res.Result)
+	setQueryStatusOnSpan(span, res.Result.Status)
+	span.SetAttributes(attribute.String("axiom.result.trace_id", res.TraceID))
 
 	return &res.Result, nil
 }
@@ -679,7 +648,8 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 	res.TraceID = resp.TraceID()
 
-	setLegacyQueryResultOnSpan(span, res.Result)
+	setLegacyQueryStatusOnSpan(span, res.Result.Status)
+	span.SetAttributes(attribute.String("axiom.result.trace_id", res.TraceID))
 
 	return &res.Result, nil
 }
@@ -731,60 +701,52 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 	return r, typ, nil
 }
 
-func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
+func setIngestStatusOnSpan(span trace.Span, status ingest.Status) {
 	if !span.IsRecording() {
 		return
 	}
 
 	span.SetAttributes(
-		attribute.String("axiom.result.trace_id", res.TraceID),
-		attribute.Int64("axiom.events.ingested", int64(res.Ingested)),
-		attribute.Int64("axiom.events.failed", int64(res.Failed)),
-		attribute.Int64("axiom.events.processed_bytes", int64(res.ProcessedBytes)),
+		attribute.String("axiom.result.trace_id", status.TraceID),
+		attribute.Int64("axiom.events.ingested", int64(status.Ingested)),
+		attribute.Int64("axiom.events.failed", int64(status.Failed)),
+		attribute.Int64("axiom.events.processed_bytes", int64(status.ProcessedBytes)),
 	)
 }
 
-//nolint:dupl // We need to support both query packages and their types.
-func setQueryResultOnSpan(span trace.Span, res query.Result) {
+func setQueryStatusOnSpan(span trace.Span, status query.Status) {
 	if !span.IsRecording() {
 		return
 	}
 
 	span.SetAttributes(
-		attribute.String("axiom.result.trace_id", res.TraceID),
-		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
-		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
-		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
-		attribute.Int64("axiom.result.status.rows_matched", int64(res.Status.RowsMatched)),
-		attribute.Int64("axiom.result.status.num_groups", int64(res.Status.NumGroups)),
-		attribute.Bool("axiom.result.status.is_partial", res.Status.IsPartial),
-		attribute.Bool("axiom.result.status.is_estimate", res.Status.IsEstimate),
-		attribute.String("axiom.result.status.min_block_time", res.Status.MinBlockTime.String()),
-		attribute.String("axiom.result.status.max_block_time", res.Status.MaxBlockTime.String()),
-		attribute.String("axiom.result.status.min_cursor", res.Status.MinCursor),
-		attribute.String("axiom.result.status.max_cursor", res.Status.MaxCursor),
+		attribute.String("axiom.result.status.min_cursor", status.MinCursor),
+		attribute.String("axiom.result.status.max_cursor", status.MaxCursor),
+		attribute.String("axiom.query.min_cursor", status.MinCursor),
+		attribute.String("axiom.query.max_cursor", status.MaxCursor),
+		attribute.String("axiom.query.elapsed_time", status.ElapsedTime.String()),
+		attribute.Int64("axiom.query.rows_examined", int64(status.RowsExamined)),
+		attribute.Int64("axiom.query.rows_matched", int64(status.RowsMatched)),
 	)
 }
 
-//nolint:dupl // We need to support both query packages and their types.
-func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
+func setLegacyQueryStatusOnSpan(span trace.Span, status querylegacy.Status) {
 	if !span.IsRecording() {
 		return
 	}
 
 	span.SetAttributes(
-		attribute.String("axiom.result.trace_id", res.TraceID),
-		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
-		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
-		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
-		attribute.Int64("axiom.result.status.rows_matched", int64(res.Status.RowsMatched)),
-		attribute.Int64("axiom.result.status.num_groups", int64(res.Status.NumGroups)),
-		attribute.Bool("axiom.result.status.is_partial", res.Status.IsPartial),
-		attribute.Bool("axiom.result.status.is_estimate", res.Status.IsEstimate),
-		attribute.String("axiom.result.status.min_block_time", res.Status.MinBlockTime.String()),
-		attribute.String("axiom.result.status.max_block_time", res.Status.MaxBlockTime.String()),
-		attribute.String("axiom.result.status.min_cursor", res.Status.MinCursor),
-		attribute.String("axiom.result.status.max_cursor", res.Status.MaxCursor),
+		attribute.String("axiom.querylegacy.elapsed_time", status.ElapsedTime.String()),
+		attribute.Int64("axiom.querylegacy.blocks_examined", int64(status.BlocksExamined)),
+		attribute.Int64("axiom.querylegacy.rows_examined", int64(status.RowsExamined)),
+		attribute.Int64("axiom.querylegacy.rows_matched", int64(status.RowsMatched)),
+		attribute.Int64("axiom.querylegacy.num_groups", int64(status.NumGroups)),
+		attribute.Bool("axiom.querylegacy.is_partial", status.IsPartial),
+		attribute.Bool("axiom.querylegacy.is_estimate", status.IsEstimate),
+		attribute.String("axiom.querylegacy.min_block_time", status.MinBlockTime.String()),
+		attribute.String("axiom.querylegacy.max_block_time", status.MaxBlockTime.String()),
+		attribute.String("axiom.querylegacy.min_cursor", status.MinCursor),
+		attribute.String("axiom.querylegacy.max_cursor", status.MaxCursor),
 	)
 }
 
