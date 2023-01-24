@@ -12,7 +12,7 @@ go run ./{example}
 Axiom Go and the adapters automatically pick up their configuration from the
 environment, if not otherwise specified. To learn more about configuration,
 check the
-[documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters).
+[documentation](https://pkg.go.dev/github.com/axiomhq/axiom-go).
 
 To quickstart, export the environment variables below.
 
