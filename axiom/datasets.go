@@ -621,8 +621,9 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 			querylegacy.Result
 
 			// HINT(lukasmalkmus): Ignore these fields as they are not relevant
-			// for the user and will change with the new query result format.
+			// for the user.
 			FieldsMeta any `json:"fieldsMeta"`
+			Format     any `json:"format"`
 		}
 		resp *Response
 	)
