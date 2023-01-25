@@ -23,8 +23,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer func() {
-		if err := close(); err != nil {
-			log.Fatal(err)
+		if closeErr := close(); closeErr != nil {
+			log.Fatal(closeErr)
 		}
 	}()
 

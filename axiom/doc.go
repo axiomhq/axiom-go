@@ -3,6 +3,8 @@
 // Usage:
 //
 //	import "github.com/axiomhq/axiom-go/axiom"
+//	import "github.com/axiomhq/axiom-go/axiom/ingest" // When ingesting data
+//	import "github.com/axiomhq/axiom-go/axiom/otel" // When using OpenTelemetry
 //	import "github.com/axiomhq/axiom-go/axiom/query" // When constructing APL queries
 //	import "github.com/axiomhq/axiom-go/axiom/querylegacy" // When constructing legacy queries
 //	import "github.com/axiomhq/axiom-go/axiom/sas" // When using shared access

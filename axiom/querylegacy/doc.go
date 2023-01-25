@@ -1,6 +1,10 @@
 // Package querylegacy provides the datatypes and functions for construction
 // legacy queries and working with their results.
 //
+// Usage:
+//
+//	import "github.com/axiomhq/axiom-go/axiom/querylegacy"
+//
 // The base for every legacy query is the [Query] type:
 //
 //	q := querylegacy.Query{

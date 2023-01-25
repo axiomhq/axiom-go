@@ -5,6 +5,10 @@
 // of a set of query parameters that make up the payload for a signature and the
 // cryptographic signature itself. That cryptographic signature is a SAT.
 //
+// Usage:
+//
+//	import "github.com/axiomhq/axiom-go/axiom/sas"
+//
 // To create a SAS string, that can be attached to a query request, use the
 // high-level [Create] function. The returned string is an already url-encoded
 // query string.

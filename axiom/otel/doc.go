@@ -1,5 +1,9 @@
 // Package otel provides helpers for using [OpenTelemetry] with Axiom.
 //
+// Usage:
+//
+//	import "github.com/axiomhq/axiom-go/axiom/otel"
+//
 // Different levels of helpers are available, from just setting up tracing to
 // getting access to lower level components to costumize tracing or integrate
 // with existing OpenTelemetry setups:
