@@ -198,50 +198,50 @@ var (
 				Fields: []query.Field{
 					{
 						Name: "_time",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "_sysTime",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "_rowId",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "agent",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "bytes",
-						Type: "float64",
+						Type: query.TypeReal,
 					},
 					{
 						Name: "referrer",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "remote_ip",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "remote_user",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "request",
-						Type: "string",
+						Type: query.TypeString,
 					},
 					{
 						Name: "response",
-						Type: "float64",
+						Type: query.TypeReal,
 					},
 					{
 						Name: "time",
-						Type: "string",
+						Type: query.TypeString,
 					},
 				},
-				Range: &query.RangeInfo{
+				Range: &query.Range{
 					Field: "_time",
 					Start: parseTimeOrPanic("2023-03-21T13:38:51.735448191Z"),
 					End:   parseTimeOrPanic("2023-03-28T13:38:51.735448191Z"),
@@ -1103,6 +1103,8 @@ func TestDatasetsService_Query(t *testing.T) {
 
 	assert.Equal(t, expQueryRes, res)
 }
+
+// TODO(lukasmalkmus): Add test for a query with an aggregation.
 
 func TestDatasetsService_QueryLegacy(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {

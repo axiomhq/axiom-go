@@ -209,7 +209,7 @@ func (s *DatasetsTestSuite) Test() {
 	startTime := now.Add(-time.Minute)
 	endTime := now.Add(time.Minute)
 
-	// Run a simple APL query.
+	// Run a simple APL query...
 	apl := fmt.Sprintf("['%s']", s.dataset.ID)
 	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
@@ -228,7 +228,7 @@ func (s *DatasetsTestSuite) Test() {
 			// FIXME(lukasmalkmus): Tabular results format is not yet returning
 			// the dataset name.
 			s.Equal("FIXME", table.Sources[0].Name)
-			// s.Equal(s.dataset.ID, table.Sources[0])
+			// s.Equal(s.dataset.ID, table.Sources[0].Name)
 		}
 
 		// FIXME(lukasmalkmus): Tabular results format is not yet returning the
@@ -237,6 +237,46 @@ func (s *DatasetsTestSuite) Test() {
 		s.Len(table.Columns, 11) // 8 event fields + 1 label field + 2 system fields
 		// s.Len(table.Fields, 12) // 8 event fields + 1 label field + 3 system fields
 		// s.Len(table.Columns, 12) // 8 event fields + 1 label field + 3 system fields
+	}
+
+	// ... and a slightly more complex (analytic) APL query.
+	apl = fmt.Sprintf("['%s'] | summarize topk(remote_ip, 1)", s.dataset.ID)
+	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(queryResult)
+
+	s.NotZero(queryResult.Status.ElapsedTime)
+	s.EqualValues(10, queryResult.Status.RowsExamined)
+	s.EqualValues(10, queryResult.Status.RowsMatched)
+	if s.Len(queryResult.Tables, 1) {
+		table := queryResult.Tables[0]
+
+		if s.Len(table.Sources, 1) {
+			// FIXME(lukasmalkmus): Tabular results format is not yet returning
+			// the dataset name.
+			s.Equal("FIXME", table.Sources[0].Name)
+			// s.Equal(s.dataset.ID, table.Sources[0].Name)
+		}
+
+		if s.Len(table.Fields, 1) && s.NotNil(table.Fields[0].Aggregation) {
+			agg := table.Fields[0].Aggregation
+
+			s.Equal(query.OpTopk, agg.Op)
+			s.Equal([]string{"remote_ip"}, agg.Fields)
+			s.Equal([]any{1.}, agg.Args)
+		}
+
+		if s.Len(table.Columns, 1) && s.Len(table.Columns[0], 1) {
+			v := table.Columns[0][0].([]any)
+			m := v[0].(map[string]any)
+
+			s.Equal("93.180.71.1", m["key"])
+			s.Equal(5., m["count"])
+			s.Equal(0., m["error"])
+		}
 	}
 
 	// Also run a legacy query and make sure we see some results.
@@ -344,16 +384,15 @@ func (s *DatasetsTestSuite) TestCursor() {
 	)
 	s.Require().NoError(err)
 
-	// FIXME(lukasmalkmus): Tabular results format is not yet returning the
-	// _rowID column.
-	s.T().Skip()
-
 	// HINT(lukasmalkmus): Expecting four columns: _time, _sysTime, _rowID, foo.
 	// This is only checked once for the first query result to verify the
 	// dataset scheme. The following queries will only check the results in the
 	// columns.
+	// FIXME(lukasmalkmus): Tabular results format is not yet returning the
+	// _rowID column.
 	s.Require().Len(queryResult.Tables, 1)
-	s.Require().Len(queryResult.Tables[0].Columns, 4)
+	s.Require().Len(queryResult.Tables[0].Columns, 3)
+	// s.Require().Len(queryResult.Tables[0].Columns, 4)
 	s.Require().Len(queryResult.Tables[0].Columns[0], 3)
 
 	if s.Len(queryResult.Tables, 1) {
@@ -361,6 +400,10 @@ func (s *DatasetsTestSuite) TestCursor() {
 		s.Equal("baz", queryResult.Tables[0].Columns[2][1])
 		s.Equal("bar", queryResult.Tables[0].Columns[2][2])
 	}
+
+	// FIXME(lukasmalkmus): Tabular results format is not yet returning the
+	// _rowID column.
+	s.T().Skip()
 
 	// HINT(lukasmalkmus): In a real-world scenario, the cursor would be
 	// retrieved from the query status MinCursor or MaxCursor fields, depending
