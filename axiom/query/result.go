@@ -36,10 +36,10 @@ type Table struct {
 	Groups []Group `json:"groups"`
 	// Range specifies the window the query was restricted to. Nil if the query
 	// was not restricted to a time window.
-	Range *RangeInfo `json:"range"`
+	Range *Range `json:"range"`
 	// Buckets defines if the query is bucketed (usually on the "_time" field).
 	// Nil if the query returns a non-bucketed result.
-	Buckets *BucketInfo `json:"buckets"`
+	Buckets *Buckets `json:"buckets"`
 	// Columns in the table matching the order of the [Fields] (e.g. the
 	// [Column] at index 0 has the values for the [Field] at index 0). In case
 	// of sub-groups, rows will repeat the group value.
@@ -49,25 +49,6 @@ type Table struct {
 // Rows returns an iterator over the rows build from the columns the table.
 func (t Table) Rows() iter.Iter[Row] {
 	return Rows(t.Columns)
-}
-
-// Field in a [Table].
-type Field struct {
-	// Name of the field.
-	Name string `json:"name"`
-	// Type of the field. Can also be composite types which are types separated
-	// by a horizontal line "|".
-	Type string `json:"type"`
-	// Aggregation is the aggregation applied to the field.
-	Aggregation Aggregation `json:"agg"`
-}
-
-// Aggregation that is applied to a [Field] in a [Table].
-type Aggregation struct {
-	// Name of the aggregation.
-	Name string `json:"name"`
-	// Args are the arguments of the aggregation.
-	Args []any `json:"args"`
 }
 
 // Source that was consulted in order to create a [Table].
@@ -91,8 +72,8 @@ type Group struct {
 	Name string `json:"name"`
 }
 
-// RangeInfo specifies the window a query was restricted to.
-type RangeInfo struct {
+// Range specifies the window a query was restricted to.
+type Range struct {
 	// Field specifies the field name on which the query range was restricted.
 	// Usually "_time":
 	Field string
@@ -104,9 +85,9 @@ type RangeInfo struct {
 	End time.Time
 }
 
-// BucketInfo captures information about how a grouped query is sorted into
-// buckets. Usually buckets are created on the "_time" column,
-type BucketInfo struct {
+// Buckets captures information about how a grouped query is sorted into
+// buckets. Usually buckets are created on the "_time" column.
+type Buckets struct {
 	// Field specifies the field used to create buckets on. Usually this would
 	// be "_time".
 	Field string

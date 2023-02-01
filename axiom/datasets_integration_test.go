@@ -230,7 +230,7 @@ func (s *DatasetsTestSuite) Test() {
 	startTime := now.Add(-time.Minute)
 	endTime := now.Add(time.Minute)
 
-	// Run a simple APL query.
+	// Run a simple APL query...
 	apl := fmt.Sprintf("['%s']", s.dataset.ID)
 	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
@@ -401,16 +401,15 @@ func (s *DatasetsTestSuite) TestCursor() {
 	)
 	s.Require().NoError(err)
 
-	// FIXME(lukasmalkmus): Tabular results format is not yet returning the
-	// _rowID column.
-	s.T().Skip()
-
 	// HINT(lukasmalkmus): Expecting four columns: _time, _sysTime, _rowID, foo.
 	// This is only checked once for the first query result to verify the
 	// dataset scheme. The following queries will only check the results in the
 	// columns.
+	// FIXME(lukasmalkmus): Tabular results format is not yet returning the
+	// _rowID column.
 	s.Require().Len(queryResult.Tables, 1)
-	s.Require().Len(queryResult.Tables[0].Columns, 4)
+	s.Require().Len(queryResult.Tables[0].Columns, 3)
+	// s.Require().Len(queryResult.Tables[0].Columns, 4)
 	s.Require().Len(queryResult.Tables[0].Columns[0], 3)
 
 	if s.Len(queryResult.Tables, 1) {
@@ -418,6 +417,10 @@ func (s *DatasetsTestSuite) TestCursor() {
 		s.Equal("baz", queryResult.Tables[0].Columns[2][1])
 		s.Equal("bar", queryResult.Tables[0].Columns[2][2])
 	}
+
+	// FIXME(lukasmalkmus): Tabular results format is not yet returning the
+	// _rowID column.
+	s.T().Skip()
 
 	// HINT(lukasmalkmus): In a real-world scenario, the cursor would be
 	// retrieved from the query status MinCursor or MaxCursor fields, depending
