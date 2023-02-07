@@ -248,6 +248,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 		err = backoff.Retry(func() error {
 			var httpResp *http.Response
+			//nolint:bodyclose // The response body is closed later down below.
 			if httpResp, err = c.httpClient.Do(req); err != nil {
 				return err
 			}
@@ -271,6 +272,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}, bck)
 	} else {
 		var httpResp *http.Response
+		//nolint:bodyclose // The response body is closed later down below.
 		if httpResp, err = c.httpClient.Do(req); err != nil {
 			return nil, err
 		}

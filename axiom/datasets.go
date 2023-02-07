@@ -685,6 +685,10 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 }
 
 func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
+	if !span.IsRecording() {
+		return
+	}
+
 	span.SetAttributes(
 		attribute.Int64("axiom.events.ingested", int64(res.Ingested)),
 		attribute.Int64("axiom.events.failed", int64(res.Failed)),
