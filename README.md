@@ -17,15 +17,16 @@
   Kubernetes, AWS, Azure, Google Cloud, DigitalOcean, Nomad, and others.
 - **Query everything, all the time:** Whether DevOps, SecOps, or EverythingOps,
   query all your data no matter its age. No provisioning, no moving data from
-  cold/archive to “hot”, and no worrying about slow queries. All your data, all.
+  cold/archive to "hot", and no worrying about slow queries. All your data, all.
   the. time.
 - **Powerful dashboards, for continuous observability:** Build dashboards to
   collect related queries and present information that’s quick and easy to
   digest for you and your team. Dashboards can be kept private or shared with
   others, and are the perfect way to bring together data from different sources.
 
-For more information check out the [official documentation](https://axiom.co/docs)
-and our [community Discord](https://axiom.co/discord).
+For more information check out the
+[official documentation](https://axiom.co/docs) and our
+[community Discord](https://axiom.co/discord).
 
 ## Quickstart
 
