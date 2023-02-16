@@ -233,7 +233,7 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.NotEmpty(t, client.userAgent)
 	assert.False(t, client.strictDecoding)
 	assert.True(t, client.noEnv) // Disabled for testing.
-	assert.False(t, client.noLimiting)
+	assert.False(t, client.noRetry)
 }
 
 func TestClient_Options_SetToken(t *testing.T) {
@@ -601,7 +601,9 @@ func TestClient_do_Backoff(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure the request body can be re-read.
+	getBodyCounter := 0
 	req.GetBody = func() (io.ReadCloser, error) {
+		getBodyCounter++
 		return io.NopCloser(strings.NewReader(payload)), nil
 	}
 
@@ -612,6 +614,7 @@ func TestClient_do_Backoff(t *testing.T) {
 	assert.True(t, internalServerErrorCalled)
 	assert.True(t, badGatewayCalled)
 	assert.True(t, gatewayTimeoutCalled)
+	assert.Equal(t, 3, getBodyCounter)
 }
 
 func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {

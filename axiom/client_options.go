@@ -81,3 +81,12 @@ func SetNoEnv() Option {
 		return nil
 	}
 }
+
+// SetNoRetry prevents the [Client] from auto-retrying failed HTTP requests
+// under certain circumstances.
+func SetNoRetry() Option {
+	return func(c *Client) error {
+		c.noRetry = true
+		return nil
+	}
+}

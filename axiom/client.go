@@ -80,7 +80,7 @@ type Client struct {
 	userAgent      string
 	strictDecoding bool
 	noEnv          bool
-	noLimiting     bool
+	noRetry        bool
 
 	tracer trace.Tracer
 
@@ -240,7 +240,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		resp *Response
 		err  error
 	)
-	if req.GetBody != nil {
+	if req.GetBody != nil && !c.noRetry {
 		bck := backoff.NewExponentialBackOff()
 		bck.InitialInterval = 200 * time.Millisecond
 		bck.Multiplier = 2.0
