@@ -84,7 +84,7 @@ type Client struct {
 
 	tracer trace.Tracer
 
-	// Services for communicating with different parts of the GitHub API.
+	// Services for communicating with different parts of the Axiom API.
 	Datasets      *DatasetsService
 	Organizations *OrganizationsService
 	Users         *UsersService

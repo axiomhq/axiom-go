@@ -111,7 +111,7 @@ Distributed under the [MIT License](LICENSE).
 
 [gopkg]: https://pkg.go.dev/github.com/axiomhq/axiom-go
 [gopkg_badge]: https://img.shields.io/badge/doc-reference-007d9c?logo=go&logoColor=white
-[workflow]: https://github.com/axiomhq/axiom-go/actions/workflows/push.yml
+[workflow]: https://github.com/axiomhq/axiom-go/actions/workflows/push.yaml
 [workflow_badge]: https://img.shields.io/github/actions/workflow/status/axiomhq/axiom-go/push.yaml?branch=main&ghcache=unused
 [release]: https://github.com/axiomhq/axiom-go/releases/latest
 [release_badge]: https://img.shields.io/github/release/axiomhq/axiom-go.svg?ghcache=unused
