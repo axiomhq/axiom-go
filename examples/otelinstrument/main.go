@@ -15,7 +15,7 @@ func main() {
 	ctx := context.Background()
 
 	// 1. Initialize OpenTelemetry.
-	// Note: You can setup OpenTelemetry however you like. This example uses
+	// Note: You can setup OpenTelemetry however you like. This example uses the
 	// helper package axiom/otel to initialize OpenTelemetry with Axiom
 	// configured as a backend for convenience.
 	close, err := axiotel.InitTracing(ctx, "axiom-otel-example", "v1.0.0")
