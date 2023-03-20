@@ -408,6 +408,8 @@ func TestDatasetsService_Trim(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+// TestDatasetsService_Ingest tests the ingest functionality of the client. It
+// also tests the event labels functionality by setting two individual labels.
 func TestDatasetsService_Ingest(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,
@@ -421,6 +423,9 @@ func TestDatasetsService_Ingest(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
+		eventLabels := assertValidJSON(t, strings.NewReader(r.Header.Get("X-Axiom-Event-Labels")))
+		assert.Equal(t, "eu-west-1", eventLabels[0].(map[string]any)["region"])
+		assert.EqualValues(t, 1, eventLabels[0].(map[string]any)["instance"])
 
 		assert.Equal(t, "time", r.URL.Query().Get("timestamp-field"))
 		assert.Equal(t, "2/Jan/2006:15:04:05 +0000", r.URL.Query().Get("timestamp-format"))
@@ -469,12 +474,17 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		ingest.SetTimestampField("time"),
 		ingest.SetTimestampFormat("2/Jan/2006:15:04:05 +0000"),
 		ingest.SetCSVDelimiter(";"), // Obviously not valid for JSON, but perfectly fine to test for its presence in this test.
+		ingest.SetEventLabel("region", "eu-west-1"),
+		ingest.SetEventLabel("instance", 1),
 	)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
 }
 
+// TestDatasetsService_IngestEvents tests the ingest functionality of the
+// client. It also tests the event labels functionality by setting a set of
+// labels.
 func TestDatasetsService_IngestEvents(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,
@@ -489,6 +499,9 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
 		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+		eventLabels := assertValidJSON(t, strings.NewReader(r.Header.Get("X-Axiom-Event-Labels")))
+		assert.Equal(t, "eu-west-1", eventLabels[0].(map[string]any)["region"])
+		assert.EqualValues(t, 1, eventLabels[0].(map[string]any)["instance"])
 
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
@@ -534,12 +547,20 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		},
 	}
 
-	res, err := client.Datasets.IngestEvents(context.Background(), "test", events)
+	res, err := client.Datasets.IngestEvents(context.Background(), "test", events, ingest.SetEventLabels(
+		map[string]any{
+			"region":   "eu-west-1",
+			"instance": 1,
+		},
+	))
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
 }
 
+// TestDatasetsService_IngestEvents_Retry tests the retry ingest functionality
+// of the client. It also tests the event labels functionality by setting no
+// labels.
 func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,
@@ -561,6 +582,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
 		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+		assert.Empty(t, r.Header.Get("X-Axiom-Event-Labels"))
 
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)

@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
@@ -150,14 +151,14 @@ func (s *DatasetsTestSuite) Test() {
 		}
 	)
 	resetBuffer()
-	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity)
+	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, ingest.SetEventLabel("region", "eu-west-1"))
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
 	s.EqualValues(ingestStatus.Ingested, 2)
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
-	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
+	s.EqualValues(ingested.Len()+22, ingestStatus.ProcessedBytes) // 22 bytes extra for the event label
 
 	// ... but gzip encoded...
 	resetBuffer(axiom.GzipEncoder())
@@ -181,8 +182,13 @@ func (s *DatasetsTestSuite) Test() {
 	s.Empty(ingestStatus.Failures)
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
-	// ... and a map.
+	// ... and a map...
 	ingestStatus, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, ingestEvents)
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	// ... and a channel.
+	ingestStatus, err = s.client.Datasets.IngestChannel(s.ctx, s.dataset.ID, getEventChan())
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -204,9 +210,9 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NotNil(queryResult)
 
 	s.EqualValues(1, queryResult.Status.BlocksExamined)
-	s.EqualValues(8, queryResult.Status.RowsExamined)
-	s.EqualValues(8, queryResult.Status.RowsMatched)
-	s.Len(queryResult.Matches, 8)
+	s.EqualValues(10, queryResult.Status.RowsExamined)
+	s.EqualValues(10, queryResult.Status.RowsMatched)
+	s.Len(queryResult.Matches, 10)
 
 	// Also run a legacy query and make sure we see some results.
 	legacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, querylegacy.Query{
@@ -217,9 +223,9 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NotNil(legacyQueryResult)
 
 	s.EqualValues(1, legacyQueryResult.Status.BlocksExamined)
-	s.EqualValues(8, legacyQueryResult.Status.RowsExamined)
-	s.EqualValues(8, legacyQueryResult.Status.RowsMatched)
-	s.Len(legacyQueryResult.Matches, 8)
+	s.EqualValues(10, legacyQueryResult.Status.RowsExamined)
+	s.EqualValues(10, legacyQueryResult.Status.RowsMatched)
+	s.Len(legacyQueryResult.Matches, 10)
 
 	// Run a more complex legacy query.
 	complexLegacyQuery := querylegacy.Query{
@@ -266,12 +272,12 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(complexLegacyQueryResult)
 
-	s.EqualValues(8, complexLegacyQueryResult.Status.RowsExamined)
-	s.EqualValues(8, complexLegacyQueryResult.Status.RowsMatched)
+	s.EqualValues(10, complexLegacyQueryResult.Status.RowsExamined)
+	s.EqualValues(10, complexLegacyQueryResult.Status.RowsMatched)
 	if s.Len(complexLegacyQueryResult.Buckets.Totals, 2) {
 		agg := complexLegacyQueryResult.Buckets.Totals[0].Aggregations[0]
 		s.EqualValues("event_count", agg.Alias)
-		s.EqualValues(4, agg.Value)
+		s.EqualValues(5, agg.Value)
 	}
 
 	// Trim the dataset down to a minimum.
@@ -355,4 +361,15 @@ func (s *DatasetsTestSuite) TestCursor() {
 		s.Equal("bar", queryResult.Matches[0].Data["foo"])
 		s.Equal("baz", queryResult.Matches[1].Data["foo"])
 	}
+}
+
+func getEventChan() <-chan axiom.Event {
+	eventCh := make(chan axiom.Event)
+	go func() {
+		for _, e := range ingestEvents {
+			eventCh <- e
+		}
+		close(eventCh)
+	}()
+	return eventCh
 }
