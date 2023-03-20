@@ -313,13 +313,17 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		option(&opts)
 	}
 
-	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := AddURLOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
 	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	if err = setEventLabels(req, opts.EventLabels); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -382,7 +386,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		return &ingest.Status{}, nil
 	}
 
-	path, err := AddOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := AddURLOptions(s.basePath+"/"+id+"/ingest", opts)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -429,6 +433,10 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		return nil, spanError(span, err)
 	}
 	req.GetBody = getBody
+
+	if err = setEventLabels(req, opts.EventLabels); err != nil {
+		return nil, spanError(span, err)
+	}
 
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
@@ -564,7 +572,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		Format: "legacy", // Hardcode legacy APL format for now.
 	}
 
-	path, err := AddOptions(s.basePath+"/_apl", queryParams)
+	path, err := AddURLOptions(s.basePath+"/_apl", queryParams)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -606,7 +614,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		return nil, spanError(span, err)
 	}
 
-	path, err := AddOptions(s.basePath+"/"+id+"/query", opts)
+	path, err := AddURLOptions(s.basePath+"/"+id+"/query", opts)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -736,4 +744,19 @@ func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
 		attribute.String("axiom.result.status.min_cursor", res.Status.MinCursor),
 		attribute.String("axiom.result.status.max_cursor", res.Status.MaxCursor),
 	)
+}
+
+func setEventLabels(req *http.Request, labels map[string]any) error {
+	if len(labels) == 0 {
+		return nil
+	}
+
+	b, err := json.Marshal(labels)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-Axiom-Event-Labels", string(b))
+
+	return nil
 }

@@ -35,7 +35,7 @@ func TestClient_Manual(t *testing.T) {
 		test: "test",
 	}
 
-	path, err := axiom.AddOptions("/v1/test", opts)
+	path, err := axiom.AddURLOptions("/v1/test", opts)
 	require.NoError(t, err)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, path, nil)
@@ -71,7 +71,7 @@ func TestClient_Call(t *testing.T) {
 		test: "test",
 	}
 
-	path, err := axiom.AddOptions("/v1/test", opts)
+	path, err := axiom.AddURLOptions("/v1/test", opts)
 	require.NoError(t, err)
 
 	err = client.Call(context.Background(), http.MethodGet, path, nil, nil)
