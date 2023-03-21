@@ -81,10 +81,8 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 	ctx, span := s.client.trace(ctx, "Users.Current")
 	defer span.End()
 
-	path := "/v1/user"
-
 	var res User
-	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, "/v1/user", nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 

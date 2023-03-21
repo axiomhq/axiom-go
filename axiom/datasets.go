@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 	"unicode"
 
@@ -202,7 +203,10 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 	))
 	defer span.End()
 
-	path := s.basePath + "/" + id
+	path, err := url.JoinPath(s.basePath, id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
 
 	var res wrappedDataset
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
@@ -236,7 +240,10 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 	))
 	defer span.End()
 
-	path := s.basePath + "/" + id
+	path, err := url.JoinPath(s.basePath, id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
 
 	var res wrappedDataset
 	if err := s.client.Call(ctx, http.MethodPut, path, req, &res); err != nil {
@@ -253,7 +260,12 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	if err := s.client.Call(ctx, http.MethodDelete, s.basePath+"/"+id, nil, nil); err != nil {
+	path, err := url.JoinPath(s.basePath, "/", id)
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodDelete, path, nil, nil); err != nil {
 		return spanError(span, err)
 	}
 
@@ -274,7 +286,10 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 		MaxDuration: maxDuration.String(),
 	}
 
-	path := s.basePath + "/" + id + "/trim"
+	path, err := url.JoinPath(s.basePath, id, "trim")
+	if err != nil {
+		return nil, spanError(span, err)
+	}
 
 	var res TrimResult
 	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
@@ -313,8 +328,10 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		option(&opts)
 	}
 
-	path, err := AddURLOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := url.JoinPath(s.basePath, id, "ingest")
 	if err != nil {
+		return nil, spanError(span, err)
+	} else if path, err = AddURLOptions(path, opts); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -386,8 +403,10 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		return &ingest.Status{}, nil
 	}
 
-	path, err := AddURLOptions(s.basePath+"/"+id+"/ingest", opts)
+	path, err := url.JoinPath(s.basePath, id, "ingest")
 	if err != nil {
+		return nil, spanError(span, err)
+	} else if path, err = AddURLOptions(path, opts); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -572,8 +591,10 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		Format: "legacy", // Hardcode legacy APL format for now.
 	}
 
-	path, err := AddURLOptions(s.basePath+"/_apl", queryParams)
+	path, err := url.JoinPath(s.basePath, "_apl")
 	if err != nil {
+		return nil, spanError(span, err)
+	} else if path, err = AddURLOptions(path, queryParams); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -614,8 +635,10 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		return nil, spanError(span, err)
 	}
 
-	path, err := AddURLOptions(s.basePath+"/"+id+"/query", opts)
+	path, err := url.JoinPath(s.basePath, id, "query")
 	if err != nil {
+		return nil, spanError(span, err)
+	} else if path, err = AddURLOptions(path, opts); err != nil {
 		return nil, spanError(span, err)
 	}
 

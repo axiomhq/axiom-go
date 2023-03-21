@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -259,7 +260,10 @@ func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organizatio
 	))
 	defer span.End()
 
-	path := s.basePath + "/" + id
+	path, err := url.JoinPath(s.basePath, id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
 
 	var res wrappedOrganization
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
