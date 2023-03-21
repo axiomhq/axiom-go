@@ -14,7 +14,10 @@ func SafeClearEnv(tb testing.TB) {
 		os.Clearenv()
 		for _, e := range env {
 			pair := strings.SplitN(e, "=", 2)
-			os.Setenv(pair[0], pair[1])
+			if err := os.Setenv(pair[0], pair[1]); err != nil {
+				tb.Logf("Error setting %q: %v", e, err)
+				tb.Fail()
+			}
 		}
 	})
 }
