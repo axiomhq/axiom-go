@@ -17,12 +17,12 @@ import (
 func TestTracingIntegration(t *testing.T) {
 	ctx := context.Background()
 
-	close, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0")
+	stop, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0")
 	require.NoError(t, err)
-	require.NotNil(t, close)
+	require.NotNil(t, stop)
 
 	t.Cleanup(func() {
-		require.NoError(t, close())
+		require.NoError(t, stop())
 	})
 
 	bar := func(ctx context.Context) {
