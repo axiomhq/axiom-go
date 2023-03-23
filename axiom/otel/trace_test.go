@@ -31,16 +31,16 @@ func TestTracing(t *testing.T) {
 
 	ctx := context.Background()
 
-	close, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0",
+	stop, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0",
 		axiotel.SetURL(srv.URL),
 		axiotel.SetToken("xaat-test-token"),
 		axiotel.SetNoEnv(),
 	)
 	require.NoError(t, err)
-	require.NotNil(t, close)
+	require.NotNil(t, stop)
 
 	t.Cleanup(func() {
-		_ = close()
+		_ = stop()
 	})
 
 	bar := func(ctx context.Context) {
@@ -59,8 +59,8 @@ func TestTracing(t *testing.T) {
 
 	bar(ctx)
 
-	// Close tracer which flushes all spans.
-	require.NoError(t, close())
+	// Stop tracer which flushes all spans.
+	require.NoError(t, stop())
 
 	assert.EqualValues(t, 1, atomic.LoadUint32(&handlerCalled))
 }
