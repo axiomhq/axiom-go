@@ -18,11 +18,9 @@ jobs:
           - "1.20"
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
-          check-latest: true
-          cache: true
       - run: make generate
       - run: git diff --exit-code
 
@@ -37,10 +35,9 @@ jobs:
           - "1.20"
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
-          check-latest: true
       - uses: golangci/golangci-lint-action@v3
 
   test:
@@ -61,11 +58,9 @@ jobs:
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
-          check-latest: true
-          cache: true
       - name: Test (Unit)
         if: github.event.pull_request.head.repo.full_name != github.repository
         run: make test
@@ -75,7 +70,7 @@ jobs:
       - name: Cleanup (On Test Failure)
         if: failure() && github.event.pull_request.head.repo.full_name == github.repository
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.9.0-rc.3 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.9.1 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
 
   ci-pass:

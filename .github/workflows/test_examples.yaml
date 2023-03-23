@@ -73,14 +73,12 @@ jobs:
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
-          check-latest: true
-          cache: true
           go-version-file: go.mod
       - name: Setup test dataset
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.9.0-rc.3 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.9.1 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go ${{ matrix.example }} example test"
       - name: Setup example
         if: matrix.setup
