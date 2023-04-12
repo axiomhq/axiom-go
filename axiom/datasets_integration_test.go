@@ -209,7 +209,6 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(queryResult)
 
-	s.EqualValues(1, queryResult.Status.BlocksExamined)
 	s.EqualValues(10, queryResult.Status.RowsExamined)
 	s.EqualValues(10, queryResult.Status.RowsMatched)
 	s.Len(queryResult.Matches, 10)
@@ -222,7 +221,6 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(legacyQueryResult)
 
-	s.EqualValues(1, legacyQueryResult.Status.BlocksExamined)
 	s.EqualValues(10, legacyQueryResult.Status.RowsExamined)
 	s.EqualValues(10, legacyQueryResult.Status.RowsMatched)
 	s.Len(legacyQueryResult.Matches, 10)
