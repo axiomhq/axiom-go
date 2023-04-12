@@ -7,7 +7,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/golangci/golangci-lint v1.52.2
 	github.com/google/go-querystring v1.1.0
-	github.com/klauspost/compress v1.16.3
+	github.com/klauspost/compress v1.16.4
 	github.com/schollz/progressbar/v3 v3.13.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
