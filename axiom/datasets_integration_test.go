@@ -327,37 +327,57 @@ func (s *DatasetsTestSuite) TestCursor() {
 	// retrieved from the query status MinCursor or MaxCursor fields, depending
 	// on the queries sort order.
 	midRowID := queryResult.Matches[1].RowID
-	midTime := queryResult.Matches[1].Time
 
-	// Query events with a cursor in descending order.
+	// Query events with a cursor in descending order...
 	apl = fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
-		// HINT(lukasmalkmus): Start time is inclusive when sorting newest
-		// first.
-		query.SetStartTime(midTime.Add(-time.Nanosecond)),
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
+		query.SetCursor(midRowID, false),
+	)
+	s.Require().NoError(err)
+
+	if s.Len(queryResult.Matches, 1) {
+		s.Equal("bar", queryResult.Matches[0].Data["foo"])
+	}
+
+	// ...again, but with the cursor inclusive.
+	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
 		query.SetEndTime(endTime),
 		query.SetCursor(midRowID, true),
 	)
 	s.Require().NoError(err)
 
 	if s.Len(queryResult.Matches, 2) {
-		s.Equal("buz", queryResult.Matches[0].Data["foo"])
-		s.Equal("baz", queryResult.Matches[1].Data["foo"])
+		s.Equal("baz", queryResult.Matches[0].Data["foo"])
+		s.Equal("bar", queryResult.Matches[1].Data["foo"])
 	}
 
-	// Query events with a cursor in ascending order.
+	// Query events with a cursor in ascending order...
 	apl = fmt.Sprintf("['%s'] | sort by _time asc", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
-		// HINT(lukasmalkmus): End time is inclusive when sorting newest first.
-		query.SetEndTime(midTime.Add(time.Nanosecond)),
+		query.SetEndTime(endTime),
+		query.SetCursor(midRowID, false),
+	)
+	s.Require().NoError(err)
+
+	if s.Len(queryResult.Matches, 1) {
+		s.Equal("buz", queryResult.Matches[0].Data["foo"])
+	}
+
+	// ...again, but with the cursor inclusive.
+	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endTime),
 		query.SetCursor(midRowID, true),
 	)
 	s.Require().NoError(err)
 
 	if s.Len(queryResult.Matches, 2) {
-		s.Equal("bar", queryResult.Matches[0].Data["foo"])
-		s.Equal("baz", queryResult.Matches[1].Data["foo"])
+		s.Equal("baz", queryResult.Matches[0].Data["foo"])
+		s.Equal("buz", queryResult.Matches[1].Data["foo"])
 	}
 }
 
