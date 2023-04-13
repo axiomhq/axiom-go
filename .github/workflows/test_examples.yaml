@@ -10,10 +10,20 @@ on:
     branches:
       - main
 
+# HINT(lukasmalkmus): Make sure the workflow is only ever run for the latest
+# changes in a PR or a commit that was pushed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# HINT(lukasmalkmus): Test all code examples against the staging environment.
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    # HINT(lukasmalkmus): Only run example tests for PRs originating from the
+    # upstream repository and for commits that were pushed to the upstream
+    # "main" branch.
     if: |
       (github.event.pull_request.head.repo.full_name == github.repository ||
       github.event.push.head.repo.full_name == github.repository) &&
@@ -67,9 +77,9 @@ jobs:
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
       fail-fast: false
     env:
-      AXIOM_URL: ${{ secrets.TESTING_DEV_API_URL }}
-      AXIOM_TOKEN: ${{ secrets.TESTING_DEV_TOKEN }}
-      AXIOM_ORG_ID: ${{ secrets.TESTING_DEV_ORG_ID }}
+      AXIOM_URL: ${{ secrets.TESTING_STAGING_API_URL }}
+      AXIOM_TOKEN: ${{ secrets.TESTING_STAGING_TOKEN }}
+      AXIOM_ORG_ID: ${{ secrets.TESTING_STAGING_ORG_ID }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v3

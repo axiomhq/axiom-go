@@ -7,6 +7,12 @@ on:
   merge_group:
     types: [checks_requested]
 
+# HINT(lukasmalkmus): Make sure the workflow is only ever run for the latest
+# changes in the PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gen-diff:
     name: Codegen diff
@@ -40,35 +46,79 @@ jobs:
           go-version: ${{ matrix.go }}
       - uses: golangci/golangci-lint-action@v3
 
-  test:
+  # HINT(lukasmalkmus): Unit tests are only run for PRs originating from forks
+  # and thus are only run for different Go versions but not for different
+  # environments (as we don't want to pass secrets to forks).
+  test-unit:
     name: Test
     needs: lint
     runs-on: ubuntu-latest
+    # HINT(lukasmalkmus): Only run unit tests for PRs originating from forks.
+    if: github.event.pull_request.head.repo.full_name != github.repository
     strategy:
+      fail-fast: false
       matrix:
         go:
           - "1.19"
           - "1.20"
-      max-parallel: 1
-      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Test
+        run: make test
+
+  # HINT(lukasmalkmus): Integration tests are only run for PRs originating from
+  # the upstream repository and thus are also run for different environments.
+  # Running integration tests also includes running unit tests so there is no
+  # need to run them separately.
+  test-integration:
+    name: Test
+    needs: lint
+    runs-on: ubuntu-latest
+    # HINT(lukasmalkmus): Only run integration tests for PRs originating in the
+    # upstream repository.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    # HINT(lukasmalkmus): Make sure the job is only ever run once per
+    # environment, across all active jobs and workflows. Errors on the
+    # development environment will not cancel the matrix jobs on the staging
+    # environment (and thus not affect the overall workflow status).
+    concurrency:
+      group: ${{ matrix.environment }}
+    continue-on-error: ${{ matrix.environment == 'development' }}
+    strategy:
+      fail-fast: true
+      matrix:
+        go:
+          - "1.19"
+          - "1.20"
+        environment:
+          - development
+          - staging
+        include:
+          - environment: development
+            url: TESTING_DEV_API_URL
+            token: TESTING_DEV_TOKEN
+            org_id: TESTING_DEV_ORG_ID
+          - environment: staging
+            url: TESTING_STAGING_API_URL
+            token: TESTING_STAGING_TOKEN
+            org_id: TESTING_STAGING_ORG_ID
     env:
-      AXIOM_URL: ${{ secrets.TESTING_DEV_API_URL }}
-      AXIOM_TOKEN: ${{ secrets.TESTING_DEV_TOKEN }}
-      AXIOM_ORG_ID: ${{ secrets.TESTING_DEV_ORG_ID }}
+      AXIOM_URL: ${{ secrets[matrix.url] }}
+      AXIOM_TOKEN: ${{ secrets[matrix.token] }}
+      AXIOM_ORG_ID: ${{ secrets[matrix.org_id] }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
-      - name: Test (Unit)
-        if: github.event.pull_request.head.repo.full_name != github.repository
-        run: make test
-      - name: Test (Integration)
-        if: github.event.pull_request.head.repo.full_name == github.repository
+      - name: Test
         run: make test-integration
       - name: Cleanup (On Test Failure)
-        if: failure() && github.event.pull_request.head.repo.full_name == github.repository
+        if: failure()
         run: |
           curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.9.1 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
@@ -78,12 +128,16 @@ jobs:
     needs:
       - gen-diff
       - lint
-      - test
+      - test-unit
+      - test-integration
     runs-on: ubuntu-latest
     if: always()
     steps:
+      # HINT(lukasmalkmus): "Codegen diff" and "Lint" need to pass as well as
+      # one of the "Test" jobs (either integration or unit tests).
       - if: |
           needs.gen-diff.result != 'success' ||
           needs.lint.result != 'success' ||
-          needs.test.result != 'success'
+          !(needs.test-unit.result == 'success' ||
+          needs.test-integration.result == 'success')
         run: exit 1

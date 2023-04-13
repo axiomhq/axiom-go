@@ -5,22 +5,42 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
 
+# HINT(lukasmalkmus): Make sure the workflow is only ever run once at a time.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    # Don't run on forks.
     if: github.repository_owner == 'axiomhq'
+    # HINT(lukasmalkmus): Make sure the job is only ever run once per
+    # environment, across all active jobs and workflows.
+    concurrency:
+      group: ${{ matrix.environment }}
     strategy:
       matrix:
         go:
           - "1.19"
           - "1.20"
-      max-parallel: 1
-      fail-fast: false
+        environment:
+          - development
+          - staging
+        include:
+          - environment: development
+            url: TESTING_DEV_API_URL
+            token: TESTING_DEV_TOKEN
+            org_id: TESTING_DEV_ORG_ID
+          - environment: staging
+            url: TESTING_STAGING_API_URL
+            token: TESTING_STAGING_TOKEN
+            org_id: TESTING_STAGING_ORG_ID
     env:
-      AXIOM_URL: ${{ secrets.TESTING_DEV_API_URL }}
-      AXIOM_TOKEN: ${{ secrets.TESTING_DEV_TOKEN }}
-      AXIOM_ORG_ID: ${{ secrets.TESTING_DEV_ORG_ID }}
+      AXIOM_URL: ${{ secrets[matrix.url] }}
+      AXIOM_TOKEN: ${{ secrets[matrix.token] }}
+      AXIOM_ORG_ID: ${{ secrets[matrix.org_id] }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
       - uses: actions/checkout@v3
