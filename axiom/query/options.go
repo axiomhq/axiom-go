@@ -13,6 +13,8 @@ type Options struct {
 	// IncludeCursor specifies whether the event that matches the cursor should
 	// be included in the result.
 	IncludeCursor bool `json:"includeCursor,omitempty"`
+	// Variables is an optional set of additional variables that are inserted into the APL
+	Variables map[string]any `json:"variables,omitempty"`
 }
 
 // An Option applies an optional parameter to a query.
@@ -32,4 +34,20 @@ func SetEndTime(endTime time.Time) Option {
 // event that matches the cursor will be included in the result.
 func SetCursor(cursor string, include bool) Option {
 	return func(o *Options) { o.Cursor = cursor; o.IncludeCursor = include }
+}
+
+// SetVariables specifies variables which can be referenced by the APL query.
+func SetVariables(variables map[string]any) Option {
+	return func(o *Options) { o.Variables = variables }
+}
+
+// SetVariable sets a single variable which is can be referenced by the APL
+// query.
+func SetVariable(key string, value any) Option {
+	return func(o *Options) {
+		if o.Variables == nil {
+			o.Variables = make(map[string]any, 1)
+		}
+		o.Variables[key] = value
+	}
 }
