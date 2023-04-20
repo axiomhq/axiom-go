@@ -18,18 +18,18 @@ type Options struct {
 // An Option applies an optional parameter to a query.
 type Option func(*Options)
 
-// SetStartTime specifies the query intervals start time.
+// SetStartTime specifies the start time of the query interval.
 func SetStartTime(startTime time.Time) Option {
 	return func(o *Options) { o.StartTime = startTime }
 }
 
-// SetEndTime specifies the query intervals end time.
+// SetEndTime specifies the end time of the query interval.
 func SetEndTime(endTime time.Time) Option {
 	return func(o *Options) { o.EndTime = endTime }
 }
 
-// SetCursor specifies the queries cursor. If include is set to true the event
-// that matches the cursor will be included in the result.
+// SetCursor specifies the cursor of the query. If include is set to true the
+// event that matches the cursor will be included in the result.
 func SetCursor(cursor string, include bool) Option {
 	return func(o *Options) { o.Cursor = cursor; o.IncludeCursor = include }
 }
