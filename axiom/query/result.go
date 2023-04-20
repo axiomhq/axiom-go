@@ -219,7 +219,8 @@ type Entry struct {
 	Time time.Time `json:"_time"`
 	// SysTime is the time the event was recorded on the server.
 	SysTime time.Time `json:"_sysTime"`
-	// RowID is the unique ID of the event row.
+	// RowID is the unique ID of the event row. It can be used as a cursor to
+	// resume a query. See [query.SetCursor].
 	RowID string `json:"_rowId"`
 	// Data contains the raw data of the event (with filters and aggregations
 	// applied).

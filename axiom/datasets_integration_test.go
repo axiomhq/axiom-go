@@ -337,6 +337,8 @@ func (s *DatasetsTestSuite) TestCursor() {
 	)
 	s.Require().NoError(err)
 
+	// "buz" and "baz" skipped by the cursor, only "bar" is returned. The cursor
+	// is exclusive, so "baz" is not included.
 	if s.Len(queryResult.Matches, 1) {
 		s.Equal("bar", queryResult.Matches[0].Data["foo"])
 	}
@@ -349,6 +351,8 @@ func (s *DatasetsTestSuite) TestCursor() {
 	)
 	s.Require().NoError(err)
 
+	// "buz" skipped by the cursor, only "baz" and "bar" is returned. The cursor
+	// is inclusive, so "baz" is included.
 	if s.Len(queryResult.Matches, 2) {
 		s.Equal("baz", queryResult.Matches[0].Data["foo"])
 		s.Equal("bar", queryResult.Matches[1].Data["foo"])
@@ -363,6 +367,8 @@ func (s *DatasetsTestSuite) TestCursor() {
 	)
 	s.Require().NoError(err)
 
+	// "bar" and "baz" skipped by the cursor, only "buz" is returned. The cursor
+	// is exclusive, so "baz" is not included.
 	if s.Len(queryResult.Matches, 1) {
 		s.Equal("buz", queryResult.Matches[0].Data["foo"])
 	}
@@ -375,6 +381,8 @@ func (s *DatasetsTestSuite) TestCursor() {
 	)
 	s.Require().NoError(err)
 
+	// "bar" skipped by the cursor, only "baz" and "buz" is returned. The cursor
+	// is inclusive, so "baz" is included.
 	if s.Len(queryResult.Matches, 2) {
 		s.Equal("baz", queryResult.Matches[0].Data["foo"])
 		s.Equal("buz", queryResult.Matches[1].Data["foo"])
