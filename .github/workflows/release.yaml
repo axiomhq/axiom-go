@@ -5,9 +5,10 @@ on:
     tags:
       - "v*"
 
+# HINT(lukasmalkmus): Make sure release jobs are only ever run once at a time
+# (and are never cancelled when new jobs for the same group are queued).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   release:

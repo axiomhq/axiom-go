@@ -22,12 +22,9 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     # HINT(lukasmalkmus): Only run example tests for PRs originating from the
-    # upstream repository and for commits that were pushed to the upstream
-    # "main" branch.
-    if: |
-      (github.event.pull_request.head.repo.full_name == github.repository ||
-      github.event.push.head.repo.full_name == github.repository) &&
-      github.repository_owner == 'axiomhq'
+    # upstream repository and for commits that were pushed to upstream.
+    if: github.event.pull_request.head.repo.full_name == github.repository ||
+      github.event.push.head.repo.full_name == github.repository
     strategy:
       matrix:
         example:
