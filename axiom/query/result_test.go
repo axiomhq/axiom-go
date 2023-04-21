@@ -11,8 +11,8 @@ import (
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-func TestStatus(t *testing.T) {
-	exp := Status{
+var (
+	expStatus = Status{
 		ElapsedTime:       time.Second,
 		BlocksExamined:    10,
 		RowsExamined:      100000,
@@ -21,8 +21,8 @@ func TestStatus(t *testing.T) {
 		IsPartial:         true,
 		ContinuationToken: "123",
 		IsEstimate:        true,
-		MaxBlockTime:      time.Now().UTC(),
-		MinBlockTime:      time.Now().UTC().Add(-time.Hour),
+		MinBlockTime:      parseTimeOrPanic("2022-08-15T10:55:53Z"),
+		MaxBlockTime:      parseTimeOrPanic("2022-08-15T11:55:53Z"),
 		Messages: []Message{
 			{
 				Priority: Error,
@@ -30,24 +30,18 @@ func TestStatus(t *testing.T) {
 				Count:    2,
 				Text:     "missing column",
 			},
+			{
+				Priority: Warn,
+				Code:     CompilerWarning,
+				Count:    1,
+				Text:     "some apl compiler warning",
+			},
 		},
 		MinCursor: "c776x1uafkpu-4918f6cb9000095-0",
 		MaxCursor: "c776x1uafnvq-4918f6cb9000095-1",
 	}
 
-	b, err := json.Marshal(exp)
-	require.NoError(t, err)
-	require.NotEmpty(t, b)
-
-	var act Status
-	err = json.Unmarshal(b, &act)
-	require.NoError(t, err)
-
-	assert.Equal(t, exp, act)
-}
-
-func TestStatus_MarshalJSON(t *testing.T) {
-	exp := `{
+	expStatusJSON = `{
 		"elapsedTime": 1000000,
 		"blocksExamined": 10,
 		"rowsExamined": 100000,
@@ -64,38 +58,37 @@ func TestStatus_MarshalJSON(t *testing.T) {
 				"code": "missing_column",
 				"count": 2,
 				"msg": "missing column"
+			},
+			{
+				"priority": "warn",
+				"code": "apl_convertingfromtypestotypes_1",
+				"count": 1,
+				"msg": "some apl compiler warning"
 			}
 		],
 		"minCursor": "c776x1uafkpu-4918f6cb9000095-0",
 		"maxCursor": "c776x1uafnvq-4918f6cb9000095-1"
 	}`
+)
 
-	act, err := Status{
-		ElapsedTime:       time.Second,
-		BlocksExamined:    10,
-		RowsExamined:      100000,
-		RowsMatched:       2,
-		NumGroups:         1,
-		IsPartial:         true,
-		ContinuationToken: "123",
-		IsEstimate:        true,
-		MinBlockTime:      testhelper.MustTimeParse(t, time.RFC3339, "2022-08-15T10:55:53Z"),
-		MaxBlockTime:      testhelper.MustTimeParse(t, time.RFC3339, "2022-08-15T11:55:53Z"),
-		Messages: []Message{
-			{
-				Priority: Error,
-				Code:     MissingColumn,
-				Count:    2,
-				Text:     "missing column",
-			},
-		},
-		MinCursor: "c776x1uafkpu-4918f6cb9000095-0",
-		MaxCursor: "c776x1uafnvq-4918f6cb9000095-1",
-	}.MarshalJSON()
+func TestStatus(t *testing.T) {
+	b, err := json.Marshal(expStatus)
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	var act Status
+	err = json.Unmarshal(b, &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, expStatus, act)
+}
+
+func TestStatus_MarshalJSON(t *testing.T) {
+	act, err := expStatus.MarshalJSON()
 	require.NoError(t, err)
 	require.NotEmpty(t, act)
 
-	assert.JSONEq(t, exp, string(act))
+	testhelper.JSONEqExp(t, expStatusJSON, string(act), []string{"messages.1.code"})
 }
 
 func TestStatus_UnmarshalJSON(t *testing.T) {
@@ -125,9 +118,9 @@ func TestMessageCode_String(t *testing.T) {
 	assert.Empty(t, MessageCode(0).String())
 	assert.Empty(t, emptyMessageCode.String())
 	assert.Equal(t, emptyMessageCode, MessageCode(0))
-	assert.Contains(t, (DefaultLimitWarning + 1).String(), "MessageCode(")
+	assert.Contains(t, (CompilerWarning + 1).String(), "MessageCode(")
 
-	for mc := VirtualFieldFinalizeError; mc <= DefaultLimitWarning; mc++ {
+	for mc := VirtualFieldFinalizeError; mc <= CompilerWarning; mc++ {
 		s := mc.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "MessageCode(")
@@ -135,7 +128,7 @@ func TestMessageCode_String(t *testing.T) {
 }
 
 func TestMessageCodeFromString(t *testing.T) {
-	for mc := VirtualFieldFinalizeError; mc <= DefaultLimitWarning; mc++ {
+	for mc := VirtualFieldFinalizeError; mc <= CompilerWarning; mc++ {
 		s := mc.String()
 
 		parsedMC, err := messageCodeFromString(s)
@@ -180,4 +173,12 @@ func TestMessagePriorityFromString(t *testing.T) {
 		assert.NotEmpty(t, s)
 		assert.Equal(t, mp, parsedMP)
 	}
+}
+
+func parseTimeOrPanic(value string) time.Time {
+	t, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }

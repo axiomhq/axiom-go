@@ -3,6 +3,7 @@ package query
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -19,9 +20,17 @@ const (
 	MissingColumn               // missing_column
 	LicenseLimitForQueryWarning // license_limit_for_query_warning
 	DefaultLimitWarning         // default_limit_warning
+
+	// CompilerWarning is a generic code. Please inspect the message text for
+	// more details.
+	CompilerWarning // apl_
 )
 
 func messageCodeFromString(s string) (mc MessageCode, err error) {
+	if strings.HasPrefix(s, CompilerWarning.String()) {
+		return CompilerWarning, nil
+	}
+
 	switch s {
 	case emptyMessageCode.String():
 		mc = emptyMessageCode

@@ -2,7 +2,6 @@ package apex
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -56,7 +55,7 @@ func TestHandler(t *testing.T) {
 		b, err := io.ReadAll(zsr)
 		assert.NoError(t, err)
 
-		JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
+		testhelper.JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
 
 		atomic.AddUint64(&hasRun, 1)
 
@@ -129,32 +128,4 @@ func setup(t *testing.T) func(dataset string, client *axiom.Client) *log.Logger 
 
 		return logger
 	}
-}
-
-// JSONEqExp is like assert.JSONEq() but excludes the given fields.
-func JSONEqExp(t assert.TestingT, expected string, actual string, excludedFields []string, msgAndArgs ...any) bool {
-	type tHelper interface {
-		Helper()
-	}
-
-	if h, ok := t.(tHelper); ok {
-		h.Helper()
-	}
-
-	var expectedJSONAsInterface, actualJSONAsInterface map[string]any
-
-	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
-		return assert.Fail(t, fmt.Sprintf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error()), msgAndArgs...)
-	}
-
-	if err := json.Unmarshal([]byte(actual), &actualJSONAsInterface); err != nil {
-		return assert.Fail(t, fmt.Sprintf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error()), msgAndArgs...)
-	}
-
-	for _, excludedField := range excludedFields {
-		delete(expectedJSONAsInterface, excludedField)
-		delete(actualJSONAsInterface, excludedField)
-	}
-
-	return assert.Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
 }
