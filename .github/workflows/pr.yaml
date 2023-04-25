@@ -44,7 +44,14 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
+      - run: echo "GOLANGCI_LINT_VERSION=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint)" >> $GITHUB_ENV
       - uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          only-new-issues: true
+          # HINT(lukasmalkmus): If we can get rid of the tar errors coming from
+          # unpacking the cache zip, we can enable the cache again.
+          skip-pkg-cache: true
 
   # HINT(lukasmalkmus): Unit tests are only run for PRs originating from forks
   # and thus are only run for different Go versions but not for different
