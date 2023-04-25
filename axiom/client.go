@@ -57,6 +57,7 @@ type service struct {
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultHTTPTransport(),
+		Timeout:   time.Hour,
 	}
 }
 
@@ -65,10 +66,14 @@ func DefaultHTTPClient() *http.Client {
 func DefaultHTTPTransport() http.RoundTripper {
 	return otelhttp.NewTransport(gzhttp.Transport(&http.Transport{
 		DialContext: (&net.Dialer{
-			Timeout: 5 * time.Second,
+			Timeout:   time.Second * 30,
+			KeepAlive: time.Second * 30,
 		}).DialContext,
-		TLSHandshakeTimeout: 5 * time.Second,
-		ForceAttemptHTTP2:   true,
+		IdleConnTimeout:       time.Second * 90,
+		ResponseHeaderTimeout: time.Second * 10,
+		TLSHandshakeTimeout:   time.Second * 10,
+		ExpectContinueTimeout: time.Second * 1,
+		ForceAttemptHTTP2:     true,
 	}))
 }
 
@@ -242,9 +247,9 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	)
 	if req.GetBody != nil && !c.noRetry {
 		bck := backoff.NewExponentialBackOff()
-		bck.InitialInterval = 200 * time.Millisecond
+		bck.InitialInterval = time.Millisecond * 200
+		bck.MaxElapsedTime = time.Second * 10
 		bck.Multiplier = 2.0
-		bck.MaxElapsedTime = 10 * time.Second
 
 		err = backoff.Retry(func() error {
 			var httpResp *http.Response
