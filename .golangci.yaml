@@ -1,5 +1,6 @@
 run:
   modules-download-mode: readonly
+  timeout: 5m
   skip-dirs:
     - .git
     - .github
