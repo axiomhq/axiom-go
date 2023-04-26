@@ -57,7 +57,6 @@ type service struct {
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultHTTPTransport(),
-		Timeout:   time.Hour,
 	}
 }
 
