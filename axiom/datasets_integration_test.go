@@ -399,3 +399,42 @@ func getEventChan() <-chan axiom.Event {
 	}()
 	return eventCh
 }
+
+func (s *DatasetsTestSuite) TestCursorLikeRust() {
+	now := time.Now().Truncate(time.Second)
+
+	var events []axiom.Event
+	for i := 0; i < 1000; i++ {
+		events = append(events, axiom.Event{
+			"_time":       now.Add(time.Duration(i) * time.Second),
+			"remote_ip":   "93.180.71.2",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		})
+	}
+	ingestStatus, err := s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, events)
+	s.Require().NoError(err)
+	s.Assert().Equal(ingestStatus.Ingested, uint64(1000))
+	s.Assert().Equal(ingestStatus.Failed, uint64(0))
+	s.Assert().Len(ingestStatus.Failures, 0)
+
+	res, err := s.client.Datasets.Query(context.Background(),
+		fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.Name),
+		query.SetStartTime(now.Add(-time.Second)),
+		query.SetEndTime(now.Add(20*time.Minute)),
+	)
+	s.Assert().Len(res.Matches, 1000)
+
+	res2, err := s.client.Datasets.Query(context.Background(),
+		fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.Name),
+		query.SetStartTime(res.Matches[500].Time),
+		query.SetEndTime(now.Add(20*time.Minute)),
+	)
+	s.Require().NoError(err)
+	s.Assert().Len(res2.Matches, 500)
+
+}
