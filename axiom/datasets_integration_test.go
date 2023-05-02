@@ -427,12 +427,14 @@ func (s *DatasetsTestSuite) TestCursorLikeRust() {
 		query.SetStartTime(now.Add(-time.Second)),
 		query.SetEndTime(now.Add(20*time.Minute)),
 	)
+	s.Require().NoError(err)
 	s.Assert().Len(res.Matches, 1000)
 
 	res2, err := s.client.Datasets.Query(context.Background(),
 		fmt.Sprintf("['%s'] | sort by _time desc", s.dataset.Name),
 		query.SetStartTime(res.Matches[500].Time),
 		query.SetEndTime(now.Add(20*time.Minute)),
+		query.SetCursor(res.Matches[500].RowID, true),
 	)
 	s.Require().NoError(err)
 	s.Assert().Len(res2.Matches, 500)
