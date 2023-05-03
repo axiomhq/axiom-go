@@ -13,9 +13,9 @@
 //     and instrument code. Sane defaults for the tracer provider are applied.
 //   - [TracerProvider]: Configures and returns a new OpenTelemetry tracer
 //     provider but does not set it as the global tracer provider.
-//   - [TraceExporter]: Configures and returns a new OpenTelemetry trace exporter.
-//     This sets up the exporter that sends traces to Axiom but allows for a
-//     more advanced setup of the tracer provider.
+//   - [TraceExporter]: Configures and returns a new OpenTelemetry trace
+//     exporter. This sets up the exporter that sends traces to Axiom but allows
+//     for a more advanced setup of the tracer provider.
 //
 // If you wish for traces to propagate beyond the current process, you need to
 // set the global propagator to the OpenTelemetry trace context propagator. This

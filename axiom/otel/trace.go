@@ -31,7 +31,7 @@ func UserAgentAttribute() attribute.KeyValue {
 }
 
 // TraceExporter configures and returns a new exporter for OpenTelemetry spans.
-func TraceExporter(ctx context.Context, options ...TraceOption) (trace.SpanExporter, error) {
+func TraceExporter(ctx context.Context, dataset string, options ...TraceOption) (trace.SpanExporter, error) {
 	config := defaultTraceConfig()
 
 	// Apply supplied options.
@@ -67,30 +67,30 @@ func TraceExporter(ctx context.Context, options ...TraceOption) (trace.SpanExpor
 	if u.Scheme == "http" {
 		opts = append(opts, otlptracehttp.WithInsecure())
 	}
-	if config.Token() != "" || config.OrganizationID() != "" {
-		headers := make(map[string]string, 2)
-
-		if config.Token() != "" {
-			headers["Authorization"] = "Bearer " + config.Token()
-		}
-		if config.OrganizationID() != "" {
-			headers["X-Axiom-Org-Id"] = config.OrganizationID()
-		}
-
-		if len(headers) > 0 {
-			opts = append(opts, otlptracehttp.WithHeaders(headers))
-		}
-	}
 	if config.Timeout > 0 {
 		opts = append(opts, otlptracehttp.WithTimeout(config.Timeout))
+	}
+
+	headers := make(map[string]string)
+	if config.Token() != "" {
+		headers["Authorization"] = "Bearer " + config.Token()
+	}
+	if config.OrganizationID() != "" {
+		headers["X-Axiom-Org-Id"] = config.OrganizationID()
+	}
+	if dataset != "" {
+		headers["X-Axiom-Dataset"] = dataset
+	}
+	if len(headers) > 0 {
+		opts = append(opts, otlptracehttp.WithHeaders(headers))
 	}
 
 	return otlptrace.New(ctx, otlptracehttp.NewClient(opts...))
 }
 
 // TracerProvider configures and returns a new OpenTelemetry tracer provider.
-func TracerProvider(ctx context.Context, serviceName, serviceVersion string, options ...TraceOption) (*trace.TracerProvider, error) {
-	exporter, err := TraceExporter(ctx, options...)
+func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion string, options ...TraceOption) (*trace.TracerProvider, error) {
+	exporter, err := TraceExporter(ctx, dataset, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +118,8 @@ func TracerProvider(ctx context.Context, serviceName, serviceVersion string, opt
 // function must be called to shut down the tracer provider and flush any
 // remaining spans. The error returned by the cleanup function must be checked,
 // as well.
-func InitTracing(ctx context.Context, serviceName, serviceVersion string, options ...TraceOption) (func() error, error) {
-	tracerProvider, err := TracerProvider(ctx, serviceName, serviceVersion, options...)
+func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion string, options ...TraceOption) (func() error, error) {
+	tracerProvider, err := TracerProvider(ctx, dataset, serviceName, serviceVersion, options...)
 	if err != nil {
 		return nil, err
 	}

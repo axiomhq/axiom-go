@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -14,16 +15,23 @@ import (
 )
 
 func main() {
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
+
 	ctx := context.Background()
 
+	dataset := os.Getenv("AXIOM_DATASET")
+	if dataset == "" {
+		log.Fatal("AXIOM_DATASET is required")
+	}
+
 	// 1. Initialize OpenTelemetry.
-	close, err := axiotel.InitTracing(ctx, "axiom-otel-example", "v1.0.0")
+	stop, err := axiotel.InitTracing(ctx, dataset, "axiom-otel-example", "v1.0.0")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
-		if err := close(); err != nil {
-			log.Fatal(err)
+		if stopErr := stop(); stopErr != nil {
+			log.Fatal(stopErr)
 		}
 	}()
 
