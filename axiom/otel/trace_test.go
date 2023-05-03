@@ -24,6 +24,7 @@ func TestTracing(t *testing.T) {
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, "/v1/traces", r.URL.Path)
 		assert.Equal(t, "application/x-protobuf", r.Header.Get("Content-Type"))
+		assert.Equal(t, "test-dataset", r.Header.Get("X-Axiom-Dataset"))
 
 		w.WriteHeader(http.StatusNoContent)
 	}))
@@ -31,7 +32,7 @@ func TestTracing(t *testing.T) {
 
 	ctx := context.Background()
 
-	stop, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0",
+	stop, err := axiotel.InitTracing(ctx, "test-dataset", "axiom-go-otel-test", "v1.0.0",
 		axiotel.SetURL(srv.URL),
 		axiotel.SetToken("xaat-test-token"),
 		axiotel.SetNoEnv(),

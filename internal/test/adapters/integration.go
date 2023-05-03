@@ -18,8 +18,6 @@ import (
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-var datasetSuffix = os.Getenv("AXIOM_DATASET_SUFFIX")
-
 // IntegrationTestFunc is a function that provides a client that is configured
 // with an api token for a unique test dataset. The client should be passed to
 // the adapter to be tested as well as the target dataset.
@@ -42,6 +40,7 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 		t.Fatal("adapter integration test needs the name of the adapter")
 	}
 
+	datasetSuffix := os.Getenv("AXIOM_DATASET_SUFFIX")
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}

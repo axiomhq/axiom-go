@@ -4,6 +4,8 @@ package otel_test
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -11,13 +13,34 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 
+	"github.com/axiomhq/axiom-go/axiom"
 	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
 )
 
 func TestTracingIntegration(t *testing.T) {
 	ctx := context.Background()
 
-	stop, err := axiotel.InitTracing(ctx, "axiom-go-otel-test", "v1.0.0")
+	datasetSuffix := os.Getenv("AXIOM_DATASET_SUFFIX")
+	if datasetSuffix == "" {
+		datasetSuffix = "local"
+	}
+	dataset := fmt.Sprintf("test-axiom-go-otel-%s", datasetSuffix)
+
+	client, err := axiom.NewClient()
+	require.NoError(t, err)
+
+	_, err = client.Datasets.Create(ctx, axiom.DatasetCreateRequest{
+		Name:        dataset,
+		Description: "This is a test dataset for datasets integration tests.",
+	})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		err = client.Datasets.Delete(ctx, dataset)
+		require.NoError(t, err)
+	})
+
+	stop, err := axiotel.InitTracing(ctx, dataset, "axiom-go-otel-test", "v1.0.0")
 	require.NoError(t, err)
 	require.NotNil(t, stop)
 

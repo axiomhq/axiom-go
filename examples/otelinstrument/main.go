@@ -6,25 +6,33 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/axiomhq/axiom-go/axiom"
 	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
 )
 
 func main() {
+	// Export "AXIOM_DATASET" in addition to the required environment variables.
+
 	ctx := context.Background()
 
+	dataset := os.Getenv("AXIOM_DATASET")
+	if dataset == "" {
+		log.Fatal("AXIOM_DATASET is required")
+	}
+
 	// 1. Initialize OpenTelemetry.
-	// Note: You can setup OpenTelemetry however you like. This example uses the
+	// Note: You can setup OpenTelemetry however you like! This example uses the
 	// helper package axiom/otel to initialize OpenTelemetry with Axiom
 	// configured as a backend for convenience.
-	close, err := axiotel.InitTracing(ctx, "axiom-otel-example", "v1.0.0")
+	stop, err := axiotel.InitTracing(ctx, dataset, "axiom-otel-example", "v1.0.0")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
-		if closeErr := close(); closeErr != nil {
-			log.Fatal(closeErr)
+		if stopErr := stop(); stopErr != nil {
+			log.Fatal(stopErr)
 		}
 	}()
 
