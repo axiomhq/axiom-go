@@ -47,7 +47,8 @@ func SetCSVDelimiter(delim string) Option {
 }
 
 // SetEventLabel adds a label to apply to all events. This option can be called
-// multiple times to add multiple labels.
+// multiple times to add multiple labels. If a label with the same key already
+// exists, it will be overwritten.
 func SetEventLabel(key string, value any) Option {
 	return func(o *Options) {
 		if o.EventLabels == nil {
@@ -57,7 +58,8 @@ func SetEventLabel(key string, value any) Option {
 	}
 }
 
-// SetEventLabels sets the labels to apply to all events.
+// SetEventLabels sets the labels to apply to all events. It will overwrite any
+// existing labels.
 func SetEventLabels(labels map[string]any) Option {
 	return func(o *Options) { o.EventLabels = labels }
 }
