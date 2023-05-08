@@ -8,7 +8,9 @@ type Options struct {
 	StartTime time.Time `json:"startTime,omitempty"`
 	// EndTime of the interval to query.
 	EndTime time.Time `json:"endTime,omitempty"`
-	// Cursor to use for pagination.
+	// Cursor to use for pagination. When used, don't specify new start and end
+	// times but rather use the start and end times of the query that returned
+	// the cursor that will be used.
 	Cursor string `json:"cursor,omitempty"`
 	// IncludeCursor specifies whether the event that matches the cursor should
 	// be included in the result.
@@ -20,34 +22,41 @@ type Options struct {
 // An Option applies an optional parameter to a query.
 type Option func(*Options)
 
-// SetStartTime specifies the start time of the query interval.
+// SetStartTime specifies the start time of the query interval. When also using
+// [SetCursor], please make sure to use the start time of the query that
+// returned the cursor that will be used.
 func SetStartTime(startTime time.Time) Option {
 	return func(o *Options) { o.StartTime = startTime }
 }
 
-// SetEndTime specifies the end time of the query interval.
+// SetEndTime specifies the end time of the query interval. When also using
+// [SetCursor], please make sure to use the end time of the query that returned
+// the cursor that will be used.
 func SetEndTime(endTime time.Time) Option {
 	return func(o *Options) { o.EndTime = endTime }
 }
 
 // SetCursor specifies the cursor of the query. If include is set to true the
-// event that matches the cursor will be included in the result.
+// event that matches the cursor will be included in the result. When using this
+// option, please make sure to use the initial query's start and end times.
 func SetCursor(cursor string, include bool) Option {
 	return func(o *Options) { o.Cursor = cursor; o.IncludeCursor = include }
 }
 
-// SetVariables specifies variables which can be referenced by the APL query.
-func SetVariables(variables map[string]any) Option {
-	return func(o *Options) { o.Variables = variables }
-}
-
-// SetVariable sets a single variable which can be referenced by the APL
-// query.
-func SetVariable(key string, value any) Option {
+// SetVariable adds a variable that can be referenced by the APL query. This
+// option can be called multiple times to add multiple variables. If a variable
+// with the same name already exists, it will be overwritten.
+func SetVariable(name string, value any) Option {
 	return func(o *Options) {
 		if o.Variables == nil {
 			o.Variables = make(map[string]any, 1)
 		}
-		o.Variables[key] = value
+		o.Variables[name] = value
 	}
+}
+
+// SetVariables sets the variables that can be referenced by the APL query. It
+// will overwrite any existing variables.
+func SetVariables(variables map[string]any) Option {
+	return func(o *Options) { o.Variables = variables }
 }
