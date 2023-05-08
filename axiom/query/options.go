@@ -15,7 +15,9 @@ type Options struct {
 	// IncludeCursor specifies whether the event that matches the cursor should
 	// be included in the result.
 	IncludeCursor bool `json:"includeCursor,omitempty"`
-	// Variables is an optional set of additional variables that are inserted into the APL
+	// Variables is an optional set of additional variables can be referenced by
+	// the APL query. Defining variables in APL using the "let" keyword takes
+	// precedence over variables provided via the query options.
 	Variables map[string]any `json:"variables,omitempty"`
 }
 
@@ -45,7 +47,9 @@ func SetCursor(cursor string, include bool) Option {
 
 // SetVariable adds a variable that can be referenced by the APL query. This
 // option can be called multiple times to add multiple variables. If a variable
-// with the same name already exists, it will be overwritten.
+// with the same name already exists, it will be overwritten. Defining variables
+// in APL using the "let" keyword takes precedence over variables provided via
+// the query options.
 func SetVariable(name string, value any) Option {
 	return func(o *Options) {
 		if o.Variables == nil {
@@ -56,7 +60,8 @@ func SetVariable(name string, value any) Option {
 }
 
 // SetVariables sets the variables that can be referenced by the APL query. It
-// will overwrite any existing variables.
+// will overwrite any existing variables. Defining variables in APL using the
+// "let" keyword takes precedence over variables provided via the query options.
 func SetVariables(variables map[string]any) Option {
 	return func(o *Options) { o.Variables = variables }
 }
