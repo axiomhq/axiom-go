@@ -41,7 +41,7 @@ func SetVariables(variables map[string]any) Option {
 	return func(o *Options) { o.Variables = variables }
 }
 
-// SetVariable sets a single variable which is can be referenced by the APL
+// SetVariable sets a single variable which can be referenced by the APL
 // query.
 func SetVariable(key string, value any) Option {
 	return func(o *Options) {
