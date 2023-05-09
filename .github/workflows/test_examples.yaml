@@ -5,7 +5,8 @@ on:
     branches:
       - main
   merge_group:
-    types: [checks_requested]
+    types:
+      - checks_requested
   push:
     branches:
       - main
