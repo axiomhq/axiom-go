@@ -13,7 +13,8 @@ on:
       - reopened
       - synchronize
   merge_group:
-    types: [checks_requested]
+    types:
+      - checks_requested
   schedule:
     - cron: "0 * * * *"
 
