@@ -150,6 +150,7 @@ func (s *DatasetsTestSuite) Test() {
 			}
 		}
 	)
+
 	resetBuffer()
 	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, ingest.SetEventLabel("region", "eu-west-1"))
 	s.Require().NoError(err)
@@ -182,12 +183,19 @@ func (s *DatasetsTestSuite) Test() {
 	s.Empty(ingestStatus.Failures)
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
-	// ... and a map...
+	// ... and from a map source...
+	resetBuffer()
 	ingestStatus, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, ingestEvents)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
-	// ... and a channel.
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
+	s.EqualValues(448, int(ingestStatus.ProcessedBytes))
+
+	// ... and from a channel source.
+	resetBuffer()
 	ingestStatus, err = s.client.Datasets.IngestChannel(s.ctx, s.dataset.ID, getEventChan())
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -195,6 +203,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingestStatus.Ingested, 2)
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
+	s.EqualValues(448, int(ingestStatus.ProcessedBytes))
 
 	now := time.Now().Truncate(time.Second)
 	startTime := now.Add(-time.Minute)
