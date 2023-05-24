@@ -104,17 +104,13 @@ jobs:
           - staging
         include:
           - environment: development
-            url: TESTING_DEV_API_URL
-            token: TESTING_DEV_TOKEN
-            org_id: TESTING_DEV_ORG_ID
+            secret_slug: DEV
           - environment: staging
-            url: TESTING_STAGING_API_URL
-            token: TESTING_STAGING_TOKEN
-            org_id: TESTING_STAGING_ORG_ID
+            secret_slug: STAGING
     env:
-      AXIOM_URL: ${{ secrets[matrix.url] }}
-      AXIOM_TOKEN: ${{ secrets[matrix.token] }}
-      AXIOM_ORG_ID: ${{ secrets[matrix.org_id] }}
+      AXIOM_URL: ${{ secrets[format('TESTING_{0}_API_URL', matrix.secret_slug)] }}
+      AXIOM_TOKEN: ${{ secrets[format('TESTING_{0}_TOKEN', matrix.secret_slug)] }}
+      AXIOM_ORG_ID: ${{ secrets[format('TESTING_{0}_ORG_ID', matrix.secret_slug)] }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
       - uses: actions/checkout@v3
