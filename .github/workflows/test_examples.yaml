@@ -27,6 +27,7 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository ||
       github.event.push.head.repo.full_name == github.repository
     strategy:
+      fail-fast: false
       matrix:
         example:
           - apex
@@ -73,7 +74,6 @@ jobs:
           - example: zap
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
-      fail-fast: false
     env:
       AXIOM_URL: ${{ secrets.TESTING_STAGING_API_URL }}
       AXIOM_TOKEN: ${{ secrets.TESTING_STAGING_TOKEN }}
