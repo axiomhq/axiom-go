@@ -31,6 +31,7 @@ jobs:
       matrix:
         example:
           - apex
+          - dumpdataset
           - ingestevent
           - ingestfile
           # - ingesthackernews # HINT(lukasmalkmus): We do not test this example as it takes too long!
@@ -44,6 +45,16 @@ jobs:
           - example: apex
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+          - example: dumpdataset
+            setup: |
+              for i in {1..10000}; do echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.ndjson; done
+              axiom ingest $AXIOM_DATASET -f=logs.ndjson
+              sleep 5
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 10000 )'
+            verify: |
+              cat "${AXIOM_DATASET}_dump.json"
+              wc -l < "${AXIOM_DATASET}_dump.json"
+              [[ $(wc -l < "${AXIOM_DATASET}_dump.json") -ne 10000 ]] && exit 1
           - example: ingestevent
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'

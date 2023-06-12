@@ -36,6 +36,7 @@ eval $(axiom config export -f)
 
 ## Package usage
 
+- [dumpdataset](dumpdataset/main.go): How to dump a datasets content into a file, ND-JSON encoded.
 - [ingestevent](ingestevent/main.go): How to ingest events into Axiom.
 - [ingestfile](ingestfile/main.go): How to ingest the contents of a file into
   Axiom and compress them on the fly.
