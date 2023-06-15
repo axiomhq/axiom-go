@@ -196,13 +196,13 @@ func TestOrganizationsService_Get(t *testing.T) {
 
 func TestPlan_Marshal(t *testing.T) {
 	exp := `{
-		"plan": "hobby"
+		"plan": "personal"
 	}`
 
 	b, err := json.Marshal(struct {
 		Plan Plan `json:"plan"`
 	}{
-		Plan: Hobby,
+		Plan: Personal,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, b)
@@ -214,10 +214,10 @@ func TestPlan_Unmarshal(t *testing.T) {
 	var act struct {
 		Plan Plan `json:"plan"`
 	}
-	err := json.Unmarshal([]byte(`{ "plan": "hobby" }`), &act)
+	err := json.Unmarshal([]byte(`{ "plan": "personal" }`), &act)
 	require.NoError(t, err)
 
-	assert.Equal(t, Hobby, act.Plan)
+	assert.Equal(t, Personal, act.Plan)
 }
 
 func TestPlan_String(t *testing.T) {
@@ -227,7 +227,7 @@ func TestPlan_String(t *testing.T) {
 	assert.Equal(t, emptyPlan, Plan(0))
 	assert.Contains(t, (Comped + 1).String(), "Plan(")
 
-	for p := Hobby; p <= Comped; p++ {
+	for p := Personal; p <= Comped; p++ {
 		s := p.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "Plan(")
@@ -235,7 +235,7 @@ func TestPlan_String(t *testing.T) {
 }
 
 func TestPlanFromString(t *testing.T) {
-	for plan := Hobby; plan <= Comped; plan++ {
+	for plan := Personal; plan <= Comped; plan++ {
 		s := plan.String()
 
 		parsedPlan, err := planFromString(s)
@@ -301,7 +301,7 @@ func TestPaymentStatusFromString(t *testing.T) {
 func TestLicense(t *testing.T) {
 	exp := License{
 		ID:             "98baf1f7-0b51-403f-abc1-2ee91972a225",
-		Plan:           Hobby,
+		Plan:           Personal,
 		MaxUsers:       50,
 		MaxTeams:       10,
 		MaxDatasets:    25,
