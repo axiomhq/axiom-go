@@ -80,11 +80,12 @@ func DefaultHTTPTransport() http.RoundTripper {
 type Client struct {
 	config config.Config
 
-	httpClient     *http.Client
-	userAgent      string
+	httpClient *http.Client
+	userAgent  string
+	noEnv      bool
+	noRetry    bool
+
 	strictDecoding bool
-	noEnv          bool
-	noRetry        bool
 
 	tracer trace.Tracer
 
@@ -110,9 +111,9 @@ func NewClient(options ...Option) (*Client, error) {
 	client := &Client{
 		config: config.Default(),
 
-		userAgent: "axiom-go",
-
 		httpClient: DefaultHTTPClient(),
+
+		userAgent: "axiom-go",
 
 		tracer: otel.Tracer(otelTracerName),
 	}
