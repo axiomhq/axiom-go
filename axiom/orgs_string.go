@@ -9,16 +9,16 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[emptyPlan-0]
-	_ = x[Hobby-1]
+	_ = x[Personal-1]
 	_ = x[Basic-2]
 	_ = x[Team-3]
 	_ = x[Enterprise-4]
 	_ = x[Comped-5]
 }
 
-const _Plan_name = "hobbybasicteamenterprisecomped"
+const _Plan_name = "personalbasicteamMonthlyenterprisecomped"
 
-var _Plan_index = [...]uint8{0, 0, 5, 10, 14, 24, 30}
+var _Plan_index = [...]uint8{0, 0, 8, 13, 24, 34, 40}
 
 func (i Plan) String() string {
 	if i >= Plan(len(_Plan_index)-1) {
