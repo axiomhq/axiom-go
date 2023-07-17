@@ -20,6 +20,7 @@ jobs:
     # environment, across all active jobs and workflows.
     concurrency:
       group: ${{ matrix.environment }}
+      cancel-in-progress: false
     strategy:
       matrix:
         go:

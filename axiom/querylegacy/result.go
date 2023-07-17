@@ -192,7 +192,7 @@ func (s Status) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// ElapsedTime into a proper time.Duration value because the server returns it
+// ElapsedTime into a proper [time.Duration] value because the server returns it
 // in microseconds.
 func (s *Status) UnmarshalJSON(b []byte) error {
 	type localStatus *Status
@@ -201,7 +201,7 @@ func (s *Status) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// Set to a proper time.Duration value by interpreting the server response
+	// Set to a proper [time.Duration] value by interpreting the server response
 	// value in microseconds.
 	s.ElapsedTime = s.ElapsedTime * time.Microsecond
 

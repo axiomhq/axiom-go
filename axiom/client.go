@@ -296,7 +296,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
 		// Handle common http status codes by returning proper errors so it is
-		// possible to check for them using `errors.Is()`.
+		// possible to check for them using [errors.Is].
 		switch statusCode {
 		case http.StatusUnauthorized:
 			return resp, ErrUnauthenticated

@@ -92,6 +92,7 @@ jobs:
     # environment (and thus not affect the overall workflow status).
     concurrency:
       group: ${{ matrix.environment }}
+      cancel-in-progress: false
     continue-on-error: ${{ matrix.environment == 'development' }}
     strategy:
       fail-fast: true

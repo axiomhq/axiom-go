@@ -42,8 +42,7 @@ type Query struct {
 	// IncludeCursor will return the Cursor as part of the query result, if set
 	// to true.
 	IncludeCursor bool `json:"includeCursor"`
-	// ContinuationToken is used to get more results of a previous query. It is
-	// not valid for starred queries or otherwise stored queries.
+	// ContinuationToken is used to get more results of a previous query.
 	ContinuationToken string `json:"continuationToken"`
 }
 
@@ -72,8 +71,8 @@ func (q Query) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// queries resolution string value to a proper time.Duration because that's what
-// the server returns.
+// queries resolution string value to a proper [time.Duration] value because
+// that's what the server returns.
 func (q *Query) UnmarshalJSON(b []byte) error {
 	type LocalQuery Query
 	localQuery := struct {
