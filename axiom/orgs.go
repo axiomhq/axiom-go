@@ -171,7 +171,7 @@ func (l License) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// MaxQueryWindow and MaxAuditWindow into a proper time.Duration value because
+// MaxQueryWindow and MaxAuditWindow into a proper [time.Duration] value because
 // the server returns it in seconds.
 func (l *License) UnmarshalJSON(b []byte) error {
 	type localLicense *License
@@ -180,7 +180,7 @@ func (l *License) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// Set to a proper time.Duration value by interpreting the server response
+	// Set to a proper [time.Duration] value by interpreting the server response
 	// value in seconds.
 	l.MaxQueryWindow = l.MaxQueryWindow * time.Second
 	l.MaxAuditWindow = l.MaxAuditWindow * time.Second
