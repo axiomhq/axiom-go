@@ -180,16 +180,16 @@ func (h *Handler) Enabled(_ context.Context, level slog.Level) bool {
 func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	event := axiom.Event{}
 
-	// Set record attributes first, handler attributes second.
+	// Set handler attributes first, record attributes second.
+	for _, attr := range h.attrs {
+		addAttrToEvent(event, attr)
+	}
 	r.Attrs(func(attr slog.Attr) bool {
 		addAttrToEvent(event, attr)
 		return true
 	})
-	for _, attr := range h.attrs {
-		addAttrToEvent(event, attr)
-	}
 
-	// Nest attributes in handler groups, if any.
+	// Nest attributes in handler groups as objects, if any.
 	for i := len(h.groups) - 1; i >= 0; i-- {
 		event = axiom.Event{h.groups[i]: event}
 	}
@@ -245,6 +245,7 @@ func addAttrToEvent(event axiom.Event, attr slog.Attr) {
 		return
 	}
 
+	// If we have a group, nest it as an object.
 	v := attr.Value.Resolve()
 	if v.Kind() == slog.KindGroup {
 		group := axiom.Event{}
