@@ -62,15 +62,14 @@ func TestHook(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := adapters.Setup(t, hf, setup(t))
+	logger, flush := adapters.Setup(t, hf, setup(t))
 
 	logger.
 		WithTime(now).
 		WithField("key", "value").
 		Info("my message")
 
-	// Wait for timer based hook flush.
-	time.Sleep(1250 * time.Millisecond)
+	flush()
 
 	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
 }
@@ -91,7 +90,7 @@ func TestHook_FlushFullBatch(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := adapters.Setup(t, hf, setup(t))
+	logger, _ := adapters.Setup(t, hf, setup(t))
 
 	for i := 0; i <= 1000; i++ {
 		logger.Info("my message")
@@ -110,8 +109,8 @@ func TestHook_FlushFullBatch(t *testing.T) {
 	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
 }
 
-func setup(t *testing.T) func(dataset string, client *axiom.Client) *logrus.Logger {
-	return func(dataset string, client *axiom.Client) *logrus.Logger {
+func setup(t *testing.T) func(dataset string, client *axiom.Client) (*logrus.Logger, func()) {
+	return func(dataset string, client *axiom.Client) (*logrus.Logger, func()) {
 		t.Helper()
 
 		hook, err := New(
@@ -127,6 +126,6 @@ func setup(t *testing.T) func(dataset string, client *axiom.Client) *logrus.Logg
 		// We don't want output in tests.
 		logger.Out = io.Discard
 
-		return logger
+		return logger, hook.Close
 	}
 }

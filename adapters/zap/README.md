@@ -46,6 +46,7 @@ core, err := adapter.New(
 ### ❗ Important ❗
 
 The adapter uses a buffer to batch events before sending them to Axiom. This
-buffer must be flushed explicitly by calling [Sync](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/zap#WriteSyncer.Sync). Refer to the
-[zap documentation](https://pkg.go.dev/go.uber.org/zap/zapcore#WriteSyncer)
-for details and checkout out the [example](../../examples/zap/main.go).
+buffer must be flushed explicitly by calling[Sync](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/zap#WriteSyncer.Sync).
+Refer to the
+[zap documentation](https://pkg.go.dev/go.uber.org/zap/zapcore#WriteSyncer) for
+details and checkout out the [example](../../examples/zap/main.go).

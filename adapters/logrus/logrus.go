@@ -3,7 +3,7 @@ package logrus
 import (
 	"context"
 	"errors"
-	stdlog "log"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -16,7 +16,7 @@ import (
 
 var _ logrus.Hook = (*Hook)(nil)
 
-const defaultBatchSize = 1024
+const defaultBatchSize = 1000
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
 // manually using the [SetDataset] option or export "AXIOM_DATASET".
@@ -134,7 +134,7 @@ func New(options ...Option) (*Hook, error) {
 	go func() {
 		defer close(hook.closeCh)
 
-		logger := stdlog.New(os.Stderr, "[AXIOM|LOGRUS]", 0)
+		logger := log.New(os.Stderr, "[AXIOM|LOGRUS]", 0)
 
 		res, err := hook.client.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...)
 		if err != nil {
