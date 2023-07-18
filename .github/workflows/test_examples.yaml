@@ -39,6 +39,7 @@ jobs:
           - oteltraces
           - query
           - querylegacy
+          - slog
           - zap
         include:
           - example: apex
@@ -71,6 +72,9 @@ jobs:
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
               axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
               sleep 5
+          - example: slog
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: zap
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
