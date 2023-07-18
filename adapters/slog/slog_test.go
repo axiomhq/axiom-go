@@ -73,42 +73,7 @@ func TestHandler(t *testing.T) {
 }
 
 func TestHandler_FlushFullBatch(t *testing.T) {
-	var lines uint64
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		zsr, err := zstd.NewReader(r.Body)
-		require.NoError(t, err)
-
-		s := bufio.NewScanner(zsr)
-		for s.Scan() {
-			atomic.AddUint64(&lines, 1)
-		}
-		assert.NoError(t, s.Err())
-
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte("{}"))
-	}
-
-	logger, _ := adapters.Setup(t, hf, setup(t))
-
-	for i := 0; i <= 1000; i++ {
-		logger.Info("my message")
-	}
-
-	// Let the server process.
-	time.Sleep(250 * time.Millisecond)
-
-	// Should have a full batch right away.
-	assert.EqualValues(t, 1000, atomic.LoadUint64(&lines))
-
-	// Wait for timer based hook flush.
-	time.Sleep(1250 * time.Millisecond)
-
-	// Should have received the last event.
-	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
-}
-
-func TestHandler_Groups(t *testing.T) {
-	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","s":{"a":1,"b":2},"msg":"my message"}`,
+	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message"}`,
 		time.Now().Format(time.RFC3339Nano))
 
 	var lines uint64
@@ -127,14 +92,91 @@ func TestHandler_Groups(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, flush := adapters.Setup(t, hf, setup(t))
+	logger, _ := adapters.Setup(t, hf, setup(t))
+
+	for i := 0; i <= 1000; i++ {
+		logger.
+			With("key", "value").
+			Info("my message")
+	}
+
+	// Let the server process.
+	time.Sleep(250 * time.Millisecond)
+
+	// Should have a full batch right away.
+	assert.EqualValues(t, 1000, atomic.LoadUint64(&lines))
+
+	// Wait for timer based hook flush.
+	time.Sleep(1250 * time.Millisecond)
+
+	// Should have received the last event.
+	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
+}
+
+func TestHandler_NoPanicAfterClose(t *testing.T) {
+	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message"}`,
+		time.Now().Format(time.RFC3339Nano))
+
+	var lines uint64
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		s := bufio.NewScanner(zsr)
+		for s.Scan() {
+			testhelper.JSONEqExp(t, exp, s.Text(), []string{ingest.TimestampField})
+			atomic.AddUint64(&lines, 1)
+		}
+		assert.NoError(t, s.Err())
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte("{}"))
+	}
+
+	logger, closeHandler := adapters.Setup(t, hf, setup(t))
+
+	logger.
+		With("key", "value").
+		Info("my message")
+
+	closeHandler()
+
+	// This should be a no-op.
+	logger.
+		With("key", "value").
+		Info("my message")
+
+	assert.EqualValues(t, 1, atomic.LoadUint64(&lines))
+}
+
+func TestHandler_Groups(t *testing.T) {
+	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","s":{"a":1,"b":2},"msg":"my message"}`,
+		time.Now().Format(time.RFC3339Nano))
+
+	var lines uint64
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		s := bufio.NewScanner(zsr)
+		for s.Scan() {
+			testhelper.JSONEqExp(t, exp, s.Text(), []string{ingest.TimestampField})
+			atomic.AddUint64(&lines, 1)
+		}
+		assert.NoError(t, s.Err())
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte("{}"))
+	}
+
+	logger, closeHandler := adapters.Setup(t, hf, setup(t))
 
 	ctx := context.Background()
 
 	logger.WithGroup("s").LogAttrs(ctx, slog.LevelInfo, "my message", slog.Int("a", 1), slog.Int("b", 2))
 	logger.LogAttrs(ctx, slog.LevelInfo, "my message", slog.Group("s", slog.Int("a", 1), slog.Int("b", 2)))
 
-	flush()
+	closeHandler()
 
 	assert.EqualValues(t, 2, atomic.LoadUint64(&lines))
 }

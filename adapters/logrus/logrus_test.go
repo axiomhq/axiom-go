@@ -62,19 +62,24 @@ func TestHook(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, flush := adapters.Setup(t, hf, setup(t))
+	logger, closeHook := adapters.Setup(t, hf, setup(t))
 
 	logger.
 		WithTime(now).
 		WithField("key", "value").
 		Info("my message")
 
-	flush()
+	closeHook()
 
 	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
 }
 
 func TestHook_FlushFullBatch(t *testing.T) {
+	now := time.Now()
+
+	exp := fmt.Sprintf(`{"_time":"%s","severity":"info","key":"value","message":"my message"}`,
+		now.Format(time.RFC3339Nano))
+
 	var lines uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		zsr, err := zstd.NewReader(r.Body)
@@ -82,6 +87,7 @@ func TestHook_FlushFullBatch(t *testing.T) {
 
 		s := bufio.NewScanner(zsr)
 		for s.Scan() {
+			assert.JSONEq(t, exp, s.Text())
 			atomic.AddUint64(&lines, 1)
 		}
 		assert.NoError(t, s.Err())
@@ -93,7 +99,10 @@ func TestHook_FlushFullBatch(t *testing.T) {
 	logger, _ := adapters.Setup(t, hf, setup(t))
 
 	for i := 0; i <= 1000; i++ {
-		logger.Info("my message")
+		logger.
+			WithTime(now).
+			WithField("key", "value").
+			Info("my message")
 	}
 
 	// Let the server process.
@@ -107,6 +116,46 @@ func TestHook_FlushFullBatch(t *testing.T) {
 
 	// Should have received the last event.
 	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
+}
+
+func TestHook_NoPanicAfterClose(t *testing.T) {
+	now := time.Now()
+
+	exp := fmt.Sprintf(`{"_time":"%s","severity":"info","key":"value","message":"my message"}`,
+		now.Format(time.RFC3339Nano))
+
+	var lines uint64
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		s := bufio.NewScanner(zsr)
+		for s.Scan() {
+			assert.JSONEq(t, exp, s.Text())
+			atomic.AddUint64(&lines, 1)
+		}
+		assert.NoError(t, s.Err())
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte("{}"))
+	}
+
+	logger, closeHook := adapters.Setup(t, hf, setup(t))
+
+	logger.
+		WithTime(now).
+		WithField("key", "value").
+		Info("my message")
+
+	closeHook()
+
+	// This should be a no-op.
+	logger.
+		WithTime(now).
+		WithField("key", "value").
+		Info("my message")
+
+	assert.EqualValues(t, 1, atomic.LoadUint64(&lines))
 }
 
 func setup(t *testing.T) func(dataset string, client *axiom.Client) (*logrus.Logger, func()) {
