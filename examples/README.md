@@ -52,6 +52,8 @@ eval $(axiom config export -f)
   [Apex](https://github.com/apex/log) logging package.
 - [logrus](logrus/main.go): How to ship logs to Axiom using the popular
   [Logrus](https://github.com/sirupsen/logrus) logging package.
+- [slog](slog/main.go): How to ship logs to Axiom using the standard libraries
+  [Slog](https://pkg.go.dev/golang.org/x/exp/slog) structured logging package.
 - [zap](zap/main.go): How to ship logs to Axiom using the popular
   [Zap](https://github.com/uber-go/zap) logging package.
 

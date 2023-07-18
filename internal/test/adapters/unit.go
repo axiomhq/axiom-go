@@ -13,7 +13,7 @@ import (
 // Setup sets up a test http server that serves the given handler function. It
 // uses the given setup function to retrieve the adapter to be tested that must
 // be configured to talk to the client passed to the setup function.
-func Setup[T any](t *testing.T, hf http.HandlerFunc, setupFunc func(dataset string, client *axiom.Client) T) T {
+func Setup[T any](t *testing.T, hf http.HandlerFunc, setupFunc func(dataset string, client *axiom.Client) (T, func())) (T, func()) {
 	t.Helper()
 
 	srv := httptest.NewServer(hf)
