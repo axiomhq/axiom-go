@@ -48,7 +48,7 @@ func TestCore(t *testing.T) {
 		require.NoError(t, err)
 
 		b, err := io.ReadAll(zsr)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.JSONEq(t, exp, string(b))
 
@@ -58,7 +58,7 @@ func TestCore(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := adapters.Setup(t, hf, func(dataset string, client *axiom.Client) *zap.Logger {
+	logger, _ := adapters.Setup(t, hf, func(dataset string, client *axiom.Client) (*zap.Logger, func()) {
 		t.Helper()
 
 		core, err := New(
@@ -73,7 +73,7 @@ func TestCore(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		return logger
+		return logger, func() {}
 	})
 
 	// Timestamp field is set manually to make the JSONEq assertion pass.

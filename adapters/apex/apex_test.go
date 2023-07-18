@@ -42,10 +42,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestHandler(t *testing.T) {
-	now := time.Now()
-
 	exp := fmt.Sprintf(`{"_time":"%s","severity":"info","key":"value","message":"my message"}`,
-		now.Format(time.RFC3339Nano))
+		time.Now().Format(time.RFC3339Nano))
 
 	var hasRun uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +51,7 @@ func TestHandler(t *testing.T) {
 		require.NoError(t, err)
 
 		b, err := io.ReadAll(zsr)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		testhelper.JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
 
@@ -63,14 +61,13 @@ func TestHandler(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := adapters.Setup(t, hf, setup(t))
+	logger, flush := adapters.Setup(t, hf, setup(t))
 
 	logger.
 		WithField("key", "value").
 		Info("my message")
 
-	// Wait for timer based handler flush.
-	time.Sleep(1250 * time.Millisecond)
+	flush()
 
 	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
 }
@@ -91,7 +88,7 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger := adapters.Setup(t, hf, setup(t))
+	logger, _ := adapters.Setup(t, hf, setup(t))
 
 	for i := 0; i <= 1000; i++ {
 		logger.Info("my message")
@@ -110,8 +107,8 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
 }
 
-func setup(t *testing.T) func(dataset string, client *axiom.Client) *log.Logger {
-	return func(dataset string, client *axiom.Client) *log.Logger {
+func setup(t *testing.T) func(dataset string, client *axiom.Client) (*log.Logger, func()) {
+	return func(dataset string, client *axiom.Client) (*log.Logger, func()) {
 		t.Helper()
 
 		handler, err := New(
@@ -126,6 +123,6 @@ func setup(t *testing.T) func(dataset string, client *axiom.Client) *log.Logger 
 			Level:   log.InfoLevel,
 		}
 
-		return logger
+		return logger, handler.Close
 	}
 }

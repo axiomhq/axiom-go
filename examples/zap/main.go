@@ -18,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 2. Spawn the logger.
+	// 2. Create the logger.
 	logger := zap.New(core)
 
 	// 3. Have all logs flushed before the application exits.
