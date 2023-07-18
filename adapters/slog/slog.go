@@ -201,9 +201,13 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	event[slog.LevelKey] = r.Level.String()
 	event[slog.MessageKey] = r.Message
 
-	h.eventCh <- event
-
-	return nil
+	select {
+	case <-h.closeCh:
+		return errors.New("handler closed")
+	default:
+		h.eventCh <- event
+		return nil
+	}
 }
 
 // WithAttrs implements [slog.Handler].

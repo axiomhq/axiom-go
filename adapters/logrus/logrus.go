@@ -178,7 +178,11 @@ func (h *Hook) Fire(entry *logrus.Entry) error {
 	event["severity"] = entry.Level.String()
 	event["message"] = entry.Message
 
-	h.eventCh <- event
-
-	return nil
+	select {
+	case <-h.closeCh:
+		return errors.New("handler closed")
+	default:
+		h.eventCh <- event
+		return nil
+	}
 }
