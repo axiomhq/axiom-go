@@ -54,7 +54,7 @@ passed to the `axiom.NewClient` function:
 
 ```go
 client, err := axiom.NewClient(
-    SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
+    axiom.SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
 )
 ```
 
