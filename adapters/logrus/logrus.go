@@ -109,7 +109,9 @@ func New(options ...Option) (*Hook, error) {
 
 	// Apply supplied options.
 	for _, option := range options {
-		if err := option(hook); err != nil {
+		if option == nil {
+			continue
+		} else if err := option(hook); err != nil {
 			return nil, err
 		}
 	}

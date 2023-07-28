@@ -97,7 +97,9 @@ func New(options ...Option) (*Handler, error) {
 
 	// Apply supplied options.
 	for _, option := range options {
-		if err := option(handler); err != nil {
+		if option == nil {
+			continue
+		} else if err := option(handler); err != nil {
 			return nil, err
 		}
 	}

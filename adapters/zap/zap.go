@@ -122,7 +122,9 @@ func New(options ...Option) (zapcore.Core, error) {
 
 	// Apply supplied options.
 	for _, option := range options {
-		if err := option(ws); err != nil {
+		if option == nil {
+			continue
+		} else if err := option(ws); err != nil {
 			return nil, err
 		}
 	}

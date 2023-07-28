@@ -325,7 +325,9 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 	// Apply supplied options.
 	var opts ingest.Options
 	for _, option := range options {
-		option(&opts)
+		if option != nil {
+			option(&opts)
+		}
 	}
 
 	path, err := url.JoinPath(s.basePath, id, "ingest")
@@ -396,7 +398,9 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	// Apply supplied options.
 	var opts ingest.Options
 	for _, option := range options {
-		option(&opts)
+		if option != nil {
+			option(&opts)
+		}
 	}
 
 	if len(events) == 0 {
@@ -572,7 +576,9 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	// Apply supplied options.
 	var opts query.Options
 	for _, option := range options {
-		option(&opts)
+		if option != nil {
+			option(&opts)
+		}
 	}
 
 	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(

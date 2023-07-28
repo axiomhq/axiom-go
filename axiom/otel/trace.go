@@ -39,7 +39,9 @@ func TraceExporter(ctx context.Context, dataset string, options ...TraceOption) 
 
 	// Apply supplied options.
 	for _, option := range options {
-		if err := option(&config); err != nil {
+		if option == nil {
+			continue
+		} else if err := option(&config); err != nil {
 			return nil, err
 		}
 	}
