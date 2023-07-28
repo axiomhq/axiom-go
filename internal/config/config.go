@@ -58,7 +58,9 @@ func (c *Config) SetOrganizationID(organizationID string) {
 // Options applies options to the configuration.
 func (c *Config) Options(options ...Option) error {
 	for _, option := range options {
-		if err := option(c); err != nil {
+		if option == nil {
+			continue
+		} else if err := option(c); err != nil {
 			return err
 		}
 	}

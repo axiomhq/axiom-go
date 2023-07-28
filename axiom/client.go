@@ -146,7 +146,9 @@ func NewClient(options ...Option) (*Client, error) {
 // Options applies options to the client.
 func (c *Client) Options(options ...Option) error {
 	for _, option := range options {
-		if err := option(c); err != nil {
+		if option == nil {
+			continue
+		} else if err := option(c); err != nil {
 			return err
 		}
 	}
