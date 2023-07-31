@@ -27,10 +27,18 @@ jobs:
     if: github.repository_owner == 'axiomhq'
     steps:
       - uses: z0al/dependent-issues@v1
+        if: github.actor != 'dependabot[bot]'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_READ_TOKEN: ${{ secrets.AXIOM_AUTOMATION_TOKEN }}
         with:
           label: dependent
           keywords: depends on, blocked by, needs, requires
-          ignore_dependabot: on
+      - uses: LouisBrunner/checks-action@v1.6.2
+        if: github.actor == 'dependabot[bot]'
+        with:
+          token: ${{ github.token }}
+          name: Dependent Issues
+          conclusion: success
+          output: |
+            {"summary":"Not checking for dependent issues or PRs on Dependabot PRs."}
