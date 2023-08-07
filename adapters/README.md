@@ -3,7 +3,7 @@
 Adapters integrate Axiom Go into well known Go logging libraries.
 
 💡 _Go **1.21** will feature the `slog` package, a structured logging package in
-the Go standard library. You can try it out know by importing
+the Go standard library. You can try it out now by importing
 `golang.org/x/exp/slog` and we already provide [an adapter](slog)._
 
 We currently support a bunch of adapters right out of the box.
