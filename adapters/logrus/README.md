@@ -21,7 +21,7 @@ function:
 
 ```go
 hook, err := adapter.New(
-    SetDataset("AXIOM_DATASET"),
+    adapter.SetDataset("AXIOM_DATASET"),
 )
 ```
 
@@ -37,7 +37,7 @@ import adapter "github.com/axiomhq/axiom-go/axiom"
 // ...
 
 hook, err := adapter.New(
-    SetClientOptions(
+    adapter.SetClientOptions(
         axiom.SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
     ),
 )
