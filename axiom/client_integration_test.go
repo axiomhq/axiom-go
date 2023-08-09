@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	s.NoError(s.suiteCtx.Err())
+	s.NoError(context.Cause(s.suiteCtx))
 	s.suiteCancel()
 }
 
@@ -76,7 +76,7 @@ func (s *IntegrationTestSuite) SetupTest() {
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {
-	s.NoError(s.ctx.Err())
+	s.NoError(context.Cause(s.ctx))
 	s.cancel()
 }
 
