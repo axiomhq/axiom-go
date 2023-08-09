@@ -544,7 +544,8 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	for {
 		select {
 		case <-ctx.Done():
-			return &ingestStatus, spanError(span, ctx.Err())
+
+			return &ingestStatus, spanError(span, context.Cause(ctx))
 		case event, ok := <-events:
 			if !ok {
 				// Channel is closed.
