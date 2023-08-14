@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/apex/log v1.9.0
 	github.com/cenkalti/backoff/v4 v4.2.1
-	github.com/golangci/golangci-lint v1.54.0
+	github.com/golangci/golangci-lint v1.54.1
 	github.com/google/go-querystring v1.1.0
 	github.com/klauspost/compress v1.16.7
 	github.com/schollz/progressbar/v3 v3.13.1
@@ -20,7 +20,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/exp v0.0.0-20230809094429-853ea248256d
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
 	golang.org/x/sync v0.3.0
 	golang.org/x/tools v0.12.0
 	gotest.tools/gotestsum v1.10.1
@@ -67,7 +67,7 @@ require (
 	github.com/firefart/nonamedreturns v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
-	github.com/go-critic/go-critic v0.8.2 // indirect
+	github.com/go-critic/go-critic v0.9.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
@@ -147,7 +147,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/quasilyte/go-ruleguard v0.3.19 // indirect
+	github.com/quasilyte/go-ruleguard v0.4.0 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
@@ -197,7 +197,7 @@ require (
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.tmz.dev/musttag v0.7.1 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
