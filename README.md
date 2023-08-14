@@ -58,6 +58,11 @@ client, err := axiom.NewClient(
 )
 ```
 
+💡 _When only performing **ingest** or **query** operations, an api token is
+sufficent enough. Create an api token with the appropriate scopes in
+[the Axiom API tokens settings](https://app.axiom.co/settings/api-tokens) and
+export it as `AXIOM_TOKEN`._
+
 Create and use a client like this:
 
 ```go
