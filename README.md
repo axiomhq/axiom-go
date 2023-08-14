@@ -58,8 +58,9 @@ client, err := axiom.NewClient(
 )
 ```
 
-💡 _When only performing **ingest** or **query** operations, an api token is
-sufficent enough. Create an api token with the appropriate scopes in
+💡 _When only performing **ingest** or **query** operations, we recommend using
+an api token with minimal privileges, only. Create an api token with the
+appropriate scopes in
 [the Axiom API tokens settings](https://app.axiom.co/settings/api-tokens) and
 export it as `AXIOM_TOKEN`._
 
