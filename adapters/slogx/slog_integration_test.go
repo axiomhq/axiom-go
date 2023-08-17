@@ -1,15 +1,15 @@
-//go:build integration && go1.21
+//go:build integration
 
-package slog_test
+package slogx_test
 
 import (
 	"context"
-	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/slog"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/slog"
+	adapter "github.com/axiomhq/axiom-go/adapters/slogx"
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/internal/test/adapters"
 )

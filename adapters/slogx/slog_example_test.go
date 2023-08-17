@@ -1,12 +1,11 @@
-//go:build go1.21
-
-package slog_test
+package slogx_test
 
 import (
 	"log"
-	"log/slog"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/slog"
+	"golang.org/x/exp/slog"
+
+	adapter "github.com/axiomhq/axiom-go/adapters/slogx"
 )
 
 func Example() {

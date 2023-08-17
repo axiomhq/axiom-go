@@ -1,13 +1,12 @@
-//go:build go1.21
-
 // The purpose of this example is to show how to integrate with slog.
 package main
 
 import (
 	"log"
-	"log/slog"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/slog"
+	"golang.org/x/exp/slog"
+
+	adapter "github.com/axiomhq/axiom-go/adapters/slogx"
 )
 
 func main() {

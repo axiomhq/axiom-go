@@ -1,16 +1,15 @@
-//go:build go1.21
-
-package slog
+package slogx
 
 import (
 	"context"
 	"errors"
 	"log"
-	"log/slog"
 	"os"
-	"slices"
 	"sync"
 	"time"
+
+	"golang.org/x/exp/slices"
+	"golang.org/x/exp/slog"
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/ingest"
