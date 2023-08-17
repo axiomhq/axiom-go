@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"log/slog"
+
 	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slog"
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/ingest"

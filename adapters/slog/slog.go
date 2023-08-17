@@ -8,8 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"log/slog"
+
 	"golang.org/x/exp/slices"
-	"golang.org/x/exp/slog"
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/ingest"

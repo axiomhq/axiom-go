@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slog"
+	"log/slog"
 
 	adapter "github.com/axiomhq/axiom-go/adapters/slog"
 	"github.com/axiomhq/axiom-go/axiom"

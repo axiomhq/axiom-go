@@ -4,7 +4,7 @@ package main
 import (
 	"log"
 
-	"golang.org/x/exp/slog"
+	"log/slog"
 
 	adapter "github.com/axiomhq/axiom-go/adapters/slog"
 )
