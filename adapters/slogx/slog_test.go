@@ -1,13 +1,10 @@
-//go:build go1.21
-
-package slog
+package slogx
 
 import (
 	"bufio"
 	"context"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"sync/atomic"
 	"testing"
@@ -16,6 +13,7 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/slog"
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/ingest"

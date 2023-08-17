@@ -32,7 +32,10 @@ or pass [client options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Op
 to the adapter using [SetClientOptions](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/zap#SetClientOptions).
 
 ```go
-import adapter "github.com/axiomhq/axiom-go/axiom"
+import (
+    "github.com/axiomhq/axiom-go/axiom"
+    adapter "github.com/axiomhq/axiom-go/adapters/zap"
+)
 
 // ...
 
@@ -46,7 +49,6 @@ core, err := adapter.New(
 ### ❗ Important ❗
 
 The adapter uses a buffer to batch events before sending them to Axiom. This
-buffer must be flushed explicitly by calling[Sync](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/zap#WriteSyncer.Sync).
-Refer to the
-[zap documentation](https://pkg.go.dev/go.uber.org/zap/zapcore#WriteSyncer) for
-details and checkout out the [example](../../examples/zap/main.go).
+buffer must be flushed explicitly by calling [Sync](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/zap#WriteSyncer.Sync).
+Refer to the [zap documentation](https://pkg.go.dev/go.uber.org/zap/zapcore#WriteSyncer)
+for details and checkout out the [example](../../examples/zap/main.go).

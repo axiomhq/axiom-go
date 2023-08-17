@@ -33,13 +33,20 @@ jobs:
           - apex
           - ingestevent
           - ingestfile
-          # - ingesthackernews # HINT(lukasmalkmus): We do not test this example as it takes too long!
+          # HINT(lukasmalkmus): We do not test this example as it takes too long!
+          # - ingesthackernews
           - logrus
           - otelinstrument
           - oteltraces
           - query
           - querylegacy
-          - slog
+          # HINT(lukasmalkmus): This test would require Go 1.21 (but uses Go
+          # 1.20 as specified in go.mod) but for the sake of simplicity we do
+          # not test it and trust the slogx test which is the same
+          # implementation but uses a different import path. Also unit and
+          # integration tests are quite extensive.
+          # - slog
+          - slogx
           - zap
         include:
           - example: apex
@@ -72,7 +79,10 @@ jobs:
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
               axiom ingest $AXIOM_DATASET -f=logs.json -f=logs.json -f=logs.json
               sleep 5
-          - example: slog
+          # - example: slog
+          #   verify: |
+          #     axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+          - example: slogx
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: zap

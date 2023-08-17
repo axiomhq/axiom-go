@@ -32,7 +32,10 @@ or pass [client options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Op
 to the adapter using [SetClientOptions](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/apex#SetClientOptions).
 
 ```go
-import adapter "github.com/axiomhq/axiom-go/axiom"
+import (
+    "github.com/axiomhq/axiom-go/axiom"
+    adapter "github.com/axiomhq/axiom-go/adapters/apex"
+)
 
 // ...
 
