@@ -24,10 +24,7 @@ func TestGzipEncoder(t *testing.T) {
 
 	gzr, err := gzip.NewReader(r)
 	require.NoError(t, err)
-	defer func() {
-		closeErr := gzr.Close()
-		require.NoError(t, closeErr)
-	}()
+	defer func() { require.NoError(t, gzr.Close()) }()
 
 	act, err := io.ReadAll(gzr)
 	require.NoError(t, err)

@@ -40,6 +40,7 @@ jobs:
           - oteltraces
           - query
           - querylegacy
+          - sas
           - slog
           - zap
           - zerolog
@@ -87,6 +88,7 @@ jobs:
       AXIOM_URL: ${{ secrets.TESTING_STAGING_API_URL }}
       AXIOM_TOKEN: ${{ secrets.TESTING_STAGING_TOKEN }}
       AXIOM_ORG_ID: ${{ secrets.TESTING_STAGING_ORG_ID }}
+      AXIOM_SIGNING_KEY: ${{ secrets.TESTING_STAGING_SHARED_ACCESS_SIGNING_KEY }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +97,7 @@ jobs:
           go-version-file: go.mod
       - name: Setup test dataset
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.10.0 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset create -n=$AXIOM_DATASET -d="Axiom Go ${{ matrix.example }} example test"
       - name: Setup example
         if: matrix.setup

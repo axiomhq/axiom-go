@@ -260,7 +260,7 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
@@ -533,9 +533,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	defer t.Stop()
 
 	var ingestStatus ingest.Status
-	defer func() {
-		setIngestResultOnSpan(span, ingestStatus)
-	}()
+	defer func() { setIngestResultOnSpan(span, ingestStatus) }()
 
 	flush := func() error {
 		if len(batch) == 0 {
@@ -556,7 +554,6 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	for {
 		select {
 		case <-ctx.Done():
-
 			return &ingestStatus, spanError(span, context.Cause(ctx))
 		case event, ok := <-events:
 			if !ok {
@@ -596,9 +593,10 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 
 	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(
 		attribute.String("axiom.param.apl", apl),
-		attribute.String("axiom.param.start_time", opts.StartTime.String()),
-		attribute.String("axiom.param.end_time", opts.EndTime.String()),
+		attribute.String("axiom.param.start_time", opts.StartTime),
+		attribute.String("axiom.param.end_time", opts.EndTime),
 		attribute.String("axiom.param.cursor", opts.Cursor),
+		attribute.Bool("axiom.param.include_cursor", opts.IncludeCursor),
 	))
 	defer span.End()
 
@@ -648,7 +646,10 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 // the future. Use [DatasetsService.Query] instead.
 func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.QueryLegacy", trace.WithAttributes(
-		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.dataset_id", id),
+		attribute.String("axiom.param.streaming_duration", opts.StreamingDuration.String()),
+		attribute.Bool("axiom.param.no_cache", opts.NoCache),
+		attribute.String("axiom.param.save_kind", opts.SaveKind.String()),
 	))
 	defer span.End()
 

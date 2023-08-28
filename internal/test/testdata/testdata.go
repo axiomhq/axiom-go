@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/klauspost/compress/gzip"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,9 +18,7 @@ var testdata []byte
 func Load(tb testing.TB) []byte {
 	gzr, err := gzip.NewReader(bytes.NewReader(testdata))
 	require.NoError(tb, err)
-	defer func() {
-		require.NoError(tb, gzr.Close())
-	}()
+	defer func() { assert.NoError(tb, gzr.Close()) }()
 
 	b, err := io.ReadAll(gzr)
 	require.NoError(tb, err)

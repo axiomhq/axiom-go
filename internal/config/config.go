@@ -8,7 +8,7 @@ import (
 // Config is the configuration for Axiom related functionality. It should never
 // be created manually but always via the [Default] function.
 type Config struct {
-	// baseURL of the Axiom instance. Defaults to [CloudURL].
+	// baseURL of the Axiom instance. Defaults to [APIURL].
 	baseURL *url.URL
 	// token is the authentication token that will be set as 'Bearer' on the
 	// 'Authorization' header. It must be an api or a personal token.

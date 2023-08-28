@@ -112,6 +112,7 @@ jobs:
       AXIOM_URL: ${{ secrets[format('TESTING_{0}_API_URL', matrix.slug)] }}
       AXIOM_TOKEN: ${{ secrets[format('TESTING_{0}_TOKEN', matrix.slug)] }}
       AXIOM_ORG_ID: ${{ secrets[format('TESTING_{0}_ORG_ID', matrix.slug)] }}
+      AXIOM_SIGNING_KEY: ${{ secrets[format('TESTING_{0}_SHARED_ACCESS_SIGNING_KEY', matrix.slug)] }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
       TELEMETRY_TRACES_URL: ${{ secrets.TELEMETRY_TRACES_URL }}
       TELEMETRY_TRACES_TOKEN: ${{ secrets.TELEMETRY_TRACES_TOKEN }}
@@ -126,7 +127,7 @@ jobs:
       - name: Cleanup (On Test Failure)
         if: failure()
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.10.0 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/latest | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
 
   ci-pass:
