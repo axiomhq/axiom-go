@@ -45,7 +45,7 @@ const (
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
 
-var validOnlyAPITokenPaths = regexp.MustCompile(`^/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
+var validAPITokenPaths = regexp.MustCompile(`^/v1/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
 
 // service is the base service used by all Axiom API services.
 type service struct {
@@ -191,7 +191,7 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 	}
 	endpoint := c.config.BaseURL().ResolveReference(rel)
 
-	if config.IsAPIToken(c.config.Token()) && !validOnlyAPITokenPaths.MatchString(endpoint.Path) {
+	if config.IsAPIToken(c.config.Token()) && !validAPITokenPaths.MatchString(endpoint.Path) {
 		return nil, ErrUnprivilegedToken
 	}
 

@@ -69,12 +69,12 @@ func limitScopeFromString(s string) (ls LimitScope, err error) {
 type Limit struct {
 	// Scope a limit is enforced for. Only present on rate limited requests.
 	Scope LimitScope
-	// The maximum limit a client is limited to for a specified time window
+	// The maximum limit a client is limited to for a specified time range
 	// which resets at the time indicated by [Limit.Reset].
 	Limit uint64
 	// The remaining count towards the maximum limit.
 	Remaining uint64
-	// The time at which the current limit time window will reset.
+	// The time at which the current limit time range will reset.
 	Reset time.Time
 
 	limitType limitType

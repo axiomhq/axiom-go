@@ -20,6 +20,8 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
+	"github.com/axiomhq/axiom-go/axiom/sas"
+	"github.com/axiomhq/axiom-go/internal/config"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
@@ -109,7 +111,7 @@ type DatasetUpdateRequest struct {
 }
 
 type wrappedDataset struct {
-	Dataset
+	*Dataset
 
 	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
 	// package so we just ignore it for now.
@@ -190,7 +192,7 @@ func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 
 	datasets := make([]*Dataset, len(res))
 	for i, r := range res {
-		datasets[i] = &r.Dataset
+		datasets[i] = r.Dataset
 	}
 
 	return datasets, nil
@@ -213,7 +215,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 		return nil, spanError(span, err)
 	}
 
-	return &res.Dataset, nil
+	return res.Dataset, nil
 }
 
 // Create a dataset with the given properties.
@@ -229,7 +231,7 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 		return nil, spanError(span, err)
 	}
 
-	return &res.Dataset, nil
+	return res.Dataset, nil
 }
 
 // Update the dataset identified by the given id with the given properties.
@@ -250,7 +252,7 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 		return nil, spanError(span, err)
 	}
 
-	return &res.Dataset, nil
+	return res.Dataset, nil
 }
 
 // Delete the dataset identified by the given id.
@@ -584,18 +586,29 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 
 	ctx, span := s.client.trace(ctx, "Datasets.Query", trace.WithAttributes(
 		attribute.String("axiom.param.apl", apl),
-		attribute.String("axiom.param.start_time", opts.StartTime.String()),
-		attribute.String("axiom.param.end_time", opts.EndTime.String()),
+		attribute.String("axiom.param.start_time", opts.StartTime),
+		attribute.String("axiom.param.end_time", opts.EndTime),
 		attribute.String("axiom.param.cursor", opts.Cursor),
+		attribute.Bool("axiom.param.include_cursor", opts.IncludeCursor),
 	))
 	defer span.End()
 
 	// The only query parameters supported can be hardcoded as they are not
 	// configurable as of now.
 	queryParams := struct {
+		*sas.Options
+
 		Format string `url:"format"`
 	}{
 		Format: "legacy", // Hardcode legacy APL format for now.
+	}
+
+	if t := s.client.config.Token(); config.IsSharedAccessSignature(t) {
+		options, err := sas.Decode(t)
+		if err != nil {
+			return nil, spanError(span, err)
+		}
+		queryParams.Options = &options
 	}
 
 	path, err := url.JoinPath(s.basePath, "_apl")
@@ -612,6 +625,11 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	})
 	if err != nil {
 		return nil, spanError(span, err)
+	}
+
+	if config.IsSharedAccessSignature(s.client.config.Token()) {
+		req.Header.Del(headerAuthorization)
+		req.Header.Del(headerOrganizationID)
 	}
 
 	var res aplQueryResponse
@@ -632,7 +650,10 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 // the future. Use [DatasetsService.Query] instead.
 func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.QueryLegacy", trace.WithAttributes(
-		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.dataset_id", id),
+		attribute.String("axiom.param.streaming_duration", opts.StreamingDuration.String()),
+		attribute.Bool("axiom.param.no_cache", opts.NoCache),
+		attribute.String("axiom.param.save_kind", opts.SaveKind.String()),
 	))
 	defer span.End()
 

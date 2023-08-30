@@ -194,6 +194,56 @@ func TestOrganizationsService_Get(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestOrganizationsService_ViewSigningKeys(t *testing.T) {
+	exp := &SigningKeys{
+		Primary:   "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+		Secondary: "6205e228-f8ed-4265-bee8-058a9b1091db",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `{
+			"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+			"secondary": "6205e228-f8ed-4265-bee8-058a9b1091db"
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "/v1/orgs/axiom/keys", hf)
+
+	res, err := client.Organizations.ViewSigningKeys(context.Background(), "axiom")
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestOrganizationsService_RotateSigningKeys(t *testing.T) {
+	exp := &SigningKeys{
+		Primary:   "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+		Secondary: "6205e228-f8ed-4265-bee8-058a9b1091db",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `{
+			"primary": "75bb5815-8459-4b6e-a08f-1eb8058db44e",
+			"secondary": "6205e228-f8ed-4265-bee8-058a9b1091db"
+		}`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "/v1/orgs/axiom/rotate-keys", hf)
+
+	res, err := client.Organizations.RotateSigningKeys(context.Background(), "axiom")
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
 func TestPlan_Marshal(t *testing.T) {
 	exp := `{
 		"plan": "personal"

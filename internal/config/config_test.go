@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	endpoint         = "http://api.axiom.local"
-	apiToken         = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	personalToken    = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
-	unspecifiedToken = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-	organizationID   = "awkward-identifier-c3po"
+	endpoint              = "http://api.axiom.local"
+	apiToken              = "xaat-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	personalToken         = "xapt-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" //nolint:gosec // Chill, it's just testing.
+	sharedAccessSignature = "dt=logs&fl=customer+%3D%3D+%22peter%22&met=now&mst=ago%281h%29&oi=axiom&tk=0M41vwyiTVtAqW_aw8ZaIgeyOlxnSwtFoFbywuQ-VCc%3D"
+	unspecifiedToken      = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	organizationID        = "awkward-identifier-c3po"
 )
 
 func TestConfig_IncorporateEnvironment(t *testing.T) {

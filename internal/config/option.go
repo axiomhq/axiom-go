@@ -22,7 +22,7 @@ func SetURL(baseURL string) Option {
 // SetToken specifies the token to use.
 func SetToken(token string) Option {
 	return func(config *Config) error {
-		if !IsValidToken(token) {
+		if !IsValidCredential(token) {
 			return ErrInvalidToken
 		}
 

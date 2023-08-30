@@ -1,90 +1,52 @@
 package sas
 
 import (
-	"encoding/json"
 	"errors"
 	"net/url"
-	"time"
-
-	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
-// Options represents the options for creating a shared access token or a shared
-// access signature.
+// The parameter names for the shared access signature query string.
+const (
+	queryOrgID        = "oi"
+	queryDataset      = "dt"
+	queryFilter       = "fl"
+	queryMinStartTime = "mst"
+	queryMaxEndTime   = "met"
+	queryToken        = "tk"
+)
+
+// Options are the url query parameters used to authenticate a query request.
 type Options struct {
-	// OrganizationID is the ID of the organization the token and signature is
-	// valid for.
-	OrganizationID string
-	// Dataset name the token and signature is valid for.
-	Dataset string
-	// Filter is the top-level query filter to apply to all query requests the
-	// token and signature is valid for.
-	Filter querylegacy.Filter
-	// MinStartTime is the earliest query start time the token and signature is
-	// valid for.
-	MinStartTime time.Time
-	// MaxEndTime is the latest query end time the token and signature is valid
-	// for.
-	MaxEndTime time.Time
+	Params
+
+	// Token is the signature created from the other fields in the options.
+	Token string `url:"tk"`
 }
 
-// optionsFromURLValues returns options from the given url query values.
-func optionsFromURLValues(q url.Values) (options Options, err error) {
-	options = Options{
-		OrganizationID: q.Get(queryOrgID),
-		Dataset:        q.Get(queryDataset),
+// Decode decodes the given signature into a set of options.
+func Decode(signature string) (Options, error) {
+	q, err := url.ParseQuery(signature)
+	if err != nil {
+		return Options{}, err
 	}
 
-	// The filter is encoded as a JSON string.
-	var (
-		f         filter
-		filterStr = q.Get(queryFilter)
-	)
-	if err = json.Unmarshal([]byte(filterStr), &f); err != nil {
-		return options, err
+	options := Options{
+		Params: Params{
+			OrganizationID: q.Get(queryOrgID),
+			Dataset:        q.Get(queryDataset),
+			Filter:         q.Get(queryFilter),
+			MinStartTime:   q.Get(queryMinStartTime),
+			MaxEndTime:     q.Get(queryMaxEndTime),
+		},
+		Token: q.Get(queryToken),
 	}
-	options.Filter = f.toQueryFilter()
 
-	if options.MinStartTime, err = time.Parse(time.RFC3339, q.Get(queryMinStartTime)); err != nil {
+	// Validate that the params are valid and the token is present.
+	if err := options.Params.Validate(); err != nil {
 		return options, err
-	}
-	if options.MaxEndTime, err = time.Parse(time.RFC3339, q.Get(queryMaxEndTime)); err != nil {
-		return options, err
+	} else if options.Token == "" {
+		return options, errors.New("missing token")
 	}
 
 	return options, nil
-}
-
-// urlValues returns the options as  url query values.
-func (o Options) urlValues() (url.Values, error) {
-	// The filter is encoded as a JSON string.
-	filterStr, err := json.Marshal(filterFromQueryFilter(o.Filter))
-	if err != nil {
-		return nil, err
-	}
-
-	q := make(url.Values, 5)
-	q.Set(queryOrgID, o.OrganizationID)
-	q.Set(queryDataset, o.Dataset)
-	q.Set(queryFilter, string(filterStr))
-	q.Set(queryMinStartTime, o.MinStartTime.Format(time.RFC3339))
-	q.Set(queryMaxEndTime, o.MaxEndTime.Format(time.RFC3339))
-
-	return q, nil
-}
-
-// validate makes sure that all options are provided.
-func (o Options) validate() error {
-	if o.OrganizationID == "" {
-		return errors.New("organization ID is required")
-	} else if o.Dataset == "" {
-		return errors.New("dataset is required")
-	} else if o.Filter.Op == 0 {
-		return errors.New("filter is required")
-	} else if o.MinStartTime.IsZero() {
-		return errors.New("minimum start time is required")
-	} else if o.MaxEndTime.IsZero() {
-		return errors.New("maximum end time is required")
-	}
-	return nil
 }

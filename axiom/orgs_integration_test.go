@@ -31,4 +31,24 @@ func (s *OrganizationsTestSuite) Test() {
 	s.Require().NotNil(organization)
 
 	s.Contains(organizations, organization)
+
+	keys, err := s.client.Organizations.ViewSigningKeys(s.ctx, organization.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(keys)
+
+	s.NotEmpty(keys.Primary)
+	s.NotEmpty(keys.Secondary)
+	s.NotEqual(keys.Primary, keys.Secondary)
+
+	// Rotate the signing keys on the organization and make sure the new keys
+	// are returned.
+	oldPrimaryKey, oldSecondaryKey := keys.Primary, keys.Secondary
+	keys, err = s.client.Organizations.RotateSigningKeys(s.ctx, organization.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(keys)
+
+	s.NotEqual(oldPrimaryKey, keys.Primary)
+	s.NotEqual(oldSecondaryKey, keys.Secondary)
+	s.NotEqual(oldSecondaryKey, keys.Primary)
+	s.Equal(oldPrimaryKey, keys.Secondary)
 }
