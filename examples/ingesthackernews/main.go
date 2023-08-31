@@ -65,7 +65,7 @@ func main() {
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
 		progressbar.OptionSpinnerType(14),
-		progressbar.OptionThrottle(65*time.Millisecond),
+		progressbar.OptionThrottle(time.Millisecond*65),
 	)
 	progressEventCh := make(chan axiom.Event)
 	go func() {

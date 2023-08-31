@@ -67,7 +67,7 @@ func TestQuery_MarshalJSON(t *testing.T) {
 		input time.Duration
 		exp   string
 	}{
-		{time.Minute + 30*time.Second, "1m30s"},
+		{time.Minute + time.Second*30, "1m30s"},
 		{time.Second, "1s"},
 		{0, "auto"},
 	}
@@ -91,7 +91,7 @@ func TestQuery_UnarshalJSON(t *testing.T) {
 		input string
 		exp   time.Duration
 	}{
-		{"1m30s", time.Minute + 30*time.Second},
+		{"1m30s", time.Minute + time.Second*30},
 		{"1s", time.Second},
 		{"auto", 0},
 		{"", 0},

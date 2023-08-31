@@ -101,7 +101,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
-	s.ctx, s.cancel = context.WithTimeout(s.suiteCtx, 45*time.Second)
+	s.ctx, s.cancel = context.WithTimeout(s.suiteCtx, time.Second*45)
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {

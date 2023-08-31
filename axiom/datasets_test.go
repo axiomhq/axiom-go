@@ -140,7 +140,7 @@ var (
 	expQueryRes = &query.Result{
 		Datasets: []string{"test"},
 		Status: query.Status{
-			ElapsedTime:    542114 * time.Microsecond,
+			ElapsedTime:    time.Microsecond * 542114,
 			BlocksExamined: 4,
 			RowsExamined:   142655,
 			RowsMatched:    142655,
@@ -190,7 +190,7 @@ var (
 
 	expLegacyQueryRes = &querylegacy.Result{
 		Status: querylegacy.Status{
-			ElapsedTime:    542114 * time.Microsecond,
+			ElapsedTime:    time.Microsecond * 542114,
 			BlocksExamined: 4,
 			RowsExamined:   142655,
 			RowsMatched:    142655,
@@ -862,7 +862,7 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 			eventCh <- e
 			// Simulate a slow producer which should trigger the ticker based
 			// batch flush in the IngestChannel method.
-			time.Sleep(time.Second + 250*time.Millisecond)
+			time.Sleep(time.Second + time.Millisecond*250)
 		}
 		close(eventCh)
 	}()
@@ -943,7 +943,7 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 			eventCh <- e
 			// Simulate a slow producer which should trigger the ticker based
 			// batch flush in the IngestChannel method.
-			time.Sleep(time.Second + 250*time.Millisecond)
+			time.Sleep(time.Second + time.Millisecond*250)
 		}
 		close(eventCh)
 	}()
@@ -981,7 +981,7 @@ func TestDatasetsService_Query(t *testing.T) {
 
 	res, err := client.Datasets.Query(context.Background(),
 		"['test'] | where response == 304",
-		query.SetStartTime(time.Now().Add(-5*time.Minute)),
+		query.SetStartTime(time.Now().Add(-time.Minute*5)),
 	)
 	require.NoError(t, err)
 
