@@ -160,7 +160,7 @@ func (ws *WriteSyncer) Write(p []byte) (n int, err error) {
 // Sync implements [zapcore.WriteSyncer].
 func (ws *WriteSyncer) Sync() error {
 	// Best effort context timeout. A sync should never take that long.
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	ws.bufMtx.Lock()

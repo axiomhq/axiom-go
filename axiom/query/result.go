@@ -204,7 +204,7 @@ func (s *Status) UnmarshalJSON(b []byte) error {
 
 	// Set to a proper [time.Duration] value by interpreting the server response
 	// value in microseconds.
-	s.ElapsedTime = s.ElapsedTime * time.Microsecond
+	s.ElapsedTime *= time.Microsecond
 
 	return nil
 }

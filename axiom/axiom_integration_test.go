@@ -20,7 +20,7 @@ func TestValidateCredentials(t *testing.T) {
 	t.Setenv("AXIOM_ORG_ID", orgID)
 	t.Setenv("AXIOM_URL", deploymentURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	t.Cleanup(cancel)
 
 	err := axiom.ValidateCredentials(ctx)

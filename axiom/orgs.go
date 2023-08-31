@@ -182,8 +182,8 @@ func (l *License) UnmarshalJSON(b []byte) error {
 
 	// Set to a proper [time.Duration] value by interpreting the server response
 	// value in seconds.
-	l.MaxQueryWindow = l.MaxQueryWindow * time.Second
-	l.MaxAuditWindow = l.MaxAuditWindow * time.Second
+	l.MaxQueryWindow *= time.Second
+	l.MaxAuditWindow *= time.Second
 
 	return nil
 }
