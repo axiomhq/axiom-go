@@ -109,7 +109,7 @@ type DatasetUpdateRequest struct {
 }
 
 type wrappedDataset struct {
-	Dataset
+	*Dataset
 
 	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
 	// package so we just ignore it for now.
@@ -190,7 +190,7 @@ func (s *DatasetsService) List(ctx context.Context) ([]*Dataset, error) {
 
 	datasets := make([]*Dataset, len(res))
 	for i, r := range res {
-		datasets[i] = &r.Dataset
+		datasets[i] = r.Dataset
 	}
 
 	return datasets, nil
@@ -213,7 +213,7 @@ func (s *DatasetsService) Get(ctx context.Context, id string) (*Dataset, error) 
 		return nil, spanError(span, err)
 	}
 
-	return &res.Dataset, nil
+	return res.Dataset, nil
 }
 
 // Create a dataset with the given properties.
@@ -229,7 +229,7 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 		return nil, spanError(span, err)
 	}
 
-	return &res.Dataset, nil
+	return res.Dataset, nil
 }
 
 // Update the dataset identified by the given id with the given properties.
@@ -250,7 +250,7 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 		return nil, spanError(span, err)
 	}
 
-	return &res.Dataset, nil
+	return res.Dataset, nil
 }
 
 // Delete the dataset identified by the given id.

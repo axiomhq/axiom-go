@@ -220,7 +220,7 @@ type Organization struct {
 }
 
 type wrappedOrganization struct {
-	Organization
+	*Organization
 
 	// HINT(lukasmalkmus): Ignore these fields because they do not provide any
 	// value to the user.
@@ -247,7 +247,7 @@ func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error
 
 	organizations := make([]*Organization, len(res))
 	for i, r := range res {
-		organizations[i] = &r.Organization
+		organizations[i] = r.Organization
 	}
 
 	return organizations, nil
@@ -270,5 +270,5 @@ func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organizatio
 		return nil, spanError(span, err)
 	}
 
-	return &res.Organization, nil
+	return res.Organization, nil
 }
