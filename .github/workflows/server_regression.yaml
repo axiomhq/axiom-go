@@ -40,7 +40,7 @@ jobs:
       AXIOM_ORG_ID: ${{ secrets[format('TESTING_{0}_ORG_ID', matrix.secret_slug)] }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
