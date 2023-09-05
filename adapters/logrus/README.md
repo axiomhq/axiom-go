@@ -46,8 +46,8 @@ hook, err := adapter.New(
 )
 ```
 
-### ❗ Important ❗
-
-The adapter uses a buffer to batch events before sending them to Axiom. This
-buffer must be flushed explicitly by calling [Close](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/logrus#Hook.Close).
-Checkout out the [example](../../examples/logrus/main.go).
+> [!IMPORTANT]
+> The adapter uses a buffer to batch events before sending them to Axiom. This
+> buffer must be flushed explicitly by calling
+> [Close](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/logrus#Hook.Close).
+> Checkout out the [example](../../examples/logrus/main.go).
