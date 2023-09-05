@@ -16,12 +16,13 @@ check the
 
 To quickstart, export the environment variables below.
 
-💡 _If you have the [Axiom CLI](github.com/axiomhq/cli) installed and are
-logged in, you can easily export most of the required environment variables:_
-
-```shell
-eval $(axiom config export -f)
-```
+> [!NOTE]
+> If you have the [Axiom CLI](github.com/axiomhq/cli) installed and are logged
+> in, you can easily export most of the required environment variables:
+>
+>```shell
+>eval $(axiom config export -f)
+>```
 
 ### Required environment variables
 

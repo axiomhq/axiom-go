@@ -46,8 +46,8 @@ handler, err := adapter.New(
 )
 ```
 
-### ❗ Important ❗
-
-The adapter uses a buffer to batch events before sending them to Axiom. This
-buffer must be flushed explicitly by calling [Close](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/slogx#Handler.Close).
-Checkout the [example](../../examples/slogx/main.go).
+> [!IMPORTANT]
+> The adapter uses a buffer to batch events before sending them to Axiom. This
+> buffer must be flushed explicitly by calling
+> [Close](https://pkg.go.dev/github.com/axiomhq/axiom-go/adapters/slogx#Handler.Close).
+> Checkout the [example](../../examples/slogx/main.go).
