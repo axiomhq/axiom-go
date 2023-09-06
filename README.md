@@ -58,7 +58,7 @@ client, err := axiom.NewClient(
 )
 ```
 
-> [!IMPORTANT]
+> [!NOTE]
 > When only performing **ingest** or **query** operations, we recommend using
 an API token with minimal privileges, only! Create an API token with the
 appropriate scopes in
