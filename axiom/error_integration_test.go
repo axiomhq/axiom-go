@@ -36,4 +36,19 @@ func (s *ErrorTestSuite) Test() {
 	_, err = s.client.Datasets.Get(s.ctx, invalidDatasetName)
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+
+	// Restore valid credentials.
+	s.newClient()
+}
+
+func (s *ErrorTestSuite) TestTraceIDPresent() {
+	invalidDatasetName := "test-axiom-go-error-" + datasetSuffix
+
+	expErr := axiom.ErrNotFound
+	_, err := s.client.Datasets.Get(s.ctx, invalidDatasetName)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, expErr)
+	if s.ErrorAs(err, &expErr) {
+		s.NotEmpty(expErr.TraceID)
+	}
 }

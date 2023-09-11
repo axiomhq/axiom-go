@@ -60,7 +60,7 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingOrganizationID,
 		},
 		{
-			name: "no environment token option with api token",
+			name: "no environment token option with API token",
 			options: []Option{
 				SetToken(apiToken),
 			},
@@ -73,7 +73,7 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingOrganizationID,
 		},
 		{
-			name: "organizationID environment no options with api token",
+			name: "organizationID environment no options with API token",
 			environment: map[string]string{
 				"AXIOM_TOKEN": apiToken,
 			},
@@ -190,7 +190,7 @@ func TestNewClient(t *testing.T) {
 			err: config.ErrMissingToken,
 		},
 		{
-			name: "no environment noEnv, apiUrl and token option with api token",
+			name: "no environment noEnv, apiUrl and token option with API token",
 			options: []Option{
 				SetNoEnv(),
 				SetURL(config.APIURL().String()),
@@ -396,6 +396,7 @@ func TestClient_do_ioWriter(t *testing.T) {
 
 func TestClient_do_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(http.StatusText(http.StatusBadRequest)))
 	}
@@ -405,11 +406,12 @@ func TestClient_do_HTTPError(t *testing.T) {
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, &Error{
+	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, HTTPError{
 		Status:  http.StatusBadRequest,
 		Message: http.StatusText(http.StatusBadRequest),
 	}) {
 		assert.EqualError(t, err, "API error 400: Bad Request")
+		assert.Equal(t, "abc", err.(HTTPError).TraceID)
 	}
 }
 
@@ -425,16 +427,17 @@ func TestClient_do_HTTPError_Typed(t *testing.T) {
 	require.NoError(t, err)
 
 	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, ErrUnauthorized) {
-		assert.EqualError(t, err, "insufficient permissions")
+		assert.EqualError(t, err, "API error 403: Forbidden")
 	}
 }
 
 func TestClient_do_HTTPError_JSON(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusBadRequest)
 
-		assert.NoError(t, json.NewEncoder(w).Encode(Error{
+		assert.NoError(t, json.NewEncoder(w).Encode(HTTPError{
 			Message: "This is a Bad Request error",
 		}))
 	}
@@ -444,11 +447,12 @@ func TestClient_do_HTTPError_JSON(t *testing.T) {
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, &Error{
+	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, HTTPError{
 		Status:  http.StatusBadRequest,
 		Message: "This is a Bad Request error",
 	}) {
 		assert.EqualError(t, err, "API error 400: This is a Bad Request error")
+		assert.Equal(t, "abc", err.(HTTPError).TraceID)
 	}
 }
 
@@ -457,7 +461,7 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.WriteHeader(http.StatusUnauthorized)
 
-		assert.NoError(t, json.NewEncoder(w).Encode(Error{
+		assert.NoError(t, json.NewEncoder(w).Encode(HTTPError{
 			Message: "You are not allowed here!",
 		}))
 	}
@@ -472,12 +476,18 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 }
 
 func TestClient_do_RateLimit(t *testing.T) {
-	// Truncated time for testing as the "LimitError.Error" method uses
-	// "time.Until" which will yield different milliseconds when comparing the
-	// time values with "errors.Is".
+	// Truncated time for testing as the [LimitError.Error] method uses
+	// [time.Until] which will yield different milliseconds when comparing the
+	// time values with [errors.Is].
 	reset := time.Now().Add(time.Hour).Truncate(time.Second)
 
-	expErr := &LimitError{
+	expErr := LimitError{
+		HTTPError: HTTPError{
+			Status:  http.StatusTooManyRequests,
+			Message: "limit exceeded",
+			TraceID: "abc",
+		},
+
 		Limit: Limit{
 			Scope:     LimitScopeAnonymous,
 			Limit:     1000,
@@ -494,8 +504,9 @@ func TestClient_do_RateLimit(t *testing.T) {
 		w.Header().Set(headerRateLimit, "1000")
 		w.Header().Set(headerRateRemaining, "0")
 		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusTooManyRequests)
-		assert.NoError(t, json.NewEncoder(w).Encode(Error{
+		assert.NoError(t, json.NewEncoder(w).Encode(HTTPError{
 			Message: "limit exceeded",
 		}))
 	}
@@ -510,6 +521,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 
 	if assert.ErrorIs(t, err, expErr) {
 		assert.EqualError(t, err, "rate limit exceeded: try again in 59m59s")
+		assert.Equal(t, "abc", err.(LimitError).TraceID)
 	}
 	assert.Equal(t, expErr.Limit, resp.Limit)
 }
