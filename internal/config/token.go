@@ -2,7 +2,7 @@ package config
 
 import "strings"
 
-// IsAPIToken returns true if the given token is an api token.
+// IsAPIToken returns true if the given token is an API token.
 func IsAPIToken(token string) bool {
 	return strings.HasPrefix(token, "xaat-")
 }

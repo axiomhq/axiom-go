@@ -6,6 +6,8 @@ import "net/http"
 type Response struct {
 	*http.Response
 
+	TraceID string
+
 	Limit Limit
 }
 
@@ -13,6 +15,8 @@ type Response struct {
 func newResponse(r *http.Response) *Response {
 	return &Response{
 		Response: r,
+
+		TraceID: r.Header.Get(headerTraceID),
 
 		Limit: parseLimit(r),
 	}

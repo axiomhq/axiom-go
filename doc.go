@@ -11,8 +11,8 @@
 // Construct a new Axiom client, then use the various services on the client to
 // access different parts of the Axiom API. The package automatically takes its
 // configuration from the environment if not specified otherwise. Refer to
-// [axiom.NewClient] for details. The token can be an api or personal token. The
-// api token however, will just allow ingestion or querying into or from the
+// [axiom.NewClient] for details. The token can be an API or personal token. The
+// API token however, will just allow ingestion or querying into or from the
 // datasets the token is valid for, depending on its assigned permissions.
 //
 // To construct a client:

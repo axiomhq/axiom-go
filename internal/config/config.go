@@ -14,7 +14,7 @@ type Config struct {
 	// 'Authorization' header. It must be an api or a personal token.
 	token string
 	// organizationID is the Axiom organization ID that will be set on the
-	// 'X-Axiom-Org-Id' header. Not required for api tokens.
+	// 'X-Axiom-Org-Id' header. Not required for API tokens.
 	organizationID string
 }
 

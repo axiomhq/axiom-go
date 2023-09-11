@@ -40,7 +40,7 @@ func TestValidateEnvironment(t *testing.T) {
 			},
 		},
 		{
-			name: "good environment with api token",
+			name: "good environment with API token",
 			environment: map[string]string{
 				"AXIOM_TOKEN": apiToken,
 			},
