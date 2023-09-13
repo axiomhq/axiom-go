@@ -745,6 +745,7 @@ func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
 	}
 
 	span.SetAttributes(
+		attribute.String("axiom.result.trace_id", res.TraceID),
 		attribute.Int64("axiom.events.ingested", int64(res.Ingested)),
 		attribute.Int64("axiom.events.failed", int64(res.Failed)),
 		attribute.Int64("axiom.events.processed_bytes", int64(res.ProcessedBytes)),
@@ -758,6 +759,7 @@ func setQueryResultOnSpan(span trace.Span, res query.Result) {
 	}
 
 	span.SetAttributes(
+		attribute.String("axiom.result.trace_id", res.TraceID),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
 		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
@@ -779,6 +781,7 @@ func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
 	}
 
 	span.SetAttributes(
+		attribute.String("axiom.result.trace_id", res.TraceID),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
 		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
