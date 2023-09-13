@@ -370,7 +370,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
-	res.TraceID = resp.TraceID
+	res.TraceID = resp.TraceID()
 
 	setIngestResultOnSpan(span, res)
 
@@ -475,7 +475,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
-	res.TraceID = resp.TraceID
+	res.TraceID = resp.TraceID()
 
 	setIngestResultOnSpan(span, res)
 
@@ -633,7 +633,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
-	res.TraceID = resp.TraceID
+	res.TraceID = resp.TraceID()
 
 	setQueryResultOnSpan(span, res.Result)
 
@@ -685,7 +685,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		return nil, spanError(span, err)
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
-	res.TraceID = resp.TraceID
+	res.TraceID = resp.TraceID()
 
 	setLegacyQueryResultOnSpan(span, res.Result)
 
