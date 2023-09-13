@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
@@ -297,6 +298,11 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 	if err != nil {
 		return resp, err
+	}
+
+	span := trace.SpanFromContext(req.Context())
+	if span.IsRecording() {
+		span.SetAttributes(attribute.String("axiom_trace_id", resp.TraceID()))
 	}
 
 	if statusCode := resp.StatusCode; statusCode >= 400 {
