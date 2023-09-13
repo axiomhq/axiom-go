@@ -5,20 +5,26 @@ package axiom_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/otel"
+	"github.com/axiomhq/axiom-go/internal/version"
 )
 
 var (
-	accessToken    string
-	orgID          string
-	deploymentURL  string
-	datasetSuffix  string
-	strictDecoding bool
+	accessToken            string
+	orgID                  string
+	deploymentURL          string
+	datasetSuffix          string
+	strictDecoding         bool
+	telemetryTracesURL     string
+	telemetryTracesToken   string
+	telemetryTracesDataset string
 )
 
 func init() {
@@ -27,6 +33,9 @@ func init() {
 	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
 	flag.StringVar(&datasetSuffix, "dataset-suffix", os.Getenv("AXIOM_DATASET_SUFFIX"), "Dataset suffix to append to test datasets")
 	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXIOM_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
+	flag.StringVar(&telemetryTracesURL, "telemetry-traces-url", os.Getenv("TELEMETRY_TRACES_URL"), "URL to send traces to")
+	flag.StringVar(&telemetryTracesToken, "telemetry-traces-token", os.Getenv("TELEMETRY_TRACES_TOKEN"), "Token that has access to the traces dataset")
+	flag.StringVar(&telemetryTracesDataset, "telemetry-traces-dataset", os.Getenv("TELEMETRY_TRACES_DATASET"), "Dataset to send traces to")
 }
 
 // IntegrationTestSuite implements a base test suite for integration tests.
@@ -38,6 +47,7 @@ type IntegrationTestSuite struct {
 	testUser    *axiom.User
 	suiteCtx    context.Context
 	suiteCancel context.CancelFunc
+	flushTraces func() error
 
 	// Setup once per test.
 	ctx    context.Context
@@ -54,9 +64,20 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
 
-	s.newClient()
-
 	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
+
+	if len(telemetryTracesURL+telemetryTracesToken+telemetryTracesDataset) > 0 {
+		fmt.Println(telemetryTracesURL, telemetryTracesToken, telemetryTracesDataset)
+		var err error
+		s.flushTraces, err = otel.InitTracing(s.suiteCtx, telemetryTracesDataset, fmt.Sprintf("axiom-go-integration-test-%s", datasetSuffix), version.Get(),
+			otel.SetNoEnv(),
+			otel.SetURL(telemetryTracesURL),
+			otel.SetToken(telemetryTracesToken),
+		)
+		s.Require().NoError(err)
+	}
+
+	s.newClient()
 
 	var err error
 	s.testUser, err = s.client.Users.Current(s.suiteCtx)
@@ -67,6 +88,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
+	if f := s.flushTraces; f != nil {
+		s.NoError(f())
+	}
+
 	s.NoError(context.Cause(s.suiteCtx))
 	s.suiteCancel()
 }
