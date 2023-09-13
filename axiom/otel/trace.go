@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 
 	// Keep in sync with https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L25.
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 
 	"github.com/axiomhq/axiom-go/internal/version"
 )
@@ -29,8 +29,7 @@ func init() {
 
 // UserAgentAttribute returns a new OpenTelemetry axiom-go user agent attribute.
 func UserAgentAttribute() attribute.KeyValue {
-	return semconv.HTTPUserAgentKey.String(userAgent)
-	// return semconv.UserAgentOriginal(userAgent) // semconv@v1.19.0
+	return semconv.UserAgentOriginal(userAgent)
 }
 
 // TraceExporter configures and returns a new exporter for OpenTelemetry spans.
