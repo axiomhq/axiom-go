@@ -303,7 +303,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		httpErr := HTTPError{
 			Status:  statusCode,
 			Message: http.StatusText(statusCode),
-			TraceID: resp.TraceID,
+			TraceID: resp.TraceID(),
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
