@@ -109,7 +109,7 @@ func TestHandler_FlushFullBatch(t *testing.T) {
 	assert.EqualValues(t, 1000, atomic.LoadUint64(&lines))
 
 	// Wait for timer based hook flush.
-	time.Sleep(time.Millisecond * 1250)
+	time.Sleep(time.Second + time.Millisecond*250)
 
 	// Should have received the last event.
 	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
