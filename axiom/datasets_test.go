@@ -140,7 +140,7 @@ var (
 	expQueryRes = &query.Result{
 		Datasets: []string{"test"},
 		Status: query.Status{
-			ElapsedTime:    time.Microsecond * 542114,
+			ElapsedTime:    time.Microsecond * 542_114,
 			BlocksExamined: 4,
 			RowsExamined:   142655,
 			RowsMatched:    142655,
@@ -190,7 +190,7 @@ var (
 
 	expLegacyQueryRes = &querylegacy.Result{
 		Status: querylegacy.Status{
-			ElapsedTime:    time.Microsecond * 542114,
+			ElapsedTime:    time.Microsecond * 542_114,
 			BlocksExamined: 4,
 			RowsExamined:   142655,
 			RowsMatched:    142655,
