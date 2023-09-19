@@ -69,7 +69,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	if len(telemetryTracesURL+telemetryTracesToken+telemetryTracesDataset) > 0 {
 		fmt.Println(telemetryTracesURL, telemetryTracesToken, telemetryTracesDataset)
 		var err error
-		s.flushTraces, err = otel.InitTracing(s.suiteCtx, telemetryTracesDataset, fmt.Sprintf("axiom-go-integration-test-%s", datasetSuffix), version.Get(),
+		s.flushTraces, err = otel.InitTracing(
+			s.suiteCtx, 
+			telemetryTracesDataset, 
+			fmt.Sprintf("axiom-go-integration-test-%s", datasetSuffix), 
+			version.Get(),
 			otel.SetNoEnv(),
 			otel.SetURL(telemetryTracesURL),
 			otel.SetToken(telemetryTracesToken),
