@@ -33,9 +33,6 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 		t.Fatal(err)
 	}
 
-	// Clear the environment to avoid unexpected behavior.
-	testhelper.SafeClearEnv(t)
-
 	if adapterName == "" {
 		t.Fatal("adapter integration test needs the name of the adapter")
 	}
@@ -44,6 +41,9 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
+
+	// Clear the environment to avoid unexpected behavior.
+	testhelper.SafeClearEnv(t)
 
 	deadline := time.Minute
 	ctx, cancel := context.WithTimeout(context.Background(), deadline)
