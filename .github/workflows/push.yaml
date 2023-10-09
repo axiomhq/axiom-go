@@ -71,14 +71,17 @@ jobs:
           - staging
         include:
           - environment: development
-            secret_slug: DEV
+            slug: DEV
           - environment: staging
-            secret_slug: STAGING
+            slug: STAGING
     env:
-      AXIOM_URL: ${{ secrets[format('TESTING_{0}_API_URL', matrix.secret_slug)] }}
-      AXIOM_TOKEN: ${{ secrets[format('TESTING_{0}_TOKEN', matrix.secret_slug)] }}
-      AXIOM_ORG_ID: ${{ secrets[format('TESTING_{0}_ORG_ID', matrix.secret_slug)] }}
+      AXIOM_URL: ${{ secrets[format('TESTING_{0}_API_URL', matrix.slug)] }}
+      AXIOM_TOKEN: ${{ secrets[format('TESTING_{0}_TOKEN', matrix.slug)] }}
+      AXIOM_ORG_ID: ${{ secrets[format('TESTING_{0}_ORG_ID', matrix.slug)] }}
       AXIOM_DATASET_SUFFIX: ${{ github.run_id }}-${{ matrix.go }}
+      TELEMETRY_TRACES_URL: ${{ secrets.TELEMETRY_TRACES_URL }}
+      TELEMETRY_TRACES_TOKEN: ${{ secrets.TELEMETRY_TRACES_TOKEN }}
+      TELEMETRY_TRACES_DATASET: ${{ vars[format('TELEMETRY_{0}_TRACES_DATASET', matrix.slug)] }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4

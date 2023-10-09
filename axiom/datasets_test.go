@@ -185,6 +185,7 @@ var (
 			Series: []query.Interval{},
 			Totals: []query.EntryGroup{},
 		},
+		TraceID: "abc",
 	}
 
 	expLegacyQueryRes = &querylegacy.Result{
@@ -235,6 +236,7 @@ var (
 			Totals: []querylegacy.EntryGroup{},
 		},
 		SavedQueryID: "fyTFUldK4Z5219rWaz",
+		TraceID:      "abc",
 	}
 )
 
@@ -418,6 +420,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
+		TraceID:        "abc",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -434,6 +437,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		_ = assertValidJSON(t, r.Body)
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err := fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -493,6 +497,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
+		TraceID:        "abc",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -511,6 +516,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		zsr.Close()
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -569,6 +575,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		ProcessedBytes: 630,
 		BlocksCreated:  0,
 		WALLength:      2,
+		TraceID:        "abc",
 	}
 
 	hasErrored := false
@@ -592,6 +599,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		zsr.Close()
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -657,6 +665,7 @@ func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {
 		zsr.Close()
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprint(w, `{
 			"ingested": 2,
 			"failed": 0,
@@ -734,6 +743,7 @@ func TestDatasetsService_IngestChannel_Buffered(t *testing.T) {
 		// For the sake of simplicity in this handler, we'll just return the
 		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprintf(w, `{
 			"ingested": %d,
 			"failed": 0,
@@ -809,6 +819,7 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 		// For the sake of simplicity in this handler, we'll just return the
 		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprintf(w, `{
 			"ingested": %d,
 			"failed": 0,
@@ -889,6 +900,7 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 		// For the sake of simplicity in this handler, we'll just return the
 		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprintf(w, `{
 			"ingested": %d,
 			"failed": 0,
@@ -960,6 +972,7 @@ func TestDatasetsService_Query(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprint(w, actQueryResp)
 		assert.NoError(t, err)
 	}
@@ -978,6 +991,7 @@ func TestDatasetsService_Query(t *testing.T) {
 func TestDatasetsService_Query_WithGroupBy(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, _ = fmt.Fprint(w, `{
 			"request": {
 				"groupBy": [
@@ -1008,6 +1022,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err := fmt.Fprint(w, actLegacyQueryResp)
 		assert.NoError(t, err)
 	}

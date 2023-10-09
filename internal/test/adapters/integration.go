@@ -19,7 +19,7 @@ import (
 )
 
 // IntegrationTestFunc is a function that provides a client that is configured
-// with an api token for a unique test dataset. The client should be passed to
+// with an API token for a unique test dataset. The client should be passed to
 // the adapter to be tested as well as the target dataset.
 type IntegrationTestFunc func(ctx context.Context, dataset string, client *axiom.Client)
 
@@ -33,9 +33,6 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 		t.Fatal(err)
 	}
 
-	// Clear the environment to avoid unexpected behavior.
-	testhelper.SafeClearEnv(t)
-
 	if adapterName == "" {
 		t.Fatal("adapter integration test needs the name of the adapter")
 	}
@@ -44,6 +41,9 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
 	}
+
+	// Clear the environment to avoid unexpected behavior.
+	testhelper.SafeClearEnv(t)
 
 	deadline := time.Minute
 	ctx, cancel := context.WithTimeout(context.Background(), deadline)

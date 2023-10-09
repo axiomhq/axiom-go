@@ -112,7 +112,7 @@ type WriteSyncer struct {
 // The configuration can be set manually using options which are prefixed with
 // "Set".
 //
-// An api token with "ingest" permission is sufficient enough.
+// An API token with "ingest" permission is sufficient enough.
 func New(options ...Option) (zapcore.Core, error) {
 	ws := &WriteSyncer{
 		levelEnabler: zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {

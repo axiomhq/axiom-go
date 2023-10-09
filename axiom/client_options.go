@@ -48,7 +48,7 @@ func SetPersonalTokenConfig(personalToken, organizationID string) Option {
 }
 
 // SetAPITokenConfig specifies all properties needed in order to successfully
-// connect to Axiom with an api token.
+// connect to Axiom with an API token.
 func SetAPITokenConfig(apiToken string) Option {
 	return SetToken(apiToken)
 }

@@ -363,10 +363,14 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		return nil, spanError(span, err)
 	}
 
-	var res ingest.Status
-	if _, err = s.client.Do(req, &res); err != nil {
+	var (
+		res  ingest.Status
+		resp *Response
+	)
+	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
+	res.TraceID = resp.TraceID()
 
 	setIngestResultOnSpan(span, res)
 
@@ -464,10 +468,14 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
 
-	var res ingest.Status
-	if _, err = s.client.Do(req, &res); err != nil {
+	var (
+		res  ingest.Status
+		resp *Response
+	)
+	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
+	res.TraceID = resp.TraceID()
 
 	setIngestResultOnSpan(span, res)
 
@@ -498,6 +506,10 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 //
 // The method returns without an error if the channel is closed and the buffered
 // events are successfully sent to the server.
+//
+// The returned ingest status does not contain a trace ID as the underlying
+// implementation possibly sends multiple requests to the server thus generating
+// multiple trace IDs.
 //
 // [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
 func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <-chan Event, options ...ingest.Option) (*ingest.Status, error) {
@@ -614,10 +626,14 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		return nil, spanError(span, err)
 	}
 
-	var res aplQueryResponse
-	if _, err = s.client.Do(req, &res); err != nil {
+	var (
+		res  aplQueryResponse
+		resp *Response
+	)
+	if resp, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
+	res.TraceID = resp.TraceID()
 
 	setQueryResultOnSpan(span, res.Result)
 
@@ -669,6 +685,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		return nil, spanError(span, err)
 	}
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
+	res.TraceID = resp.TraceID()
 
 	setLegacyQueryResultOnSpan(span, res.Result)
 
@@ -728,6 +745,7 @@ func setIngestResultOnSpan(span trace.Span, res ingest.Status) {
 	}
 
 	span.SetAttributes(
+		attribute.String("axiom.result.trace_id", res.TraceID),
 		attribute.Int64("axiom.events.ingested", int64(res.Ingested)),
 		attribute.Int64("axiom.events.failed", int64(res.Failed)),
 		attribute.Int64("axiom.events.processed_bytes", int64(res.ProcessedBytes)),
@@ -741,6 +759,7 @@ func setQueryResultOnSpan(span trace.Span, res query.Result) {
 	}
 
 	span.SetAttributes(
+		attribute.String("axiom.result.trace_id", res.TraceID),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
 		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),
@@ -762,6 +781,7 @@ func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
 	}
 
 	span.SetAttributes(
+		attribute.String("axiom.result.trace_id", res.TraceID),
 		attribute.String("axiom.result.status.elapsed_time", res.Status.ElapsedTime.String()),
 		attribute.Int64("axiom.result.status.blocks_examined", int64(res.Status.BlocksExamined)),
 		attribute.Int64("axiom.result.status.rows_examined", int64(res.Status.RowsExamined)),

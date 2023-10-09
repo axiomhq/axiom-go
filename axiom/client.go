@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
@@ -37,6 +38,8 @@ const (
 	headerAccept      = "Accept"
 	headerContentType = "Content-Type"
 	headerUserAgent   = "User-Agent"
+
+	headerTraceID = "X-Axiom-Trace-Id"
 
 	defaultMediaType = "application/octet-stream"
 	mediaTypeJSON    = "application/json"
@@ -297,32 +300,21 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		return resp, err
 	}
 
-	if statusCode := resp.StatusCode; statusCode >= 400 {
-		// Handle common http status codes by returning proper errors so it is
-		// possible to check for them using [errors.Is].
-		switch statusCode {
-		case http.StatusUnauthorized:
-			return resp, ErrUnauthenticated
-		case http.StatusForbidden:
-			return resp, ErrUnauthorized
-		case http.StatusNotFound:
-			return resp, ErrNotFound
-		case http.StatusConflict:
-			return resp, ErrExists
-		case http.StatusTooManyRequests, httpStatusLimitExceeded:
-			return resp, &LimitError{
-				Limit: resp.Limit,
+	span := trace.SpanFromContext(req.Context())
+	if span.IsRecording() {
+		span.SetAttributes(attribute.String("axiom_trace_id", resp.TraceID()))
+	}
 
-				response: resp.Response,
-			}
+	if statusCode := resp.StatusCode; statusCode >= 400 {
+		httpErr := HTTPError{
+			Status:  statusCode,
+			Message: http.StatusText(statusCode),
+			TraceID: resp.TraceID(),
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
 		if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
-			return resp, &Error{
-				Status:  statusCode,
-				Message: http.StatusText(statusCode),
-			}
+			return resp, httpErr
 		}
 
 		// For error handling, we want to have access to the raw request body
@@ -333,19 +325,28 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		)
 
 		// Handle a properly JSON formatted Axiom API error response.
-		errResp := &Error{Status: statusCode}
-		if err = dec.Decode(&errResp); err != nil {
+		if err = dec.Decode(&httpErr); err != nil {
 			return resp, fmt.Errorf("error decoding %d error response: %w", statusCode, err)
 		}
 
 		// In case something went wrong, include the raw response and hope for
 		// the best.
-		if errResp.Message == "" {
+		if httpErr.Message == "" {
 			s := strings.ReplaceAll(buf.String(), "\n", " ")
-			errResp.Message = s
+			httpErr.Message = s
 		}
 
-		return resp, errResp
+		// Handle special error types.
+		switch statusCode {
+		case http.StatusTooManyRequests, httpStatusLimitExceeded:
+			return resp, LimitError{
+				HTTPError: httpErr,
+
+				Limit: resp.Limit,
+			}
+		}
+
+		return resp, httpErr
 	}
 
 	if v != nil {

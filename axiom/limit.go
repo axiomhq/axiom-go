@@ -84,7 +84,7 @@ type Limit struct {
 //
 // It implements [fmt.Stringer].
 func (l Limit) String() string {
-	return fmt.Sprintf("%d/%d %s remaining until %s", l.Remaining, l.Limit, l.limitType, l.Reset)
+	return fmt.Sprintf("%d/%d %s limit remaining until %s", l.Remaining, l.Limit, l.limitType, l.Reset)
 }
 
 // parseLimit parses the limit related headers from a http response.

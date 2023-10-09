@@ -103,7 +103,7 @@ type Handler struct {
 // The configuration can be set manually using options which are prefixed with
 // "Set".
 //
-// An api token with "ingest" permission is sufficient enough.
+// An API token with "ingest" permission is sufficient enough.
 //
 // A handler needs to be closed properly to make sure all logs are sent by
 // calling [Handler.Close].

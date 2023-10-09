@@ -15,7 +15,7 @@ import (
 )
 
 func Test(t *testing.T) {
-	adapters.IntegrationTest(t, "slog", func(_ context.Context, dataset string, client *axiom.Client) {
+	adapters.IntegrationTest(t, "slogx", func(_ context.Context, dataset string, client *axiom.Client) {
 		handler, err := adapter.New(
 			adapter.SetClient(client),
 			adapter.SetDataset(dataset),
