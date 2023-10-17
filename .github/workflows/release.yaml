@@ -21,8 +21,10 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
+      - run: echo "GORELEASER_VERSION=$(go list -m -f '{{.Version}}' github.com/goreleaser/goreleaser)" >> $GITHUB_ENV
       - uses: goreleaser/goreleaser-action@v5
         with:
+          version: ${{ env.GORELEASER_VERSION }}
           args: release
         env:
           GITHUB_TOKEN: ${{ github.token }}
