@@ -50,12 +50,8 @@ func TestFilterOp_String(t *testing.T) {
 
 func TestFilterOpFromString(t *testing.T) {
 	for op := OpAnd; op <= OpNotContains; op++ {
-		s := op.String()
-
-		parsedOp, err := filterOpFromString(s)
+		parsed, err := filterOpFromString(op.String())
 		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
-		assert.Equal(t, op, parsedOp)
+		assert.Equal(t, op, parsed)
 	}
 }

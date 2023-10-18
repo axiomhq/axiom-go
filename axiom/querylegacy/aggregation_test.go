@@ -48,10 +48,7 @@ func TestAggregationOp_String(t *testing.T) {
 
 func TestAggregationOpFromString(t *testing.T) {
 	for op := OpUnknown; op <= OpArgMax; op++ {
-		s := op.String()
-
-		parsedOp := aggregationOpFromString(s)
-		assert.NotEmpty(t, s)
-		assert.Equal(t, op, parsedOp)
+		parsed := aggregationOpFromString(op.String())
+		assert.Equal(t, op, parsed)
 	}
 }

@@ -72,12 +72,8 @@ func TestKind_String(t *testing.T) {
 
 func TestKindFromString(t *testing.T) {
 	for k := Analytics; k <= APL; k++ {
-		s := k.String()
-
-		parsedKind, err := kindFromString(s)
+		parsed, err := kindFromString(k.String())
 		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
-		assert.Equal(t, k, parsedKind)
+		assert.Equal(t, k, parsed)
 	}
 }
