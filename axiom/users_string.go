@@ -8,16 +8,17 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[emptyUserRole-0]
-	_ = x[RoleReadOnly-1]
-	_ = x[RoleUser-2]
-	_ = x[RoleAdmin-3]
-	_ = x[RoleOwner-4]
+	_ = x[RoleCustom-0]
+	_ = x[RoleNone-1]
+	_ = x[RoleReadOnly-2]
+	_ = x[RoleUser-3]
+	_ = x[RoleAdmin-4]
+	_ = x[RoleOwner-5]
 }
 
-const _UserRole_name = "read-onlyuseradminowner"
+const _UserRole_name = "customnoneread-onlyuseradminowner"
 
-var _UserRole_index = [...]uint8{0, 0, 9, 13, 18, 23}
+var _UserRole_index = [...]uint8{0, 6, 10, 19, 23, 28, 33}
 
 func (i UserRole) String() string {
 	if i >= UserRole(len(_UserRole_index)-1) {
