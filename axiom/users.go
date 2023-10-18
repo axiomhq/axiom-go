@@ -3,7 +3,6 @@ package axiom
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -14,18 +13,18 @@ type UserRole uint8
 
 // All available [User] roles.
 const (
-	emptyUserRole UserRole = iota //
-
-	RoleReadOnly // read-only
-	RoleUser     // user
-	RoleAdmin    // admin
-	RoleOwner    // owner
+	RoleCustom   UserRole = iota // custom
+	RoleNone                     // none
+	RoleReadOnly                 // read-only
+	RoleUser                     // user
+	RoleAdmin                    // admin
+	RoleOwner                    // owner
 )
 
-func userRoleFromString(s string) (ur UserRole, err error) {
+func userRoleFromString(s string) (ur UserRole) {
 	switch s {
-	case emptyUserRole.String():
-		ur = emptyUserRole
+	case RoleNone.String():
+		ur = RoleNone
 	case RoleReadOnly.String():
 		ur = RoleReadOnly
 	case RoleUser.String():
@@ -35,10 +34,10 @@ func userRoleFromString(s string) (ur UserRole, err error) {
 	case RoleOwner.String():
 		ur = RoleOwner
 	default:
-		err = fmt.Errorf("unknown user role %q", s)
+		ur = RoleCustom
 	}
 
-	return ur, err
+	return ur
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
@@ -55,9 +54,9 @@ func (ur *UserRole) UnmarshalJSON(b []byte) (err error) {
 		return err
 	}
 
-	*ur, err = userRoleFromString(s)
+	*ur = userRoleFromString(s)
 
-	return err
+	return
 }
 
 // User represents an user.

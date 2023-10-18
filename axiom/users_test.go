@@ -70,26 +70,24 @@ func TestUserRole_Unmarshal(t *testing.T) {
 
 func TestUserRole_String(t *testing.T) {
 	// Check outer bounds.
-	assert.Empty(t, UserRole(0).String())
-	assert.Empty(t, emptyUserRole.String())
-	assert.Equal(t, emptyUserRole, UserRole(0))
+	assert.Equal(t, RoleCustom, UserRole(0))
 	assert.Contains(t, (RoleOwner + 1).String(), "UserRole(")
 
-	for typ := RoleReadOnly; typ <= RoleOwner; typ++ {
-		s := typ.String()
+	for u := RoleCustom; u <= RoleOwner; u++ {
+		s := u.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "UserRole(")
 	}
 }
 
 func TestUserRoleFromString(t *testing.T) {
-	for typ := RoleReadOnly; typ <= RoleOwner; typ++ {
-		s := typ.String()
-
-		parsedUserRole, err := userRoleFromString(s)
-		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
-		assert.Equal(t, typ, parsedUserRole)
+	for r := RoleCustom; r <= RoleOwner; r++ {
+		parsed := userRoleFromString(r.String())
+		assert.Equal(t, r, parsed)
 	}
+}
+
+func TestUserRole_Custom(t *testing.T) {
+	r := userRoleFromString("badboys")
+	assert.Equal(t, RoleCustom, r)
 }
