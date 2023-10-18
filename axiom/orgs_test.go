@@ -235,14 +235,10 @@ func TestPlan_String(t *testing.T) {
 }
 
 func TestPlanFromString(t *testing.T) {
-	for plan := Personal; plan <= Comped; plan++ {
-		s := plan.String()
-
-		parsedPlan, err := planFromString(s)
+	for p := Personal; p <= Comped; p++ {
+		parsed, err := planFromString(p.String())
 		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
-		assert.Equal(t, plan, parsedPlan)
+		assert.Equal(t, p, parsed)
 	}
 }
 
@@ -287,14 +283,10 @@ func TestPaymentStatus_String(t *testing.T) {
 }
 
 func TestPaymentStatusFromString(t *testing.T) {
-	for paymentStatus := Success; paymentStatus <= Blocked; paymentStatus++ {
-		s := paymentStatus.String()
-
-		parsedPaymentStatus, err := paymentStatusFromString(s)
+	for p := Success; p <= Blocked; p++ {
+		parsed, err := paymentStatusFromString(p.String())
 		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
-		assert.Equal(t, paymentStatus, parsedPaymentStatus)
+		assert.Equal(t, p, parsed)
 	}
 }
 

@@ -129,13 +129,9 @@ func TestMessageCode_String(t *testing.T) {
 
 func TestMessageCodeFromString(t *testing.T) {
 	for mc := VirtualFieldFinalizeError; mc <= CompilerWarning; mc++ {
-		s := mc.String()
-
-		parsedMC, err := messageCodeFromString(s)
+		parsed, err := messageCodeFromString(mc.String())
 		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
-		assert.Equal(t, mc, parsedMC)
+		assert.Equal(t, mc, parsed)
 	}
 }
 
@@ -165,12 +161,8 @@ func TestMessagePriority_String(t *testing.T) {
 
 func TestMessagePriorityFromString(t *testing.T) {
 	for mp := Trace; mp <= Fatal; mp++ {
-		s := mp.String()
-
-		parsedMP, err := messagePriorityFromString(s)
+		parsedMP, err := messagePriorityFromString(mp.String())
 		assert.NoError(t, err)
-
-		assert.NotEmpty(t, s)
 		assert.Equal(t, mp, parsedMP)
 	}
 }
