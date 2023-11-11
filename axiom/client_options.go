@@ -3,7 +3,7 @@ package axiom
 import (
 	"net/http"
 
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/axiomhq/axiom-go/internal/config"
 )
@@ -97,7 +97,7 @@ func SetNoRetry() Option {
 // tracer provider, even if one is configured.
 func SetNoTracing() Option {
 	return func(c *Client) error {
-		c.tracer = trace.NewNoopTracerProvider().Tracer(otelTracerName)
+		c.tracer = noop.Tracer{}
 		return nil
 	}
 }
