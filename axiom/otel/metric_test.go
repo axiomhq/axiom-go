@@ -6,25 +6,23 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 
 	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
 )
 
-func TestTracing(t *testing.T) {
+func TestMetrics(t *testing.T) {
 	var handlerCalled uint32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddUint32(&handlerCalled, 1)
 
 		assert.Equal(t, "POST", r.Method)
-		assert.Equal(t, "/v1/traces", r.URL.Path)
+		assert.Equal(t, "/v1/metrics", r.URL.Path)
 		assert.Equal(t, "application/x-protobuf", r.Header.Get("Content-Type"))
-		assert.Equal(t, "trace-test-dataset", r.Header.Get("X-Axiom-Dataset"))
+		assert.Equal(t, "metric-test-dataset", r.Header.Get("X-Axiom-Dataset"))
 
 		w.WriteHeader(http.StatusNoContent)
 	}))
@@ -32,7 +30,7 @@ func TestTracing(t *testing.T) {
 
 	ctx := context.Background()
 
-	stop, err := axiotel.InitTracing(ctx, "trace-test-dataset", "axiom-go-otel-traces-test", "v1.0.0",
+	stop, err := axiotel.InitMetrics(ctx, "metric-test-dataset", "axiom-go-otel-metrics-test", "v1.0.0",
 		axiotel.SetURL(srv.URL),
 		axiotel.SetToken("xaat-test-token"),
 		axiotel.SetNoEnv(),
@@ -42,23 +40,14 @@ func TestTracing(t *testing.T) {
 
 	t.Cleanup(func() { _ = stop() })
 
-	bar := func(ctx context.Context) {
-		tr := otel.Tracer("bar")
-		_, span := tr.Start(ctx, "bar")
-		span.SetAttributes(attribute.Key("testset").String("value"))
-		defer span.End()
+	meter := otel.Meter("main")
 
-		time.Sleep(time.Millisecond * 100)
-	}
+	counter, err := meter.Int64Counter("test")
+	require.NoError(t, err)
 
-	tr := otel.Tracer("main")
+	counter.Add(ctx, 1)
 
-	ctx, span := tr.Start(ctx, "foo")
-	defer span.End()
-
-	bar(ctx)
-
-	// Stop tracer which flushes all spans.
+	// Stop meter which flushes all metrics.
 	require.NoError(t, stop())
 
 	assert.EqualValues(t, 1, atomic.LoadUint32(&handlerCalled))

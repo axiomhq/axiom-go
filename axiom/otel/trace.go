@@ -6,54 +6,18 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-
-	// Keep in sync with https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L25.
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
-
-	"github.com/axiomhq/axiom-go/internal/version"
 )
 
-var userAgent string
-
-func init() {
-	userAgent = "axiom-go"
-	if v := version.Get(); v != "" {
-		userAgent += fmt.Sprintf("/%s", v)
-	}
-}
-
-// UserAgentAttribute returns a new OpenTelemetry axiom-go user agent attribute.
-func UserAgentAttribute() attribute.KeyValue {
-	return semconv.UserAgentOriginal(userAgent)
-}
-
 // TraceExporter configures and returns a new exporter for OpenTelemetry spans.
-func TraceExporter(ctx context.Context, dataset string, options ...TraceOption) (trace.SpanExporter, error) {
+func TraceExporter(ctx context.Context, dataset string, options ...Option) (trace.SpanExporter, error) {
 	config := defaultTraceConfig()
 
-	// Apply supplied options.
-	for _, option := range options {
-		if option == nil {
-			continue
-		} else if err := option(&config); err != nil {
-			return nil, err
-		}
-	}
-
-	// Make sure to populate remaining fields from the environment, if not
-	// explicitly disabled.
-	if !config.NoEnv {
-		if err := config.IncorporateEnvironment(); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := config.Validate(); err != nil {
+	if err := populateAndValidateConfig(&config, options...); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +57,7 @@ func TraceExporter(ctx context.Context, dataset string, options ...TraceOption) 
 }
 
 // TracerProvider configures and returns a new OpenTelemetry tracer provider.
-func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion string, options ...TraceOption) (*trace.TracerProvider, error) {
+func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion string, options ...Option) (*trace.TracerProvider, error) {
 	exporter, err := TraceExporter(ctx, dataset, options...)
 	if err != nil {
 		return nil, err
@@ -122,7 +86,7 @@ func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion st
 // function must be called to shut down the tracer provider and flush any
 // remaining spans. The error returned by the cleanup function must be checked,
 // as well.
-func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion string, options ...TraceOption) (func() error, error) {
+func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion string, options ...Option) (func() error, error) {
 	tracerProvider, err := TracerProvider(ctx, dataset, serviceName, serviceVersion, options...)
 	if err != nil {
 		return nil, err

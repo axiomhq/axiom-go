@@ -37,7 +37,8 @@ jobs:
           # - ingesthackernews
           - logrus
           - otelinstrument
-          - oteltraces
+          - otelmetric
+          - oteltrace
           - query
           - querylegacy
           # HINT(lukasmalkmus): This test would require Go 1.21 (but uses Go
@@ -67,7 +68,10 @@ jobs:
           - example: otelinstrument
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . >= 1 )'
-          - example: oteltraces
+          - example: otelmetric
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . > 3 )'
+          - example: oteltrace
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'
           - example: query
@@ -111,6 +115,10 @@ jobs:
         run: ${{ matrix.setup }}
       - name: Run example
         run: go run ./examples/${{ matrix.example }}/main.go
+        timeout-minutes: 5
+        # We have some long running examples so cancel the step after a while.
+        # We still validate the example output in the next step.
+        continue-on-error: true
       - name: Verify example
         if: matrix.verify
         run: ${{ matrix.verify }}
