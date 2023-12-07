@@ -22,7 +22,7 @@ jobs:
           - "1.21"
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
       - run: make generate
@@ -39,7 +39,7 @@ jobs:
           - "1.21"
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           cache: false
@@ -84,7 +84,7 @@ jobs:
       TELEMETRY_TRACES_DATASET: ${{ vars[format('TELEMETRY_{0}_TRACES_DATASET', matrix.slug)] }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
       - run: make test-integration
