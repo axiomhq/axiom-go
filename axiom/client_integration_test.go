@@ -67,7 +67,6 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
 
 	if len(telemetryTracesURL+telemetryTracesToken+telemetryTracesDataset) > 0 {
-		fmt.Println(telemetryTracesURL, telemetryTracesToken, telemetryTracesDataset)
 		var err error
 		s.flushTraces, err = otel.InitTracing(
 			s.suiteCtx,

@@ -65,10 +65,10 @@ jobs:
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: otelinstrument
             verify: |
-              axiom dataset info _traces -f=json | jq -e 'any( .numEvents ; . >= 1 )'
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . >= 1 )'
           - example: oteltraces
             verify: |
-              axiom dataset info _traces -f=json | jq -e 'any( .numEvents ; . >= 1 )'
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'
           - example: query
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
