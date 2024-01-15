@@ -48,6 +48,7 @@ jobs:
           # - slog
           - slogx
           - zap
+          - zerolog
         include:
           - example: apex
             verify: |
@@ -86,6 +87,9 @@ jobs:
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
           - example: zap
+            verify: |
+              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+          - example: zerolog
             verify: |
               axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
     env:
