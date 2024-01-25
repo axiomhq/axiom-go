@@ -96,6 +96,7 @@ type Client struct {
 	Datasets      *DatasetsService
 	Organizations *OrganizationsService
 	Users         *UsersService
+	Monitors      *MonitorsService
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
@@ -129,6 +130,7 @@ func NewClient(options ...Option) (*Client, error) {
 	client.Datasets = &DatasetsService{client, "/v2/datasets"}
 	client.Organizations = &OrganizationsService{client, "/v1/orgs"}
 	client.Users = &UsersService{client, "/v1/users"}
+	client.Monitors = &MonitorsService{client, "/v2/monitors"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
