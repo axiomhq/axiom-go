@@ -34,7 +34,7 @@ jobs:
         with:
           label: dependent
           keywords: depends on, blocked by, needs, requires
-      - uses: LouisBrunner/checks-action@v1.6.2
+      - uses: LouisBrunner/checks-action@v2.0.0
         if: github.actor == 'dependabot[bot]'
         with:
           token: ${{ github.token }}
