@@ -259,7 +259,11 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		err = backoff.Retry(func() error {
 			var httpResp *http.Response
 			//nolint:bodyclose // The response body is closed later down below.
-			if httpResp, err = c.httpClient.Do(req); err != nil {
+			httpResp, err = c.httpClient.Do(req)
+			switch {
+			case errors.Is(err, context.Canceled):
+				return backoff.Permanent(err)
+			case err != nil:
 				return err
 			}
 			resp = newResponse(httpResp)
