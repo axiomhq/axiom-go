@@ -97,6 +97,7 @@ func (s *NotifiersService) Get(ctx context.Context, id string) (*Notifier, error
 func (s *NotifiersService) Create(ctx context.Context, req Notifier) (*Notifier, error) {
 	ctx, span := s.client.trace(ctx, "Notifiers.Create", trace.WithAttributes(
 		attribute.String("axiom.param.name", req.Name),
+		attribute.String("axiom.param.type", req.Type),
 	))
 	defer span.End()
 
