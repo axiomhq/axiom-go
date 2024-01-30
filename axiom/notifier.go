@@ -9,11 +9,11 @@ import (
 )
 
 type Notifier struct {
-	DisabledUntil string              `json:"disabledUntil,omitempty"`
-	ID            string              `json:"id"`
-	Name          string              `json:"name"`
-	Properties    *NotifierProperties `json:"properties"`
-	Type          string              `json:"type"`
+	DisabledUntil string             `json:"disabledUntil,omitempty"`
+	ID            string             `json:"id"`
+	Name          string             `json:"name"`
+	Properties    NotifierProperties `json:"properties"`
+	Type          string             `json:"type"`
 }
 
 type NotifierProperties struct {
