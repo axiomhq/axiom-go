@@ -4,11 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
 
-// UserRole represents the role of a [User].
+type CreateUserRequest struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Role  string `json:"role"`
+}
+
+type UpdateUserRequest struct {
+	Name string `json:"name"`
+}
+
+type UpdateUserRoleRequest struct {
+	Role string `json:"role"`
+}
+
+// UserRole represents the role of an [User].
 type UserRole uint8
 
 // All available [User] roles.
@@ -81,7 +96,105 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 	defer span.End()
 
 	var res User
-	if err := s.client.Call(ctx, http.MethodGet, "/v1/user", nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, "/v2/user", nil, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return &res, nil
+}
+
+// List all users.
+func (s *UsersService) List(ctx context.Context) ([]*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.List")
+	defer span.End()
+
+	var res []*User
+	if err := s.client.Call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return res, nil
+}
+
+// Get a user by id.
+func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.Get")
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, "/", id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	var res User
+	if err := s.client.Call(ctx, http.MethodPost, path, nil, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return &res, nil
+}
+
+// Create will create and invite a user to the organisation
+func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.Create")
+	defer span.End()
+
+	var res User
+	if err := s.client.Call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return &res, nil
+}
+
+// Update will update a user.
+func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequest) (*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.Update")
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, "/", id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	var res User
+	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return &res, nil
+}
+
+// UpdateUsersRole will update a user role.
+func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req UpdateUserRoleRequest) (*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.UpdateUsersRole")
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, "/", id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	var res User
+	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return &res, nil
+}
+
+// Delete will remove a user from the organization.
+func (s *UsersService) Delete(ctx context.Context, id string) (*User, error) {
+	ctx, span := s.client.trace(ctx, "Users.Delete")
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, "/", id)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	var res User
+	if err := s.client.Call(ctx, http.MethodDelete, path, nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
