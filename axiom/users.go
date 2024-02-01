@@ -81,7 +81,14 @@ type User struct {
 	// Name of the user.
 	Name string `json:"name"`
 	// Emails are the email addresses of the user.
-	Emails []string `json:"emails"`
+	Email string `json:"emails"`
+	// Role is the role of the user.
+	Role UserDetailsRole `json:"role"`
+}
+
+type UserDetailsRole struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 // UsersService handles communication with the user related operations of the
@@ -193,7 +200,7 @@ func (s *UsersService) Delete(ctx context.Context, id string) error {
 		return spanError(span, err)
 	}
 
-	if err := s.client.Call(ctx, http.MethodDelete, path, nil, &nil); err != nil {
+	if err := s.client.Call(ctx, http.MethodDelete, path, nil, nil); err != nil {
 		return spanError(span, err)
 	}
 
