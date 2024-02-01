@@ -94,7 +94,7 @@ type UserDetailsRole struct {
 // UsersService handles communication with the user related operations of the
 // Axiom API.
 //
-// Axiom API Reference: /v1/users
+// Axiom API Reference: /v2/users
 type UsersService service
 
 // Current retrieves the authenticated user.
