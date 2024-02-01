@@ -184,19 +184,18 @@ func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req Updat
 }
 
 // Delete will remove a user from the organization.
-func (s *UsersService) Delete(ctx context.Context, id string) (*User, error) {
+func (s *UsersService) Delete(ctx context.Context, id string) error {
 	ctx, span := s.client.trace(ctx, "Users.Delete")
 	defer span.End()
 
 	path, err := url.JoinPath(s.basePath, "/", id)
 	if err != nil {
-		return nil, spanError(span, err)
+		return spanError(span, err)
 	}
 
-	var res User
-	if err := s.client.Call(ctx, http.MethodDelete, path, nil, &res); err != nil {
-		return nil, spanError(span, err)
+	if err := s.client.Call(ctx, http.MethodDelete, path, nil, &nil); err != nil {
+		return spanError(span, err)
 	}
 
-	return &res, nil
+	return nil
 }
