@@ -134,7 +134,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	}
 
 	var res User
-	if err := s.client.Call(ctx, http.MethodPost, path, nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -165,7 +165,7 @@ func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequ
 	}
 
 	var res User
-	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -183,7 +183,7 @@ func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req Updat
 	}
 
 	var res User
-	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodPut, path, req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
