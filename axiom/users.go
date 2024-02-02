@@ -81,7 +81,7 @@ type User struct {
 	// Name of the user.
 	Name string `json:"name"`
 	// Emails are the email addresses of the user.
-	Email string `json:"emails"`
+	Email string `json:"email"`
 	// Role is the role of the user.
 	Role UserDetailsRole `json:"role"`
 }
