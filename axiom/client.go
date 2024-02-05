@@ -48,7 +48,8 @@ const (
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
 
-var validOnlyAPITokenPaths = regexp.MustCompile(`^/v2/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
+var validOnlyAPITokenPaths = regexp.MustCompile(`^/(v1|v2)/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
+var ingestPath = "/v1/datasets"
 
 // service is the base service used by all Axiom API services.
 type service struct {
