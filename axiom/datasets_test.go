@@ -449,7 +449,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	r := strings.NewReader(`[
 		{
@@ -528,7 +528,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	events := []Event{
 		{
@@ -611,7 +611,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	events := []Event{
 		{
@@ -677,7 +677,7 @@ func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	events := []Event{
 		{
@@ -755,7 +755,7 @@ func TestDatasetsService_IngestChannel_Buffered(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	events := []Event{
 		{
@@ -831,7 +831,7 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	events := []Event{
 		{
@@ -912,7 +912,7 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/ingest", hf)
+	client := setup(t, "/v1/datasets/test/ingest", hf)
 
 	events := []Event{
 		{
