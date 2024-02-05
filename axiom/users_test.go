@@ -13,11 +13,9 @@ import (
 
 func TestUsersService_Current(t *testing.T) {
 	exp := &User{
-		ID:   "e9cffaad-60e7-4b04-8d27-185e1808c38c",
-		Name: "Lukas Malkmus",
-		Emails: []string{
-			"lukas@axiom.co",
-		},
+		ID:    "e9cffaad-60e7-4b04-8d27-185e1808c38c",
+		Name:  "Lukas Malkmus",
+		Email: "lukas@axiom.co",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -27,14 +25,12 @@ func TestUsersService_Current(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"id": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
 			"name": "Lukas Malkmus",
-			"emails": [
-				"lukas@axiom.co"
-			]
+			"email": "lukas@axiom.co"
 		}`)
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v1/user", hf)
+	client := setup(t, "/v2/user", hf)
 
 	res, err := client.Users.Current(context.Background())
 	require.NoError(t, err)
