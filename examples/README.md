@@ -65,5 +65,7 @@ To quickstart, export the environment variables below.
 
 - [otelinstrument](otelinstrument/main.go): How to instrument the Axiom Go
   client using OpenTelemetry.
-- [oteltraces](oteltraces/main.go): How to ship traces to Axiom using the
+- [otelmetric](otelmetric/main.go): How to ship metrics to Axiom using the
+  OpenTelemetry Go SDK and the Axiom SDKs `otel` helper package.
+- [oteltrace](oteltrace/main.go): How to ship traces to Axiom using the
   OpenTelemetry Go SDK and the Axiom SDKs `otel` helper package.

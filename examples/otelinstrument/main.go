@@ -23,6 +23,7 @@ func main() {
 	}
 
 	// 1. Initialize OpenTelemetry.
+	//
 	// Note: You can setup OpenTelemetry however you like! This example uses the
 	// helper package axiom/otel to initialize OpenTelemetry with Axiom
 	// configured as a backend for convenience.
@@ -43,6 +44,7 @@ func main() {
 	}
 
 	// 3. Use the client as usual ⚡
+	//
 	// This will send traces to the configured OpenTelemetry collector (in this
 	// case Axiom itself).
 	user, err := client.Users.Current(ctx)
