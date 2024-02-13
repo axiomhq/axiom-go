@@ -13,9 +13,8 @@ import (
 func TestNotifiersService_List(t *testing.T) {
 	exp := []*Notifier{
 		{
-			DisabledUntil: "",
-			ID:            "test",
-			Name:          "test",
+			ID:   "test",
+			Name: "test",
 			Properties: NotifierProperties{
 				Email: &EmailConfig{
 					Emails: []string{"test@test.com"},
@@ -53,9 +52,8 @@ func TestNotifiersService_List(t *testing.T) {
 
 func TestNotifiersService_Get(t *testing.T) {
 	exp := &Notifier{
-		DisabledUntil: "",
-		ID:            "test",
-		Name:          "test",
+		ID:   "test",
+		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
 				Emails: []string{"test@test.com"},
@@ -92,9 +90,8 @@ func TestNotifiersService_Get(t *testing.T) {
 
 func TestNotifiersService_Create(t *testing.T) {
 	exp := &Notifier{
-		DisabledUntil: "",
-		ID:            "test",
-		Name:          "test",
+		ID:   "test",
+		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
 				Emails: []string{"test@test.com"},
@@ -124,8 +121,7 @@ func TestNotifiersService_Create(t *testing.T) {
 	client := setup(t, "/v2/notifiers", hf)
 
 	res, err := client.Notifiers.Create(context.Background(), Notifier{
-		Name:          "test",
-		DisabledUntil: "",
+		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
 				Emails: []string{"test@test.com"},
@@ -140,9 +136,8 @@ func TestNotifiersService_Create(t *testing.T) {
 
 func TestNotifiersService_Update(t *testing.T) {
 	exp := &Notifier{
-		DisabledUntil: "",
-		ID:            "test",
-		Name:          "test",
+		ID:   "test",
+		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
 				Emails: []string{"test@test.com"},
@@ -172,8 +167,7 @@ func TestNotifiersService_Update(t *testing.T) {
 	client := setup(t, "/v2/notifiers/test", hf)
 
 	res, err := client.Notifiers.Update(context.Background(), "test", Notifier{
-		DisabledUntil: "",
-		Name:          "test",
+		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
 				Emails: []string{"test@test.com"},
