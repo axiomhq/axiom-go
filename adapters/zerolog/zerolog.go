@@ -13,9 +13,8 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/rs/zerolog"
 
-	"github.com/axiomhq/axiom-go/axiom/ingest"
-
 	"github.com/axiomhq/axiom-go/axiom"
+	"github.com/axiomhq/axiom-go/axiom/ingest"
 )
 
 var (
