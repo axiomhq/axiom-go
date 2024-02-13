@@ -554,8 +554,8 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 	hf := func(http.ResponseWriter, *http.Request) {}
 
 	tests := []string{
-		"/v2/datasets/test/query",
-		"/v2/datasets/_apl",
+		"/v1/datasets/test/query",
+		"/v1/datasets/_apl",
 	}
 	for _, tt := range tests {
 		t.Run(tt, func(t *testing.T) {
@@ -654,39 +654,39 @@ func TestAPITokenPathRegex(t *testing.T) {
 		match bool
 	}{
 		{
-			input: "/v2/datasets/test/ingest",
+			input: "/v1/datasets/test/ingest",
 			match: true,
 		},
 		{
-			input: "/v2/datasets/test/ingest?timestamp-format=unix",
+			input: "/v1/datasets/test/ingest?timestamp-format=unix",
 			match: true,
 		},
 		{
-			input: "/v2/datasets/test/query",
+			input: "/v1/datasets/test/query",
 			match: true,
 		},
 		{
-			input: "/v2/datasets/_apl",
+			input: "/v1/datasets/_apl",
 			match: true,
 		},
 		{
-			input: "/v2/datasets/test/query?nocache=true",
+			input: "/v1/datasets/test/query?nocache=true",
 			match: true,
 		},
 		{
-			input: "/v2/datasets/_apl?nocache=true",
+			input: "/v1/datasets/_apl?nocache=true",
 			match: true,
 		},
 		{
-			input: "/v2/datasets//query",
+			input: "/v1/datasets//query",
 			match: false,
 		},
 		{
-			input: "/v2/datasets/query",
+			input: "/v1/datasets/query",
 			match: false,
 		},
 		{
-			input: "/v2/datasets/test/elastic",
+			input: "/v1/datasets/test/elastic",
 			match: false,
 		},
 	}
