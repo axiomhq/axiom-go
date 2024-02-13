@@ -977,7 +977,7 @@ func TestDatasetsService_Query(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/_apl", hf)
+	client := setup(t, "/v1/datasets/_apl", hf)
 
 	res, err := client.Datasets.Query(context.Background(),
 		"['test'] | where response == 304",
@@ -1002,7 +1002,7 @@ func TestDatasetsService_Query_WithGroupBy(t *testing.T) {
 		}`)
 	}
 
-	client := setup(t, "/v2/datasets/_apl", hf)
+	client := setup(t, "/v1/datasets/_apl", hf)
 
 	res, err := client.Datasets.Query(context.Background(), "test")
 	require.NoError(t, err)
@@ -1027,7 +1027,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/datasets/test/query", hf)
+	client := setup(t, "/v1/datasets/test/query", hf)
 
 	res, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{
 		StartTime: testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
@@ -1043,7 +1043,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 }
 
 func TestDatasetsService_QueryInvalid_InvalidSaveKind(t *testing.T) {
-	client := setup(t, "/v2/datasets/test/query", nil)
+	client := setup(t, "/v1/datasets/test/query", nil)
 
 	_, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{}, querylegacy.Options{
 		SaveKind: querylegacy.APL,
