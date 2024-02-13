@@ -610,7 +610,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		Format: "legacy", // Hardcode legacy APL format for now.
 	}
 
-	path, err := url.JoinPath(s.basePath, "_apl")
+	path, err := url.JoinPath("/v1/datasets", "_apl")
 	if err != nil {
 		return nil, spanError(span, err)
 	} else if path, err = AddURLOptions(path, queryParams); err != nil {
@@ -658,7 +658,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 		return nil, spanError(span, err)
 	}
 
-	path, err := url.JoinPath(s.basePath, id, "query")
+	path, err := url.JoinPath("/v1/datasets", id, "query")
 	if err != nil {
 		return nil, spanError(span, err)
 	} else if path, err = AddURLOptions(path, opts); err != nil {
