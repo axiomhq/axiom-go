@@ -6,9 +6,10 @@ import (
 	"log"
 	"os"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/zerolog"
 	"github.com/rs/zerolog"
 	l "github.com/rs/zerolog/log"
+
+	adapter "github.com/axiomhq/axiom-go/adapters/zerolog"
 )
 
 func main() {
