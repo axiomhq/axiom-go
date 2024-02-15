@@ -55,9 +55,6 @@ To quickstart, export the environment variables below.
   [Logrus](https://github.com/sirupsen/logrus) logging package.
 - [slog](slog/main.go): How to ship logs to Axiom using the standard libraries
   [Slog](https://pkg.go.dev/log/slog) structured logging package.
-- [slogx](slogx/main.go): How to ship logs to Axiom using the
-  [golang.org/x/exp/slog](https://pkg.go.dev/golang.org/x/exp/slog) structured
-  logging package (pre Go 1.21).
 - [zap](zap/main.go): How to ship logs to Axiom using the popular
   [Zap](https://github.com/uber-go/zap) logging package.
 

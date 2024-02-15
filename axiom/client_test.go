@@ -395,7 +395,7 @@ func TestClient_do_ioWriter(t *testing.T) {
 }
 
 func TestClient_do_HTTPError(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(http.StatusText(http.StatusBadRequest)))
@@ -416,7 +416,7 @@ func TestClient_do_HTTPError(t *testing.T) {
 }
 
 func TestClient_do_HTTPError_Typed(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		_, _ = w.Write([]byte(http.StatusText(http.StatusForbidden)))
 	}
@@ -432,7 +432,7 @@ func TestClient_do_HTTPError_Typed(t *testing.T) {
 }
 
 func TestClient_do_HTTPError_JSON(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusBadRequest)
@@ -457,7 +457,7 @@ func TestClient_do_HTTPError_JSON(t *testing.T) {
 }
 
 func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.WriteHeader(http.StatusUnauthorized)
 
@@ -498,7 +498,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 		},
 	}
 
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.Header().Set(headerRateScope, "anonymous")
 		w.Header().Set(headerRateLimit, "1000")
@@ -551,7 +551,7 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 }
 
 func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {}
+	hf := func(http.ResponseWriter, *http.Request) {}
 
 	tests := []string{
 		"/v1/datasets/test/query",
@@ -631,7 +631,7 @@ func TestClient_do_Backoff(t *testing.T) {
 
 func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
 	var currentCalls int
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		currentCalls++
 		w.WriteHeader(http.StatusBadRequest)
 	}

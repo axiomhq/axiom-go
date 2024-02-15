@@ -14,9 +14,7 @@ import (
 // TestClient makes sure a user of the package can construct his own requests to
 // use with the clients methods.
 func TestClient_Manual(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
 	t.Cleanup(srv.Close)
 
 	client, err := axiom.NewClient(
@@ -50,9 +48,7 @@ func TestClient_Manual(t *testing.T) {
 // TestClient makes sure a user of the package can construct his own requests to
 // use with the clients Call method.
 func TestClient_Call(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
+	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
 	t.Cleanup(srv.Close)
 
 	client, err := axiom.NewClient(

@@ -115,7 +115,7 @@ type WriteSyncer struct {
 // An API token with "ingest" permission is sufficient enough.
 func New(options ...Option) (zapcore.Core, error) {
 	ws := &WriteSyncer{
-		levelEnabler: zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		levelEnabler: zap.LevelEnablerFunc(func(zapcore.Level) bool {
 			return true
 		}),
 	}

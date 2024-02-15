@@ -989,7 +989,7 @@ func TestDatasetsService_Query(t *testing.T) {
 }
 
 func TestDatasetsService_Query_WithGroupBy(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, _ = fmt.Fprint(w, `{
