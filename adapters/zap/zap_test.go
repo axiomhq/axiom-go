@@ -70,7 +70,7 @@ func TestCore(t *testing.T) {
 		logger := zap.New(core)
 		t.Cleanup(func() {
 			err := logger.Sync()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 		})
 
 		return logger, func() {}

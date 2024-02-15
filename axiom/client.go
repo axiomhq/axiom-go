@@ -167,7 +167,7 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 	}
 
 	// FIXME(lukasmalkmus): Well, with the current API, we need to assume the
-	// token is valid.
+	// API token is valid as there is no endpoint to check it.
 	// return ErrInvalidToken
 	return nil
 }

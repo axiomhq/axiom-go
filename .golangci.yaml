@@ -27,6 +27,7 @@ linters:
     - ineffassign
     - misspell
     - nolintlint
+    # - paralleltest
     - prealloc
     - revive
     - staticcheck
@@ -38,15 +39,9 @@ linters:
     - whitespace
 
 linters-settings:
-  gofmt:
-    simplify: true
   goimports:
     local-prefixes: github.com/axiomhq/axiom-go
-  govet:
-    check-shadowing: true
   nolintlint:
-    allow-unused: false
-    allow-leading-space: false
     require-explanation: true
     require-specific: true
   staticcheck:

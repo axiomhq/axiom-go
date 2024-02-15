@@ -1,4 +1,4 @@
-//go:build integration && go1.21
+//go:build go1.21
 
 package slog_test
 
