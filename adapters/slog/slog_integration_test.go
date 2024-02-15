@@ -1,5 +1,3 @@
-//go:build go1.21
-
 package slog_test
 
 import (

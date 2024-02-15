@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 
 	// Keep in sync with https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L25.
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 
 	"github.com/axiomhq/axiom-go/internal/version"
 )
@@ -131,7 +131,7 @@ func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion strin
 	otel.SetTracerProvider(tracerProvider)
 
 	closeFunc := func() error {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), time.Second*15)
 		defer cancel()
 
 		return tracerProvider.Shutdown(ctx)

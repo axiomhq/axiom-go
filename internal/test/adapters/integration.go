@@ -71,7 +71,7 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 
 	// ... and make sure it's deleted after the test.
 	t.Cleanup(func() {
-		teardownCtx := teardownContext(t, time.Second*15)
+		teardownCtx := teardownContext(t, ctx, time.Second*15)
 		deleteErr := client.Datasets.Delete(teardownCtx, dataset.ID)
 		assert.NoError(t, deleteErr)
 	})
@@ -89,10 +89,11 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	assert.NotZero(t, len(res.Matches), "dataset should not be empty")
 }
 
-func teardownContext(t *testing.T, timeout time.Duration) context.Context {
+//nolint:revive // This is a test helper so having context as the second parameter is fine.
+func teardownContext(t *testing.T, parent context.Context, timeout time.Duration) context.Context {
 	t.Helper()
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), timeout)
 	t.Cleanup(cancel)
 	return ctx
 }
