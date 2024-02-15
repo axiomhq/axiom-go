@@ -41,7 +41,7 @@ func TestTracing(t *testing.T) {
 	require.NotNil(t, stop)
 
 	t.Cleanup(func() {
-		_ = stop()
+		assert.NoError(t, stop())
 	})
 
 	bar := func(ctx context.Context) {

@@ -131,7 +131,7 @@ func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion strin
 	otel.SetTracerProvider(tracerProvider)
 
 	closeFunc := func() error {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
 		return tracerProvider.Shutdown(ctx)

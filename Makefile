@@ -12,11 +12,8 @@ GOTOOLS := $(shell cat tools.go | grep "_ \"" | awk '{ print $$2 }' | tr -d '"')
 # MISC
 COVERPROFILE := coverage.out
 
-# TAGS
-GO_TEST_TAGS := netgo
-
 # FLAGS
-GO_TEST_FLAGS = -race -coverprofile=$(COVERPROFILE) -tags='$(GO_TEST_TAGS)'
+GO_TEST_FLAGS = -race -coverprofile=$(COVERPROFILE) -shuffle=on
 
 # DEPENDENCIES
 GOMODDEPS = go.mod go.sum
@@ -92,16 +89,10 @@ lint: ## Lint the source code
 	@echo ">> linting code"
 	@$(call go-run-tool, golangci-lint) run
 
-.PHONY: test-integration
-test-integration: ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
-	$(eval GO_TEST_TAGS += integration)
-	@echo ">> running integration tests"
-	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
-
 .PHONY: test
-test: ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
+test: ## Run all tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
 	@echo ">> running tests"
-	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
+	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./{adapters,axiom,internal}/...
 
 .PHONY: help
 help:

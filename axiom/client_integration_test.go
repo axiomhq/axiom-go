@@ -1,5 +1,3 @@
-//go:build integration
-
 package axiom_test
 
 import (
@@ -55,8 +53,9 @@ type IntegrationTestSuite struct {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
-	s.Require().NotEmpty(accessToken, "integration test needs a personal token set")
-	s.Require().True(orgID != "" || deploymentURL != "", "integration test needs an organization ID or deployment url set")
+	if accessToken == "" || orgID == "" || deploymentURL == "" {
+		s.T().Skip("missing required environment variables to run integration tests")
+	}
 
 	if datasetSuffix == "" {
 		datasetSuffix = "local"

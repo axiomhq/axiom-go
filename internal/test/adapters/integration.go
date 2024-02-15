@@ -1,5 +1,3 @@
-//go:build integration
-
 package adapters
 
 import (
@@ -29,8 +27,14 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	cfg := config.Default()
 	if err := cfg.IncorporateEnvironment(); err != nil {
 		t.Fatal(err)
-	} else if err = cfg.Validate(); err != nil {
-		t.Fatal(err)
+	}
+
+	if cfg.Token() == "" || cfg.OrganizationID() == "" || cfg.BaseURL() == nil {
+		t.Skip("missing required environment variables to run integration tests")
+	}
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("invalid configuration: %s", err)
 	}
 
 	if adapterName == "" {
@@ -71,12 +75,14 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 
 	t.Logf("using account %q", testUser.Name)
 
-	// Create the dataset to use.
+	// Create the dataset to use...
 	dataset, err := client.Datasets.Create(ctx, axiom.DatasetCreateRequest{
 		Name:        fmt.Sprintf("test-axiom-go-adapter-%s-%s", adapterName, datasetSuffix),
 		Description: "This is a test dataset for adapter integration tests.",
 	})
 	require.NoError(t, err)
+
+	// ... and make sure it's deleted after the test.
 	t.Cleanup(func() {
 		teardownCtx := teardownContext(t, time.Second*15)
 		deleteErr := client.Datasets.Delete(teardownCtx, dataset.ID)
@@ -85,8 +91,6 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 
 	// Run the test function with the test client.
 	testFunc(ctx, dataset.ID, client)
-
-	// time.Sleep(time.Second * 30)
 
 	// Make sure the dataset is not empty.
 	res, err := client.Datasets.QueryLegacy(ctx, dataset.ID, querylegacy.Query{
