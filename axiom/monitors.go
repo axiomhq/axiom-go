@@ -2,27 +2,85 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type Monitor struct {
-	AlertOnNoData   bool     `json:"alertOnNoData"`
-	AplQuery        string   `json:"aplQuery"`
-	Description     string   `json:"description,omitempty"`
-	Disabled        bool     `json:"disabled"`
-	ID              string   `json:"id,omitempty"`
-	IntervalMinutes int64    `json:"intervalMinutes"`
-	MatchEveryN     int64    `json:"matchEveryN,omitempty"`
-	MatchValue      string   `json:"matchValue,omitempty"`
-	Name            string   `json:"name"`
-	NotifierIds     []string `json:"notifierIds"`
-	Operator        string   `json:"operator"`
-	RangeMinutes    int64    `json:"rangeMinutes"`
-	Threshold       float64  `json:"threshold"`
+	// ID is the unique ID of the monitor.
+	ID string `json:"id,omitempty"`
+	// AlertOnNoData indicates whether to alert on no data.
+	AlertOnNoData bool `json:"alertOnNoData"`
+	// APLQuery is the APL query to use for the monitor.
+	APLQuery string `json:"aplQuery"`
+	// Description of the monitor.
+	Description string `json:"description,omitempty"`
+	// Disabled is true, if the monitor is disabled and thus not running.
+	Disabled bool `json:"disabled"`
+	// Interval is the interval in minutes in which the monitor will run.
+	Interval    time.Duration `json:"IntervalMinutes"`
+	MatchEveryN int64         `json:"matchEveryN,omitempty"`
+	MatchValue  string        `json:"matchValue,omitempty"`
+	// Name is the name of the monitor.
+	Name string `json:"name"`
+	// NotifierIDs attached to the monitor.
+	NotifierIDs []string `json:"NotifierIDs"`
+	// Operator is the operator to use for the monitor.
+	Operator string `json:"operator"`
+	// Range the monitor goes back in time and looks at the data it acts on.
+	Range time.Duration `json:"RangeMinutes"`
+	// Threshold the query result is compared against, which evaluates if the
+	// monitor acts or not.
+	Threshold float64 `json:"threshold"`
+}
+
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// NoDataCloseWait, Frequency and Duration to minutes because that's what the
+// server expects as well as setting the appropriate query type.
+func (m Monitor) MarshalJSON() ([]byte, error) {
+	type localMonitor Monitor
+
+	// Set to the value in minutes.
+	m.Range = time.Duration(m.Range.Minutes())
+	m.Interval = time.Duration(m.Interval.Minutes())
+
+	return json.Marshal(localMonitor(m))
+}
+
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to convert the
+// NoDataCloseWait, Frequency and Duration field values into proper
+// time.Duration values because the server returns them in seconds as well as
+// unmarshalling the query in to its appropriate type.
+func (m *Monitor) UnmarshalJSON(b []byte) error {
+	type LocalMonitor Monitor
+	localMonitor := struct {
+		*LocalMonitor
+	}{
+		LocalMonitor: (*LocalMonitor)(m),
+	}
+	if err := json.Unmarshal(b, &localMonitor); err != nil {
+		return err
+	}
+
+	// Set to a proper time.Duration value by interpreting the server response
+	// value in seconds.
+	m.Range = m.Range * time.Minute
+	m.Interval = m.Interval * time.Minute
+
+	return nil
+}
+
+type MonitorCreateRequest struct {
+	Monitor
+}
+
+type MonitorUpdateRequest struct {
+	Monitor
 }
 
 // Axiom API Reference: /v2/monitors
@@ -44,7 +102,7 @@ func (s *MonitorsService) List(ctx context.Context) ([]*Monitor, error) {
 // Get a monitor by id.
 func (s *MonitorsService) Get(ctx context.Context, id string) (*Monitor, error) {
 	ctx, span := s.client.trace(ctx, "Monitors.Get", trace.WithAttributes(
-		attribute.String("axiom.Monitor_id", id),
+		attribute.String("axiom.monitor_id", id),
 	))
 	defer span.End()
 
@@ -62,7 +120,7 @@ func (s *MonitorsService) Get(ctx context.Context, id string) (*Monitor, error) 
 }
 
 // Create a monitor with the given properties.
-func (s *MonitorsService) Create(ctx context.Context, req Monitor) (*Monitor, error) {
+func (s *MonitorsService) Create(ctx context.Context, req MonitorCreateRequest) (*Monitor, error) {
 	ctx, span := s.client.trace(ctx, "Monitors.Create", trace.WithAttributes(
 		attribute.String("axiom.param.name", req.Name),
 		attribute.String("axiom.param.description", req.Description),
@@ -78,7 +136,7 @@ func (s *MonitorsService) Create(ctx context.Context, req Monitor) (*Monitor, er
 }
 
 // Update the monitor identified by the given id with the given properties.
-func (s *MonitorsService) Update(ctx context.Context, id string, req Monitor) (*Monitor, error) {
+func (s *MonitorsService) Update(ctx context.Context, id string, req MonitorUpdateRequest) (*Monitor, error) {
 	ctx, span := s.client.trace(ctx, "Monitors.Update", trace.WithAttributes(
 		attribute.String("axiom.monitor_id", id),
 		attribute.String("axiom.param.description", req.Description),

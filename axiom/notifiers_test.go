@@ -20,7 +20,6 @@ func TestNotifiersService_List(t *testing.T) {
 					Emails: []string{"test@test.com"},
 				},
 			},
-			Type: "email",
 		},
 	}
 
@@ -37,8 +36,7 @@ func TestNotifiersService_List(t *testing.T) {
 						"test@test.com"
 					]
 				}
-			},
-			"type": "email"
+			}
 		}]`)
 		assert.NoError(t, err)
 	}
@@ -59,7 +57,6 @@ func TestNotifiersService_Get(t *testing.T) {
 				Emails: []string{"test@test.com"},
 			},
 		},
-		Type: "email",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -75,8 +72,7 @@ func TestNotifiersService_Get(t *testing.T) {
 						"test@test.com"
 					]
 				}
-			},
-			"type": "email"
+			}
 		}`)
 		assert.NoError(t, err)
 	}
@@ -97,7 +93,6 @@ func TestNotifiersService_Create(t *testing.T) {
 				Emails: []string{"test@test.com"},
 			},
 		},
-		Type: "email",
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
@@ -113,8 +108,7 @@ func TestNotifiersService_Create(t *testing.T) {
 						"test@test.com"
 					]
 				}
-			},
-			"type": "email"
+			}
 		}`)
 		assert.NoError(t, err)
 	}
@@ -127,7 +121,6 @@ func TestNotifiersService_Create(t *testing.T) {
 				Emails: []string{"test@test.com"},
 			},
 		},
-		Type: "email",
 	})
 	require.NoError(t, err)
 
@@ -143,7 +136,6 @@ func TestNotifiersService_Update(t *testing.T) {
 				Emails: []string{"test@test.com"},
 			},
 		},
-		Type: "email",
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
@@ -159,8 +151,7 @@ func TestNotifiersService_Update(t *testing.T) {
 						"test@test.com"
 					]
 				}
-			},
-			"type": "email"
+			}
 		}`)
 		assert.NoError(t, err)
 	}
@@ -173,7 +164,6 @@ func TestNotifiersService_Update(t *testing.T) {
 				Emails: []string{"test@test.com"},
 			},
 		},
-		Type: "email",
 	})
 	require.NoError(t, err)
 

@@ -5,23 +5,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
-
-type CreateUserRequest struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
-
-type UpdateUserRequest struct {
-	Name string `json:"name"`
-}
-
-type UpdateUserRoleRequest struct {
-	Role string `json:"role"`
-}
 
 // UserRole represents the role of an [User].
 type UserRole uint8
@@ -87,8 +76,29 @@ type User struct {
 }
 
 type UserDetailsRole struct {
-	ID   string `json:"id,omitempty"`
+	// ID is the unique ID of the role.
+	ID string `json:"id,omitempty"`
+	// Name of the role.
 	Name string `json:"name,omitempty"`
+}
+
+type CreateUserRequest struct {
+	// Name is the name of the user.
+	Name string `json:"name"`
+	// Email is the email of the user.
+	Email string `json:"email"`
+	// Role is the role of the user.
+	Role string `json:"role"`
+}
+
+type UpdateUserRequest struct {
+	// Name is the new name of the user.
+	Name string `json:"name"`
+}
+
+type UpdateUserRoleRequest struct {
+	// Role is the new role of the user.
+	Role string `json:"role"`
 }
 
 // UsersService handles communication with the user related operations of the
@@ -125,7 +135,9 @@ func (s *UsersService) List(ctx context.Context) ([]*User, error) {
 
 // Get a user by id.
 func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
-	ctx, span := s.client.trace(ctx, "Users.Get")
+	ctx, span := s.client.trace(ctx, "Users.Get", trace.WithAttributes(
+		attribute.String("axiom.user_id", id),
+	))
 	defer span.End()
 
 	path, err := url.JoinPath(s.basePath, "/", id)
@@ -143,7 +155,11 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 
 // Create will create and invite a user to the organisation
 func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
-	ctx, span := s.client.trace(ctx, "Users.Create")
+	ctx, span := s.client.trace(ctx, "Users.Create", trace.WithAttributes(
+		attribute.String("axiom.user_name", req.Name),
+		attribute.String("axiom.user_role", req.Role),
+		attribute.String("axiom.user_email", req.Email),
+	))
 	defer span.End()
 
 	var res User
@@ -156,7 +172,11 @@ func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User
 
 // Update will update a user.
 func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequest) (*User, error) {
-	ctx, span := s.client.trace(ctx, "Users.Update")
+	ctx, span := s.client.trace(ctx, "Users.Update",
+		trace.WithAttributes(
+			attribute.String("axiom.user_id", id),
+			attribute.String("axiom.user_name", req.Name),
+		))
 	defer span.End()
 
 	path, err := url.JoinPath(s.basePath, "/", id)
@@ -174,10 +194,14 @@ func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequ
 
 // UpdateUsersRole will update a user role.
 func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req UpdateUserRoleRequest) (*User, error) {
-	ctx, span := s.client.trace(ctx, "Users.UpdateUsersRole")
+	ctx, span := s.client.trace(ctx, "Users.UpdateUsersRole",
+		trace.WithAttributes(
+			attribute.String("axiom.user_id", id),
+			attribute.String("axiom.user_name", req.Role),
+		))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, "/", id, "/role")
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -192,7 +216,9 @@ func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req Updat
 
 // Delete will remove a user from the organization.
 func (s *UsersService) Delete(ctx context.Context, id string) error {
-	ctx, span := s.client.trace(ctx, "Users.Delete")
+	ctx, span := s.client.trace(ctx, "Users.Delete", trace.WithAttributes(
+		attribute.String("axiom.user_id", id),
+	))
 	defer span.End()
 
 	path, err := url.JoinPath(s.basePath, "/", id)
