@@ -12,20 +12,6 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
 
-type CreateUserRequest struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
-
-type UpdateUserRequest struct {
-	Name string `json:"name"`
-}
-
-type UpdateUserRoleRequest struct {
-	Role string `json:"role"`
-}
-
 // UserRole represents the role of an [User].
 type UserRole uint8
 
