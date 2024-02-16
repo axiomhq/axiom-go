@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,19 +14,19 @@ import (
 func TestMonitorsService_List(t *testing.T) {
 	exp := []*Monitor{
 		{
-			AlertOnNoData:   false,
-			AplQuery:        "['dataset'] | summarize count() by bin_auto(_time)",
-			Description:     "test",
-			Disabled:        false,
-			ID:              "test",
-			IntervalMinutes: 0,
-			MatchEveryN:     0,
-			MatchValue:      "",
-			Name:            "test",
-			NotifierIds:     nil,
-			Operator:        "Above",
-			RangeMinutes:    1,
-			Threshold:       1,
+			AlertOnNoData: false,
+			APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+			Description:   "test",
+			Disabled:      false,
+			ID:            "test",
+			Interval:      0,
+			MatchEveryN:   0,
+			MatchValue:    "",
+			Name:          "test",
+			NotifierIDs:   nil,
+			Operator:      "Above",
+			Range:         time.Minute,
+			Threshold:     1,
 		},
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -38,11 +39,11 @@ func TestMonitorsService_List(t *testing.T) {
 			"description": "test",
 			"disabled": false,
 			"id": "test",
-			"intervalMinutes": 0,
+			"IntervalMinutes": 0,
 			"name": "test",
-			"notifierIds": null,
+			"NotifierIDs": null,
 			"operator": "Above",
-			"rangeMinutes": 1,
+			"RangeMinutes": 1,
 			"threshold": 1
 		}]`)
 		assert.NoError(t, err)
@@ -57,19 +58,19 @@ func TestMonitorsService_List(t *testing.T) {
 
 func TestMonitorsService_Get(t *testing.T) {
 	exp := &Monitor{
-		AlertOnNoData:   false,
-		AplQuery:        "['dataset'] | summarize count() by bin_auto(_time)",
-		Description:     "test",
-		Disabled:        false,
-		ID:              "testID",
-		IntervalMinutes: 0,
-		MatchEveryN:     0,
-		MatchValue:      "",
-		Name:            "test",
-		NotifierIds:     nil,
-		Operator:        "Above",
-		RangeMinutes:    1,
-		Threshold:       1,
+		AlertOnNoData: false,
+		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+		Description:   "test",
+		Disabled:      false,
+		ID:            "testID",
+		Interval:      0,
+		MatchEveryN:   0,
+		MatchValue:    "",
+		Name:          "test",
+		NotifierIDs:   nil,
+		Operator:      "Above",
+		Range:         time.Minute,
+		Threshold:     1,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
@@ -81,11 +82,11 @@ func TestMonitorsService_Get(t *testing.T) {
 			"description": "test",
 			"disabled": false,
 			"id": "testID",
-			"intervalMinutes": 0,
+			"IntervalMinutes": 0,
 			"name": "test",
-			"notifierIds": null,
+			"NotifierIDs": null,
 			"operator": "Above",
-			"rangeMinutes": 1,
+			"RangeMinutes": 1,
 			"threshold": 1
 		}`)
 		assert.NoError(t, err)
@@ -100,19 +101,19 @@ func TestMonitorsService_Get(t *testing.T) {
 
 func TestMonitorsService_Create(t *testing.T) {
 	exp := &Monitor{
-		AlertOnNoData:   false,
-		AplQuery:        "['dataset'] | summarize count() by bin_auto(_time)",
-		Description:     "test",
-		Disabled:        false,
-		ID:              "testID",
-		IntervalMinutes: 0,
-		MatchEveryN:     0,
-		MatchValue:      "",
-		Name:            "test",
-		NotifierIds:     nil,
-		Operator:        "Above",
-		RangeMinutes:    1,
-		Threshold:       1,
+		AlertOnNoData: false,
+		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+		Description:   "test",
+		Disabled:      false,
+		ID:            "testID",
+		Interval:      0,
+		MatchEveryN:   0,
+		MatchValue:    "",
+		Name:          "test",
+		NotifierIDs:   nil,
+		Operator:      "Above",
+		Range:         time.Minute,
+		Threshold:     1,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
@@ -125,32 +126,32 @@ func TestMonitorsService_Create(t *testing.T) {
 			"description": "test",
 			"disabled": false,
 			"id": "testID",
-			"intervalMinutes": 0,
+			"IntervalMinutes": 0,
 			"name": "test",
-			"notifierIds": null,
+			"NotifierIDs": null,
 			"operator": "Above",
-			"rangeMinutes": 1,
+			"RangeMinutes": 1,
 			"threshold": 1
 		}`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "/v2/monitors", hf)
 
-	res, err := client.Monitors.Create(context.Background(), Monitor{
-		AlertOnNoData:   false,
-		AplQuery:        "['dataset'] | summarize count() by bin_auto(_time)",
-		Description:     "test",
-		Disabled:        false,
-		ID:              "testID",
-		IntervalMinutes: 0,
-		MatchEveryN:     0,
-		MatchValue:      "",
-		Name:            "test",
-		NotifierIds:     nil,
-		Operator:        "Above",
-		RangeMinutes:    1,
-		Threshold:       1,
-	})
+	res, err := client.Monitors.Create(context.Background(), MonitorCreateRequest{Monitor{
+		AlertOnNoData: false,
+		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+		Description:   "test",
+		Disabled:      false,
+		ID:            "testID",
+		Interval:      0,
+		MatchEveryN:   0,
+		MatchValue:    "",
+		Name:          "test",
+		NotifierIDs:   nil,
+		Operator:      "Above",
+		Range:         time.Minute,
+		Threshold:     1,
+	}})
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -158,19 +159,19 @@ func TestMonitorsService_Create(t *testing.T) {
 
 func TestMonitorsService_Update(t *testing.T) {
 	exp := &Monitor{
-		AlertOnNoData:   false,
-		AplQuery:        "['dataset'] | summarize count() by bin_auto(_time)",
-		Description:     "test",
-		Disabled:        false,
-		ID:              "testID",
-		IntervalMinutes: 0,
-		MatchEveryN:     0,
-		MatchValue:      "",
-		Name:            "test",
-		NotifierIds:     nil,
-		Operator:        "Above",
-		RangeMinutes:    1,
-		Threshold:       1,
+		AlertOnNoData: false,
+		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+		Description:   "test",
+		Disabled:      false,
+		ID:            "testID",
+		Interval:      0,
+		MatchEveryN:   0,
+		MatchValue:    "",
+		Name:          "test",
+		NotifierIDs:   nil,
+		Operator:      "Above",
+		Range:         time.Minute,
+		Threshold:     1,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
@@ -183,32 +184,32 @@ func TestMonitorsService_Update(t *testing.T) {
 			"description": "test",
 			"disabled": false,
 			"id": "testID",
-			"intervalMinutes": 0,
+			"IntervalMinutes": 0,
 			"name": "test",
-			"notifierIds": null,
+			"NotifierIDs": null,
 			"operator": "Above",
-			"rangeMinutes": 1,
+			"RangeMinutes": 1,
 			"threshold": 1
 		}`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "/v2/monitors/testID", hf)
 
-	res, err := client.Monitors.Update(context.Background(), "testID", Monitor{
-		AlertOnNoData:   false,
-		AplQuery:        "['dataset'] | summarize count() by bin_auto(_time)",
-		Description:     "test",
-		Disabled:        false,
-		ID:              "testID",
-		IntervalMinutes: 0,
-		MatchEveryN:     0,
-		MatchValue:      "",
-		Name:            "test",
-		NotifierIds:     nil,
-		Operator:        "Above",
-		RangeMinutes:    1,
-		Threshold:       1,
-	})
+	res, err := client.Monitors.Update(context.Background(), "testID", MonitorUpdateRequest{Monitor{
+		AlertOnNoData: false,
+		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+		Description:   "test",
+		Disabled:      false,
+		ID:            "testID",
+		Interval:      0,
+		MatchEveryN:   0,
+		MatchValue:    "",
+		Name:          "test",
+		NotifierIDs:   nil,
+		Operator:      "Above",
+		Range:         time.Minute,
+		Threshold:     1,
+	}})
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)

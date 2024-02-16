@@ -330,7 +330,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		}
 	}
 
-	path, err := url.JoinPath(ingestPath, id, "ingest")
+	path, err := url.JoinPath("/v1/datasets", id, "ingest")
 	if err != nil {
 		return nil, spanError(span, err)
 	} else if path, err = AddURLOptions(path, opts); err != nil {
@@ -411,7 +411,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		return &ingest.Status{}, nil
 	}
 
-	path, err := url.JoinPath(ingestPath, id, "ingest")
+	path, err := url.JoinPath("/v1/datasets", id, "ingest")
 	if err != nil {
 		return nil, spanError(span, err)
 	} else if path, err = AddURLOptions(path, opts); err != nil {

@@ -10,50 +10,69 @@ import (
 )
 
 type Notifier struct {
-	ID         string             `json:"id"`
-	Name       string             `json:"name"`
+	// ID is the unique ID of the notifier.
+	ID string `json:"id"`
+	// Name is the name of the notifier.
+	Name string `json:"name"`
+	// Properties of the notifier.
 	Properties NotifierProperties `json:"properties"`
-	Type       string             `json:"type"`
 }
 
 type NotifierProperties struct {
-	Discord        *DiscordConfig        `json:"discord,omitempty"`
+	// Discord configuration.
+	Discord *DiscordConfig `json:"discord,omitempty"`
+	// DiscordWebhook configuration.
 	DiscordWebhook *DiscordWebhookConfig `json:"discordWebhook,omitempty"`
-	Email          *EmailConfig          `json:"email,omitempty"`
-	Opsgenie       *OpsGenieConfig       `json:"opsgenie,omitempty"`
-	Pagerduty      *PagerDutyConfig      `json:"pagerduty,omitempty"`
-	Slack          *SlackConfig          `json:"slack,omitempty"`
-	Webhook        *WebhookConfig        `json:"webhook,omitempty"`
+	// Email configuration.
+	Email *EmailConfig `json:"email,omitempty"`
+	// OpsGenie configuration.
+	Opsgenie *OpsGenieConfig `json:"opsgenie,omitempty"`
+	// PagerDuty configuration.
+	Pagerduty *PagerDutyConfig `json:"pagerduty,omitempty"`
+	// Slack configuration.
+	Slack *SlackConfig `json:"slack,omitempty"`
+	// Webhook configuration.
+	Webhook *WebhookConfig `json:"webhook,omitempty"`
 }
 
 type DiscordConfig struct {
+	// DiscordChannel is the channel to send the message to.
 	DiscordChannel string `json:"DiscordChannel,omitempty"`
-	DiscordToken   string `json:"DiscordToken,omitempty"`
+	// DiscordToken is the token to use for authentication.
+	DiscordToken string `json:"DiscordToken,omitempty"`
 }
 
 type DiscordWebhookConfig struct {
+	// DiscordWebhookURL is the URL to send the message to.
 	DiscordWebhookURL string `json:"DiscordWebhookUrl,omitempty"`
 }
 
 type EmailConfig struct {
+	// Emails to send the message to.
 	Emails []string `json:"Emails"`
 }
 
 type OpsGenieConfig struct {
+	// APIKey is the API key to use for authentication.
 	APIKey string `json:"ApiKey,omitempty"`
-	IsEU   bool   `json:"IsEU,omitempty"`
+	// IsEU indicates whether the OpsGenie instance is in the EU.
+	IsEU bool `json:"IsEU,omitempty"`
 }
 
 type PagerDutyConfig struct {
+	// RoutingKey is the routing key to use for authentication.
 	RoutingKey string `json:"RoutingKey,omitempty"`
-	Token      string `json:"Token,omitempty"`
+	// Token is the token to use for authentication.
+	Token string `json:"Token,omitempty"`
 }
 
 type SlackConfig struct {
+	// SlackChannel is the channel to send the message to.
 	SlackURL string `json:"SlackUrl,omitempty"`
 }
 
 type WebhookConfig struct {
+	// URL is the URL to send the message to.
 	URL string `json:"Url,omitempty"`
 }
 
@@ -76,7 +95,7 @@ func (s *NotifiersService) List(ctx context.Context) ([]*Notifier, error) {
 // Get a notifier by id.
 func (s *NotifiersService) Get(ctx context.Context, id string) (*Notifier, error) {
 	ctx, span := s.client.trace(ctx, "Notifiers.Get", trace.WithAttributes(
-		attribute.String("axiom.Notifier_id", id),
+		attribute.String("axiom.notifier_id", id),
 	))
 	defer span.End()
 
@@ -97,7 +116,6 @@ func (s *NotifiersService) Get(ctx context.Context, id string) (*Notifier, error
 func (s *NotifiersService) Create(ctx context.Context, req Notifier) (*Notifier, error) {
 	ctx, span := s.client.trace(ctx, "Notifiers.Create", trace.WithAttributes(
 		attribute.String("axiom.param.name", req.Name),
-		attribute.String("axiom.param.type", req.Type),
 	))
 	defer span.End()
 
