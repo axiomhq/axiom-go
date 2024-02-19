@@ -12,7 +12,7 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
-	"github.com/axiomhq/axiom-go/internal/config"
+	"github.com/axiomhq/axiom-go/internal/test/integration"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -24,16 +24,7 @@ type IntegrationTestFunc func(ctx context.Context, dataset string, client *axiom
 // IntegrationTest tests the given adapter with the given test function. It
 // takes care of setting up all surroundings for the integration test.
 func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestFunc) {
-	cfg := config.Default()
-	require.NoError(t, cfg.IncorporateEnvironment())
-
-	if cfg.Token() == "" {
-		t.Skip("missing required environment variable AXIOM_TOKEN to run integration tests")
-	} else if cfg.OrganizationID() == "" {
-		t.Skip("missing required environment variable AXIOM_ORG_ID to run integration tests")
-	}
-
-	require.NoError(t, cfg.Validate(), "invalid configuration")
+	config := integration.Setup(t)
 
 	require.NotEmpty(t, adapterName, "adapter integration test needs the name of the adapter")
 
@@ -58,9 +49,9 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	userAgent := fmt.Sprintf("axiom-go-adapter-%s-integration-test/%s", adapterName, datasetSuffix)
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
-		axiom.SetURL(cfg.BaseURL().String()),
-		axiom.SetToken(cfg.Token()),
-		axiom.SetOrganizationID(cfg.OrganizationID()),
+		axiom.SetURL(config.BaseURL().String()),
+		axiom.SetToken(config.Token()),
+		axiom.SetOrganizationID(config.OrganizationID()),
 		axiom.SetUserAgent(userAgent),
 	)
 	require.NoError(t, err)

@@ -87,7 +87,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-      - run: make test
+      - run: make test-integration
       - name: Cleanup (On Test Failure)
         if: failure()
         run: |

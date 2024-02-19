@@ -122,7 +122,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - name: Test
-        run: make test
+        run: make test-integration
       - name: Cleanup (On Test Failure)
         if: failure()
         run: |
