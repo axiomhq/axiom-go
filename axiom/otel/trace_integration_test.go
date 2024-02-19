@@ -14,21 +14,12 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom"
 	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
-	"github.com/axiomhq/axiom-go/internal/config"
+	"github.com/axiomhq/axiom-go/internal/test/integration"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
 func TestTracingIntegration(t *testing.T) {
-	cfg := config.Default()
-	require.NoError(t, cfg.IncorporateEnvironment())
-
-	if cfg.Token() == "" {
-		t.Skip("missing required environment variable AXIOM_TOKEN to run integration tests")
-	} else if cfg.OrganizationID() == "" {
-		t.Skip("missing required environment variable AXIOM_ORG_ID to run integration tests")
-	}
-
-	require.NoError(t, cfg.Validate(), "invalid configuration")
+	config := integration.Setup(t)
 
 	datasetSuffix := os.Getenv("AXIOM_DATASET_SUFFIX")
 	if datasetSuffix == "" {
@@ -44,9 +35,9 @@ func TestTracingIntegration(t *testing.T) {
 	userAgent := fmt.Sprintf("axiom-go-otel-integration-test/%s", datasetSuffix)
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
-		axiom.SetURL(cfg.BaseURL().String()),
-		axiom.SetToken(cfg.Token()),
-		axiom.SetOrganizationID(cfg.OrganizationID()),
+		axiom.SetURL(config.BaseURL().String()),
+		axiom.SetToken(config.Token()),
+		axiom.SetOrganizationID(config.OrganizationID()),
 		axiom.SetUserAgent(userAgent),
 	)
 	require.NoError(t, err)
@@ -73,9 +64,9 @@ func TestTracingIntegration(t *testing.T) {
 
 	stop, err := axiotel.InitTracing(ctx, dataset.ID, "axiom-go-otel-test", "v1.0.0",
 		axiotel.SetNoEnv(),
-		axiotel.SetURL(cfg.BaseURL().String()),
-		axiotel.SetToken(cfg.Token()),
-		axiotel.SetOrganizationID(cfg.OrganizationID()),
+		axiotel.SetURL(config.BaseURL().String()),
+		axiotel.SetToken(config.Token()),
+		axiotel.SetOrganizationID(config.OrganizationID()),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, stop)

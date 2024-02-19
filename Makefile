@@ -89,9 +89,14 @@ lint: ## Lint the source code
 	@echo ">> linting code"
 	@$(call go-run-tool, golangci-lint) run
 
+PHONY: test-integration
+test-integration: ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
+	@echo ">> running unit and integration tests"
+	@AXIOM_INTEGRATION_TESTS=1 $(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
+
 .PHONY: test
-test: ## Run all tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
-	@echo ">> running tests"
+test: ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
+	@echo ">> running unit tests"
 	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: help

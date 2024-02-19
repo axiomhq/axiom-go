@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	enabled                bool
 	accessToken            string
 	orgID                  string
 	deploymentURL          string
@@ -26,11 +27,12 @@ var (
 )
 
 func init() {
+	flag.BoolVar(&enabled, "enabled", os.Getenv("AXIOM_INTEGRATION_TESTS") != "", "Enable integration tests by setting -enabled=true")
 	flag.StringVar(&accessToken, "access-token", os.Getenv("AXIOM_TOKEN"), "Personal token of the test user")
 	flag.StringVar(&orgID, "org-id", os.Getenv("AXIOM_ORG_ID"), "Organization ID of the organization the test user belongs to")
 	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
 	flag.StringVar(&datasetSuffix, "dataset-suffix", os.Getenv("AXIOM_DATASET_SUFFIX"), "Dataset suffix to append to test datasets")
-	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXIOM_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
+	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXIOM_DISABLE_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
 	flag.StringVar(&telemetryTracesURL, "telemetry-traces-url", os.Getenv("TELEMETRY_TRACES_URL"), "URL to send traces to")
 	flag.StringVar(&telemetryTracesToken, "telemetry-traces-token", os.Getenv("TELEMETRY_TRACES_TOKEN"), "Token that has access to the traces dataset")
 	flag.StringVar(&telemetryTracesDataset, "telemetry-traces-dataset", os.Getenv("TELEMETRY_TRACES_DATASET"), "Dataset to send traces to")
@@ -53,12 +55,20 @@ type IntegrationTestSuite struct {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
-	if accessToken == "" || orgID == "" || deploymentURL == "" {
-		s.T().Skip("missing required environment variables to run integration tests")
+	if !enabled {
+		s.T().Skip(
+			"skipping integration tests;",
+			"set AXIOM_INTEGRATION_TESTS=true AXIOM_URL=<URL> AXIOM_TOKEN=<TOKEN> AXIOM_ORG_ID=<ORG_ID> to run this test",
+		)
 	}
+
+	s.Require().NotEmpty(accessToken, "missing required environment variable AXIOM_TOKEN to run integration tests")
+	s.Require().NotEmpty(orgID, "missing required environment variable AXIOM_ORG_ID to run integration tests")
 
 	if datasetSuffix == "" {
 		datasetSuffix = "local"
+	} else {
+		s.T().Logf("using dataset suffix %q", datasetSuffix)
 	}
 
 	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
