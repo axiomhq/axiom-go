@@ -25,21 +25,17 @@ type IntegrationTestFunc func(ctx context.Context, dataset string, client *axiom
 // takes care of setting up all surroundings for the integration test.
 func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestFunc) {
 	cfg := config.Default()
-	if err := cfg.IncorporateEnvironment(); err != nil {
-		t.Fatal(err)
+	require.NoError(t, cfg.IncorporateEnvironment())
+
+	if cfg.Token() == "" {
+		t.Skip("missing required environment variable AXIOM_TOKEN to run integration tests")
+	} else if cfg.OrganizationID() == "" {
+		t.Skip("missing required environment variable AXIOM_ORG_ID to run integration tests")
 	}
 
-	if cfg.Token() == "" || cfg.OrganizationID() == "" || cfg.BaseURL() == nil {
-		t.Skip("missing required environment variables to run integration tests")
-	}
+	require.NoError(t, cfg.Validate(), "invalid configuration")
 
-	if err := cfg.Validate(); err != nil {
-		t.Fatalf("invalid configuration: %s", err)
-	}
-
-	if adapterName == "" {
-		t.Fatal("adapter integration test needs the name of the adapter")
-	}
+	require.NotEmpty(t, adapterName, "adapter integration test needs the name of the adapter")
 
 	datasetSuffix := os.Getenv("AXIOM_DATASET_SUFFIX")
 	if datasetSuffix == "" {

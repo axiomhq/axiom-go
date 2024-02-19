@@ -20,17 +20,15 @@ import (
 
 func TestTracingIntegration(t *testing.T) {
 	cfg := config.Default()
-	if err := cfg.IncorporateEnvironment(); err != nil {
-		t.Fatal(err)
+	require.NoError(t, cfg.IncorporateEnvironment())
+
+	if cfg.Token() == "" {
+		t.Skip("missing required environment variable AXIOM_TOKEN to run integration tests")
+	} else if cfg.OrganizationID() == "" {
+		t.Skip("missing required environment variable AXIOM_ORG_ID to run integration tests")
 	}
 
-	if cfg.Token() == "" || cfg.OrganizationID() == "" || cfg.BaseURL() == nil {
-		t.Skip("missing required environment variables to run integration tests")
-	}
-
-	if err := cfg.Validate(); err != nil {
-		t.Fatalf("invalid configuration: %s", err)
-	}
+	require.NoError(t, cfg.Validate(), "invalid configuration")
 
 	datasetSuffix := os.Getenv("AXIOM_DATASET_SUFFIX")
 	if datasetSuffix == "" {
