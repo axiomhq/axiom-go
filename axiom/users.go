@@ -8,7 +8,7 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
 
-// UserRole represents the role of an [User].
+// UserRole represents the role of a [User].
 type UserRole uint8
 
 // All available [User] roles.
