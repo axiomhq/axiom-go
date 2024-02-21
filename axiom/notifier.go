@@ -37,43 +37,43 @@ type NotifierProperties struct {
 
 type DiscordConfig struct {
 	// DiscordChannel is the channel to send the message to.
-	DiscordChannel string `json:"DiscordChannel,omitempty"`
+	DiscordChannel string `json:"discordChannel,omitempty"`
 	// DiscordToken is the token to use for authentication.
-	DiscordToken string `json:"DiscordToken,omitempty"`
+	DiscordToken string `json:"discordToken,omitempty"`
 }
 
 type DiscordWebhookConfig struct {
 	// DiscordWebhookURL is the URL to send the message to.
-	DiscordWebhookURL string `json:"DiscordWebhookUrl,omitempty"`
+	DiscordWebhookURL string `json:"discordWebhookUrl,omitempty"`
 }
 
 type EmailConfig struct {
 	// Emails to send the message to.
-	Emails []string `json:"Emails"`
+	Emails []string `json:"emails"`
 }
 
 type OpsGenieConfig struct {
 	// APIKey is the API key to use for authentication.
-	APIKey string `json:"ApiKey,omitempty"`
+	APIKey string `json:"apiKey,omitempty"`
 	// IsEU indicates whether the OpsGenie instance is in the EU.
-	IsEU bool `json:"IsEU,omitempty"`
+	IsEU bool `json:"isEU,omitempty"`
 }
 
 type PagerDutyConfig struct {
 	// RoutingKey is the routing key to use for authentication.
-	RoutingKey string `json:"RoutingKey,omitempty"`
+	RoutingKey string `json:"routingKey,omitempty"`
 	// Token is the token to use for authentication.
-	Token string `json:"Token,omitempty"`
+	Token string `json:"token,omitempty"`
 }
 
 type SlackConfig struct {
 	// SlackChannel is the channel to send the message to.
-	SlackURL string `json:"SlackUrl,omitempty"`
+	SlackURL string `json:"slackUrl,omitempty"`
 }
 
 type WebhookConfig struct {
 	// URL is the URL to send the message to.
-	URL string `json:"Url,omitempty"`
+	URL string `json:"url,omitempty"`
 }
 
 // Axiom API Reference: /v2/notifiers

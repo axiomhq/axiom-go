@@ -32,7 +32,7 @@ func TestNotifiersService_List(t *testing.T) {
 			"name": "test",
 			"properties": {
 				"email": {
-					"Emails": [
+					"emails": [
 						"test@test.com"
 					]
 				}
@@ -68,7 +68,7 @@ func TestNotifiersService_Get(t *testing.T) {
 			"name": "test",
 			"properties": {
 				"email": {
-					"Emails": [
+					"emails": [
 						"test@test.com"
 					]
 				}
@@ -104,7 +104,7 @@ func TestNotifiersService_Create(t *testing.T) {
 			"name": "test",
 			"properties": {
 				"email": {
-					"Emails": [
+					"emails": [
 						"test@test.com"
 					]
 				}
@@ -147,7 +147,7 @@ func TestNotifiersService_Update(t *testing.T) {
 			"name": "test",
 			"properties": {
 				"email": {
-					"Emails": [
+					"emails": [
 						"test@test.com"
 					]
 				}
