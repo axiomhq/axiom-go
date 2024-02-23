@@ -69,7 +69,7 @@ type User struct {
 	ID string `json:"id"`
 	// Name of the user.
 	Name string `json:"name"`
-	// Emails are the email addresses of the user.
+	// Emails is the email address of the user.
 	Email string `json:"email"`
 	// Role is the role of the user.
 	Role UserDetailsRole `json:"role"`
