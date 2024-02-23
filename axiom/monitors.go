@@ -40,7 +40,7 @@ type Monitor struct {
 }
 
 // MarshalJSON implements `json.Marshaler`. It is in place to marshal the
-// NoDataCloseWait, Frequency and Duration to minutes because that's what the
+// Range and Interval to minutes because that's what the
 // server expects as well as setting the appropriate query type.
 func (m Monitor) MarshalJSON() ([]byte, error) {
 	type localMonitor Monitor
@@ -53,7 +53,7 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements `json.Unmarshaler`. It is in place to convert the
-// NoDataCloseWait, Frequency and Duration field values into proper
+// Range and Interval field values into proper
 // time.Duration values because the server returns them in seconds as well as
 // unmarshalling the query in to its appropriate type.
 func (m *Monitor) UnmarshalJSON(b []byte) error {
