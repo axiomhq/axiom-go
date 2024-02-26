@@ -8,7 +8,7 @@ require (
 	github.com/golangci/golangci-lint v1.56.2
 	github.com/google/go-querystring v1.1.0
 	github.com/klauspost/compress v1.17.7
-	github.com/schollz/progressbar/v3 v3.14.1
+	github.com/schollz/progressbar/v3 v3.14.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/sjson v1.2.5
@@ -157,7 +157,7 @@ require (
 	github.com/quasilyte/gogrep v0.5.0 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/zerolog v1.32.0
 	github.com/ryancurrah/gomodguard v1.3.0 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.5.1 // indirect
