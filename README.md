@@ -49,6 +49,9 @@ Otherwise create a personal token in [the Axiom settings](https://app.axiom.co/p
 and export it as `AXIOM_TOKEN`. Set `AXIOM_ORG_ID` to the organization ID from
 the settings page of the organization you want to access.
 
+> [!NOTE]
+> The organization ID is the slug below your organizations full name in [the Axiom settings](https://app.axiom.co/profile) which resembles the full name. It has a copy button next to it. Alternatively you can just extract it from your browsers address bar when browsing the Axiom App: `https://app.dev.axiomtestlabs.co/<your-org-id>/datasets`.
+
 You can also configure the client using [options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option)
 passed to the `axiom.NewClient` function:
 
