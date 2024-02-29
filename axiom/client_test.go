@@ -692,7 +692,7 @@ func TestAPITokenPathRegex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			assert.Equal(t, tt.match, validOnlyAPITokenPaths.MatchString(tt.input))
+			assert.Equal(t, tt.match, validAPITokenPaths.MatchString(tt.input))
 		})
 	}
 }

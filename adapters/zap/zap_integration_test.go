@@ -22,10 +22,7 @@ func Test(t *testing.T) {
 		require.NoError(t, err)
 
 		logger := zap.New(core)
-		defer func() {
-			err := logger.Sync()
-			assert.NoError(t, err)
-		}()
+		defer func() { assert.NoError(t, logger.Sync()) }()
 
 		logger.Info("This is awesome!", zap.String("mood", "hyped"))
 		logger.Warn("This is no that awesome...", zap.String("mood", "worried"))

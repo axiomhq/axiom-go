@@ -5,9 +5,9 @@ import "time"
 // Options specifies the optional parameters for a query.
 type Options struct {
 	// StartTime for the interval to query.
-	StartTime time.Time `json:"startTime,omitempty"`
+	StartTime string `json:"startTime,omitempty"`
 	// EndTime of the interval to query.
-	EndTime time.Time `json:"endTime,omitempty"`
+	EndTime string `json:"endTime,omitempty"`
 	// Cursor to use for pagination. When used, don't specify new start and end
 	// times but rather use the start and end times of the query that returned
 	// the cursor that will be used.
@@ -27,15 +27,15 @@ type Option func(*Options)
 // SetStartTime specifies the start time of the query interval. When also using
 // [SetCursor], please make sure to use the start time of the query that
 // returned the cursor that will be used.
-func SetStartTime(startTime time.Time) Option {
-	return func(o *Options) { o.StartTime = startTime }
+func SetStartTime[T time.Time | string](startTime T) Option {
+	return func(o *Options) { o.StartTime = timeOrStringToString(startTime) }
 }
 
 // SetEndTime specifies the end time of the query interval. When also using
 // [SetCursor], please make sure to use the end time of the query that returned
 // the cursor that will be used.
-func SetEndTime(endTime time.Time) Option {
-	return func(o *Options) { o.EndTime = endTime }
+func SetEndTime[T time.Time | string](endTime T) Option {
+	return func(o *Options) { o.EndTime = timeOrStringToString(endTime) }
 }
 
 // SetCursor specifies the cursor of the query. If include is set to true the
@@ -64,4 +64,14 @@ func SetVariable(name string, value any) Option {
 // "let" keyword takes precedence over variables provided via the query options.
 func SetVariables(variables map[string]any) Option {
 	return func(o *Options) { o.Variables = variables }
+}
+
+func timeOrStringToString[T time.Time | string](t T) string {
+	switch t := any(t).(type) {
+	case time.Time:
+		return t.Format(time.RFC3339Nano)
+	case string:
+		return t
+	}
+	panic("time is neither time.Time nor string")
 }

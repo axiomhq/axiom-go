@@ -20,19 +20,37 @@ func TestOptions(t *testing.T) {
 		{
 			name: "set start time",
 			options: []query.Option{
-				query.SetStartTime(now),
+				query.SetStartTime(now.String()),
 			},
 			want: query.Options{
-				StartTime: now,
+				StartTime: now.String(),
 			},
 		},
 		{
 			name: "set end time",
 			options: []query.Option{
-				query.SetEndTime(now),
+				query.SetEndTime(now.String()),
 			},
 			want: query.Options{
-				EndTime: now,
+				EndTime: now.String(),
+			},
+		},
+		{
+			name: "set start time (apl)",
+			options: []query.Option{
+				query.SetStartTime("now"),
+			},
+			want: query.Options{
+				StartTime: "now",
+			},
+		},
+		{
+			name: "set end time (apl)",
+			options: []query.Option{
+				query.SetEndTime("now"),
+			},
+			want: query.Options{
+				EndTime: "now",
 			},
 		},
 		{
