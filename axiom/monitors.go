@@ -47,7 +47,7 @@ func comparisonFromString(s string) (c Operator, err error) {
 	return c, err
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // Operator to its string representation because that's what the server
 // expects.
 func (c Operator) MarshalJSON() ([]byte, error) {
@@ -93,7 +93,7 @@ type Monitor struct {
 	Threshold float64 `json:"threshold"`
 }
 
-// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
 // Range and Interval to minutes because that's what the
 // server expects as well as setting the appropriate query type.
 func (m Monitor) MarshalJSON() ([]byte, error) {
