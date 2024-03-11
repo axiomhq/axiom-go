@@ -54,7 +54,7 @@ func (c Operator) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
 // Operator from the string representation the server returns.
 func (c *Operator) UnmarshalJSON(b []byte) (err error) {
 	var s string
@@ -106,7 +106,7 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localMonitor(m))
 }
 
-// UnmarshalJSON implements `json.Unmarshaler`. It is in place to convert the
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to convert the
 // Range and Interval field values into proper
 // time.Duration values because the server returns them in seconds as well as
 // unmarshalling the query in to its appropriate type.
