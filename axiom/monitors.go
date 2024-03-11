@@ -3,6 +3,7 @@ package axiom
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -10,6 +11,61 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
+
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Operator -linecomment -output=monitors_string.go
+
+// Operator represents a comparison operation for a monitor. A monitor acts on
+// the result of comparing a query result with a threshold.
+type Operator uint8
+
+// All available monitor comparison modes.
+const (
+	emptyOperator Operator = iota //
+
+	Below        // Below
+	BelowOrEqual // BelowOrEqual
+	Above        // Above
+	AboveOrEqual // AboveOrEqual
+)
+
+func comparisonFromString(s string) (c Operator, err error) {
+	switch s {
+	case emptyOperator.String():
+		c = emptyOperator
+	case Below.String():
+		c = Below
+	case BelowOrEqual.String():
+		c = BelowOrEqual
+	case Above.String():
+		c = Above
+	case AboveOrEqual.String():
+		c = AboveOrEqual
+	default:
+		err = fmt.Errorf("unknown comparison %q", s)
+	}
+
+	return c, err
+}
+
+// MarshalJSON implements `json.Marshaler`. It is in place to marshal the
+// Operator to its string representation because that's what the server
+// expects.
+func (c Operator) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
+}
+
+// UnmarshalJSON implements `json.Unmarshaler`. It is in place to unmarshal the
+// Operator from the string representation the server returns.
+func (c *Operator) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*c, err = comparisonFromString(s)
+
+	return err
+}
 
 type Monitor struct {
 	// ID is the unique ID of the monitor.
@@ -23,15 +79,13 @@ type Monitor struct {
 	// Disabled is true, if the monitor is disabled and thus not running.
 	Disabled bool `json:"disabled"`
 	// Interval is the interval in minutes in which the monitor will run.
-	Interval    time.Duration `json:"IntervalMinutes"`
-	MatchEveryN int64         `json:"matchEveryN,omitempty"`
-	MatchValue  string        `json:"matchValue,omitempty"`
+	Interval time.Duration `json:"IntervalMinutes"`
 	// Name is the name of the monitor.
 	Name string `json:"name"`
 	// NotifierIDs attached to the monitor.
 	NotifierIDs []string `json:"NotifierIDs"`
 	// Operator is the operator to use for the monitor.
-	Operator string `json:"operator"`
+	Operator Operator `json:"operator"`
 	// Range the monitor goes back in time and looks at the data it acts on.
 	Range time.Duration `json:"RangeMinutes"`
 	// Threshold the query result is compared against, which evaluates if the
