@@ -107,7 +107,7 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to convert the
-// Range, Interval and DisabledUntil field values into proper
+// Range and Interval field values into proper
 // time.Duration values because the server returns them in seconds as well as
 // unmarshalling the query in to its appropriate type.
 func (m *Monitor) UnmarshalJSON(b []byte) error {
