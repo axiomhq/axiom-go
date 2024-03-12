@@ -76,8 +76,8 @@ type Monitor struct {
 	APLQuery string `json:"aplQuery"`
 	// Description of the monitor.
 	Description string `json:"description,omitempty"`
-	// Disabled is true, if the monitor is disabled and thus not running.
-	Disabled bool `json:"disabled"`
+	// DisabledUntil is the time that the monitor will be disabled until.
+	DisabledUntil time.Time `json:"disabledUntil"`
 	// Interval is the interval in minutes in which the monitor will run.
 	Interval time.Duration `json:"IntervalMinutes"`
 	// Name is the name of the monitor.
@@ -107,7 +107,7 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to convert the
-// Range and Interval field values into proper
+// Range, Interval and DisabledUntil field values into proper
 // time.Duration values because the server returns them in seconds as well as
 // unmarshalling the query in to its appropriate type.
 func (m *Monitor) UnmarshalJSON(b []byte) error {
