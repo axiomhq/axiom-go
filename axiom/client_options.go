@@ -84,15 +84,6 @@ func SetNoEnv() Option {
 	}
 }
 
-// SetNoRetry prevents the [Client] from auto-retrying failed HTTP requests
-// under certain circumstances.
-func SetNoRetry() Option {
-	return func(c *Client) error {
-		c.noRetry = true
-		return nil
-	}
-}
-
 // SetNoTracing prevents the [Client] from acquiring a tracer from the global
 // tracer provider, even if one is configured.
 func SetNoTracing() Option {

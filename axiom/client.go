@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
 	"github.com/klauspost/compress/gzhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -86,7 +85,6 @@ type Client struct {
 	httpClient *http.Client
 	userAgent  string
 	noEnv      bool
-	noRetry    bool
 
 	strictDecoding bool
 
@@ -250,63 +248,16 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 // JSON decoded or directly written to v, depending on v being an [io.Writer] or
 // not.
 func (c *Client) Do(req *http.Request, v any) (*Response, error) {
-	var (
-		resp *Response
-		err  error
-	)
-	if req.GetBody != nil && !c.noRetry {
-		bck := backoff.NewExponentialBackOff()
-		bck.InitialInterval = time.Millisecond * 200
-		bck.MaxElapsedTime = time.Second * 10
-		bck.Multiplier = 2.0
-
-		err = backoff.Retry(func() error {
-			var httpResp *http.Response
-			//nolint:bodyclose // The response body is closed later down below.
-			httpResp, err = c.httpClient.Do(req)
-			switch {
-			case errors.Is(err, context.Canceled):
-				return backoff.Permanent(err)
-			case err != nil:
-				return err
-			}
-			resp = newResponse(httpResp)
-
-			// We should only retry in the case the status code is >= 500,
-			// anything below isn't worth retrying.
-			if code := resp.StatusCode; code >= 500 {
-				_, _ = io.Copy(io.Discard, resp.Body)
-				_ = resp.Body.Close()
-
-				// Reset the requests body, so it can be re-read.
-				if req.Body, err = req.GetBody(); err != nil {
-					return backoff.Permanent(err)
-				}
-
-				return fmt.Errorf("got status code %d", code)
-			}
-
-			return nil
-		}, bck)
-	} else {
-		var httpResp *http.Response
-		//nolint:bodyclose // The response body is closed later down below.
-		if httpResp, err = c.httpClient.Do(req); err != nil {
-			return nil, err
-		}
-		resp = newResponse(httpResp)
+	httpResp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
 	}
-
 	defer func() {
-		if resp != nil {
-			_, _ = io.Copy(io.Discard, resp.Body)
-			_ = resp.Body.Close()
-		}
+		_, _ = io.Copy(io.Discard, httpResp.Body)
+		_ = httpResp.Body.Close()
 	}()
 
-	if err != nil {
-		return resp, err
-	}
+	resp := newResponse(httpResp)
 
 	span := trace.SpanFromContext(req.Context())
 	if span.IsRecording() {

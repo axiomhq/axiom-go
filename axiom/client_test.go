@@ -5,13 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"regexp"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -233,7 +231,6 @@ func TestNewClient_Valid(t *testing.T) {
 	assert.NotEmpty(t, client.userAgent)
 	assert.False(t, client.strictDecoding)
 	assert.True(t, client.noEnv) // Disabled for testing.
-	assert.False(t, client.noRetry)
 }
 
 func TestClient_Options_SetToken(t *testing.T) {
@@ -571,81 +568,6 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-}
-
-func TestClient_do_Backoff(t *testing.T) {
-	payload := `{"foo":"bar"}`
-
-	var (
-		internalServerErrorCalled bool
-		badGatewayCalled          bool
-		gatewayTimeoutCalled      bool
-	)
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		header := http.StatusOK
-		switch {
-		case !internalServerErrorCalled:
-			internalServerErrorCalled = true
-			header = http.StatusInternalServerError
-		case !badGatewayCalled:
-			badGatewayCalled = true
-			header = http.StatusBadGateway
-		case !gatewayTimeoutCalled:
-			gatewayTimeoutCalled = true
-			header = http.StatusGatewayTimeout
-		}
-
-		b, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-
-		assert.Equal(t, payload, string(b))
-
-		w.WriteHeader(header)
-	}
-
-	client := setup(t, "/", hf)
-
-	// Wrap with an io.TeeReader as http.NewRequest checks for some special
-	// readers it can read in full to optimize the request.
-	var r io.Reader = strings.NewReader(payload)
-	r = io.TeeReader(r, io.Discard)
-	req, err := client.NewRequest(context.Background(), http.MethodPost, "/", r)
-	require.NoError(t, err)
-
-	// Make sure the request body can be re-read.
-	getBodyCounter := 0
-	req.GetBody = func() (io.ReadCloser, error) {
-		getBodyCounter++
-		return io.NopCloser(strings.NewReader(payload)), nil
-	}
-
-	resp, err := client.Do(req, nil)
-	require.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.True(t, internalServerErrorCalled)
-	assert.True(t, badGatewayCalled)
-	assert.True(t, gatewayTimeoutCalled)
-	assert.Equal(t, 3, getBodyCounter)
-}
-
-func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
-	var currentCalls int
-	hf := func(w http.ResponseWriter, _ *http.Request) {
-		currentCalls++
-		w.WriteHeader(http.StatusBadRequest)
-	}
-
-	client := setup(t, "/", hf)
-
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
-	require.NoError(t, err)
-
-	resp, err := client.Do(req, nil)
-	require.Error(t, err, "got status code 400")
-
-	assert.Equal(t, 1, currentCalls)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
 func TestAPITokenPathRegex(t *testing.T) {
