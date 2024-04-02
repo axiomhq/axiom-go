@@ -72,6 +72,8 @@ type Monitor struct {
 	ID string `json:"id,omitempty"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
+	// NotifyByGroup tracks each none-time group independently
+	NotifyByGroup bool `json:"notifyByGroup"`
 	// APLQuery is the APL query to use for the monitor.
 	APLQuery string `json:"aplQuery"`
 	// Description of the monitor.
