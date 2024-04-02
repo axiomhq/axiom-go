@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -14,6 +15,8 @@ type Notifier struct {
 	ID string `json:"id"`
 	// Name is the name of the notifier.
 	Name string `json:"name"`
+	// DisabledUntil sets the notifier's disabled until property.
+	DisabledUntil time.Time `json:"disabledUntil"`
 	// Properties of the notifier.
 	Properties NotifierProperties `json:"properties"`
 }
@@ -33,6 +36,8 @@ type NotifierProperties struct {
 	Slack *SlackConfig `json:"slack,omitempty"`
 	// Webhook configuration.
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
+	// MicrosoftTeams configuration.
+	MicrosoftTeams *MicrosoftTeams `json:"microsoftTeams,omitempty"`
 }
 
 type DiscordConfig struct {
@@ -74,6 +79,11 @@ type SlackConfig struct {
 type WebhookConfig struct {
 	// URL is the URL to send the message to.
 	URL string `json:"url,omitempty"`
+}
+
+type MicrosoftTeams struct {
+	// URL is the URL to send the message to.
+	URL string `json:"microsoftTeamsUrl,omitempty"`
 }
 
 // Axiom API Reference: /v2/notifiers
