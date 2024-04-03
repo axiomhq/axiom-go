@@ -74,6 +74,9 @@ type Monitor struct {
 	AlertOnNoData bool `json:"alertOnNoData"`
 	// NotifyByGroup tracks each none-time group independently
 	NotifyByGroup bool `json:"notifyByGroup"`
+	// Resolvable determines whether the events triggered by the monitor
+	// are resolvable. This has no effect on threshold monitors
+	Resolvable bool `json:"resolvable"`
 	// APLQuery is the APL query to use for the monitor.
 	APLQuery string `json:"aplQuery"`
 	// Description of the monitor.
