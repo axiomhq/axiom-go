@@ -96,6 +96,44 @@ func TestOptions(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "add csv field",
+			options: []ingest.Option{
+				ingest.AddCSVField("foo"),
+			},
+			want: ingest.Options{
+				CSVFields: []string{"foo"},
+			},
+		},
+		{
+			name: "add multiple csv fields",
+			options: []ingest.Option{
+				ingest.AddCSVField("foo"),
+				ingest.AddCSVField("bar", "baz"),
+			},
+			want: ingest.Options{
+				CSVFields: []string{"foo", "bar", "baz"},
+			},
+		},
+		{
+			name: "set csv fields",
+			options: []ingest.Option{
+				ingest.SetCSVFields("foo", "bar"),
+			},
+			want: ingest.Options{
+				CSVFields: []string{"foo", "bar"},
+			},
+		},
+		{
+			name: "set csv fields on existing csv fields",
+			options: []ingest.Option{
+				ingest.SetCSVFields("foo", "bar"),
+				ingest.SetCSVFields("bar", "foo"),
+			},
+			want: ingest.Options{
+				CSVFields: []string{"bar", "foo"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

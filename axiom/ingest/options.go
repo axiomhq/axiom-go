@@ -22,6 +22,10 @@ type Options struct {
 	// event data. This is especially useful when ingesting events from a
 	// third-party source that you do not have control over.
 	EventLabels map[string]any `url:"-"`
+	// Fields is a list of fields to be ingested with every event. This is only
+	// valid for CSV content and also completely optional. It comes in handy
+	// when the CSV content does not have a header row.
+	CSVFields []string `url:"-"`
 }
 
 // An Option applies optional parameters to an ingest operation.
@@ -52,7 +56,7 @@ func SetCSVDelimiter(delim string) Option {
 func SetEventLabel(key string, value any) Option {
 	return func(o *Options) {
 		if o.EventLabels == nil {
-			o.EventLabels = make(map[string]any)
+			o.EventLabels = make(map[string]any, 1)
 		}
 		o.EventLabels[key] = value
 	}
@@ -62,4 +66,19 @@ func SetEventLabel(key string, value any) Option {
 // existing labels.
 func SetEventLabels(labels map[string]any) Option {
 	return func(o *Options) { o.EventLabels = labels }
+}
+
+// AddCSVField adds one or more fields to be ingested with every CSV event.
+func AddCSVField(field ...string) Option {
+	return func(o *Options) {
+		if o.CSVFields == nil {
+			o.CSVFields = make([]string, 0, len(field))
+		}
+		o.CSVFields = append(o.CSVFields, field...)
+	}
+}
+
+// SetCSVFields sets the fields to be ingested with every CSV event.
+func SetCSVFields(fields ...string) Option {
+	return func(o *Options) { o.CSVFields = fields }
 }

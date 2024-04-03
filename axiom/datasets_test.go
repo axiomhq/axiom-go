@@ -426,13 +426,13 @@ func TestDatasetsService_Ingest(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
-		eventLabels := assertValidJSON(t, strings.NewReader(r.Header.Get("X-Axiom-Event-Labels")))
-		assert.Equal(t, "eu-west-1", eventLabels[0].(map[string]any)["region"])
-		assert.EqualValues(t, 1, eventLabels[0].(map[string]any)["instance"])
 
 		assert.Equal(t, "time", r.URL.Query().Get("timestamp-field"))
 		assert.Equal(t, "2/Jan/2006:15:04:05 +0000", r.URL.Query().Get("timestamp-format"))
 		assert.Equal(t, ";", r.URL.Query().Get("csv-delimiter"))
+		eventLabels := assertValidJSON(t, strings.NewReader(r.Header.Get("X-Axiom-Event-Labels")))
+		assert.Equal(t, "eu-west-1", eventLabels[0].(map[string]any)["region"])
+		assert.EqualValues(t, 1, eventLabels[0].(map[string]any)["instance"])
 
 		_ = assertValidJSON(t, r.Body)
 
