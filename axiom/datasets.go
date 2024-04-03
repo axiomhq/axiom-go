@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 	"unicode"
 
@@ -342,7 +343,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		return nil, spanError(span, err)
 	}
 
-	if err = setEventLabels(req, opts.EventLabels); err != nil {
+	if err = setOptionHeaders(req, opts, typ); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -399,16 +400,16 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	))
 	defer span.End()
 
+	if len(events) == 0 {
+		return &ingest.Status{}, nil
+	}
+
 	// Apply supplied options.
 	var opts ingest.Options
 	for _, option := range options {
 		if option != nil {
 			option(&opts)
 		}
-	}
-
-	if len(events) == 0 {
-		return &ingest.Status{}, nil
 	}
 
 	path, err := url.JoinPath("/v1/datasets", id, "ingest")
@@ -461,7 +462,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	}
 	req.GetBody = getBody
 
-	if err = setEventLabels(req, opts.EventLabels); err != nil {
+	if err = setOptionHeaders(req, opts, NDJSON); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -794,6 +795,21 @@ func setLegacyQueryResultOnSpan(span trace.Span, res querylegacy.Result) {
 		attribute.String("axiom.result.status.min_cursor", res.Status.MinCursor),
 		attribute.String("axiom.result.status.max_cursor", res.Status.MaxCursor),
 	)
+}
+
+func setOptionHeaders(req *http.Request, opts ingest.Options, typ ContentType) error {
+	// Set event labels.
+	if err := setEventLabels(req, opts.EventLabels); err != nil {
+		return err
+	}
+
+	// Set object/csv fields. The former is only valid for JSON and NDJSON as
+	// the latter is obviously only valid for CSV. Both are equally optional.
+	if typ == CSV {
+		req.Header.Set("X-Axiom-CSV-Fields", strings.Join(opts.CSVFields, ","))
+	}
+
+	return nil
 }
 
 func setEventLabels(req *http.Request, labels map[string]any) error {

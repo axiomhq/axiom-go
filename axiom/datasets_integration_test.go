@@ -17,28 +17,37 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
-const ingestData = `[
-	{
-		"time": "17/May/2015:08:05:30 +0000",
-		"remote_ip": "93.180.71.1",
-		"remote_user": "-",
-		"request": "GET /downloads/product_1 HTTP/1.1",
-		"response": 304,
-		"bytes": 0,
-		"referrer": "-",
-		"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
-	},
-	{
-		"time": "17/May/2015:08:05:31 +0000",
-		"remote_ip": "93.180.71.2",
-		"remote_user": "-",
-		"request": "GET /downloads/product_1 HTTP/1.1",
-		"response": 304,
-		"bytes": 0,
-		"referrer": "-",
-		"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
-	}
-]`
+const (
+	ingestData = `[
+		{
+			"time": "17/May/2015:08:05:30 +0000",
+			"remote_ip": "93.180.71.1",
+			"remote_user": "-",
+			"request": "GET /downloads/product_1 HTTP/1.1",
+			"response": 304,
+			"bytes": 0,
+			"referrer": "-",
+			"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
+		},
+		{
+			"time": "17/May/2015:08:05:31 +0000",
+			"remote_ip": "93.180.71.2",
+			"remote_user": "-",
+			"request": "GET /downloads/product_1 HTTP/1.1",
+			"response": 304,
+			"bytes": 0,
+			"referrer": "-",
+			"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
+		}
+	]`
+
+	csvIngestData = `17/May/2015:08:05:30 +0000,93.180.71.1,-,GET /downloads/product_1 HTTP/1.1,304,0,-,Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21
+		17/May/2015:08:05:31 +0000,93.180.71.2,-,GET /downloads/product_1 HTTP/1.1,304,0,-,Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)`
+
+	csvIngestDataHeader = `time,remote_ip,remote_user,request,response,bytes,referrer,agent
+		17/May/2015:08:05:30 +0000,93.180.71.1,-,GET /downloads/product_1 HTTP/1.1,304,0,-,Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21
+		17/May/2015:08:05:31 +0000,93.180.71.2,-,GET /downloads/product_1 HTTP/1.1,304,0,-,Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)`
+)
 
 var ingestEvents = []axiom.Event{
 	{
@@ -137,9 +146,9 @@ func (s *DatasetsTestSuite) Test() {
 		ingested bytes.Buffer
 		r        io.Reader
 
-		resetBuffer = func(contentEncoders ...axiom.ContentEncoder) {
+		resetBuffer = func(data string, contentEncoders ...axiom.ContentEncoder) {
 			ingested.Reset()
-			r = io.TeeReader(strings.NewReader(ingestData), &ingested)
+			r = io.TeeReader(strings.NewReader(data), &ingested)
 
 			for _, contentEncoder := range contentEncoders {
 				var ceErr error
@@ -149,7 +158,7 @@ func (s *DatasetsTestSuite) Test() {
 		}
 	)
 
-	resetBuffer()
+	resetBuffer(ingestData)
 	ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, ingest.SetEventLabel("region", "eu-west-1"))
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -160,7 +169,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len()+22, ingestStatus.ProcessedBytes) // 22 bytes extra for the event label
 
 	// ... but gzip encoded...
-	resetBuffer(axiom.GzipEncoder())
+	resetBuffer(ingestData, axiom.GzipEncoder())
 	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -171,7 +180,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... but zstd encoded...
-	resetBuffer(axiom.ZstdEncoder())
+	resetBuffer(ingestData, axiom.ZstdEncoder())
 	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -182,7 +191,6 @@ func (s *DatasetsTestSuite) Test() {
 	s.EqualValues(ingested.Len(), ingestStatus.ProcessedBytes)
 
 	// ... and from a map source...
-	resetBuffer()
 	ingestStatus, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, ingestEvents)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -192,8 +200,7 @@ func (s *DatasetsTestSuite) Test() {
 	s.Empty(ingestStatus.Failures)
 	s.EqualValues(448, int(ingestStatus.ProcessedBytes))
 
-	// ... and from a channel source.
-	resetBuffer()
+	// ... and from a channel source ...
 	ingestStatus, err = s.client.Datasets.IngestChannel(s.ctx, s.dataset.ID, getEventChan())
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
@@ -202,6 +209,29 @@ func (s *DatasetsTestSuite) Test() {
 	s.Zero(ingestStatus.Failed)
 	s.Empty(ingestStatus.Failures)
 	s.EqualValues(448, int(ingestStatus.ProcessedBytes))
+
+	// ... and from a CSV reader source with header...
+	resetBuffer(csvIngestDataHeader)
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.CSV, axiom.Identity)
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
+	s.EqualValues(325, int(ingestStatus.ProcessedBytes))
+
+	// ... and from a CSV reader source without header.
+	resetBuffer(csvIngestData)
+	ingestStatus, err = s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.CSV, axiom.Identity,
+		ingest.SetCSVFields("time", "remote_ip", "remote_user", "request", "response", "bytes", "referrer", "agent"))
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+
+	s.EqualValues(ingestStatus.Ingested, 2)
+	s.Zero(ingestStatus.Failed)
+	s.Empty(ingestStatus.Failures)
+	s.EqualValues(258, int(ingestStatus.ProcessedBytes))
 
 	now := time.Now().Truncate(time.Second)
 	startTime := now.Add(-time.Minute)
@@ -216,9 +246,9 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(queryResult)
 
-	s.EqualValues(10, queryResult.Status.RowsExamined)
-	s.EqualValues(10, queryResult.Status.RowsMatched)
-	s.Len(queryResult.Matches, 10)
+	s.EqualValues(14, queryResult.Status.RowsExamined)
+	s.EqualValues(14, queryResult.Status.RowsMatched)
+	s.Len(queryResult.Matches, 14)
 
 	// Also run a legacy query and make sure we see some results.
 	legacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, querylegacy.Query{
@@ -228,9 +258,9 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(legacyQueryResult)
 
-	s.EqualValues(10, legacyQueryResult.Status.RowsExamined)
-	s.EqualValues(10, legacyQueryResult.Status.RowsMatched)
-	s.Len(legacyQueryResult.Matches, 10)
+	s.EqualValues(14, legacyQueryResult.Status.RowsExamined)
+	s.EqualValues(14, legacyQueryResult.Status.RowsMatched)
+	s.Len(legacyQueryResult.Matches, 14)
 
 	// Run a more complex legacy query.
 	complexLegacyQuery := querylegacy.Query{
@@ -245,9 +275,15 @@ func (s *DatasetsTestSuite) Test() {
 		},
 		GroupBy: []string{"success", "remote_ip"},
 		Filter: querylegacy.Filter{
-			Op:    querylegacy.OpEqual,
+			Op:    querylegacy.OpExists,
 			Field: "response",
-			Value: 304,
+			Children: []querylegacy.Filter{
+				{
+					Op:    querylegacy.OpContains,
+					Field: "request",
+					Value: "GET",
+				},
+			},
 		},
 		Order: []querylegacy.Order{
 			{
@@ -262,7 +298,7 @@ func (s *DatasetsTestSuite) Test() {
 		VirtualFields: []querylegacy.VirtualField{
 			{
 				Alias:      "success",
-				Expression: "response < 400",
+				Expression: "toint(response) < 400",
 			},
 		},
 		Projections: []querylegacy.Projection{
@@ -277,12 +313,12 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 	s.Require().NotNil(complexLegacyQueryResult)
 
-	s.EqualValues(10, complexLegacyQueryResult.Status.RowsExamined)
-	s.EqualValues(10, complexLegacyQueryResult.Status.RowsMatched)
+	s.EqualValues(14, complexLegacyQueryResult.Status.RowsExamined)
+	s.EqualValues(14, complexLegacyQueryResult.Status.RowsMatched)
 	if s.Len(complexLegacyQueryResult.Buckets.Totals, 2) {
 		agg := complexLegacyQueryResult.Buckets.Totals[0].Aggregations[0]
 		s.EqualValues("event_count", agg.Alias)
-		s.EqualValues(5, agg.Value)
+		s.EqualValues(7, agg.Value)
 	}
 
 	// Trim the dataset down to a minimum.
