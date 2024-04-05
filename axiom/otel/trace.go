@@ -11,7 +11,10 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0" // Keep in sync with https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L25.
+
+	// Keep in sync with
+	// https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L14.
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 
 	"github.com/axiomhq/axiom-go/internal/version"
 )
