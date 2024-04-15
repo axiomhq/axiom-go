@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/apex/log v1.9.0
-	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/golangci/golangci-lint v1.56.2
 	github.com/google/go-querystring v1.1.0
 	github.com/klauspost/compress v1.17.8
@@ -56,6 +55,7 @@ require (
 	github.com/butuzov/mirror v1.1.0 // indirect
 	github.com/catenacyber/perfsprint v0.6.0 // indirect
 	github.com/ccojocar/zxcvbn-go v1.0.2 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
