@@ -526,16 +526,6 @@ func TestClient_do_RateLimit(t *testing.T) {
 	assert.Equal(t, expErr.Limit, resp.Limit)
 }
 
-func TestClient_do_UnprivilegedToken(t *testing.T) {
-	client := setup(t, "/", nil)
-
-	err := client.Options(SetToken("xaat-123"))
-	require.NoError(t, err)
-
-	_, err = client.NewRequest(context.Background(), http.MethodGet, "/", nil)
-	require.ErrorIs(t, err, ErrUnprivilegedToken)
-}
-
 func TestClient_do_RedirectLoop(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -646,55 +636,6 @@ func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
 
 	assert.Equal(t, 1, currentCalls)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-}
-
-func TestAPITokenPathRegex(t *testing.T) {
-	tests := []struct {
-		input string
-		match bool
-	}{
-		{
-			input: "/v1/datasets/test/ingest",
-			match: true,
-		},
-		{
-			input: "/v1/datasets/test/ingest?timestamp-format=unix",
-			match: true,
-		},
-		{
-			input: "/v1/datasets/test/query",
-			match: true,
-		},
-		{
-			input: "/v1/datasets/_apl",
-			match: true,
-		},
-		{
-			input: "/v1/datasets/test/query?nocache=true",
-			match: true,
-		},
-		{
-			input: "/v1/datasets/_apl?nocache=true",
-			match: true,
-		},
-		{
-			input: "/v1/datasets//query",
-			match: false,
-		},
-		{
-			input: "/v1/datasets/query",
-			match: false,
-		},
-		{
-			input: "/v1/datasets/test/elastic",
-			match: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			assert.Equal(t, tt.match, validOnlyAPITokenPaths.MatchString(tt.input))
-		})
-	}
 }
 
 // setup sets up a test HTTP server along with a client that is configured to
