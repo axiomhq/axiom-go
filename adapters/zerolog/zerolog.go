@@ -29,7 +29,7 @@ var (
 )
 
 const (
-	defaultBatchSize = 1000
+	defaultBatchSize = 10_000
 	flushInterval    = time.Second
 )
 

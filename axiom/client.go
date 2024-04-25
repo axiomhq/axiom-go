@@ -424,9 +424,9 @@ func (c *Client) IngestEvents(ctx context.Context, id string, events []Event, op
 // Restrictions for field names (JSON object keys) can be reviewed in
 // [our documentation].
 //
-// Events are ingested in batches. A batch is either 1000 events for unbuffered
+// Events are ingested in batches. A batch is either 10000 events for unbuffered
 // channels or the capacity of the channel for buffered channels. The maximum
-// batch size is 1000. A batch is sent to the server as soon as it is full,
+// batch size is 10000. A batch is sent to the server as soon as it is full,
 // after one second or when the channel is closed.
 //
 // The method returns with an error when the context is marked as done or an
