@@ -16,7 +16,7 @@ import (
 
 var _ slog.Handler = (*Handler)(nil)
 
-const defaultBatchSize = 1000
+const defaultBatchSize = 10_000
 
 // ErrMissingDatasetName is raised when a dataset name is not provided. Set it
 // manually using the [SetDataset] option or export "AXIOM_DATASET".
