@@ -566,7 +566,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 
 // TestDatasetsService_IngestEvents_Retry tests the retry ingest functionality
 // of the client. It also tests the event labels functionality by setting no
-// labels.
+// labels. It also tests for the presence of a trace ID in the response.
 func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,
@@ -589,7 +589,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
 		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
-		assert.Empty(t, r.Header.Get("X-Axiom-Event-Labels"))
+		assert.Empty(t, r.Header.Get(headerEventLabels))
 
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)

@@ -822,7 +822,7 @@ func setEventLabels(req *http.Request, labels map[string]any) error {
 		return err
 	}
 
-	req.Header.Set("X-Axiom-Event-Labels", string(b))
+	req.Header.Set(headerEventLabels, string(b))
 
 	return nil
 }

@@ -500,10 +500,10 @@ func TestClient_do_RateLimit(t *testing.T) {
 
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set(headerRateScope, "anonymous")
-		w.Header().Set(headerRateLimit, "1000")
-		w.Header().Set(headerRateRemaining, "0")
-		w.Header().Set(headerRateReset, strconv.FormatInt(reset.Unix(), 10))
+		w.Header().Set("X-RateLimit-Scope", "anonymous")
+		w.Header().Set("X-RateLimit-Limit", "1000")
+		w.Header().Set("X-RateLimit-Remaining", "0")
+		w.Header().Set("X-RateLimit-Reset", strconv.FormatInt(reset.Unix(), 10))
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusTooManyRequests)
 		assert.NoError(t, json.NewEncoder(w).Encode(HTTPError{

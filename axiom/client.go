@@ -33,6 +33,7 @@ import (
 const (
 	headerAuthorization  = "Authorization"
 	headerOrganizationID = "X-Axiom-Org-Id"
+	headerEventLabels    = "X-Axiom-Event-Labels"
 
 	headerAccept      = "Accept"
 	headerContentType = "Content-Type"
