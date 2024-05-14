@@ -21,6 +21,8 @@ func TestUsersService_Current(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
+		assert.Empty(t, r.Header.Get(headerOrganizationID))
+
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"id": "e9cffaad-60e7-4b04-8d27-185e1808c38c",
