@@ -82,17 +82,6 @@ type Dataset struct {
 	CreatedAt time.Time `json:"created"`
 }
 
-// TrimResult is the result of a trim operation.
-//
-// Deprecated: TrimResult is deprecated and will be removed in a future release.
-type TrimResult struct {
-	// BlocksDeleted is the amount of blocks deleted by the trim operation.
-	//
-	// Deprecated: BlocksDeleted is deprecated and will be removed in the
-	// future.
-	BlocksDeleted int `json:"numDeleted"`
-}
-
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
 	// Name of the dataset to create. Restricted to 80 characters of [a-zA-Z0-9]
@@ -276,7 +265,7 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 // Trim the dataset identified by its id to a given length. The max duration
 // given will mark the oldest timestamp an event can have. Older ones will be
 // deleted from the dataset.
-func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.Duration) (*TrimResult, error) {
+func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.Duration) error {
 	ctx, span := s.client.trace(ctx, "Datasets.Trim", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.String("axiom.param.max_duration", maxDuration.String()),
@@ -289,15 +278,14 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 	path, err := url.JoinPath(s.basePath, id, "trim")
 	if err != nil {
-		return nil, spanError(span, err)
+		return spanError(span, err)
 	}
 
-	var res TrimResult
-	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
-		return nil, spanError(span, err)
+	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
+		return spanError(span, err)
 	}
 
-	return &res, nil
+	return nil
 }
 
 // Ingest data into the dataset identified by its id.

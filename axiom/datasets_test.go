@@ -388,10 +388,6 @@ func TestDatasetsService_Delete(t *testing.T) {
 }
 
 func TestDatasetsService_Trim(t *testing.T) {
-	exp := &TrimResult{
-		BlocksDeleted: 0,
-	}
-
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 
@@ -404,10 +400,8 @@ func TestDatasetsService_Trim(t *testing.T) {
 
 	client := setup(t, "/v2/datasets/test/trim", hf)
 
-	res, err := client.Datasets.Trim(context.Background(), "test", time.Hour)
+	err := client.Datasets.Trim(context.Background(), "test", time.Hour)
 	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
 }
 
 // TestDatasetsService_Ingest tests the ingest functionality of the client. It
