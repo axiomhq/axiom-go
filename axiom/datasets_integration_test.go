@@ -322,12 +322,8 @@ func (s *DatasetsTestSuite) Test() {
 	}
 
 	// Trim the dataset down to a minimum.
-	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
+	err = s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
 	s.Require().NoError(err)
-	s.Require().NotNil(trimResult)
-
-	// HINT(lukasmalkmus): There are no blocks to trim in this test.
-	s.EqualValues(0, trimResult.BlocksDeleted)
 }
 
 func (s *DatasetsTestSuite) TestCursor() {
