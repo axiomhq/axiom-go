@@ -390,12 +390,6 @@ func TestDatasetsService_Delete(t *testing.T) {
 func TestDatasetsService_Trim(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
-			"numDeleted": 0
-		}`)
-		assert.NoError(t, err)
 	}
 
 	client := setup(t, "/v2/datasets/test/trim", hf)
