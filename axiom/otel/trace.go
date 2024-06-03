@@ -14,7 +14,7 @@ import (
 
 	// Keep in sync with
 	// https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L14.
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 
 	"github.com/axiomhq/axiom-go/internal/version"
 )
