@@ -110,7 +110,7 @@ func (a *AnnotationsService) Get(ctx context.Context, id string) (*Annotation, e
 	return &res, nil
 }
 
-func (a *AnnotationsService) Update(ctx context.Context, id string, annotation AnnotationUpdateRequest) (*Annotation, error) {
+func (a *AnnotationsService) Update(ctx context.Context, id string, annotation *AnnotationUpdateRequest) (*Annotation, error) {
 	ctx, span := a.client.trace(ctx, "Annotations.Update")
 	defer span.End()
 
