@@ -102,7 +102,7 @@ func (s *AnnotationsTestSuite) Test() {
 	}
 
 	// Update annotation
-	_, err = s.client.Annotations.Update(s.ctx, s.annotation.ID, axiom.AnnotationUpdateRequest{
+	_, err = s.client.Annotations.Update(s.ctx, s.annotation.ID, &axiom.AnnotationUpdateRequest{
 		Datasets: []string{s.datasetB.ID},
 	})
 	s.Require().NoError(err)
