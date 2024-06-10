@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+// Annotation represents an Annotation returned from the Axiom API.
 type Annotation struct {
 	ID          string    `json:"id"`
 	Datasets    []string  `json:"datasets"`
@@ -21,6 +22,7 @@ type Annotation struct {
 	Type        string    `json:"type"`
 }
 
+// AnnotationCreateRequest is the request payload for creating a new Annotation.
 type AnnotationCreateRequest struct {
 	// Required:
 	Datasets []string `json:"datasets"`
@@ -33,6 +35,7 @@ type AnnotationCreateRequest struct {
 	URL         string    `json:"url,omitempty"`
 }
 
+// AnnotationUpdateRequest is the request payload for updating an Annotation.
 type AnnotationUpdateRequest struct {
 	Datasets    []string  `json:"datasets,omitempty"`
 	Time        time.Time `json:"time,omitempty"`
