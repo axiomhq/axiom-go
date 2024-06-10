@@ -96,6 +96,7 @@ type Client struct {
 	Users         *UsersService
 	Monitors      *MonitorsService
 	Notifiers     *NotifiersService
+	Annotations   *AnnotationsService
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
@@ -126,11 +127,12 @@ func NewClient(options ...Option) (*Client, error) {
 		client.userAgent += fmt.Sprintf("/%s", v)
 	}
 
-	client.Datasets = &DatasetsService{client, "/v2/datasets"}
-	client.Organizations = &OrganizationsService{client, "/v1/orgs"}
-	client.Users = &UsersService{client, "/v2/users"}
-	client.Monitors = &MonitorsService{client, "/v2/monitors"}
-	client.Notifiers = &NotifiersService{client, "/v2/notifiers"}
+	client.Datasets = &DatasetsService{client: client, basePath: "/v2/datasets"}
+	client.Organizations = &OrganizationsService{client: client, basePath: "/v1/orgs"}
+	client.Users = &UsersService{client: client, basePath: "/v2/users"}
+	client.Monitors = &MonitorsService{client: client, basePath: "/v2/monitors"}
+	client.Notifiers = &NotifiersService{client: client, basePath: "/v2/notifiers"}
+	client.Annotations = &AnnotationsService{client: client, basePath: "/v2/annotations"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
