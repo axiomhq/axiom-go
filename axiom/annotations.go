@@ -26,8 +26,8 @@ type Annotation struct {
 	Description string `json:"description"`
 	// URL is the URL of the Annotation.
 	URL string `json:"url"`
-	// Type is the type of the Annotation. Can contain lowercase alphanumerical
-	// characters and dashes.
+	// Type is the type of the Annotation. Can only contain lowercase
+	// alphanumerical characters and dashes.
 	Type string `json:"type"`
 }
 
@@ -36,8 +36,8 @@ type AnnotationCreateRequest struct {
 	// Required:
 	// Datasets is a list of dataset IDs that the Annotation is attached to.
 	Datasets []string `json:"datasets"`
-	// Type is the type of the Annotation. Can contain lowercase alphanumerical
-	// characters and dashes.
+	// Type is the type of the Annotation. Can only contain lowercase
+	// alphanumerical characters and dashes.
 	Type string `json:"type"`
 	// Optional:
 	// Time is the start time of the Annotation.
@@ -66,8 +66,8 @@ type AnnotationUpdateRequest struct {
 	Description string `json:"description,omitempty"`
 	// URL is the URL of the Annotation.
 	URL string `json:"url,omitempty"`
-	// Type is the type of the Annotation. Can contain lowercase alphanumerical
-	// characters and dashes.
+	// Type is the type of the Annotation. Can only contain lowercase
+	// alphanumerical characters and dashes.
 	Type string `json:"type,omitempty"`
 }
 
