@@ -12,38 +12,63 @@ import (
 
 // Annotation represents an Annotation returned from the Axiom API.
 type Annotation struct {
-	ID          string    `json:"id"`
-	Datasets    []string  `json:"datasets"`
-	Time        time.Time `json:"time"`
-	EndTime     time.Time `json:"endTime"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	URL         string    `json:"url"`
-	Type        string    `json:"type"`
+	// ID is the ID of the Annotation. Always starts with `ann_`.
+	ID string `json:"id"`
+	// Datasets is a list of dataset IDs that the Annotation is attached to.
+	Datasets []string `json:"datasets"`
+	// Time is the start time of the Annotation.
+	Time time.Time `json:"time"`
+	// EndTime is the end time of the Annotation.
+	EndTime time.Time `json:"endTime"`
+	// Title is the title of the Annotation.
+	Title string `json:"title"`
+	// Description is the description of the Annotation.
+	Description string `json:"description"`
+	// URL is the URL of the Annotation.
+	URL string `json:"url"`
+	// Type is the type of the Annotation. Can contain lowercase alphanumerical
+	// characters and dashes.
+	Type string `json:"type"`
 }
 
 // AnnotationCreateRequest is the request payload for creating a new Annotation.
 type AnnotationCreateRequest struct {
 	// Required:
+	// Datasets is a list of dataset IDs that the Annotation is attached to.
 	Datasets []string `json:"datasets"`
-	Type     string   `json:"type"`
+	// Type is the type of the Annotation. Can contain lowercase alphanumerical
+	// characters and dashes.
+	Type string `json:"type"`
 	// Optional:
-	Time        time.Time `json:"time,omitempty"`
-	EndTime     time.Time `json:"endTime,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Description string    `json:"description,omitempty"`
-	URL         string    `json:"url,omitempty"`
+	// Time is the start time of the Annotation.
+	Time time.Time `json:"time,omitempty"`
+	// EndTime is the end time of the Annotation.
+	EndTime time.Time `json:"endTime,omitempty"`
+	// Title is the title of the Annotation.
+	Title string `json:"title,omitempty"`
+	// Description is the description of the Annotation.
+	Description string `json:"description,omitempty"`
+	// URL is the URL of the Annotation.
+	URL string `json:"url,omitempty"`
 }
 
 // AnnotationUpdateRequest is the request payload for updating an Annotation.
 type AnnotationUpdateRequest struct {
-	Datasets    []string  `json:"datasets,omitempty"`
-	Time        time.Time `json:"time,omitempty"`
-	EndTime     time.Time `json:"endTime,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Description string    `json:"description,omitempty"`
-	URL         string    `json:"url,omitempty"`
-	Type        string    `json:"type,omitempty"`
+	// Datasets is a list of dataset IDs that the Annotation is attached to.
+	Datasets []string `json:"datasets,omitempty"`
+	// Time is the start time of the Annotation.
+	Time time.Time `json:"time,omitempty"`
+	// EndTime is the end time of the Annotation.
+	EndTime time.Time `json:"endTime,omitempty"`
+	// Title is the title of the Annotation.
+	Title string `json:"title,omitempty"`
+	// Description is the description of the Annotation.
+	Description string `json:"description,omitempty"`
+	// URL is the URL of the Annotation.
+	URL string `json:"url,omitempty"`
+	// Type is the type of the Annotation. Can contain lowercase alphanumerical
+	// characters and dashes.
+	Type string `json:"type,omitempty"`
 }
 
 // AnnotationsService handles communication with the dataset related operations
