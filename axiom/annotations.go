@@ -15,7 +15,7 @@ type Annotation struct {
 	ID          string    `json:"id"`
 	Datasets    []string  `json:"datasets"`
 	Time        time.Time `json:"time"`
-	EndTime     time.Time `json:"end_time"`
+	EndTime     time.Time `json:"endTime"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	URL         string    `json:"url"`
@@ -29,7 +29,7 @@ type AnnotationCreateRequest struct {
 	Type     string   `json:"type"`
 	// Optional:
 	Time        time.Time `json:"time,omitempty"`
-	EndTime     time.Time `json:"end_time,omitempty"`
+	EndTime     time.Time `json:"endTime,omitempty"`
 	Title       string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
 	URL         string    `json:"url,omitempty"`
@@ -39,7 +39,7 @@ type AnnotationCreateRequest struct {
 type AnnotationUpdateRequest struct {
 	Datasets    []string  `json:"datasets,omitempty"`
 	Time        time.Time `json:"time,omitempty"`
-	EndTime     time.Time `json:"end_time,omitempty"`
+	EndTime     time.Time `json:"endTime,omitempty"`
 	Title       string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
 	URL         string    `json:"url,omitempty"`
