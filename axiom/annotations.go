@@ -99,7 +99,20 @@ type AnnotationsFilter struct {
 
 // List annotations.
 func (a *AnnotationsService) List(ctx context.Context, filter *AnnotationsFilter) ([]*Annotation, error) {
-	ctx, span := a.client.trace(ctx, "Annotations.List", trace.WithAttributes())
+	var attributes []attribute.KeyValue
+	if filter != nil {
+		if len(filter.Datasets) > 0 {
+			attributes = append(attributes, attribute.StringSlice("axiom.datasets", filter.Datasets))
+		}
+		if filter.Start != nil {
+			attributes = append(attributes, attribute.String("axiom.start", filter.Start.String()))
+		}
+		if filter.End != nil {
+			attributes = append(attributes, attribute.String("axiom.end", filter.End.String()))
+		}
+	}
+
+	ctx, span := a.client.trace(ctx, "Annotations.List", trace.WithAttributes(attributes...))
 	defer span.End()
 
 	path, err := AddURLOptions(a.basePath, filter)
@@ -136,7 +149,9 @@ func (a *AnnotationsService) Get(ctx context.Context, id string) (*Annotation, e
 }
 
 func (a *AnnotationsService) Update(ctx context.Context, id string, annotation *AnnotationUpdateRequest) (*Annotation, error) {
-	ctx, span := a.client.trace(ctx, "Annotations.Update")
+	ctx, span := a.client.trace(ctx, "Annotations.Update", trace.WithAttributes(
+		attribute.String("axiom.annotation_id", id),
+	))
 	defer span.End()
 
 	path, err := url.JoinPath(a.basePath, id)
