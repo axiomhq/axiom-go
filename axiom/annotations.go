@@ -90,11 +90,11 @@ func (a *AnnotationsService) Create(ctx context.Context, annotation *AnnotationC
 	return &res, nil
 }
 
-// AnnotationsFilter filters annotations on the [`List`] method.
+// AnnotationsFilter filters annotations on the [AnnotationsService.List] method.
 type AnnotationsFilter struct {
-	Datasets []string   `url:"datasets"`
-	Start    *time.Time `url:"start"`
-	End      *time.Time `url:"start"`
+	Datasets []string  `url:"datasets"`
+	Start    time.Time `url:"start"`
+	End      time.Time `url:"start"`
 }
 
 // List annotations.
@@ -104,10 +104,10 @@ func (a *AnnotationsService) List(ctx context.Context, filter *AnnotationsFilter
 		if len(filter.Datasets) > 0 {
 			attributes = append(attributes, attribute.StringSlice("axiom.datasets", filter.Datasets))
 		}
-		if filter.Start != nil {
+		if !filter.Start.IsZero() {
 			attributes = append(attributes, attribute.String("axiom.start", filter.Start.String()))
 		}
-		if filter.End != nil {
+		if !filter.End.IsZero() {
 			attributes = append(attributes, attribute.String("axiom.end", filter.End.String()))
 		}
 	}
