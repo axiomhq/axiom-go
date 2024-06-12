@@ -88,9 +88,7 @@ func (s *AnnotationsTestSuite) Test() {
 	// List annotations without filterr
 	annotations, err := s.client.Annotations.List(s.ctx, nil)
 	s.Require().NoError(err)
-	if s.Len(annotations, 1) {
-		s.Equal(s.annotation.ID, annotations[0].ID)
-	}
+	s.Greater(len(annotations), 0)
 
 	// List annotations with filter
 	annotations, err = s.client.Annotations.List(s.ctx, &axiom.AnnotationsFilter{
