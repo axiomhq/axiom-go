@@ -87,22 +87,29 @@ func main() {
 
     client, err := axiom.NewClient()
     if err != nil {
-        log.Fatalln(err)
+        log.Fatal(err)
     }
     
     if _, err = client.IngestEvents(ctx, "my-dataset", []axiom.Event{
         {ingest.TimestampField: time.Now(), "foo": "bar"},
         {ingest.TimestampField: time.Now(), "bar": "foo"},
     }); err != nil {
-        log.Fatalln(err)
+        log.Fatal(err)
     }
 
     res, err := client.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
     if err != nil {
-        log.Fatalln(err)
+        log.Fatal(err)
+    } else if res.Status.RowsMatched == 0 {
+        log.Fatal("No matches found")
     }
-    for _, match := range res.Matches {
-        fmt.Println(match.Data)
+
+    rows := res.Tables[0].Rows()
+    if err := rows.Range(ctx, func(_ context.Context, row query.Row) error {
+        _, err := fmt.Println(row)
+        return err
+    }); err != nil {
+        log.Fatal(err)
     }
 }
 ```
