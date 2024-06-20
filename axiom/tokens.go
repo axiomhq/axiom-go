@@ -2,11 +2,12 @@ package axiom
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type APIToken struct {
