@@ -46,7 +46,7 @@ func (s *TokensTestSuite) Test() {
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 		DatasetCapabilities: map[string]axiom.DatasetCapabilities{
 			"*": {Ingest: []string{"create"}}},
-		OrgCapabilities: axiom.OrgCapabilities{
+		OrganisationCapabilities: axiom.OrganisationCapabilities{
 			Users: []string{"create", "read", "update", "delete"},
 		}})
 	s.Require().NoError(err)

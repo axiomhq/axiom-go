@@ -26,7 +26,7 @@ func TestTokensService_List(t *testing.T) {
 					Query:  []string{"read"},
 				},
 			},
-			OrgCapabilities: OrgCapabilities{
+			OrganisationCapabilities: OrganisationCapabilities{
 				APITokens: []string{"create"},
 			},
 		},
@@ -79,7 +79,7 @@ func TestTokensService_Get(t *testing.T) {
 				Query:  []string{"read"},
 			},
 		},
-		OrgCapabilities: OrgCapabilities{
+		OrganisationCapabilities: OrganisationCapabilities{
 			APITokens: []string{"create"},
 		},
 	}
@@ -131,7 +131,7 @@ func TestTokensService_Create(t *testing.T) {
 					Query:  []string{"read"},
 				},
 			},
-			OrgCapabilities: OrgCapabilities{
+			OrganisationCapabilities: OrganisationCapabilities{
 				APITokens: []string{"create"},
 			}},
 		Token: "test",
@@ -176,7 +176,7 @@ func TestTokensService_Create(t *testing.T) {
 				Query:  []string{"read"},
 			},
 		},
-		OrgCapabilities: OrgCapabilities{
+		OrganisationCapabilities: OrganisationCapabilities{
 			APITokens: []string{"create"},
 		},
 	})
@@ -197,7 +197,7 @@ func TestTokensService_Regenerate(t *testing.T) {
 					Query:  []string{"read"},
 				},
 			},
-			OrgCapabilities: OrgCapabilities{
+			OrganisationCapabilities: OrganisationCapabilities{
 				APITokens: []string{"create"},
 			},
 		},

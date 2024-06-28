@@ -21,8 +21,8 @@ type APIToken struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	// DatasetCapabilities is a map of dataset names to the capabilities available to that dataset for the token.
 	DatasetCapabilities map[string]DatasetCapabilities `json:"datasetCapabilities"`
-	// OrgCapabilities is the organisation capabilities available to the token.
-	OrgCapabilities OrgCapabilities `json:"orgCapabilities"`
+	// OrganisationCapabilities is the organisation capabilities available to the token.
+	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
 }
 
 type DatasetCapabilities struct {
@@ -36,7 +36,7 @@ type DatasetCapabilities struct {
 	VirtualFields []string `json:"virtualFields"`
 }
 
-type OrgCapabilities struct {
+type OrganisationCapabilities struct {
 	// Annotations is the Annotations capability and the actions that can be performed on them.
 	Annotations []string `json:"annotations,omitempty"`
 	// APITokens is the APITokens capability and the actions that can be performed on them.
@@ -72,11 +72,10 @@ type CreateTokenRequest struct {
 	Description string `json:"description"`
 	// ExpiresAt is the time when the token expires.
 	ExpiresAt time.Time `json:"expiresAt"`
-
 	// DatasetCapabilities is a map of dataset names to the capabilities available to that dataset for the token.
 	DatasetCapabilities map[string]DatasetCapabilities `json:"datasetCapabilities"`
-	// OrgCapabilities is the organisation capabilities available to the token.
-	OrgCapabilities OrgCapabilities `json:"orgCapabilities"`
+	// OrganisationCapabilities is the organisation capabilities available to the token.
+	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
 }
 
 type CreateTokenResponse struct {
