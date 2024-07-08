@@ -163,7 +163,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	return &res, nil
 }
 
-// Create will create and invite a user to the organisation
+// Create will create and invite a user to the organisation.
 func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
 	ctx, span := s.client.trace(ctx, "Users.Create", trace.WithAttributes(
 		attribute.String("axiom.user_name", req.Name),
