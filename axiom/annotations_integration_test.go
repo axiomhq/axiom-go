@@ -15,6 +15,7 @@ import (
 type AnnotationsTestSuite struct {
 	IntegrationTestSuite
 
+	// Setup once per test.
 	datasetA   *axiom.Dataset
 	datasetB   *axiom.Dataset
 	annotation *axiom.Annotation
@@ -24,27 +25,19 @@ func TestAnnotationsTestSuite(t *testing.T) {
 	suite.Run(t, new(AnnotationsTestSuite))
 }
 
-func (s *AnnotationsTestSuite) SetupSuite() {
-	s.IntegrationTestSuite.SetupSuite()
-}
-
-func (s *AnnotationsTestSuite) TearDownSuite() {
-	s.IntegrationTestSuite.TearDownSuite()
-}
-
 func (s *AnnotationsTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
 	var err error
 
-	s.datasetA, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
+	s.datasetA, err = s.client.Datasets.Create(s.ctx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-annotations-a-" + datasetSuffix,
 		Description: "This is a test dataset for annotations integration tests.",
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.datasetA)
 
-	s.datasetB, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
+	s.datasetB, err = s.client.Datasets.Create(s.ctx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-annotations-b-" + datasetSuffix,
 		Description: "This is a test dataset for annotations integration tests.",
 	})
@@ -63,7 +56,7 @@ func (s *AnnotationsTestSuite) SetupTest() {
 func (s *AnnotationsTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
 	err := s.client.Datasets.Delete(ctx, s.datasetA.ID)
@@ -79,18 +72,18 @@ func (s *AnnotationsTestSuite) TearDownTest() {
 }
 
 func (s *AnnotationsTestSuite) Test() {
-	// Get annotation
+	// Get annotation.
 	annotation, err := s.client.Annotations.Get(s.ctx, s.annotation.ID)
 	s.Require().NoError(err)
 	s.Require().Equal(s.annotation.ID, annotation.ID)
 	s.Require().Equal(s.annotation.Title, annotation.Title)
 
-	// List annotations without filterr
+	// List annotations without filter.
 	annotations, err := s.client.Annotations.List(s.ctx, nil)
 	s.Require().NoError(err)
 	s.Greater(len(annotations), 0)
 
-	// List annotations with filter
+	// List annotations with filter.
 	annotations, err = s.client.Annotations.List(s.ctx, &axiom.AnnotationsFilter{
 		Datasets: []string{s.datasetA.ID},
 	})
@@ -99,13 +92,13 @@ func (s *AnnotationsTestSuite) Test() {
 		s.Equal(s.annotation.ID, annotations[0].ID)
 	}
 
-	// Update annotation
+	// Update annotation.
 	_, err = s.client.Annotations.Update(s.ctx, s.annotation.ID, &axiom.AnnotationUpdateRequest{
 		Datasets: []string{s.datasetB.ID},
 	})
 	s.Require().NoError(err)
 
-	// List annotations with filter, this should return 0 items now
+	// List annotations with filter, this should return 0 items now.
 	annotations, err = s.client.Annotations.List(s.ctx, &axiom.AnnotationsFilter{
 		Datasets: []string{s.datasetA.ID},
 	})
