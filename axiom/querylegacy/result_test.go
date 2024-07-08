@@ -15,7 +15,7 @@ var (
 	expStatus = Status{
 		ElapsedTime:       time.Second,
 		BlocksExamined:    10,
-		RowsExamined:      100000,
+		RowsExamined:      100_000,
 		RowsMatched:       2,
 		NumGroups:         1,
 		IsPartial:         true,
