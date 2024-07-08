@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 
 	// Keep in sync with
-	// https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L14.
+	// https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/resource/builtin.go#L16.
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/axiomhq/axiom-go/internal/version"
@@ -26,11 +25,6 @@ func init() {
 	if v := version.Get(); v != "" {
 		userAgent += fmt.Sprintf("/%s", v)
 	}
-}
-
-// UserAgentAttribute returns a new OpenTelemetry axiom-go user agent attribute.
-func UserAgentAttribute() attribute.KeyValue {
-	return semconv.UserAgentOriginal(userAgent)
 }
 
 // TraceExporter configures and returns a new exporter for OpenTelemetry spans.
@@ -101,10 +95,12 @@ func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion st
 	}
 
 	rs, err := resource.Merge(resource.Default(), resource.NewWithAttributes(
-		semconv.SchemaURL,
+		// HINT(lukasmalkmus): [resource.Merge] will use the schema URL from the
+		// first resource, which is what we want to achieve here.
+		"",
 		semconv.ServiceNameKey.String(serviceName),
 		semconv.ServiceVersionKey.String(serviceVersion),
-		UserAgentAttribute(),
+		semconv.UserAgentOriginal(userAgent),
 	))
 	if err != nil {
 		return nil, err
