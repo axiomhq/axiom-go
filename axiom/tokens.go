@@ -206,7 +206,7 @@ func (s *TokensService) Regenerate(ctx context.Context, id string, req Regenerat
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, id, "/regenerate")
+	path, err := url.JoinPath(s.basePath, id, "regenerate")
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -226,7 +226,7 @@ func (s *TokensService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
