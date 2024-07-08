@@ -148,7 +148,7 @@ type RegenerateTokenRequest struct {
 // TokensService handles communication with the api token related operations
 // of the Axiom API.
 //
-// Axiom API Reference: /v2/tokens/api
+// Axiom API Reference: /v2/tokens
 type TokensService service
 
 // List all available tokens.

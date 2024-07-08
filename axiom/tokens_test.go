@@ -60,7 +60,7 @@ func TestTokensService_List(t *testing.T) {
     }]`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/tokens/api", hf)
+	client := setup(t, "/v2/tokens", hf)
 
 	res, err := client.Tokens.List(context.Background())
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestTokensService_Get(t *testing.T) {
     }`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/tokens/api/test", hf)
+	client := setup(t, "/v2/tokens/test", hf)
 
 	res, err := client.Tokens.Get(context.Background(), "test")
 	require.NoError(t, err)
@@ -167,7 +167,7 @@ func TestTokensService_Create(t *testing.T) {
     }`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/tokens/api", hf)
+	client := setup(t, "/v2/tokens", hf)
 
 	res, err := client.Tokens.Create(context.Background(), CreateTokenRequest{
 		Name:        "test",
@@ -235,7 +235,7 @@ func TestTokensService_Regenerate(t *testing.T) {
     }`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/tokens/api/test/regenerate", hf)
+	client := setup(t, "/v2/tokens/test/regenerate", hf)
 
 	res, err := client.Tokens.Regenerate(context.Background(), "test", RegenerateTokenRequest{
 		ExistingTokenExpiresAt: tokenTime,
@@ -253,7 +253,7 @@ func TestTokensService_Delete(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client := setup(t, "/v2/tokens/api/testID", hf)
+	client := setup(t, "/v2/tokens/testID", hf)
 
 	err := client.Tokens.Delete(context.Background(), "testID")
 	require.NoError(t, err)
