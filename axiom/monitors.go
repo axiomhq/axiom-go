@@ -128,8 +128,8 @@ func (m *Monitor) UnmarshalJSON(b []byte) error {
 
 	// Set to a proper time.Duration value by interpreting the server response
 	// value in seconds.
-	m.Range = m.Range * time.Minute
-	m.Interval = m.Interval * time.Minute
+	m.Range *= time.Minute
+	m.Interval *= time.Minute
 
 	return nil
 }
