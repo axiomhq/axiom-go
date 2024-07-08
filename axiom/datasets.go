@@ -250,7 +250,7 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
@@ -319,6 +319,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		}
 	}
 
+	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
 	path, err := url.JoinPath("/v1/datasets", id, "ingest")
 	if err != nil {
 		return nil, spanError(span, err)
@@ -400,6 +401,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		}
 	}
 
+	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
 	path, err := url.JoinPath("/v1/datasets", id, "ingest")
 	if err != nil {
 		return nil, spanError(span, err)
@@ -599,6 +601,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		Format: "legacy", // Hardcode legacy APL format for now.
 	}
 
+	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
 	path, err := url.JoinPath("/v1/datasets", "_apl")
 	if err != nil {
 		return nil, spanError(span, err)
