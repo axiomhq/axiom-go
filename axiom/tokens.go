@@ -2,6 +2,7 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"time"
@@ -10,6 +11,54 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Action -linecomment -output=action_string.go
+
+// Action represents an action that can be performed on an Axiom resource.
+type Action uint8
+
+// All available [Action].
+const (
+	ActionCreate Action = iota // create
+	ActionRead                 // read
+	ActionUpdate               // update
+	ActionDelete               // delete
+)
+
+func actionFromString(s string) (a Action) {
+	switch s {
+	case ActionCreate.String():
+		a = ActionCreate
+	case ActionRead.String():
+		a = ActionRead
+	case ActionUpdate.String():
+		a = ActionUpdate
+	case ActionDelete.String():
+		a = ActionDelete
+	}
+
+	return a
+}
+
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
+// Action to its string representation because that's what the server expects.
+func (a Action) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.String())
+}
+
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// Action from the string representation the server returns.
+func (a *Action) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*a = actionFromString(s)
+
+	return
+}
+
+// APIToken represents an API token returned from the Axiom API.
 type APIToken struct {
 	// ID is the unique ID of the token.
 	ID string `json:"id"`
@@ -25,46 +74,49 @@ type APIToken struct {
 	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
 }
 
+// DatasetCapabilities represents the capabilities available to a token for a dataset.
 type DatasetCapabilities struct {
 	// Ingest is the ingest capability and the actions that can be performed on them.
-	Ingest []string `json:"ingest"`
+	Ingest []Action `json:"ingest"`
 	// Query is the query capability and the actions that can be performed on them.
-	Query []string `json:"query"`
+	Query []Action `json:"query"`
 	// StarredQueries is the starred queries capability and the actions that can be performed on them.
-	StarredQueries []string `json:"starredQueries"`
+	StarredQueries []Action `json:"starredQueries"`
 	// VirtualFields is the VirtualFields capability and the actions that can be performed on them.
-	VirtualFields []string `json:"virtualFields"`
+	VirtualFields []Action `json:"virtualFields"`
 }
 
+// OrganisationCapabilities represents the capabilities available to a token for an organisation.
 type OrganisationCapabilities struct {
 	// Annotations is the Annotations capability and the actions that can be performed on them.
-	Annotations []string `json:"annotations,omitempty"`
+	Annotations []Action `json:"annotations,omitempty"`
 	// APITokens is the APITokens capability and the actions that can be performed on them.
-	APITokens []string `json:"apiTokens,omitempty"`
+	APITokens []Action `json:"apiTokens,omitempty"`
 	// Billing is the Billing capability and the actions that can be performed on them.
-	Billing []string `json:"billing,omitempty"`
+	Billing []Action `json:"billing,omitempty"`
 	// Dashboards is the Dashboards capability and the actions that can be performed on them.
-	Dashboards []string `json:"dashboards,omitempty"`
+	Dashboards []Action `json:"dashboards,omitempty"`
 	// Datasets is the Datasets capability and the actions that can be performed on them.
-	Datasets []string `json:"datasets,omitempty"`
+	Datasets []Action `json:"datasets,omitempty"`
 	// Endpoints is the Endpoints capability and the actions that can be performed on them.
-	Endpoints []string `json:"endpoints,omitempty"`
+	Endpoints []Action `json:"endpoints,omitempty"`
 	// Flows is the Flows capability and the actions that can be performed on them.
-	Flows []string `json:"flows,omitempty"`
+	Flows []Action `json:"flows,omitempty"`
 	// Integrations is the Integrations capability and the actions that can be performed on them.
-	Integrations []string `json:"integrations,omitempty"`
+	Integrations []Action `json:"integrations,omitempty"`
 	// Monitors is the Monitors capability and the actions that can be performed on them.
-	Monitors []string `json:"monitors,omitempty"`
+	Monitors []Action `json:"monitors,omitempty"`
 	// Notifiers is the Notifiers capability and the actions that can be performed on them.
-	Notifiers []string `json:"notifiers,omitempty"`
+	Notifiers []Action `json:"notifiers,omitempty"`
 	// Rbac is the Rbac capability and the actions that can be performed on them.
-	Rbac []string `json:"rbac,omitempty"`
+	Rbac []Action `json:"rbac,omitempty"`
 	// SharedAccessKeys is the SharedAccessKeys capability and the actions that can be performed on them.
-	SharedAccessKeys []string `json:"sharedAccessKeys,omitempty"`
+	SharedAccessKeys []Action `json:"sharedAccessKeys,omitempty"`
 	// Users is the Users capability and the actions that can be performed on them.
-	Users []string `json:"users,omitempty"`
+	Users []Action `json:"users,omitempty"`
 }
 
+// CreateTokenRequest is the request payload for creating a new token with the Axiom API.
 type CreateTokenRequest struct {
 	// Name is the name of the token.
 	Name string `json:"name"`
@@ -78,12 +130,14 @@ type CreateTokenRequest struct {
 	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
 }
 
+// CreateTokenResponse is the response payload for creating a new token with the Axiom API.
 type CreateTokenResponse struct {
 	APIToken
 	// Token is the token value to be used in api calls
 	Token string `json:"token"`
 }
 
+// RegenerateTokenRequest is the request payload for regenerating a token with the Axiom API.
 type RegenerateTokenRequest struct {
 	// ExistingTokenExpiresAt is the time when the existing token will expire.
 	ExistingTokenExpiresAt time.Time `json:"existingTokenExpiresAt"`
@@ -91,7 +145,10 @@ type RegenerateTokenRequest struct {
 	NewTokenExpiresAt time.Time `json:"newTokenExpiresAt"`
 }
 
-// Axiom API Reference: /v2/tokens
+// TokensService handles communication with the api token related operations
+// of the Axiom API.
+//
+// Axiom API Reference: /v2/tokens/api
 type TokensService service
 
 // List all available tokens.
@@ -179,8 +236,4 @@ func (s *TokensService) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-}
-
-func (t *CreateTokenResponse) AsAPIToken() *APIToken {
-	return &t.APIToken
 }

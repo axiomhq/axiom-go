@@ -1,5 +1,3 @@
-//go:build integration
-
 package axiom_test
 
 import (
@@ -28,7 +26,21 @@ func (s *TokensTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 }
 
-func (s *TokensTestSuite) TearDownSuite() {
+func (s *TokensTestSuite) SetupTest() {
+	createdToken, err := s.client.Tokens.Create(s.suiteCtx, axiom.CreateTokenRequest{
+		Name:      "Test token",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+		DatasetCapabilities: map[string]axiom.DatasetCapabilities{
+			"*": {Ingest: []axiom.Action{axiom.ActionCreate}}},
+		OrganisationCapabilities: axiom.OrganisationCapabilities{
+			Users: []axiom.Action{axiom.ActionCreate, axiom.ActionRead, axiom.ActionUpdate, axiom.ActionDelete},
+		}})
+	s.Require().NoError(err)
+	s.Require().NotNil(createdToken)
+	s.apiToken = &createdToken.APIToken
+}
+
+func (s *TokensTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -41,19 +53,6 @@ func (s *TokensTestSuite) TearDownSuite() {
 }
 
 func (s *TokensTestSuite) Test() {
-	createdToken, err := s.client.Tokens.Create(s.suiteCtx, axiom.CreateTokenRequest{
-		Name:      "Test token",
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-		DatasetCapabilities: map[string]axiom.DatasetCapabilities{
-			"*": {Ingest: []string{"create"}}},
-		OrganisationCapabilities: axiom.OrganisationCapabilities{
-			Users: []string{"create", "read", "update", "delete"},
-		}})
-	s.Require().NoError(err)
-	s.Require().NotNil(createdToken)
-
-	s.apiToken = createdToken.AsAPIToken()
-
 	// Get the token and make sure it matches what we have updated it to.
 	token, err := s.client.Tokens.Get(s.ctx, s.apiToken.ID)
 	s.Require().NoError(err)
@@ -78,7 +77,7 @@ func (s *TokensTestSuite) Test() {
 	s.Require().NotEmpty(tokens)
 
 	oldToken := s.apiToken
-	s.apiToken = regeneratedToken.AsAPIToken()
+	s.apiToken = &regeneratedToken.APIToken
 
 	// List all tokens and make sure the created token is part of that
 	// list.
@@ -87,5 +86,5 @@ func (s *TokensTestSuite) Test() {
 	s.Require().NotEmpty(tokens)
 
 	s.NotContains(tokens, oldToken)
-	s.Contains(tokens, regeneratedToken.AsAPIToken())
+	s.Contains(tokens, &regeneratedToken.APIToken)
 }

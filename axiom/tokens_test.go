@@ -9,11 +9,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
-var tokenTime = time.Now()
-
 func TestTokensService_List(t *testing.T) {
+	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
 	exp := []*APIToken{
 		{
 			ID:          "test",
@@ -22,12 +23,12 @@ func TestTokensService_List(t *testing.T) {
 			ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
 			DatasetCapabilities: map[string]DatasetCapabilities{
 				"dataset": {
-					Ingest: []string{"create"},
-					Query:  []string{"read"},
+					Ingest: []Action{ActionCreate},
+					Query:  []Action{ActionRead},
 				},
 			},
 			OrganisationCapabilities: OrganisationCapabilities{
-				APITokens: []string{"create"},
+				APITokens: []Action{ActionCreate},
 			},
 		},
 	}
@@ -36,7 +37,7 @@ func TestTokensService_List(t *testing.T) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprintf(w, `[{
+		_, err := fmt.Fprint(w, `[{
         "datasetCapabilities": {
             "dataset": {
                 "ingest": [
@@ -47,7 +48,7 @@ func TestTokensService_List(t *testing.T) {
                 ]
             }
         },
-		"expiresAt": "%s",
+		"expiresAt": "2024-04-19T17:55:53Z",
         "description": "test",
         "id": "test",
         "name": "test",
@@ -56,7 +57,7 @@ func TestTokensService_List(t *testing.T) {
                 "create"
             ]
         }
-    }]`, tokenTime.UTC().Truncate(time.Second).Format(time.RFC3339))
+    }]`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "/v2/tokens/api", hf)
@@ -68,6 +69,7 @@ func TestTokensService_List(t *testing.T) {
 }
 
 func TestTokensService_Get(t *testing.T) {
+	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
 	exp := &APIToken{
 		ID:          "test",
 		Name:        "test",
@@ -75,12 +77,12 @@ func TestTokensService_Get(t *testing.T) {
 		ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
 		DatasetCapabilities: map[string]DatasetCapabilities{
 			"dataset": {
-				Ingest: []string{"create"},
-				Query:  []string{"read"},
+				Ingest: []Action{ActionCreate},
+				Query:  []Action{ActionRead},
 			},
 		},
 		OrganisationCapabilities: OrganisationCapabilities{
-			APITokens: []string{"create"},
+			APITokens: []Action{ActionCreate},
 		},
 	}
 
@@ -88,7 +90,7 @@ func TestTokensService_Get(t *testing.T) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprintf(w, `{
+		_, err := fmt.Fprint(w, `{
         "datasetCapabilities": {
             "dataset": {
                 "ingest": [
@@ -99,7 +101,7 @@ func TestTokensService_Get(t *testing.T) {
                 ]
             }
         },
-		"expiresAt": "%s",
+		"expiresAt": "2024-04-19T17:55:53Z",
         "description": "test",
         "id": "test",
         "name": "test",
@@ -108,7 +110,7 @@ func TestTokensService_Get(t *testing.T) {
                 "create"
             ]
         }
-    }`, tokenTime.UTC().Truncate(time.Second).Format(time.RFC3339))
+    }`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "/v2/tokens/api/test", hf)
@@ -120,6 +122,7 @@ func TestTokensService_Get(t *testing.T) {
 }
 
 func TestTokensService_Create(t *testing.T) {
+	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
 	exp := &CreateTokenResponse{
 		APIToken: APIToken{
 			Name:        "test",
@@ -127,12 +130,12 @@ func TestTokensService_Create(t *testing.T) {
 			ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
 			DatasetCapabilities: map[string]DatasetCapabilities{
 				"dataset": {
-					Ingest: []string{"create"},
-					Query:  []string{"read"},
+					Ingest: []Action{ActionCreate},
+					Query:  []Action{ActionRead},
 				},
 			},
 			OrganisationCapabilities: OrganisationCapabilities{
-				APITokens: []string{"create"},
+				APITokens: []Action{ActionCreate},
 			}},
 		Token: "test",
 	}
@@ -141,7 +144,7 @@ func TestTokensService_Create(t *testing.T) {
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprintf(w, `{
+		_, err := fmt.Fprint(w, `{
         "datasetCapabilities": {
             "dataset": {
                 "ingest": [
@@ -152,7 +155,7 @@ func TestTokensService_Create(t *testing.T) {
                 ]
             }
         },
-		"expiresAt": "%s",
+		"expiresAt": "2024-04-19T17:55:53Z",
         "description": "test",
         "name": "test",
         "orgCapabilities": {
@@ -161,7 +164,7 @@ func TestTokensService_Create(t *testing.T) {
             ]
         },
 		"token":"test"
-    }`, tokenTime.UTC().Truncate(time.Second).Format(time.RFC3339))
+    }`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "/v2/tokens/api", hf)
@@ -172,12 +175,12 @@ func TestTokensService_Create(t *testing.T) {
 		ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
 		DatasetCapabilities: map[string]DatasetCapabilities{
 			"dataset": {
-				Ingest: []string{"create"},
-				Query:  []string{"read"},
+				Ingest: []Action{ActionCreate},
+				Query:  []Action{ActionRead},
 			},
 		},
 		OrganisationCapabilities: OrganisationCapabilities{
-			APITokens: []string{"create"},
+			APITokens: []Action{ActionCreate},
 		},
 	})
 	require.NoError(t, err)
@@ -186,6 +189,7 @@ func TestTokensService_Create(t *testing.T) {
 }
 
 func TestTokensService_Regenerate(t *testing.T) {
+	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
 	exp := &CreateTokenResponse{
 		APIToken: APIToken{
 			Name:        "test",
@@ -193,12 +197,12 @@ func TestTokensService_Regenerate(t *testing.T) {
 			ExpiresAt:   tokenTime.Add(24 * time.Hour).UTC().Truncate(time.Second),
 			DatasetCapabilities: map[string]DatasetCapabilities{
 				"dataset": {
-					Ingest: []string{"create"},
-					Query:  []string{"read"},
+					Ingest: []Action{ActionCreate},
+					Query:  []Action{ActionRead},
 				},
 			},
 			OrganisationCapabilities: OrganisationCapabilities{
-				APITokens: []string{"create"},
+				APITokens: []Action{ActionCreate},
 			},
 		},
 		Token: "test",
@@ -208,27 +212,27 @@ func TestTokensService_Regenerate(t *testing.T) {
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprintf(w, `{
+		_, err := fmt.Fprint(w, `{
         "datasetCapabilities": {
             "dataset": {
                 "ingest": [
-                    "create"
+                  "create"
                 ],
                 "query": [
                     "read"
                 ]
             }
         },
-		"expiresAt": "%s",
+		"expiresAt": "2024-04-20T17:55:53Z",
         "description": "test",
         "name": "test",
         "orgCapabilities": {
             "apiTokens": [
-                "create"
+              	"create"
             ]
         },
 		"token":"test"
-    }`, tokenTime.Add(24*time.Hour).UTC().Truncate(time.Second).Format(time.RFC3339))
+    }`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "/v2/tokens/api/test/regenerate", hf)
