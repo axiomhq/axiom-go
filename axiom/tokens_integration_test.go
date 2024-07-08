@@ -27,6 +27,7 @@ func (s *TokensTestSuite) SetupSuite() {
 }
 
 func (s *TokensTestSuite) SetupTest() {
+	s.IntegrationTestSuite.SetupTest()
 	createdToken, err := s.client.Tokens.Create(s.suiteCtx, axiom.CreateTokenRequest{
 		Name:      "Test token",
 		ExpiresAt: time.Now().Add(24 * time.Hour),
@@ -49,7 +50,7 @@ func (s *TokensTestSuite) TearDownTest() {
 	err := s.client.Tokens.Delete(ctx, s.apiToken.ID)
 	s.NoError(err)
 
-	s.IntegrationTestSuite.TearDownSuite()
+	s.IntegrationTestSuite.TearDownTest()
 }
 
 func (s *TokensTestSuite) Test() {
