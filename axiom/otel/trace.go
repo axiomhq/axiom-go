@@ -111,7 +111,7 @@ func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion st
 	}
 
 	opts := []trace.TracerProviderOption{
-		trace.WithBatcher(exporter, trace.WithMaxQueueSize(10*1024)),
+		trace.WithBatcher(exporter, trace.WithMaxQueueSize(1024*10)),
 		trace.WithResource(rs),
 	}
 

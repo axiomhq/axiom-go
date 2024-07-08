@@ -490,7 +490,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 
 		Limit: Limit{
 			Scope:     LimitScopeAnonymous,
-			Limit:     1000,
+			Limit:     1_000,
 			Remaining: 0,
 			Reset:     reset,
 
