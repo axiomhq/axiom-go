@@ -134,7 +134,7 @@ func NewClient(options ...Option) (*Client, error) {
 	client.Monitors = &MonitorsService{client: client, basePath: "/v2/monitors"}
 	client.Notifiers = &NotifiersService{client: client, basePath: "/v2/notifiers"}
 	client.Annotations = &AnnotationsService{client: client, basePath: "/v2/annotations"}
-	client.Tokens = &TokensService{client: client, basePath: "/v2/tokens/api"}
+	client.Tokens = &TokensService{client: client, basePath: "/v2/tokens"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
