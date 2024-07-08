@@ -108,8 +108,8 @@ type OrganisationCapabilities struct {
 	Monitors []Action `json:"monitors,omitempty"`
 	// Notifiers is the Notifiers capability and the actions that can be performed on them.
 	Notifiers []Action `json:"notifiers,omitempty"`
-	// Rbac is the Rbac capability and the actions that can be performed on them.
-	Rbac []Action `json:"rbac,omitempty"`
+	// RBAC is the RBAC capability and the actions that can be performed on them.
+	RBAC []Action `json:"rbac,omitempty"`
 	// SharedAccessKeys is the SharedAccessKeys capability and the actions that can be performed on them.
 	SharedAccessKeys []Action `json:"sharedAccessKeys,omitempty"`
 	// Users is the Users capability and the actions that can be performed on them.
