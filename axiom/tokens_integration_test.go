@@ -76,7 +76,7 @@ func (s *TokensTestSuite) Test() {
 
 	// Regenerate the token and make sure the new token is part of the list.
 	regeneratedToken, err := s.client.Tokens.Regenerate(s.ctx, s.apiToken.ID, axiom.RegenerateTokenRequest{
-		ExistingTokenExpiresAt: time.Now().Add(-time.Second),
+		ExistingTokenExpiresAt: time.Now(),
 		NewTokenExpiresAt:      time.Now().Add(24 * time.Hour),
 	})
 	s.Require().NoError(err)
