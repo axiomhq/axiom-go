@@ -11,21 +11,25 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Action -linecomment -output=action_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Action -linecomment -output=tokens_string.go
 
 // Action represents an action that can be performed on an Axiom resource.
 type Action uint8
 
 // All available [Action].
 const (
-	ActionCreate Action = iota // create
-	ActionRead                 // read
-	ActionUpdate               // update
-	ActionDelete               // delete
+	emptyAction Action = iota //
+
+	ActionCreate // create
+	ActionRead   // read
+	ActionUpdate // update
+	ActionDelete // delete
 )
 
 func actionFromString(s string) (a Action) {
 	switch s {
+	case emptyAction.String():
+		a = emptyAction
 	case ActionCreate.String():
 		a = ActionCreate
 	case ActionRead.String():

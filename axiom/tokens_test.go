@@ -258,3 +258,10 @@ func TestTokensService_Delete(t *testing.T) {
 	err := client.Tokens.Delete(context.Background(), "testID")
 	require.NoError(t, err)
 }
+
+func TestActionFromStringString(t *testing.T) {
+	for p := ActionCreate; p <= ActionDelete; p++ {
+		parsed := actionFromString(p.String())
+		assert.Equal(t, p, parsed)
+	}
+}
