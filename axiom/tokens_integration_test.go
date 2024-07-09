@@ -22,14 +22,6 @@ func TestTokensTestSuite(t *testing.T) {
 	suite.Run(t, new(TokensTestSuite))
 }
 
-func (s *TokensTestSuite) SetupSuite() {
-	s.IntegrationTestSuite.SetupSuite()
-}
-
-func (s *TokensTestSuite) TearDownSuite() {
-	s.IntegrationTestSuite.TearDownSuite()
-}
-
 func (s *TokensTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
