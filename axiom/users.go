@@ -150,7 +150,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -163,7 +163,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	return &res, nil
 }
 
-// Create will create and invite a user to the organisation
+// Create will create and invite a user to the organisation.
 func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
 	ctx, span := s.client.trace(ctx, "Users.Create", trace.WithAttributes(
 		attribute.String("axiom.user_name", req.Name),
@@ -189,7 +189,7 @@ func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequ
 		))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -211,7 +211,7 @@ func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req Updat
 		))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id, "/role")
+	path, err := url.JoinPath(s.basePath, id, "role")
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -231,7 +231,7 @@ func (s *UsersService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
