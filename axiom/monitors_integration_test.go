@@ -1,5 +1,3 @@
-//go:build integration
-
 package axiom_test
 
 import (
@@ -18,8 +16,10 @@ import (
 type MonitorsTestSuite struct {
 	IntegrationTestSuite
 
+	// Setup once per suite.
 	datasetID string
 
+	// Setup once per test.
 	monitor *axiom.Monitor
 }
 
@@ -38,8 +38,25 @@ func (s *MonitorsTestSuite) SetupSuite() {
 	s.Require().NotNil(dataset)
 
 	s.datasetID = dataset.ID
+}
 
-	s.monitor, err = s.client.Monitors.Create(s.suiteCtx, axiom.MonitorCreateRequest{
+func (s *MonitorsTestSuite) TearDownSuite() {
+	// Teardown routines use their own context to avoid not being run at all
+	// when the suite gets cancelled or times out.
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.suiteCtx), time.Second*15)
+	defer cancel()
+
+	err := s.client.Datasets.Delete(ctx, s.datasetID)
+	s.NoError(err)
+
+	s.IntegrationTestSuite.TearDownSuite()
+}
+
+func (s *MonitorsTestSuite) SetupTest() {
+	s.IntegrationTestSuite.SetupTest()
+
+	var err error
+	s.monitor, err = s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData: false,
 			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
@@ -47,7 +64,7 @@ func (s *MonitorsTestSuite) SetupSuite() {
 			Interval:      time.Minute,
 			Name:          "Test Monitor",
 			Operator:      axiom.BelowOrEqual,
-			Range:         5 * time.Minute,
+			Range:         time.Minute * 5,
 			Threshold:     1,
 		},
 	})
@@ -55,33 +72,30 @@ func (s *MonitorsTestSuite) SetupSuite() {
 	s.Require().NotNil(s.monitor)
 }
 
-func (s *MonitorsTestSuite) TearDownSuite() {
+func (s *MonitorsTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
 	err := s.client.Monitors.Delete(ctx, s.monitor.ID)
 	s.NoError(err)
 
-	err = s.client.Datasets.Delete(ctx, s.datasetID)
-	s.NoError(err)
-
-	s.IntegrationTestSuite.TearDownSuite()
+	s.IntegrationTestSuite.TearDownTest()
 }
 
 func (s *MonitorsTestSuite) Test() {
 	// Let's update the monitor.
-	monitor, err := s.client.Monitors.Update(s.suiteCtx, s.monitor.ID, axiom.MonitorUpdateRequest{
+	monitor, err := s.client.Monitors.Update(s.ctx, s.monitor.ID, axiom.MonitorUpdateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData: false,
 			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
 			Description:   "A very good test monitor",
-			DisabledUntil: time.Now().Add(10 * time.Minute),
+			DisabledUntil: time.Now().Add(time.Minute * 10),
 			Interval:      time.Minute,
 			Name:          "Test Monitor",
 			Operator:      axiom.BelowOrEqual,
-			Range:         10 * time.Minute,
+			Range:         time.Minute * 10,
 			Threshold:     5,
 		},
 	})

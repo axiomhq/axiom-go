@@ -128,8 +128,8 @@ func (m *Monitor) UnmarshalJSON(b []byte) error {
 
 	// Set to a proper time.Duration value by interpreting the server response
 	// value in seconds.
-	m.Range = m.Range * time.Minute
-	m.Interval = m.Interval * time.Minute
+	m.Range *= time.Minute
+	m.Interval *= time.Minute
 
 	return nil
 }
@@ -222,7 +222,7 @@ func (s *MonitorsService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
