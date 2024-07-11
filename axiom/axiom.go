@@ -19,7 +19,7 @@ func ValidateEnvironment() error {
 
 // ValidateCredentials returns nil if the environment variables that configure a
 // [Client] are valid. Otherwise, it returns an appropriate error. This function
-// establishes a connection to the configured Axiom deployment.
+// establishes a connection to the configured Axiom API.
 func ValidateCredentials(ctx context.Context) error {
 	client, err := NewClient()
 	if err != nil {

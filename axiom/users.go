@@ -72,16 +72,15 @@ type User struct {
 	// Emails is the email address of the user.
 	Email string `json:"email"`
 	// Role is the role of the user.
-	Role UserDetailsRole `json:"role"`
+	Role struct {
+		// ID is the unique ID of the role.
+		ID string `json:"id,omitempty"`
+		// Name of the role.
+		Name string `json:"name,omitempty"`
+	} `json:"role"`
 }
 
-type UserDetailsRole struct {
-	// ID is the unique ID of the role.
-	ID string `json:"id,omitempty"`
-	// Name of the role.
-	Name string `json:"name,omitempty"`
-}
-
+// CreateUserRequest represents a request to create a user.
 type CreateUserRequest struct {
 	// Name is the name of the user.
 	Name string `json:"name"`
@@ -91,11 +90,13 @@ type CreateUserRequest struct {
 	Role string `json:"role"`
 }
 
+// UpdateUserRequest represents a request to update a user.
 type UpdateUserRequest struct {
 	// Name is the new name of the user.
 	Name string `json:"name"`
 }
 
+// UpdateUserRoleRequest represents a request to update a user role.
 type UpdateUserRoleRequest struct {
 	// Role is the new role of the user.
 	Role string `json:"role"`
@@ -116,11 +117,6 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 	if err != nil {
 		return nil, spanError(span, err)
 	}
-
-	// FIXME(lukasmalkmus): This is kind of a hack. This call is org-less but we
-	// have no way to configure an org-less client when used with a personal
-	// token. So we remove the organization header here.
-	req.Header.Del(headerOrganizationID)
 
 	var res User
 	if _, err = s.client.Do(req, &res); err != nil {

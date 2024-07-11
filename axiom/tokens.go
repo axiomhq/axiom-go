@@ -3,6 +3,7 @@ package axiom
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -16,7 +17,7 @@ import (
 // Action represents an action that can be performed on an Axiom resource.
 type Action uint8
 
-// All available [Action].
+// All available [Action]s.
 const (
 	emptyAction Action = iota //
 
@@ -26,7 +27,7 @@ const (
 	ActionDelete // delete
 )
 
-func actionFromString(s string) (a Action) {
+func actionFromString(s string) (a Action, err error) {
 	switch s {
 	case emptyAction.String():
 		a = emptyAction
@@ -38,9 +39,11 @@ func actionFromString(s string) (a Action) {
 		a = ActionUpdate
 	case ActionDelete.String():
 		a = ActionDelete
+	default:
+		err = fmt.Errorf("unknown action %q", s)
 	}
 
-	return a
+	return a, err
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
@@ -57,9 +60,9 @@ func (a *Action) UnmarshalJSON(b []byte) (err error) {
 		return err
 	}
 
-	*a = actionFromString(s)
+	*a, err = actionFromString(s)
 
-	return
+	return err
 }
 
 // APIToken represents an API token returned from the Axiom API.
@@ -72,55 +75,77 @@ type APIToken struct {
 	Description string `json:"description"`
 	// ExpiresAt is the time when the token expires.
 	ExpiresAt time.Time `json:"expiresAt"`
-	// DatasetCapabilities is a map of dataset names to the capabilities available to that dataset for the token.
+	// DatasetCapabilities is a map of dataset names to the capabilities
+	// available to that dataset for the token.
 	DatasetCapabilities map[string]DatasetCapabilities `json:"datasetCapabilities"`
-	// OrganisationCapabilities is the organisation capabilities available to the token.
+	// OrganisationCapabilities is the organisation capabilities available to
+	// the token.
 	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
 }
 
-// DatasetCapabilities represents the capabilities available to a token for a dataset.
+// DatasetCapabilities represents the capabilities available to a token for a
+// dataset.
 type DatasetCapabilities struct {
-	// Ingest is the ingest capability and the actions that can be performed on them.
+	// Ingest is the ingest capability and the actions that can be performed on
+	// them.
 	Ingest []Action `json:"ingest"`
-	// Query is the query capability and the actions that can be performed on them.
+	// Query is the query capability and the actions that can be performed on
+	// them.
 	Query []Action `json:"query"`
-	// StarredQueries is the starred queries capability and the actions that can be performed on them.
+	// StarredQueries is the starred queries capability and the actions that can
+	// be performed on them.
 	StarredQueries []Action `json:"starredQueries"`
-	// VirtualFields is the VirtualFields capability and the actions that can be performed on them.
+	// VirtualFields is the VirtualFields capability and the actions that can be
+	// performed on them.
 	VirtualFields []Action `json:"virtualFields"`
 }
 
-// OrganisationCapabilities represents the capabilities available to a token for an organisation.
+// OrganisationCapabilities represents the capabilities available to a token for
+// an organisation.
 type OrganisationCapabilities struct {
-	// Annotations is the Annotations capability and the actions that can be performed on them.
+	// Annotations is the Annotations capability and the actions that can be
+	// performed on them.
 	Annotations []Action `json:"annotations,omitempty"`
-	// APITokens is the APITokens capability and the actions that can be performed on them.
+	// APITokens is the APITokens capability and the actions that can be
+	// performed on them.
 	APITokens []Action `json:"apiTokens,omitempty"`
-	// Billing is the Billing capability and the actions that can be performed on them.
+	// Billing is the Billing capability and the actions that can be performed
+	// on them.
 	Billing []Action `json:"billing,omitempty"`
-	// Dashboards is the Dashboards capability and the actions that can be performed on them.
+	// Dashboards is the Dashboards capability and the actions that can be
+	// performed on them.
 	Dashboards []Action `json:"dashboards,omitempty"`
-	// Datasets is the Datasets capability and the actions that can be performed on them.
+	// Datasets is the Datasets capability and the actions that can be performed
+	// on them.
 	Datasets []Action `json:"datasets,omitempty"`
-	// Endpoints is the Endpoints capability and the actions that can be performed on them.
+	// Endpoints is the Endpoints capability and the actions that can be
+	// performed on them.
 	Endpoints []Action `json:"endpoints,omitempty"`
-	// Flows is the Flows capability and the actions that can be performed on them.
+	// Flows is the Flows capability and the actions that can be performed on
+	// them.
 	Flows []Action `json:"flows,omitempty"`
-	// Integrations is the Integrations capability and the actions that can be performed on them.
+	// Integrations is the Integrations capability and the actions that can be
+	// performed on them.
 	Integrations []Action `json:"integrations,omitempty"`
-	// Monitors is the Monitors capability and the actions that can be performed on them.
+	// Monitors is the Monitors capability and the actions that can be performed
+	// on them.
 	Monitors []Action `json:"monitors,omitempty"`
-	// Notifiers is the Notifiers capability and the actions that can be performed on them.
+	// Notifiers is the Notifiers capability and the actions that can be
+	// performed on them.
 	Notifiers []Action `json:"notifiers,omitempty"`
-	// RBAC is the RBAC capability and the actions that can be performed on them.
+	// RBAC is the RBAC capability and the actions that can be performed on
+	// them.
 	RBAC []Action `json:"rbac,omitempty"`
-	// SharedAccessKeys is the SharedAccessKeys capability and the actions that can be performed on them.
+	// SharedAccessKeys is the SharedAccessKeys capability and the actions that
+	// can be performed on them.
 	SharedAccessKeys []Action `json:"sharedAccessKeys,omitempty"`
-	// Users is the Users capability and the actions that can be performed on them.
+	// Users is the Users capability and the actions that can be performed on
+	// them.
 	Users []Action `json:"users,omitempty"`
 }
 
-// CreateTokenRequest is the request payload for creating a new token with the Axiom API.
+// CreateTokenRequest is the request payload for creating a new token with the
+// Axiom API.
 type CreateTokenRequest struct {
 	// Name is the name of the token.
 	Name string `json:"name"`
@@ -128,20 +153,24 @@ type CreateTokenRequest struct {
 	Description string `json:"description"`
 	// ExpiresAt is the time when the token expires.
 	ExpiresAt time.Time `json:"expiresAt"`
-	// DatasetCapabilities is a map of dataset names to the capabilities available to that dataset for the token.
+	// DatasetCapabilities is a map of dataset names to the capabilities
+	// available to that dataset for the token.
 	DatasetCapabilities map[string]DatasetCapabilities `json:"datasetCapabilities"`
-	// OrganisationCapabilities is the organisation capabilities available to the token.
+	// OrganisationCapabilities is the organisation capabilities available to
+	// the token.
 	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
 }
 
-// CreateTokenResponse is the response payload for creating a new token with the Axiom API.
+// CreateTokenResponse is the response payload for creating a new token with the
+// Axiom API.
 type CreateTokenResponse struct {
 	APIToken
 	// Token is the token value to be used in api calls
 	Token string `json:"token"`
 }
 
-// RegenerateTokenRequest is the request payload for regenerating a token with the Axiom API.
+// RegenerateTokenRequest is the request payload for regenerating a token with
+// the Axiom API.
 type RegenerateTokenRequest struct {
 	// ExistingTokenExpiresAt is the time when the existing token will expire.
 	ExistingTokenExpiresAt time.Time `json:"existingTokenExpiresAt"`

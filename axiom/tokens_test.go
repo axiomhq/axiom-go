@@ -2,6 +2,7 @@ package axiom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -194,7 +195,7 @@ func TestTokensService_Regenerate(t *testing.T) {
 		APIToken: APIToken{
 			Name:        "test",
 			Description: "test",
-			ExpiresAt:   tokenTime.Add(24 * time.Hour).UTC().Truncate(time.Second),
+			ExpiresAt:   tokenTime.Add(time.Hour * 24).UTC().Truncate(time.Second),
 			DatasetCapabilities: map[string]DatasetCapabilities{
 				"dataset": {
 					Ingest: []Action{ActionCreate},
@@ -239,7 +240,7 @@ func TestTokensService_Regenerate(t *testing.T) {
 
 	res, err := client.Tokens.Regenerate(context.Background(), "test", RegenerateTokenRequest{
 		ExistingTokenExpiresAt: tokenTime,
-		NewTokenExpiresAt:      tokenTime.Add(24 * time.Hour),
+		NewTokenExpiresAt:      tokenTime.Add(time.Hour * 24),
 	})
 	require.NoError(t, err)
 
@@ -259,9 +260,50 @@ func TestTokensService_Delete(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestActionFromStringString(t *testing.T) {
-	for p := ActionCreate; p <= ActionDelete; p++ {
-		parsed := actionFromString(p.String())
-		assert.Equal(t, p, parsed)
+func TestAction_Marshal(t *testing.T) {
+	exp := `{
+		"action": "update"
+	}`
+
+	b, err := json.Marshal(struct {
+		Action Action `json:"action"`
+	}{
+		Action: ActionUpdate,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, b)
+
+	assert.JSONEq(t, exp, string(b))
+}
+
+func TestAction_Unmarshal(t *testing.T) {
+	var act struct {
+		Action Action `json:"action"`
+	}
+	err := json.Unmarshal([]byte(`{ "action": "update" }`), &act)
+	require.NoError(t, err)
+
+	assert.Equal(t, ActionUpdate, act.Action)
+}
+
+func TestAction_String(t *testing.T) {
+	// Check outer bounds.
+	assert.Empty(t, Action(0).String())
+	assert.Empty(t, emptyAction.String())
+	assert.Equal(t, emptyAction, Action(0))
+	assert.Contains(t, (ActionDelete + 1).String(), "Action(")
+
+	for a := ActionCreate; a <= ActionDelete; a++ {
+		s := a.String()
+		assert.NotEmpty(t, s)
+		assert.NotContains(t, s, "Action(")
+	}
+}
+
+func TestActionFromString(t *testing.T) {
+	for a := ActionCreate; a <= ActionDelete; a++ {
+		parsed, err := actionFromString(a.String())
+		assert.NoError(t, err)
+		assert.Equal(t, a, parsed)
 	}
 }

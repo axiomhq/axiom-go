@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -165,7 +166,7 @@ func (c *Client) Options(options ...Option) error {
 }
 
 // ValidateCredentials makes sure the client can properly authenticate against
-// the configured Axiom deployment.
+// the configured Axiom API.
 func (c *Client) ValidateCredentials(ctx context.Context) error {
 	if config.IsPersonalToken(c.config.Token()) {
 		_, err := c.Users.Current(ctx)
@@ -311,7 +312,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		span.SetAttributes(attribute.String("axiom_trace_id", resp.TraceID()))
 	}
 
-	if statusCode := resp.StatusCode; statusCode >= 400 {
+	if statusCode := resp.StatusCode; statusCode >= http.StatusBadRequest {
 		httpErr := HTTPError{
 			Status:  statusCode,
 			Message: http.StatusText(statusCode),
@@ -319,7 +320,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
-		if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
 			return resp, httpErr
 		}
 

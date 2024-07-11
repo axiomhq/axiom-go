@@ -14,11 +14,11 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Operator -linecomment -output=monitors_string.go
 
-// Operator represents a comparison operation for a monitor. A monitor acts on
+// Operator represents a comparison operation for a monitor. A [Monitor] acts on
 // the result of comparing a query result with a threshold.
 type Operator uint8
 
-// All available monitor comparison modes.
+// All available [Monitor] comparison [Operator]s.
 const (
 	emptyOperator Operator = iota //
 
@@ -28,7 +28,7 @@ const (
 	AboveOrEqual // AboveOrEqual
 )
 
-func comparisonFromString(s string) (c Operator, err error) {
+func operatorFromString(s string) (c Operator, err error) {
 	switch s {
 	case emptyOperator.String():
 		c = emptyOperator
@@ -41,7 +41,7 @@ func comparisonFromString(s string) (c Operator, err error) {
 	case AboveOrEqual.String():
 		c = AboveOrEqual
 	default:
-		err = fmt.Errorf("unknown comparison %q", s)
+		err = fmt.Errorf("unknown operator %q", s)
 	}
 
 	return c, err
@@ -62,7 +62,7 @@ func (c *Operator) UnmarshalJSON(b []byte) (err error) {
 		return err
 	}
 
-	*c, err = comparisonFromString(s)
+	*c, err = operatorFromString(s)
 
 	return err
 }

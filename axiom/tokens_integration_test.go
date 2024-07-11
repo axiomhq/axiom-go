@@ -27,7 +27,7 @@ func (s *TokensTestSuite) SetupTest() {
 
 	createdToken, err := s.client.Tokens.Create(s.suiteCtx, axiom.CreateTokenRequest{
 		Name:      "Test token",
-		ExpiresAt: time.Now().Add(24 * time.Hour),
+		ExpiresAt: time.Now().Add(time.Hour * 24),
 		DatasetCapabilities: map[string]axiom.DatasetCapabilities{
 			"*": {Ingest: []axiom.Action{axiom.ActionCreate}}},
 		OrganisationCapabilities: axiom.OrganisationCapabilities{
@@ -35,13 +35,14 @@ func (s *TokensTestSuite) SetupTest() {
 		}})
 	s.Require().NoError(err)
 	s.Require().NotNil(createdToken)
+
 	s.apiToken = &createdToken.APIToken
 }
 
 func (s *TokensTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	err := s.client.Tokens.Delete(ctx, s.apiToken.ID)
@@ -69,7 +70,7 @@ func (s *TokensTestSuite) Test() {
 	// Regenerate the token and make sure the new token is part of the list.
 	regeneratedToken, err := s.client.Tokens.Regenerate(s.ctx, s.apiToken.ID, axiom.RegenerateTokenRequest{
 		ExistingTokenExpiresAt: time.Now(),
-		NewTokenExpiresAt:      time.Now().Add(24 * time.Hour),
+		NewTokenExpiresAt:      time.Now().Add(time.Hour * 24),
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(tokens)
