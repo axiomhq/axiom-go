@@ -18,7 +18,7 @@ var (
 	enabled                bool
 	accessToken            string
 	orgID                  string
-	deploymentURL          string
+	apiURL                 string
 	datasetSuffix          string
 	strictDecoding         bool
 	telemetryTracesURL     string
@@ -30,7 +30,7 @@ func init() {
 	flag.BoolVar(&enabled, "enabled", os.Getenv("AXIOM_INTEGRATION_TESTS") != "", "Enable integration tests by setting -enabled=true")
 	flag.StringVar(&accessToken, "access-token", os.Getenv("AXIOM_TOKEN"), "Personal token of the test user")
 	flag.StringVar(&orgID, "org-id", os.Getenv("AXIOM_ORG_ID"), "Organization ID of the organization the test user belongs to")
-	flag.StringVar(&deploymentURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
+	flag.StringVar(&apiURL, "deployment-url", os.Getenv("AXIOM_URL"), "URL of the deployment to test against")
 	flag.StringVar(&datasetSuffix, "dataset-suffix", os.Getenv("AXIOM_DATASET_SUFFIX"), "Dataset suffix to append to test datasets")
 	flag.BoolVar(&strictDecoding, "strict-decoding", os.Getenv("AXIOM_DISABLE_STRICT_DECODING") == "", "Disable strict JSON response decoding by setting -strict-decoding=false")
 	flag.StringVar(&telemetryTracesURL, "telemetry-traces-url", os.Getenv("TELEMETRY_TRACES_URL"), "URL to send traces to")
@@ -135,8 +135,8 @@ func newClient(additionalOptions ...axiom.Option) (*axiom.Client, error) {
 		options   = []axiom.Option{axiom.SetNoEnv(), axiom.SetUserAgent(userAgent)}
 	)
 
-	if deploymentURL != "" {
-		options = append(options, axiom.SetURL(deploymentURL))
+	if apiURL != "" {
+		options = append(options, axiom.SetURL(apiURL))
 	}
 	if accessToken != "" {
 		options = append(options, axiom.SetToken(accessToken))

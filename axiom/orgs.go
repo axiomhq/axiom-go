@@ -17,7 +17,7 @@ import (
 // Plan represents the plan of an [Organization].
 type Plan uint8
 
-// All available [Organization] plans.
+// All available [Organization] [Plan]s.
 const (
 	emptyPlan Plan = iota //
 
@@ -71,7 +71,7 @@ func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 // PaymentStatus represents the payment status of an [Organization].
 type PaymentStatus uint8
 
-// All available [Organization] payment statuses.
+// All available [Organization] [PaymentStatus]es.
 const (
 	emptyPaymentStatus PaymentStatus = iota //
 
@@ -205,7 +205,7 @@ type Organization struct {
 	// LastUsageSync is the last time the usage instance usage statistics were
 	// synchronized.
 	LastUsageSync time.Time `json:"lastUsageSync"`
-	// Role the requesting user has on the deployment or the organization.
+	// Role the requesting user has in the organization.
 	Role UserRole `json:"role"`
 	// PrimaryEmail of the user that issued the request.
 	PrimaryEmail string `json:"primaryEmail"`

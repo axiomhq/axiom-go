@@ -189,7 +189,7 @@ func (w *Writer) runBackgroundJob() {
 		if err != nil {
 			return err
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
 		res, err := w.client.Ingest(ctx, w.dataset, r, axiom.NDJSON, axiom.Zstd, w.ingestOptions...)
