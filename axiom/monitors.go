@@ -28,6 +28,13 @@ const (
 	AboveOrEqual // AboveOrEqual
 )
 
+type Type uint8
+
+const (
+	Threshold  Type = iota // Threshold
+	MatchEvent             // MatchEvent
+)
+
 func operatorFromString(s string) (c Operator, err error) {
 	switch s {
 	case emptyOperator.String():
@@ -45,6 +52,14 @@ func operatorFromString(s string) (c Operator, err error) {
 	}
 
 	return c, err
+}
+
+func typeFromString(s string) (c Type) {
+	switch s {
+	case MatchEvent.String():
+		return MatchEvent
+	}
+	return Threshold
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
@@ -67,15 +82,37 @@ func (c *Operator) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
+// Type to its string representation because that's what the server
+// expects.
+func (c Type) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
+}
+
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// Type from the string representation the server returns.
+func (c *Type) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*c = typeFromString(s)
+
+	return nil
+}
+
 type Monitor struct {
 	// ID is the unique ID of the monitor.
 	ID string `json:"id,omitempty"`
+	// Type sets the type of monitor. Defaults to Threshold
+	Type Type `json:"type"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
 	// NotifyByGroup tracks each none-time group independently
 	NotifyByGroup bool `json:"notifyByGroup"`
 	// Resolvable determines whether the events triggered by the monitor
-	// are resolvable. This has no effect on threshold monitors
+	// are resolvable. This has no affect on threshold monitors
 	Resolvable bool `json:"resolvable"`
 	// APLQuery is the APL query to use for the monitor.
 	APLQuery string `json:"aplQuery"`
@@ -96,6 +133,10 @@ type Monitor struct {
 	// Threshold the query result is compared against, which evaluates if the
 	// monitor acts or not.
 	Threshold float64 `json:"threshold"`
+	// CreatedAt.
+	CreatedAt time.Time `json:"createdAt"`
+	// CreatedBy.
+	CreatedBy string `json:"createdBy"`
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
