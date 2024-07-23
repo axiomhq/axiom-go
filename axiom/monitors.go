@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Operator -linecomment -output=monitors_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Operator,MonitorType -linecomment -output=monitors_string.go
 
 // Operator represents a comparison operation for a monitor. A [Monitor] acts on
 // the result of comparing a query result with a threshold.
@@ -26,13 +26,6 @@ const (
 	BelowOrEqual // BelowOrEqual
 	Above        // Above
 	AboveOrEqual // AboveOrEqual
-)
-
-type Type uint8
-
-const (
-	Threshold  Type = iota // Threshold
-	MatchEvent             // MatchEvent
 )
 
 func operatorFromString(s string) (c Operator, err error) {
@@ -52,14 +45,6 @@ func operatorFromString(s string) (c Operator, err error) {
 	}
 
 	return c, err
-}
-
-func typeFromString(s string) (c Type) {
-	switch s {
-	case MatchEvent.String():
-		return MatchEvent
-	}
-	return Threshold
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
@@ -82,16 +67,34 @@ func (c *Operator) UnmarshalJSON(b []byte) (err error) {
 	return err
 }
 
+// MonitorType represents the type of the monitor.
+type MonitorType uint8
+
+// All available [Monitor] [Types]s.
+const (
+	MonitorTypeThreshold  MonitorType = iota // Threshold
+	MonitorTypeMatchEvent                    // MatchEvent
+)
+
+func typeFromString(s string) (c MonitorType) {
+	switch s {
+	case MonitorTypeMatchEvent.String():
+		return MonitorTypeMatchEvent
+	default:
+		return MonitorTypeThreshold
+	}
+}
+
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
-// Type to its string representation because that's what the server
+// MonitorType to its string representation because that's what the server
 // expects.
-func (c Type) MarshalJSON() ([]byte, error) {
+func (c MonitorType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// Type from the string representation the server returns.
-func (c *Type) UnmarshalJSON(b []byte) (err error) {
+// MonitorType from the string representation the server returns.
+func (c *MonitorType) UnmarshalJSON(b []byte) (err error) {
 	var s string
 	if err = json.Unmarshal(b, &s); err != nil {
 		return err
@@ -105,8 +108,8 @@ func (c *Type) UnmarshalJSON(b []byte) (err error) {
 type Monitor struct {
 	// ID is the unique ID of the monitor.
 	ID string `json:"id,omitempty"`
-	// Type sets the type of monitor. Defaults to Threshold
-	Type Type `json:"type"`
+	// Type sets the type of monitor. Defaults to [Threshold]
+	Type MonitorType `json:"type"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
 	// NotifyByGroup tracks each none-time group independently
@@ -133,9 +136,9 @@ type Monitor struct {
 	// Threshold the query result is compared against, which evaluates if the
 	// monitor acts or not.
 	Threshold float64 `json:"threshold"`
-	// CreatedAt.
+	// CreatedAt is the time when the monitor was created.
 	CreatedAt time.Time `json:"createdAt"`
-	// CreatedBy.
+	// CreatedBy is the user who created the monitor.
 	CreatedBy string `json:"createdBy"`
 }
 

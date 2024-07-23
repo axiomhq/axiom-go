@@ -67,6 +67,7 @@ func TestMonitorsService_Get(t *testing.T) {
 		Operator:      Above,
 		Range:         time.Minute,
 		Threshold:     1,
+		Type:          MonitorTypeThreshold,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
@@ -93,7 +94,6 @@ func TestMonitorsService_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
-	assert.Equal(t, res.Type, Threshold)
 }
 
 func TestMonitorsService_Create(t *testing.T) {
