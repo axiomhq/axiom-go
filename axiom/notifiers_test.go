@@ -20,6 +20,7 @@ func TestNotifiersService_List(t *testing.T) {
 					Emails: []string{"test@test.com"},
 				},
 			},
+			CreatedBy: "123",
 		},
 	}
 
@@ -30,6 +31,7 @@ func TestNotifiersService_List(t *testing.T) {
 		_, err := fmt.Fprint(w, `[{
 			"id": "test",
 			"name": "test",
+			"createdBy":"123",
 			"properties": {
 				"email": {
 					"emails": [

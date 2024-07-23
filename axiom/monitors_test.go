@@ -82,7 +82,8 @@ func TestMonitorsService_Get(t *testing.T) {
 			"NotifierIDs": null,
 			"operator": "Above",
 			"RangeMinutes": 1,
-			"threshold": 1
+			"threshold": 1,
+			"type": "Threshold"
 		}`)
 		assert.NoError(t, err)
 	}
@@ -92,6 +93,7 @@ func TestMonitorsService_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
+	assert.Equal(t, res.Type, Threshold)
 }
 
 func TestMonitorsService_Create(t *testing.T) {

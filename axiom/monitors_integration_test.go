@@ -118,3 +118,24 @@ func (s *MonitorsTestSuite) Test() {
 
 	s.Contains(monitors, s.monitor)
 }
+
+func (s *MonitorsTestSuite) CreateMatchMonitor() {
+	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			AlertOnNoData: false,
+			APLQuery:      fmt.Sprintf("['%s']", s.datasetID),
+			Description:   "A very good test monitor",
+			DisabledUntil: time.Now().Add(time.Minute * 10),
+			Interval:      time.Minute,
+			Name:          "Test Monitor",
+			Operator:      axiom.BelowOrEqual,
+			Range:         time.Minute * 10,
+			Threshold:     5,
+			Type:          axiom.MatchEvent,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+
+	s.Equal(monitor.Type.String(), "MatchEvent")
+}
