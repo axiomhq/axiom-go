@@ -19,9 +19,9 @@ type Notifier struct {
 	DisabledUntil time.Time `json:"disabledUntil"`
 	// Properties of the notifier.
 	Properties NotifierProperties `json:"properties"`
-	// CreatedAt.
+	// CreatedAt is the time when the notifier was created.
 	CreatedAt time.Time `json:"createdAt"`
-	// CreatedBy.
+	// CreatedBy is the user who created the notifier.
 	CreatedBy string `json:"createdBy"`
 }
 
