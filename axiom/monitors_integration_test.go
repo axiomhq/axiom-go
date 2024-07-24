@@ -136,6 +136,5 @@ func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
-
 	s.Equal(axiom.MonitorTypeMatchEvent.String(), monitor.Type.String())
 }

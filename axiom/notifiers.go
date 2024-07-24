@@ -42,6 +42,8 @@ type NotifierProperties struct {
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
 	// MicrosoftTeams configuration.
 	MicrosoftTeams *MicrosoftTeams `json:"microsoftTeams,omitempty"`
+	// CustomWebhook configuration.
+	CustomWebhook *CustomWebhook `json:"customWebhook,omitempty"`
 }
 
 type DiscordConfig struct {
@@ -88,6 +90,15 @@ type WebhookConfig struct {
 type MicrosoftTeams struct {
 	// URL is the URL to send the message to.
 	URL string `json:"microsoftTeamsUrl,omitempty"`
+}
+
+type CustomWebhook struct {
+	// URL is the destination URL for the webhook.
+	URL string
+	// Headers is a map of header keys and values to include in the webhook request.
+	Headers map[string]string
+	// Body is the body of the webhook request.
+	Body string
 }
 
 // Axiom API Reference: /v2/notifiers
