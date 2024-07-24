@@ -70,7 +70,7 @@ func (c *Operator) UnmarshalJSON(b []byte) (err error) {
 // MonitorType represents the type of the monitor.
 type MonitorType uint8
 
-// All available [Monitor] [Types]s.
+// All available [MonitorTypes]s.
 const (
 	MonitorTypeThreshold  MonitorType = iota // Threshold
 	MonitorTypeMatchEvent                    // MatchEvent
@@ -138,7 +138,7 @@ type Monitor struct {
 	Threshold float64 `json:"threshold"`
 	// CreatedAt is the time when the monitor was created.
 	CreatedAt time.Time `json:"createdAt"`
-	// CreatedBy is the user who created the monitor.
+	// CreatedBy is the id of the user who created the monitor.
 	CreatedBy string `json:"createdBy"`
 }
 
