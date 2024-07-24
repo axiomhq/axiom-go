@@ -184,3 +184,56 @@ func TestNotifiersService_Delete(t *testing.T) {
 	err := client.Notifiers.Delete(context.Background(), "testID")
 	require.NoError(t, err)
 }
+
+func TestNotifiersService_Create_CustomWebhook(t *testing.T) {
+	exp := &Notifier{
+		ID:   "test",
+		Name: "test",
+		Properties: NotifierProperties{
+			CustomWebhook: &CustomWebhook{
+				URL: "http://example.com/webhook",
+				Headers: map[string]string{
+					"Authorization": "Bearer token",
+				},
+				Body: "{\"key\":\"value\"}",
+			},
+		},
+	}
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `{
+			"id": "test",
+			"name": "test",
+			"properties": {
+				"customWebhook": {
+					"url": "http://example.com/webhook",
+					"headers": {
+						"Authorization": "Bearer token"
+					},
+					"body": "{\"key\":\"value\"}"
+				}
+			}
+		}`)
+		assert.NoError(t, err)
+	}
+	client := setup(t, "/v2/notifiers", hf)
+
+	res, err := client.Notifiers.Create(context.Background(), Notifier{
+		Name: "test",
+		Properties: NotifierProperties{
+			CustomWebhook: &CustomWebhook{
+				URL: "http://example.com/webhook",
+				Headers: map[string]string{
+					"Authorization": "Bearer token",
+				},
+				Body: "{\"key\":\"value\"}",
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, exp, res)
+}
