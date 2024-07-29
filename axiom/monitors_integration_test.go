@@ -97,6 +97,7 @@ func (s *MonitorsTestSuite) Test() {
 			Operator:      axiom.BelowOrEqual,
 			Range:         time.Minute * 10,
 			Threshold:     5,
+			SecondDelay:   100,
 		},
 	})
 	s.Require().NoError(err)
@@ -120,6 +121,7 @@ func (s *MonitorsTestSuite) Test() {
 }
 
 func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
+	// Create the monitor
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData: false,
@@ -137,4 +139,35 @@ func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
 	s.Equal(axiom.MonitorTypeMatchEvent.String(), monitor.Type.String())
+	s.Equal(false, monitor.Disabled)
+
+	// Disable the match monitor
+	monitor.Disabled = true
+	updatedMonitor, err := s.client.Monitors.Update(s.ctx, monitor.ID, axiom.MonitorUpdateRequest{
+		Monitor: *monitor,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(updatedMonitor)
+	s.True(updatedMonitor.Disabled, "monitor should be disabled")
+
+	// Verify the monitor is disabled
+	monitor, err = s.client.Monitors.Get(s.ctx, monitor.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+	s.True(monitor.Disabled, "monitor should be disabled")
+
+	// Re-enable the match monitor
+	monitor.Disabled = false
+	updatedMonitor, err = s.client.Monitors.Update(s.ctx, monitor.ID, axiom.MonitorUpdateRequest{
+		Monitor: *monitor,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(updatedMonitor)
+	s.False(updatedMonitor.Disabled, "monitor should be enabled")
+
+	// Verify the monitor is re-enabled
+	monitor, err = s.client.Monitors.Get(s.ctx, monitor.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+	s.False(monitor.Disabled, "monitor should be enabled")
 }

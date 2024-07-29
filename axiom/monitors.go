@@ -106,40 +106,47 @@ func (c *MonitorType) UnmarshalJSON(b []byte) (err error) {
 }
 
 type Monitor struct {
+	// Identification
 	// ID is the unique ID of the monitor.
 	ID string `json:"id,omitempty"`
-	// Type sets the type of monitor. Defaults to [Threshold]
-	Type MonitorType `json:"type"`
-	// AlertOnNoData indicates whether to alert on no data.
-	AlertOnNoData bool `json:"alertOnNoData"`
-	// NotifyByGroup tracks each none-time group independently
-	NotifyByGroup bool `json:"notifyByGroup"`
-	// Resolvable determines whether the events triggered by the monitor
-	// are resolvable. This has no effect on threshold monitors
-	Resolvable bool `json:"resolvable"`
-	// APLQuery is the APL query to use for the monitor.
-	APLQuery string `json:"aplQuery"`
-	// Description of the monitor.
-	Description string `json:"description,omitempty"`
-	// DisabledUntil is the time that the monitor will be disabled until.
-	DisabledUntil time.Time `json:"disabledUntil"`
-	// Interval is the interval in minutes in which the monitor will run.
-	Interval time.Duration `json:"IntervalMinutes"`
-	// Name is the name of the monitor.
-	Name string `json:"name"`
-	// NotifierIDs attached to the monitor.
-	NotifierIDs []string `json:"NotifierIDs"`
-	// Operator is the operator to use for the monitor.
-	Operator Operator `json:"operator"`
-	// Range the monitor goes back in time and looks at the data it acts on.
-	Range time.Duration `json:"RangeMinutes"`
-	// Threshold the query result is compared against, which evaluates if the
-	// monitor acts or not.
-	Threshold float64 `json:"threshold"`
 	// CreatedAt is the time when the monitor was created.
 	CreatedAt time.Time `json:"createdAt"`
-	// CreatedBy is the id of the user who created the monitor.
+	// CreatedBy is the ID of the user who created the monitor.
 	CreatedBy string `json:"createdBy"`
+	// Name is the name of the monitor.
+	Name string `json:"name"`
+	// Type sets the type of monitor. Defaults to [Threshold]
+	Type MonitorType `json:"type"`
+	// Description of the monitor.
+	Description string `json:"description,omitempty"`
+
+	// Configuration
+	// APLQuery is the APL query to use for the monitor.
+	APLQuery string `json:"aplQuery"`
+	// Operator is the operator to use for the monitor.
+	Operator Operator `json:"operator"`
+	// Threshold the query result is compared against, which evaluates if the monitor acts or not.
+	Threshold float64 `json:"threshold"`
+	// AlertOnNoData indicates whether to alert on no data.
+	AlertOnNoData bool `json:"alertOnNoData"`
+	// NotifyByGroup tracks each non-time group independently.
+	NotifyByGroup bool `json:"notifyByGroup"`
+	// Resolvable determines whether the events triggered by the monitor are resolvable. This has no effect on threshold monitors.
+	Resolvable bool `json:"resolvable"`
+	// NotifierIDs attached to the monitor.
+	NotifierIDs []string `json:"NotifierIDs"`
+
+	// Timing
+	// Interval is the interval in minutes in which the monitor will run.
+	Interval time.Duration `json:"IntervalMinutes"`
+	// Range the monitor goes back in time and looks at the data it acts on.
+	Range time.Duration `json:"RangeMinutes"`
+	// SecondDelay sets how long after the end time of the query range that the monitor should run.
+	SecondDelay int `json:"secondDelay"`
+	// Disabled sets whether the monitor is disabled or not.
+	Disabled bool `json:"disabled"`
+	// DisabledUntil is the time that the monitor will be disabled until.
+	DisabledUntil time.Time `json:"disabledUntil"`
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
