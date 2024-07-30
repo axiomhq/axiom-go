@@ -106,7 +106,6 @@ func (c *MonitorType) UnmarshalJSON(b []byte) (err error) {
 }
 
 type Monitor struct {
-	// Identification
 	// ID is the unique ID of the monitor.
 	ID string `json:"id,omitempty"`
 	// CreatedAt is the time when the monitor was created.
@@ -120,7 +119,6 @@ type Monitor struct {
 	// Description of the monitor.
 	Description string `json:"description,omitempty"`
 
-	// Configuration
 	// APLQuery is the APL query to use for the monitor.
 	APLQuery string `json:"aplQuery"`
 	// Operator is the operator to use for the monitor.
@@ -136,7 +134,6 @@ type Monitor struct {
 	// NotifierIDs attached to the monitor.
 	NotifierIDs []string `json:"NotifierIDs"`
 
-	// Timing
 	// Interval is the interval in minutes in which the monitor will run.
 	Interval time.Duration `json:"IntervalMinutes"`
 	// Range the monitor goes back in time and looks at the data it acts on.
