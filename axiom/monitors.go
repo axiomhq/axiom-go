@@ -138,8 +138,6 @@ type Monitor struct {
 	Interval time.Duration `json:"IntervalMinutes"`
 	// Range the monitor goes back in time and looks at the data it acts on.
 	Range time.Duration `json:"RangeMinutes"`
-	// SecondDelay sets how long in seconds after the end time of the query range that the monitor should run.
-	SecondDelay time.Duration `json:"secondDelay"`
 	// Disabled sets whether the monitor is disabled or not.
 	Disabled bool `json:"disabled"`
 	// DisabledUntil is the time that the monitor will be disabled until.
@@ -155,9 +153,6 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 	// Set to the value in minutes.
 	m.Range = time.Duration(m.Range.Minutes())
 	m.Interval = time.Duration(m.Interval.Minutes())
-
-	// Set to the value in seconds.
-	m.SecondDelay = time.Duration(m.SecondDelay.Seconds())
 
 	return json.Marshal(localMonitor(m))
 }
@@ -181,10 +176,6 @@ func (m *Monitor) UnmarshalJSON(b []byte) error {
 	// value in seconds.
 	m.Range *= time.Minute
 	m.Interval *= time.Minute
-
-	// Set to a proper time.Duration value by interpreting the server response
-	// value in seconds.
-	m.SecondDelay *= time.Second
 
 	return nil
 }
