@@ -97,7 +97,6 @@ func (s *MonitorsTestSuite) Test() {
 			Operator:      axiom.BelowOrEqual,
 			Range:         time.Minute * 10,
 			Threshold:     5,
-			SecondDelay:   100,
 		},
 	})
 	s.Require().NoError(err)
@@ -170,4 +169,27 @@ func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
 	s.False(monitor.Disabled, "monitor should be enabled")
+}
+
+func (s *MonitorsTestSuite) TestMonitorTimeDurationBehaviour() {
+	// Create the monitor
+	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			AlertOnNoData: false,
+			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
+			Description:   "A test monitor",
+			Interval:      time.Minute,
+			Name:          "Test Monitor",
+			Operator:      axiom.BelowOrEqual,
+			Range:         time.Minute * 5,
+			Threshold:     1,
+			SecondDelay:   time.Second * 100,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+
+	s.Equal(100., monitor.SecondDelay.Seconds())
+	s.Equal(5., monitor.Range.Minutes())
+	s.Equal(1., monitor.Interval.Minutes())
 }
