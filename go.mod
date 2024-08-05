@@ -8,7 +8,7 @@ require (
 	github.com/golangci/golangci-lint v1.59.1
 	github.com/google/go-querystring v1.1.0
 	github.com/klauspost/compress v1.17.9
-	github.com/schollz/progressbar/v3 v3.14.5
+	github.com/schollz/progressbar/v3 v3.14.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/sjson v1.2.5
