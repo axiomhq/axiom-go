@@ -15,7 +15,6 @@
 [![Latest Release][release_badge]][release]
 [![License][license_badge]][license]
 
-
 [Axiom](https://axiom.co) unlocks observability at any scale.
 
 - **Ingest with ease, store without limits:** Axiom's next-generation datastore
