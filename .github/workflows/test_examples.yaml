@@ -101,7 +101,7 @@ jobs:
         if: matrix.setup
         run: ${{ matrix.setup }}
       - name: Run example
-        run: go run ./examples/${{ matrix.example }}/main.go
+        run: go run ./examples/${{ matrix.example }}
       - name: Verify example
         if: matrix.verify
         run: ${{ matrix.verify }}
