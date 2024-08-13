@@ -10,14 +10,12 @@ import (
 	"mime"
 	"net"
 	"net/http"
-	"net/http/httptrace"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/klauspost/compress/gzhttp"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -215,7 +213,6 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 		}
 	}
 
-	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
 	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), r)
 	if err != nil {
 		return nil, err
