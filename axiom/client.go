@@ -69,7 +69,7 @@ func DefaultHTTPTransport() http.RoundTripper {
 			KeepAlive: time.Second * 30,
 		}).DialContext,
 		IdleConnTimeout:       time.Second * 90,
-		ResponseHeaderTimeout: time.Second * 10,
+		ResponseHeaderTimeout: time.Second * 30,
 		TLSHandshakeTimeout:   time.Second * 10,
 		ExpectContinueTimeout: time.Second * 1,
 		ForceAttemptHTTP2:     true,
