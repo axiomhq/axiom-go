@@ -118,6 +118,11 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 		return nil, spanError(span, err)
 	}
 
+	// FIXME(lukasmalkmus): This is kind of a hack. This call is org-less but we
+	// have no way to configure an org-less client when used with a personal
+	// token. So we remove the organization header here.
+	req.Header.Del(headerOrganizationID)
+
 	var res User
 	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
