@@ -12,20 +12,26 @@ func TestFieldType_Unmarshal(t *testing.T) {
 	var act struct {
 		Type FieldType `json:"type"`
 	}
-	err := json.Unmarshal([]byte(`{ "type": "int|real" }`), &act)
+	err := json.Unmarshal([]byte(`{ "type": "int|string" }`), &act)
 	require.NoError(t, err)
 
-	assert.Equal(t, TypeInt|TypeReal, act.Type)
+	assert.Equal(t, TypeInteger|TypeString, act.Type)
 }
 
 func TestFieldType_String(t *testing.T) {
 	assert.Equal(t, TypeInvalid, FieldType(0))
 
-	typ := TypeInt
-	assert.Equal(t, "int", typ.String())
+	typ := TypeDateTime
+	assert.Equal(t, "datetime", typ.String())
 
-	typ |= TypeReal
-	assert.Equal(t, "int|real", typ.String())
+	typ |= TypeTimespan
+	assert.Equal(t, "datetime|timespan", typ.String())
+}
+
+func TestFieldType_Bool(t *testing.T) {
+	assert.Equal(t, TypeInvalid, FieldType(0))
+
+	assert.Equal(t, "boolean", TypeBool.String())
 }
 
 func TestFieldTypeFromString(t *testing.T) {

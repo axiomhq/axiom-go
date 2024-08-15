@@ -214,7 +214,7 @@ var (
 					},
 					{
 						Name: "bytes",
-						Type: query.TypeReal,
+						Type: query.TypeFloat,
 					},
 					{
 						Name: "referrer",
@@ -234,7 +234,7 @@ var (
 					},
 					{
 						Name: "response",
-						Type: query.TypeReal,
+						Type: query.TypeFloat,
 					},
 					{
 						Name: "time",
