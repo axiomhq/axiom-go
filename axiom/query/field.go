@@ -9,19 +9,19 @@ import (
 // A FieldType describes the type of a [Field].
 type FieldType uint16
 
-// All available [Field] types.
+// All available [Field] types. Conforms to DB Types
 const (
-	TypeInvalid    FieldType = 0         // invalid
-	TypeBool       FieldType = 1 << iota // bool
-	TypeDateTime                         // datetime
-	TypeInt                              // int
-	TypeLong                             // long
-	TypeReal                             // real
-	TypeString                           // string
-	TypeTimespan                         // timespan
-	TypeArray                            // array
-	TypeDictionary                       // dictionary
-	TypeUnknown                          // unknown
+	TypeInvalid  FieldType = 0         // invalid
+	TypeUnknown  FieldType = 1 << iota // unknown
+	TypeInteger                        // integer
+	TypeString                         // string
+	TypeBool                           // boolean
+	TypeDateTime                       // datetime
+	TypeFloat                          // float
+	TypeTimespan                       // timespan
+	TypeMap                            // map
+	TypeArray                          // array
+
 	maxFieldType
 )
 
@@ -36,20 +36,18 @@ func fieldTypeFromString(s string) (ft FieldType, err error) {
 			ft |= TypeBool
 		case TypeDateTime.String(), "date":
 			ft |= TypeDateTime
-		case TypeInt.String(), "integer": // "integer" is not documented.
-			ft |= TypeInt
-		case TypeLong.String():
-			ft |= TypeLong
-		case TypeReal.String(), "double", "float", "float64": // "float" and "float64" are not documented.
-			ft |= TypeReal
+		case TypeInteger.String(), "int":
+			ft |= TypeInteger
+		case TypeFloat.String(), "double", "float", "float64": // "float" and "float64" are not documented.
+			ft |= TypeFloat
 		case TypeString.String():
 			ft |= TypeString
 		case TypeTimespan.String(), "time":
 			ft |= TypeTimespan
 		case TypeArray.String():
 			ft |= TypeArray
-		case TypeDictionary.String():
-			ft |= TypeDictionary
+		case TypeMap.String():
+			ft |= TypeMap
 		case TypeUnknown.String():
 			ft |= TypeUnknown
 		default:
@@ -72,23 +70,21 @@ func (ft FieldType) String() string {
 	// handled above.
 	switch ft {
 	case TypeBool:
-		return "bool"
+		return "boolean"
 	case TypeDateTime:
 		return "datetime"
-	case TypeInt:
-		return "int"
-	case TypeLong:
-		return "long"
-	case TypeReal:
-		return "real"
+	case TypeInteger:
+		return "integer"
+	case TypeFloat:
+		return "float"
 	case TypeString:
 		return "string"
 	case TypeTimespan:
 		return "timespan"
 	case TypeArray:
 		return "array"
-	case TypeDictionary:
-		return "dictionary"
+	case TypeMap:
+		return "map"
 	case TypeUnknown:
 		return "unknown"
 	}
