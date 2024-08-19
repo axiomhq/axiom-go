@@ -67,6 +67,7 @@ func TestMonitorsService_Get(t *testing.T) {
 		Operator:      Above,
 		Range:         time.Minute,
 		Threshold:     1,
+		Type:          MonitorTypeThreshold,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
@@ -82,7 +83,8 @@ func TestMonitorsService_Get(t *testing.T) {
 			"NotifierIDs": null,
 			"operator": "Above",
 			"RangeMinutes": 1,
-			"threshold": 1
+			"threshold": 1,
+			"type": "Threshold"
 		}`)
 		assert.NoError(t, err)
 	}

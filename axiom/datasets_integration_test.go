@@ -77,6 +77,7 @@ var ingestEvents = []axiom.Event{
 type DatasetsTestSuite struct {
 	IntegrationTestSuite
 
+	// Setup once per test.
 	dataset *axiom.Dataset
 }
 
@@ -84,19 +85,11 @@ func TestDatasetsTestSuite(t *testing.T) {
 	suite.Run(t, new(DatasetsTestSuite))
 }
 
-func (s *DatasetsTestSuite) SetupSuite() {
-	s.IntegrationTestSuite.SetupSuite()
-}
-
-func (s *DatasetsTestSuite) TearDownSuite() {
-	s.IntegrationTestSuite.TearDownSuite()
-}
-
 func (s *DatasetsTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
 	var err error
-	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
+	s.dataset, err = s.client.Datasets.Create(s.ctx, axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-datasets-" + datasetSuffix,
 		Description: "This is a test dataset for datasets integration tests.",
 	})
@@ -107,7 +100,7 @@ func (s *DatasetsTestSuite) SetupTest() {
 func (s *DatasetsTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
 	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
@@ -322,12 +315,8 @@ func (s *DatasetsTestSuite) Test() {
 	}
 
 	// Trim the dataset down to a minimum.
-	trimResult, err := s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
+	err = s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
 	s.Require().NoError(err)
-	s.Require().NotNil(trimResult)
-
-	// HINT(lukasmalkmus): There are no blocks to trim in this test.
-	s.EqualValues(0, trimResult.BlocksDeleted)
 }
 
 func (s *DatasetsTestSuite) TestCursor() {

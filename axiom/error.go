@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -21,10 +20,6 @@ var ErrNotFound = newHTTPError(http.StatusNotFound)
 // ErrExists is returned when the resource that was attempted to create already
 // exists.
 var ErrExists = newHTTPError(http.StatusConflict)
-
-// ErrUnprivilegedToken is raised when a [Client] tries to call an ingest or
-// query endpoint with an API token configured.
-var ErrUnprivilegedToken = errors.New("using API token for non-ingest or non-query operation")
 
 // HTTPError is the generic error response returned on non 2xx HTTP status
 // codes.

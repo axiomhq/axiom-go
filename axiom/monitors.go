@@ -12,13 +12,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Operator -linecomment -output=monitors_string.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Operator,MonitorType -linecomment -output=monitors_string.go
 
-// Operator represents a comparison operation for a monitor. A monitor acts on
+// Operator represents a comparison operation for a monitor. A [Monitor] acts on
 // the result of comparing a query result with a threshold.
 type Operator uint8
 
-// All available monitor comparison modes.
+// All available [Monitor] comparison [Operator]s.
 const (
 	emptyOperator Operator = iota //
 
@@ -28,7 +28,7 @@ const (
 	AboveOrEqual // AboveOrEqual
 )
 
-func comparisonFromString(s string) (c Operator, err error) {
+func operatorFromString(s string) (c Operator, err error) {
 	switch s {
 	case emptyOperator.String():
 		c = emptyOperator
@@ -41,7 +41,7 @@ func comparisonFromString(s string) (c Operator, err error) {
 	case AboveOrEqual.String():
 		c = AboveOrEqual
 	default:
-		err = fmt.Errorf("unknown comparison %q", s)
+		err = fmt.Errorf("unknown operator %q", s)
 	}
 
 	return c, err
@@ -62,40 +62,86 @@ func (c *Operator) UnmarshalJSON(b []byte) (err error) {
 		return err
 	}
 
-	*c, err = comparisonFromString(s)
+	*c, err = operatorFromString(s)
 
 	return err
+}
+
+// MonitorType represents the type of the monitor.
+type MonitorType uint8
+
+// All available [MonitorTypes]s.
+const (
+	MonitorTypeThreshold  MonitorType = iota // Threshold
+	MonitorTypeMatchEvent                    // MatchEvent
+)
+
+func typeFromString(s string) (c MonitorType) {
+	switch s {
+	case MonitorTypeMatchEvent.String():
+		return MonitorTypeMatchEvent
+	default:
+		return MonitorTypeThreshold
+	}
+}
+
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
+// MonitorType to its string representation because that's what the server
+// expects.
+func (c MonitorType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
+}
+
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// MonitorType from the string representation the server returns.
+func (c *MonitorType) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*c = typeFromString(s)
+
+	return nil
 }
 
 type Monitor struct {
 	// ID is the unique ID of the monitor.
 	ID string `json:"id,omitempty"`
-	// AlertOnNoData indicates whether to alert on no data.
-	AlertOnNoData bool `json:"alertOnNoData"`
-	// NotifyByGroup tracks each none-time group independently
-	NotifyByGroup bool `json:"notifyByGroup"`
-	// Resolvable determines whether the events triggered by the monitor
-	// are resolvable. This has no effect on threshold monitors
-	Resolvable bool `json:"resolvable"`
-	// APLQuery is the APL query to use for the monitor.
-	APLQuery string `json:"aplQuery"`
-	// Description of the monitor.
-	Description string `json:"description,omitempty"`
-	// DisabledUntil is the time that the monitor will be disabled until.
-	DisabledUntil time.Time `json:"disabledUntil"`
-	// Interval is the interval in minutes in which the monitor will run.
-	Interval time.Duration `json:"IntervalMinutes"`
+	// CreatedAt is the time when the monitor was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// CreatedBy is the ID of the user who created the monitor.
+	CreatedBy string `json:"createdBy"`
 	// Name is the name of the monitor.
 	Name string `json:"name"`
-	// NotifierIDs attached to the monitor.
-	NotifierIDs []string `json:"NotifierIDs"`
+	// Type sets the type of monitor. Defaults to [Threshold]
+	Type MonitorType `json:"type"`
+	// Description of the monitor.
+	Description string `json:"description,omitempty"`
+
+	// APLQuery is the APL query to use for the monitor.
+	APLQuery string `json:"aplQuery"`
 	// Operator is the operator to use for the monitor.
 	Operator Operator `json:"operator"`
+	// Threshold the query result is compared against, which evaluates if the monitor acts or not.
+	Threshold float64 `json:"threshold"`
+	// AlertOnNoData indicates whether to alert on no data.
+	AlertOnNoData bool `json:"alertOnNoData"`
+	// NotifyByGroup tracks each non-time group independently.
+	NotifyByGroup bool `json:"notifyByGroup"`
+	// Resolvable determines whether the events triggered by the monitor are resolvable. This has no effect on threshold monitors.
+	Resolvable bool `json:"resolvable"`
+	// NotifierIDs attached to the monitor.
+	NotifierIDs []string `json:"NotifierIDs"`
+
+	// Interval is the interval in minutes in which the monitor will run.
+	Interval time.Duration `json:"IntervalMinutes"`
 	// Range the monitor goes back in time and looks at the data it acts on.
 	Range time.Duration `json:"RangeMinutes"`
-	// Threshold the query result is compared against, which evaluates if the
-	// monitor acts or not.
-	Threshold float64 `json:"threshold"`
+	// Disabled sets whether the monitor is disabled or not.
+	Disabled bool `json:"disabled"`
+	// DisabledUntil is the time that the monitor will be disabled until.
+	DisabledUntil time.Time `json:"disabledUntil"`
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
@@ -128,8 +174,8 @@ func (m *Monitor) UnmarshalJSON(b []byte) error {
 
 	// Set to a proper time.Duration value by interpreting the server response
 	// value in seconds.
-	m.Range = m.Range * time.Minute
-	m.Interval = m.Interval * time.Minute
+	m.Range *= time.Minute
+	m.Interval *= time.Minute
 
 	return nil
 }
@@ -222,7 +268,7 @@ func (s *MonitorsService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}

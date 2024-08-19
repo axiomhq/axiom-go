@@ -82,7 +82,8 @@ generate: \
 	axiom/datasets_string.go \
 	axiom/limit_string.go \
 	axiom/orgs_string.go \
-	axiom/users_string.go ## Generate code using `go generate`
+	axiom/users_string.go \
+	axiom/tokens_string.go ## Generate code using `go generate`
 
 .PHONY: lint
 lint: ## Lint the source code

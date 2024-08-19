@@ -17,7 +17,7 @@ import (
 // Plan represents the plan of an [Organization].
 type Plan uint8
 
-// All available [Organization] plans.
+// All available [Organization] [Plan]s.
 const (
 	emptyPlan Plan = iota //
 
@@ -71,7 +71,7 @@ func (p *Plan) UnmarshalJSON(b []byte) (err error) {
 // PaymentStatus represents the payment status of an [Organization].
 type PaymentStatus uint8
 
-// All available [Organization] payment statuses.
+// All available [Organization] [PaymentStatus]es.
 const (
 	emptyPaymentStatus PaymentStatus = iota //
 
@@ -205,7 +205,7 @@ type Organization struct {
 	// LastUsageSync is the last time the usage instance usage statistics were
 	// synchronized.
 	LastUsageSync time.Time `json:"lastUsageSync"`
-	// Role the requesting user has on the deployment or the organization.
+	// Role the requesting user has in the organization.
 	Role UserRole `json:"role"`
 	// PrimaryEmail of the user that issued the request.
 	PrimaryEmail string `json:"primaryEmail"`
@@ -240,8 +240,18 @@ func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error
 	ctx, span := s.client.trace(ctx, "Organizations.List")
 	defer span.End()
 
+	req, err := s.client.NewRequest(ctx, http.MethodGet, s.basePath, nil)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	// FIXME(lukasmalkmus): This is kind of a hack. This call is org-less but we
+	// have no way to configure an org-less client when used with a personal
+	// token. So we remove the organization header here.
+	req.Header.Del(headerOrganizationID)
+
 	var res []*wrappedOrganization
-	if err := s.client.Call(ctx, http.MethodGet, s.basePath, nil, &res); err != nil {
+	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 

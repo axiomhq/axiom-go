@@ -7,21 +7,20 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
-	"net/http/httptrace"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/klauspost/compress/gzhttp"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
@@ -34,6 +33,7 @@ import (
 const (
 	headerAuthorization  = "Authorization"
 	headerOrganizationID = "X-Axiom-Org-Id"
+	headerEventLabels    = "X-Axiom-Event-Labels"
 
 	headerAccept      = "Accept"
 	headerContentType = "Content-Type"
@@ -48,8 +48,6 @@ const (
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
 
-var validOnlyAPITokenPaths = regexp.MustCompile(`^/(v1|v2)/datasets/([^/]+/(ingest|query)|_apl)(\?.+)?$`)
-
 // service is the base service used by all Axiom API services.
 type service struct {
 	client   *Client
@@ -60,6 +58,7 @@ type service struct {
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultHTTPTransport(),
+		Timeout:   time.Minute * 5,
 	}
 }
 
@@ -71,8 +70,8 @@ func DefaultHTTPTransport() http.RoundTripper {
 			Timeout:   time.Second * 30,
 			KeepAlive: time.Second * 30,
 		}).DialContext,
-		IdleConnTimeout:       time.Second * 90,
-		ResponseHeaderTimeout: time.Second * 10,
+		IdleConnTimeout:       time.Minute,
+		ResponseHeaderTimeout: time.Minute * 2,
 		TLSHandshakeTimeout:   time.Second * 10,
 		ExpectContinueTimeout: time.Second * 1,
 		ForceAttemptHTTP2:     true,
@@ -98,6 +97,8 @@ type Client struct {
 	Users         *UsersService
 	Monitors      *MonitorsService
 	Notifiers     *NotifiersService
+	Annotations   *AnnotationsService
+	Tokens        *TokensService
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
@@ -128,11 +129,13 @@ func NewClient(options ...Option) (*Client, error) {
 		client.userAgent += fmt.Sprintf("/%s", v)
 	}
 
-	client.Datasets = &DatasetsService{client, "/v2/datasets"}
-	client.Organizations = &OrganizationsService{client, "/v1/orgs"}
-	client.Users = &UsersService{client, "/v2/users"}
-	client.Monitors = &MonitorsService{client, "/v2/monitors"}
-	client.Notifiers = &NotifiersService{client, "/v2/notifiers"}
+	client.Datasets = &DatasetsService{client: client, basePath: "/v2/datasets"}
+	client.Organizations = &OrganizationsService{client: client, basePath: "/v1/orgs"}
+	client.Users = &UsersService{client: client, basePath: "/v2/users"}
+	client.Monitors = &MonitorsService{client: client, basePath: "/v2/monitors"}
+	client.Notifiers = &NotifiersService{client: client, basePath: "/v2/notifiers"}
+	client.Annotations = &AnnotationsService{client: client, basePath: "/v2/annotations"}
+	client.Tokens = &TokensService{client: client, basePath: "/v2/tokens"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
@@ -163,7 +166,7 @@ func (c *Client) Options(options ...Option) error {
 }
 
 // ValidateCredentials makes sure the client can properly authenticate against
-// the configured Axiom deployment.
+// the configured Axiom API.
 func (c *Client) ValidateCredentials(ctx context.Context) error {
 	if config.IsPersonalToken(c.config.Token()) {
 		_, err := c.Users.Current(ctx)
@@ -179,8 +182,7 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 // Call creates a new API request and executes it. The response body is JSON
 // decoded or directly written to v, depending on v being an [io.Writer] or not.
 func (c *Client) Call(ctx context.Context, method, path string, body, v any) error {
-	req, err := c.NewRequest(ctx, method, path, body)
-	if err != nil {
+	if req, err := c.NewRequest(ctx, method, path, body); err != nil {
 		return err
 	} else if _, err = c.Do(req, v); err != nil {
 		return err
@@ -198,10 +200,6 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 	}
 	endpoint := c.config.BaseURL().ResolveReference(rel)
 
-	if config.IsAPIToken(c.config.Token()) && !validOnlyAPITokenPaths.MatchString(endpoint.Path) {
-		return nil, ErrUnprivilegedToken
-	}
-
 	var (
 		r        io.Reader
 		isReader bool
@@ -216,7 +214,6 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 		}
 	}
 
-	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx))
 	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), r)
 	if err != nil {
 		return nil, err
@@ -309,19 +306,23 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	}
 
 	span := trace.SpanFromContext(req.Context())
-	if span.IsRecording() {
+	if span.IsRecording() && resp.TraceID() != "" {
 		span.SetAttributes(attribute.String("axiom_trace_id", resp.TraceID()))
 	}
 
-	if statusCode := resp.StatusCode; statusCode >= 400 {
+	if statusCode := resp.StatusCode; statusCode >= http.StatusBadRequest {
 		httpErr := HTTPError{
 			Status:  statusCode,
 			Message: http.StatusText(statusCode),
 			TraceID: resp.TraceID(),
 		}
 
+		if span.IsRecording() {
+			span.SetAttributes(semconv.HTTPResponseStatusCode(statusCode))
+		}
+
 		// Handle a generic HTTP error if the response is not JSON formatted.
-		if val := resp.Header.Get(headerContentType); !strings.HasPrefix(val, mediaTypeJSON) {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
 			return resp, httpErr
 		}
 
@@ -355,6 +356,10 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}
 
 		return resp, httpErr
+	}
+
+	if span.IsRecording() {
+		span.SetAttributes(semconv.HTTPResponseBodySize(int(resp.ContentLength)))
 	}
 
 	if v != nil {
@@ -431,9 +436,9 @@ func (c *Client) IngestEvents(ctx context.Context, id string, events []Event, op
 // Restrictions for field names (JSON object keys) can be reviewed in
 // [our documentation].
 //
-// Events are ingested in batches. A batch is either 1000 events for unbuffered
+// Events are ingested in batches. A batch is either 10000 events for unbuffered
 // channels or the capacity of the channel for buffered channels. The maximum
-// batch size is 1000. A batch is sent to the server as soon as it is full,
+// batch size is 10000. A batch is sent to the server as soon as it is full,
 // after one second or when the channel is closed.
 //
 // The method returns with an error when the context is marked as done or an

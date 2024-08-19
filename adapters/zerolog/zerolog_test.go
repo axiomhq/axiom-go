@@ -93,21 +93,21 @@ func TestHook_FlushFullBatch(t *testing.T) {
 
 	logger, _ := adapters.Setup(t, hf, setup(t))
 
-	for i := 0; i <= 1000; i++ {
+	for i := 0; i <= 10_000; i++ {
 		logger.Info().Str("key", "value").Msg("my message")
 	}
 
 	// Let the server process.
-	time.Sleep(time.Millisecond * 250)
+	time.Sleep(time.Millisecond * 750)
 
 	// Should have a full batch right away.
-	assert.EqualValues(t, 1000, atomic.LoadUint64(&lines))
+	assert.EqualValues(t, 10_000, atomic.LoadUint64(&lines))
 
 	// Wait for timer based hook flush.
 	time.Sleep(time.Second + time.Millisecond*250)
 
 	// Should have received the last event.
-	assert.EqualValues(t, 1001, atomic.LoadUint64(&lines))
+	assert.EqualValues(t, 10_001, atomic.LoadUint64(&lines))
 }
 
 func setup(t *testing.T) func(dataset string, client *axiom.Client) (*zerolog.Logger, func()) {

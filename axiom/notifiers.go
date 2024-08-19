@@ -19,6 +19,10 @@ type Notifier struct {
 	DisabledUntil time.Time `json:"disabledUntil"`
 	// Properties of the notifier.
 	Properties NotifierProperties `json:"properties"`
+	// CreatedAt is the time when the notifier was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// CreatedBy is the id of the user who created the notifier.
+	CreatedBy string `json:"createdBy"`
 }
 
 type NotifierProperties struct {
@@ -38,6 +42,8 @@ type NotifierProperties struct {
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
 	// MicrosoftTeams configuration.
 	MicrosoftTeams *MicrosoftTeams `json:"microsoftTeams,omitempty"`
+	// CustomWebhook configuration.
+	CustomWebhook *CustomWebhook `json:"customWebhook,omitempty"`
 }
 
 type DiscordConfig struct {
@@ -84,6 +90,15 @@ type WebhookConfig struct {
 type MicrosoftTeams struct {
 	// URL is the URL to send the message to.
 	URL string `json:"microsoftTeamsUrl,omitempty"`
+}
+
+type CustomWebhook struct {
+	// URL is the destination URL for the webhook.
+	URL string
+	// Headers is a map of header keys and values to include in the webhook request.
+	Headers map[string]string
+	// Body is the body of the webhook request.
+	Body string
 }
 
 // Axiom API Reference: /v2/notifiers
@@ -164,7 +179,7 @@ func (s *NotifiersService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}

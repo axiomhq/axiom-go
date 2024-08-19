@@ -82,17 +82,6 @@ type Dataset struct {
 	CreatedAt time.Time `json:"created"`
 }
 
-// TrimResult is the result of a trim operation.
-//
-// Deprecated: TrimResult is deprecated and will be removed in a future release.
-type TrimResult struct {
-	// BlocksDeleted is the amount of blocks deleted by the trim operation.
-	//
-	// Deprecated: BlocksDeleted is deprecated and will be removed in the
-	// future.
-	BlocksDeleted int `json:"numDeleted"`
-}
-
 // DatasetCreateRequest is a request used to create a dataset.
 type DatasetCreateRequest struct {
 	// Name of the dataset to create. Restricted to 80 characters of [a-zA-Z0-9]
@@ -261,7 +250,7 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
@@ -276,7 +265,7 @@ func (s *DatasetsService) Delete(ctx context.Context, id string) error {
 // Trim the dataset identified by its id to a given length. The max duration
 // given will mark the oldest timestamp an event can have. Older ones will be
 // deleted from the dataset.
-func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.Duration) (*TrimResult, error) {
+func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.Duration) error {
 	ctx, span := s.client.trace(ctx, "Datasets.Trim", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.String("axiom.param.max_duration", maxDuration.String()),
@@ -289,15 +278,14 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 
 	path, err := url.JoinPath(s.basePath, id, "trim")
 	if err != nil {
-		return nil, spanError(span, err)
+		return spanError(span, err)
 	}
 
-	var res TrimResult
-	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
-		return nil, spanError(span, err)
+	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
+		return spanError(span, err)
 	}
 
-	return &res, nil
+	return nil
 }
 
 // Ingest data into the dataset identified by its id.
@@ -331,6 +319,7 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		}
 	}
 
+	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
 	path, err := url.JoinPath("/v1/datasets", id, "ingest")
 	if err != nil {
 		return nil, spanError(span, err)
@@ -412,6 +401,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		}
 	}
 
+	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
 	path, err := url.JoinPath("/v1/datasets", id, "ingest")
 	if err != nil {
 		return nil, spanError(span, err)
@@ -495,9 +485,9 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 // Restrictions for field names (JSON object keys) can be reviewed in
 // [our documentation].
 //
-// Events are ingested in batches. A batch is either 1000 events for unbuffered
+// Events are ingested in batches. A batch is either 10000 events for unbuffered
 // channels or the capacity of the channel for buffered channels. The maximum
-// batch size is 1000. A batch is sent to the server as soon as it is full,
+// batch size is 10000. A batch is sent to the server as soon as it is full,
 // after one second or when the channel is closed.
 //
 // The method returns with an error when the context is marked as done or an
@@ -520,9 +510,9 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	))
 	defer span.End()
 
-	// Batch is either 1000 events for unbuffered channels or the capacity of
-	// the channel for buffered channels. The maximum batch size is 1000.
-	batchSize := 1000
+	// Batch is either 10000 events for unbuffered channels or the capacity of
+	// the channel for buffered channels. The maximum batch size is 10000.
+	batchSize := 10_000
 	if cap(events) > 0 && cap(events) <= batchSize {
 		batchSize = cap(events)
 	}
@@ -611,6 +601,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		Format: "legacy", // Hardcode legacy APL format for now.
 	}
 
+	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
 	path, err := url.JoinPath("/v1/datasets", "_apl")
 	if err != nil {
 		return nil, spanError(span, err)
@@ -822,7 +813,7 @@ func setEventLabels(req *http.Request, labels map[string]any) error {
 		return err
 	}
 
-	req.Header.Set("X-Axiom-Event-Labels", string(b))
+	req.Header.Set(headerEventLabels, string(b))
 
 	return nil
 }

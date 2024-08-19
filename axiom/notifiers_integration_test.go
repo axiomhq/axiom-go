@@ -1,5 +1,3 @@
-//go:build integration
-
 package axiom_test
 
 import (
@@ -17,6 +15,7 @@ import (
 type NotifiersTestSuite struct {
 	IntegrationTestSuite
 
+	// Setup once per test.
 	notifier *axiom.Notifier
 }
 
@@ -26,9 +25,17 @@ func TestNotifiersTestSuite(t *testing.T) {
 
 func (s *NotifiersTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
+}
+
+func (s *NotifiersTestSuite) TearDownSuite() {
+	s.IntegrationTestSuite.TearDownSuite()
+}
+
+func (s *NotifiersTestSuite) SetupTest() {
+	s.IntegrationTestSuite.SetupTest()
 
 	var err error
-	s.notifier, err = s.client.Notifiers.Create(s.suiteCtx, axiom.Notifier{
+	s.notifier, err = s.client.Notifiers.Create(s.ctx, axiom.Notifier{
 		Name: "Test Notifier",
 		Properties: axiom.NotifierProperties{
 			Email: &axiom.EmailConfig{
@@ -40,25 +47,85 @@ func (s *NotifiersTestSuite) SetupSuite() {
 	s.Require().NotNil(s.notifier)
 }
 
-func (s *NotifiersTestSuite) TearDownSuite() {
+func (s *NotifiersTestSuite) TearDownTest() {
 	// Teardown routines use their own context to avoid not being run at all
 	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
 	err := s.client.Notifiers.Delete(ctx, s.notifier.ID)
 	s.NoError(err)
 
-	s.IntegrationTestSuite.TearDownSuite()
+	s.IntegrationTestSuite.TearDownTest()
 }
 
 func (s *NotifiersTestSuite) Test() {
 	// Let's update the notifier.
-	notifier, err := s.client.Notifiers.Update(s.suiteCtx, s.notifier.ID, axiom.Notifier{
+	notifier, err := s.client.Notifiers.Update(s.ctx, s.notifier.ID, axiom.Notifier{
 		Name: "Updated Test Notifier",
 		Properties: axiom.NotifierProperties{
 			Email: &axiom.EmailConfig{
 				Emails: []string{"fred@example.com"},
+			},
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(notifier)
+
+	s.notifier = notifier
+
+	// Get the notifier and make sure it matches what we have updated it to.
+	notifier, err = s.client.Notifiers.Get(s.ctx, s.notifier.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(notifier)
+
+	s.Equal(s.notifier, notifier)
+
+	// List all notifiers and make sure the created notifier is part of that
+	// list.
+	notifiers, err := s.client.Notifiers.List(s.ctx)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(notifiers)
+
+	s.Contains(notifiers, s.notifier)
+}
+
+func (s *NotifiersTestSuite) TestCreateCustomWebhookNotifier() {
+	// Create a custom webhook notifier.
+	notifier, err := s.client.Notifiers.Create(s.ctx, axiom.Notifier{
+		Name: "Custom Webhook Notifier",
+		Properties: axiom.NotifierProperties{
+			CustomWebhook: &axiom.CustomWebhook{
+				URL: "http://example.com/webhook",
+				Headers: map[string]string{
+					"Authorization": "Bearer token",
+				},
+				Body: "{\"key\":\"value\"}",
+			},
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(notifier)
+
+	s.notifier = notifier
+
+	// Get the notifier and make sure it matches what we have created.
+	notifier, err = s.client.Notifiers.Get(s.ctx, s.notifier.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(notifier)
+
+	s.Equal(s.notifier, notifier)
+
+	// Update the custom webhook notifier.
+	notifier, err = s.client.Notifiers.Update(s.ctx, s.notifier.ID, axiom.Notifier{
+		Name: "Updated Custom Webhook Notifier",
+		Properties: axiom.NotifierProperties{
+			CustomWebhook: &axiom.CustomWebhook{
+				URL: "http://example.com/updated-webhook",
+				Headers: map[string]string{
+					"Authorization": "Bearer new-token",
+				},
+				Body: "{\"key\":\"new-value\"}",
 			},
 		},
 	})

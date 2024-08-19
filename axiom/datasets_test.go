@@ -388,26 +388,14 @@ func TestDatasetsService_Delete(t *testing.T) {
 }
 
 func TestDatasetsService_Trim(t *testing.T) {
-	exp := &TrimResult{
-		BlocksDeleted: 0,
-	}
-
-	hf := func(w http.ResponseWriter, r *http.Request) {
+	hf := func(_ http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
-			"numDeleted": 0
-		}`)
-		assert.NoError(t, err)
 	}
 
 	client := setup(t, "/v2/datasets/test/trim", hf)
 
-	res, err := client.Datasets.Trim(context.Background(), "test", time.Hour)
+	err := client.Datasets.Trim(context.Background(), "test", time.Hour)
 	require.NoError(t, err)
-
-	assert.Equal(t, exp, res)
 }
 
 // TestDatasetsService_Ingest tests the ingest functionality of the client. It
@@ -566,7 +554,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 
 // TestDatasetsService_IngestEvents_Retry tests the retry ingest functionality
 // of the client. It also tests the event labels functionality by setting no
-// labels.
+// labels. It also tests for the presence of a trace ID in the response.
 func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,
@@ -589,7 +577,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeNDJSON, r.Header.Get("Content-Type"))
 		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
-		assert.Empty(t, r.Header.Get("X-Axiom-Event-Labels"))
+		assert.Empty(t, r.Header.Get(headerEventLabels))
 
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)

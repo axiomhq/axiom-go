@@ -72,16 +72,15 @@ type User struct {
 	// Emails is the email address of the user.
 	Email string `json:"email"`
 	// Role is the role of the user.
-	Role UserDetailsRole `json:"role"`
+	Role struct {
+		// ID is the unique ID of the role.
+		ID string `json:"id,omitempty"`
+		// Name of the role.
+		Name string `json:"name,omitempty"`
+	} `json:"role"`
 }
 
-type UserDetailsRole struct {
-	// ID is the unique ID of the role.
-	ID string `json:"id,omitempty"`
-	// Name of the role.
-	Name string `json:"name,omitempty"`
-}
-
+// CreateUserRequest represents a request to create a user.
 type CreateUserRequest struct {
 	// Name is the name of the user.
 	Name string `json:"name"`
@@ -91,11 +90,13 @@ type CreateUserRequest struct {
 	Role string `json:"role"`
 }
 
+// UpdateUserRequest represents a request to update a user.
 type UpdateUserRequest struct {
 	// Name is the new name of the user.
 	Name string `json:"name"`
 }
 
+// UpdateUserRoleRequest represents a request to update a user role.
 type UpdateUserRoleRequest struct {
 	// Role is the new role of the user.
 	Role string `json:"role"`
@@ -112,8 +113,18 @@ func (s *UsersService) Current(ctx context.Context) (*User, error) {
 	ctx, span := s.client.trace(ctx, "Users.Current")
 	defer span.End()
 
+	req, err := s.client.NewRequest(ctx, http.MethodGet, "/v2/user", nil)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	// FIXME(lukasmalkmus): This is kind of a hack. This call is org-less but we
+	// have no way to configure an org-less client when used with a personal
+	// token. So we remove the organization header here.
+	req.Header.Del(headerOrganizationID)
+
 	var res User
-	if err := s.client.Call(ctx, http.MethodGet, "/v2/user", nil, &res); err != nil {
+	if _, err = s.client.Do(req, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -140,7 +151,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -153,7 +164,7 @@ func (s *UsersService) Get(ctx context.Context, id string) (*User, error) {
 	return &res, nil
 }
 
-// Create will create and invite a user to the organisation
+// Create will create and invite a user to the organisation.
 func (s *UsersService) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
 	ctx, span := s.client.trace(ctx, "Users.Create", trace.WithAttributes(
 		attribute.String("axiom.user_name", req.Name),
@@ -179,7 +190,7 @@ func (s *UsersService) Update(ctx context.Context, id string, req UpdateUserRequ
 		))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -201,7 +212,7 @@ func (s *UsersService) UpdateUsersRole(ctx context.Context, id string, req Updat
 		))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id, "/role")
+	path, err := url.JoinPath(s.basePath, id, "role")
 	if err != nil {
 		return nil, spanError(span, err)
 	}
@@ -221,7 +232,7 @@ func (s *UsersService) Delete(ctx context.Context, id string) error {
 	))
 	defer span.End()
 
-	path, err := url.JoinPath(s.basePath, "/", id)
+	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
 		return spanError(span, err)
 	}
