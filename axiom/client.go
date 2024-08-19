@@ -58,6 +58,7 @@ type service struct {
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultHTTPTransport(),
+		Timeout:   time.Minute * 5,
 	}
 }
 
@@ -69,8 +70,8 @@ func DefaultHTTPTransport() http.RoundTripper {
 			Timeout:   time.Second * 30,
 			KeepAlive: time.Second * 30,
 		}).DialContext,
-		IdleConnTimeout:       time.Second * 90,
-		ResponseHeaderTimeout: time.Second * 30,
+		IdleConnTimeout:       time.Minute,
+		ResponseHeaderTimeout: time.Minute * 2,
 		TLSHandshakeTimeout:   time.Second * 10,
 		ExpectContinueTimeout: time.Second * 1,
 		ForceAttemptHTTP2:     true,
