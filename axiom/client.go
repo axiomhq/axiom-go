@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
@@ -57,6 +58,7 @@ type service struct {
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultHTTPTransport(),
+		Timeout:   time.Minute * 5,
 	}
 }
 
@@ -68,8 +70,8 @@ func DefaultHTTPTransport() http.RoundTripper {
 			Timeout:   time.Second * 30,
 			KeepAlive: time.Second * 30,
 		}).DialContext,
-		IdleConnTimeout:       time.Second * 90,
-		ResponseHeaderTimeout: time.Second * 30,
+		IdleConnTimeout:       time.Minute,
+		ResponseHeaderTimeout: time.Minute * 2,
 		TLSHandshakeTimeout:   time.Second * 10,
 		ExpectContinueTimeout: time.Second * 1,
 		ForceAttemptHTTP2:     true,
@@ -180,8 +182,7 @@ func (c *Client) ValidateCredentials(ctx context.Context) error {
 // Call creates a new API request and executes it. The response body is JSON
 // decoded or directly written to v, depending on v being an [io.Writer] or not.
 func (c *Client) Call(ctx context.Context, method, path string, body, v any) error {
-	req, err := c.NewRequest(ctx, method, path, body)
-	if err != nil {
+	if req, err := c.NewRequest(ctx, method, path, body); err != nil {
 		return err
 	} else if _, err = c.Do(req, v); err != nil {
 		return err
@@ -305,7 +306,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 	}
 
 	span := trace.SpanFromContext(req.Context())
-	if span.IsRecording() {
+	if span.IsRecording() && resp.TraceID() != "" {
 		span.SetAttributes(attribute.String("axiom_trace_id", resp.TraceID()))
 	}
 
@@ -314,6 +315,10 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			Status:  statusCode,
 			Message: http.StatusText(statusCode),
 			TraceID: resp.TraceID(),
+		}
+
+		if span.IsRecording() {
+			span.SetAttributes(semconv.HTTPResponseStatusCode(statusCode))
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
@@ -351,6 +356,10 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}
 
 		return resp, httpErr
+	}
+
+	if span.IsRecording() {
+		span.SetAttributes(semconv.HTTPResponseBodySize(int(resp.ContentLength)))
 	}
 
 	if v != nil {
