@@ -93,7 +93,7 @@ func TestHook_FlushFullBatch(t *testing.T) {
 
 	logger, _ := adapters.Setup(t, hf, setup(t))
 
-	for i := 0; i <= 10_000; i++ {
+	for range 10_001 {
 		logger.Info().Str("key", "value").Msg("my message")
 	}
 

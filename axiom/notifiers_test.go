@@ -42,7 +42,7 @@ func TestNotifiersService_List(t *testing.T) {
 		}]`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/notifiers", hf)
+	client := setup(t, "GET /v2/notifiers", hf)
 
 	res, err := client.Notifiers.List(context.Background())
 	require.NoError(t, err)
@@ -78,7 +78,7 @@ func TestNotifiersService_Get(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/notifiers/test", hf)
+	client := setup(t, "GET /v2/notifiers/test", hf)
 
 	res, err := client.Notifiers.Get(context.Background(), "test")
 	require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestNotifiersService_Create(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/notifiers", hf)
+	client := setup(t, "POST /v2/notifiers", hf)
 
 	res, err := client.Notifiers.Create(context.Background(), Notifier{
 		Name: "test",
@@ -157,7 +157,7 @@ func TestNotifiersService_Update(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/notifiers/test", hf)
+	client := setup(t, "PUT /v2/notifiers/test", hf)
 
 	res, err := client.Notifiers.Update(context.Background(), "test", Notifier{
 		Name: "test",
@@ -179,7 +179,7 @@ func TestNotifiersService_Delete(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client := setup(t, "/v2/notifiers/testID", hf)
+	client := setup(t, "DELETE /v2/notifiers/testID", hf)
 
 	err := client.Notifiers.Delete(context.Background(), "testID")
 	require.NoError(t, err)
@@ -219,7 +219,7 @@ func TestNotifiersService_Create_CustomWebhook(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/notifiers", hf)
+	client := setup(t, "POST /v2/notifiers", hf)
 
 	res, err := client.Notifiers.Create(context.Background(), Notifier{
 		Name: "test",

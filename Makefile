@@ -49,13 +49,13 @@ dep-clean: ## Remove obsolete dependencies
 .PHONY: dep-upgrade
 dep-upgrade: ## Upgrade all direct dependencies to their latest version
 	@echo ">> upgrading dependencies"
-	@$(GO) get -d $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
+	@$(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
 	@make dep
 
 .PHONY: dep-upgrade-tools
 dep-upgrade-tools: ## Upgrade all tool dependencies to their latest version
 	@echo ">> upgrading tool dependencies"
-	@$(GO) get -d $(GOTOOLS)
+	@$(GO) get $(GOTOOLS)
 	@make dep
 
 .PHONY: dep

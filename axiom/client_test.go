@@ -356,7 +356,7 @@ func TestClient_do(t *testing.T) {
 		_, _ = fmt.Fprint(w, `{"A":"a"}`)
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	type foo struct {
 		A string
@@ -382,7 +382,7 @@ func TestClient_do_ioWriter(t *testing.T) {
 		_, _ = fmt.Fprint(w, content)
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -401,7 +401,7 @@ func TestClient_do_HTTPError(t *testing.T) {
 		_, _ = w.Write([]byte(http.StatusText(http.StatusBadRequest)))
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -421,7 +421,7 @@ func TestClient_do_HTTPError_Typed(t *testing.T) {
 		_, _ = w.Write([]byte(http.StatusText(http.StatusForbidden)))
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -442,7 +442,7 @@ func TestClient_do_HTTPError_JSON(t *testing.T) {
 		}))
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -466,7 +466,7 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 		}))
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -511,7 +511,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 		}))
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -531,7 +531,7 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -593,7 +593,7 @@ func TestClient_do_Backoff(t *testing.T) {
 		w.WriteHeader(header)
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "POST /", hf)
 
 	// Wrap with an io.TeeReader as http.NewRequest checks for some special
 	// readers it can read in full to optimize the request.
@@ -626,7 +626,7 @@ func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	client := setup(t, "/", hf)
+	client := setup(t, "GET /", hf)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
 	require.NoError(t, err)

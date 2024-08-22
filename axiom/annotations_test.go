@@ -28,7 +28,7 @@ func TestAnnotationService_Create(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/annotations", hf)
+	client := setup(t, "POST /v2/annotations", hf)
 
 	res, err := client.Annotations.Create(context.Background(), exp)
 	require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestAnnotationService_Get(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/annotations/ann_test", hf)
+	client := setup(t, "GET /v2/annotations/ann_test", hf)
 
 	res, err := client.Annotations.Get(context.Background(), "ann_test")
 	require.NoError(t, err)
@@ -87,7 +87,7 @@ func TestAnnotationService_List(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/annotations", hf)
+	client := setup(t, "GET /v2/annotations", hf)
 
 	res, err := client.Annotations.List(context.Background(), nil)
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestAnnotationService_Update(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/annotations/ann_test", hf)
+	client := setup(t, "PUT /v2/annotations/ann_test", hf)
 
 	res, err := client.Annotations.Update(context.Background(), "ann_test", exp)
 	require.NoError(t, err)
@@ -129,7 +129,7 @@ func TestAnnotationService_Delete(t *testing.T) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 	}
 
-	client := setup(t, "/v2/annotations/ann_test", hf)
+	client := setup(t, "DELETE /v2/annotations/ann_test", hf)
 
 	err := client.Annotations.Delete(context.Background(), "ann_test")
 	require.NoError(t, err)
