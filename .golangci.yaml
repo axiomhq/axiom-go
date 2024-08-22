@@ -1,18 +1,16 @@
 run:
   modules-download-mode: readonly
   timeout: 5m
-  build-tags:
-    - integration
 
 linters:
   disable-all: true
   enable:
     - bodyclose
+    - copyloopvar
     - dogsled
     - dupl
     - errcheck
     - exhaustive
-    - exportloopref
     - goconst
     - gofmt
     - goimports
@@ -50,3 +48,8 @@ issues:
     - .github
     - .vscode
     - dist
+  exclude-rules:
+    - linters:
+        - gosec
+      text: "G115: integer overflow conversion"
+      path: _test\.go

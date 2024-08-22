@@ -2,6 +2,9 @@ version: 2
 
 project_name: axiom-go
 
+git:
+  prerelease_suffix: "-"
+
 builds:
   - skip: true
 

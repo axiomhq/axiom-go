@@ -41,7 +41,7 @@ func TestUsersService_Current(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "/v2/user", hf)
+	client := setup(t, "GET /v2/user", hf)
 
 	res, err := client.Users.Current(context.Background())
 	require.NoError(t, err)

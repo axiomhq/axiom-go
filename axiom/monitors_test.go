@@ -46,7 +46,7 @@ func TestMonitorsService_List(t *testing.T) {
 		}]`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/monitors", hf)
+	client := setup(t, "GET /v2/monitors", hf)
 
 	res, err := client.Monitors.List(context.Background())
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestMonitorsService_Get(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/monitors/testID", hf)
+	client := setup(t, "GET /v2/monitors/testID", hf)
 
 	res, err := client.Monitors.Get(context.Background(), "testID")
 	require.NoError(t, err)
@@ -129,7 +129,7 @@ func TestMonitorsService_Create(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/monitors", hf)
+	client := setup(t, "POST /v2/monitors", hf)
 
 	res, err := client.Monitors.Create(context.Background(), MonitorCreateRequest{Monitor{
 		AlertOnNoData: false,
@@ -183,7 +183,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		}`)
 		assert.NoError(t, err)
 	}
-	client := setup(t, "/v2/monitors/testID", hf)
+	client := setup(t, "PUT /v2/monitors/testID", hf)
 
 	res, err := client.Monitors.Update(context.Background(), "testID", MonitorUpdateRequest{Monitor{
 		AlertOnNoData: false,
@@ -210,7 +210,7 @@ func TestMonitorsService_Delete(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client := setup(t, "/v2/monitors/testID", hf)
+	client := setup(t, "DELETE /v2/monitors/testID", hf)
 
 	err := client.Monitors.Delete(context.Background(), "testID")
 	require.NoError(t, err)

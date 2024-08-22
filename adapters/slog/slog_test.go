@@ -61,13 +61,13 @@ func TestHandler(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, flush := adapters.Setup(t, hf, setup(t))
+	logger, closeHandler := adapters.Setup(t, hf, setup(t))
 
 	logger.
 		With("key", "value").
 		Info("my message")
 
-	flush()
+	closeHandler()
 
 	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
 }

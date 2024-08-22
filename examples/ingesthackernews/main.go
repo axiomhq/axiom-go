@@ -126,7 +126,7 @@ func getMaxItemID() (uint64, error) {
 func generateIDs(max uint64) <-chan uint64 {
 	ch := make(chan uint64, maxWorkers*10)
 	go func() {
-		for i := uint64(0); i <= max; i++ {
+		for i := range max + 1 {
 			ch <- i
 		}
 		close(ch)
@@ -149,7 +149,7 @@ func fetchEvents(eventIDs <-chan uint64) <-chan axiom.Event {
 
 	workerErrGroup.SetLimit(maxWorkers)
 
-	for i := 0; i < maxWorkers; i++ {
+	for range maxWorkers {
 		workerErrGroup.Go(func() error {
 			for id := range eventIDs {
 				resp, err := httpClient.Get(fmt.Sprintf("%s/v0/item/%d.json", baseURL, id))
