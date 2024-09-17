@@ -11,7 +11,6 @@ import (
 	"os"
 
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/query"
 )
 
 func main() {
@@ -39,14 +38,11 @@ func main() {
 		log.Fatal("No matches found")
 	}
 
-	// 3. Print the queried results by creating a iterator for the rows from the
-	// tabular query result (as it is organized in columns) and iterating over
-	// the rows.
-	rows := res.Tables[0].Rows()
-	if err := rows.Range(ctx, func(_ context.Context, row query.Row) error {
-		_, err := fmt.Println(row)
-		return err
-	}); err != nil {
-		log.Fatal(err)
+	// 3. Print the queried results by iterating through each column with the
+	// same row index.
+	for i := range len(res.Tables[0].Columns[0]) {
+		for j := range res.Tables[0].Columns {
+			fmt.Println(res.Tables[0].Columns[j][i])
+		}
 	}
 }
