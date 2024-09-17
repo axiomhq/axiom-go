@@ -596,7 +596,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	res.TraceID = resp.TraceID()
 
 	setQueryStatusOnSpan(span, res.Result.Status)
-	span.SetAttributes(attribute.String("axiom.result.trace_id", res.TraceID))
+	span.SetAttributes(attribute.String("axiom.trace_id", res.TraceID))
 
 	return &res.Result, nil
 }
@@ -649,7 +649,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 	res.TraceID = resp.TraceID()
 
 	setLegacyQueryStatusOnSpan(span, res.Result.Status)
-	span.SetAttributes(attribute.String("axiom.result.trace_id", res.TraceID))
+	span.SetAttributes(attribute.String("axiom.trace_id", res.TraceID))
 
 	return &res.Result, nil
 }
@@ -707,10 +707,10 @@ func setIngestStatusOnSpan(span trace.Span, status ingest.Status) {
 	}
 
 	span.SetAttributes(
-		attribute.String("axiom.result.trace_id", status.TraceID),
-		attribute.Int64("axiom.events.ingested", int64(status.Ingested)),
-		attribute.Int64("axiom.events.failed", int64(status.Failed)),
-		attribute.Int64("axiom.events.processed_bytes", int64(status.ProcessedBytes)),
+		attribute.String("axiom.trace_id", status.TraceID),
+		attribute.Int64("axiom.events.ingested", int64(status.Ingested)),              //nolint:gosec // Fine for this use case.
+		attribute.Int64("axiom.events.failed", int64(status.Failed)),                  //nolint:gosec // Fine for this use case.
+		attribute.Int64("axiom.events.processed_bytes", int64(status.ProcessedBytes)), //nolint:gosec // Fine for this use case.
 	)
 }
 
@@ -722,11 +722,9 @@ func setQueryStatusOnSpan(span trace.Span, status query.Status) {
 	span.SetAttributes(
 		attribute.String("axiom.query.min_cursor", status.MinCursor),
 		attribute.String("axiom.query.max_cursor", status.MaxCursor),
-		attribute.String("axiom.query.min_cursor", status.MinCursor),
-		attribute.String("axiom.query.max_cursor", status.MaxCursor),
 		attribute.String("axiom.query.elapsed_time", status.ElapsedTime.String()),
-		attribute.Int64("axiom.query.rows_examined", int64(status.RowsExamined)),
-		attribute.Int64("axiom.query.rows_matched", int64(status.RowsMatched)),
+		attribute.Int64("axiom.query.rows_examined", int64(status.RowsExamined)), //nolint:gosec // Fine for this use case.
+		attribute.Int64("axiom.query.rows_matched", int64(status.RowsMatched)),   //nolint:gosec // Fine for this use case.
 	)
 }
 
@@ -737,9 +735,9 @@ func setLegacyQueryStatusOnSpan(span trace.Span, status querylegacy.Status) {
 
 	span.SetAttributes(
 		attribute.String("axiom.querylegacy.elapsed_time", status.ElapsedTime.String()),
-		attribute.Int64("axiom.querylegacy.blocks_examined", int64(status.BlocksExamined)),
-		attribute.Int64("axiom.querylegacy.rows_examined", int64(status.RowsExamined)),
-		attribute.Int64("axiom.querylegacy.rows_matched", int64(status.RowsMatched)),
+		attribute.Int64("axiom.querylegacy.blocks_examined", int64(status.BlocksExamined)), //nolint:gosec // Fine for this use case.
+		attribute.Int64("axiom.querylegacy.rows_examined", int64(status.RowsExamined)),     //nolint:gosec // Fine for this use case.
+		attribute.Int64("axiom.querylegacy.rows_matched", int64(status.RowsMatched)),       //nolint:gosec // Fine for this use case.
 		attribute.Int64("axiom.querylegacy.num_groups", int64(status.NumGroups)),
 		attribute.Bool("axiom.querylegacy.is_partial", status.IsPartial),
 		attribute.Bool("axiom.querylegacy.is_estimate", status.IsEstimate),

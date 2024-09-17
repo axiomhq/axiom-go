@@ -1,15 +1,14 @@
-//go:build !go1.23
+//go:build go1.23
+
+// TODO(lukasmalkmus): Once Go 1.24 is released, remove the build constraint.
 
 package query_test
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/axiomhq/axiom-go/axiom/query"
-	"github.com/axiomhq/axiom-go/axiom/query/iter"
 )
 
 func ExampleRows() {
@@ -36,18 +35,9 @@ func ExampleRows() {
 		},
 	}
 
-	var (
-		rows = query.Rows(columns)
-		buf  = new(strings.Builder)
-	)
-	for {
-		row, err := rows.Next(context.Background())
-		if err == iter.Done {
-			break
-		} else if err != nil {
-			log.Fatal(err)
-		}
-		_, _ = fmt.Fprintln(buf, row)
+	var buf strings.Builder
+	for row := range query.Rows(columns) {
+		_, _ = fmt.Fprintln(&buf, row)
 	}
 
 	// Output:

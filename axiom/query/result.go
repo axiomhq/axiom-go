@@ -49,6 +49,16 @@ type Source struct {
 	Name string `json:"name"`
 }
 
+// Field in a [Table].
+type Field struct {
+	// Name of the field.
+	Name string `json:"name"`
+	// Type of the field. Can also be a composite type.
+	Type string `json:"type"`
+	// Aggregation is the aggregation applied to the field.
+	Aggregation *Aggregation `json:"agg"`
+}
+
 // Order of a [Field] in a [Table].
 type Order struct {
 	// Field is the name of the field to order by.
