@@ -1,5 +1,8 @@
 //go:build go1.23
 
+// FIXME(lukasmalkmus): Once Go 1.24 is released, remove this file and move the
+// Rows and Values methods to result.go.
+
 package query
 
 import "iter"

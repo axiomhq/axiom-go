@@ -198,47 +198,47 @@ var (
 				Fields: []query.Field{
 					{
 						Name: "_time",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "_sysTime",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "_rowId",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "agent",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "bytes",
-						Type: query.TypeFloat,
+						Type: "float64",
 					},
 					{
 						Name: "referrer",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "remote_ip",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "remote_user",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "request",
-						Type: query.TypeString,
+						Type: "string",
 					},
 					{
 						Name: "response",
-						Type: query.TypeFloat,
+						Type: "float64",
 					},
 					{
 						Name: "time",
-						Type: query.TypeString,
+						Type: "string",
 					},
 				},
 				Range: &query.Range{
