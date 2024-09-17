@@ -20,7 +20,7 @@ func TestOrganizationsService_List(t *testing.T) {
 			ID:            "axiom",
 			Name:          "Axiom Industries Ltd",
 			Slug:          "",
-			Plan:          Basic,
+			Plan:          "enterprise",
 			PlanCreated:   testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 			Trial:         false,
 			LastUsageSync: testhelper.MustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
@@ -33,7 +33,7 @@ func TestOrganizationsService_List(t *testing.T) {
 				IssuedAt:        testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 				ValidFrom:       testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 				ExpiresAt:       testhelper.MustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
-				Plan:            Enterprise,
+				Plan:            "enterprise",
 				MonthlyIngestGB: 100,
 				MaxUsers:        50,
 				MaxTeams:        10,
@@ -63,7 +63,7 @@ func TestOrganizationsService_List(t *testing.T) {
 				"name": "Axiom Industries Ltd",
 				"slug": "",
 				"inTrial": false,
-				"plan": "basic",
+				"plan": "enterprise",
 				"planCreated": "1970-01-01T00:00:00Z",
 				"lastUsageSync": "0001-01-01T00:00:00Z",
 				"role": "admin",
@@ -111,7 +111,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 		ID:            "axiom",
 		Name:          "Axiom Industries Ltd",
 		Slug:          "",
-		Plan:          Basic,
+		Plan:          "enterprise",
 		PlanCreated:   testhelper.MustTimeParse(t, time.RFC3339, "1970-01-01T00:00:00Z"),
 		Trial:         false,
 		LastUsageSync: testhelper.MustTimeParse(t, time.RFC3339, "0001-01-01T00:00:00Z"),
@@ -124,7 +124,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 			IssuedAt:        testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 			ValidFrom:       testhelper.MustTimeParse(t, time.RFC3339, "2021-01-19T17:55:53Z"),
 			ExpiresAt:       testhelper.MustTimeParse(t, time.RFC3339, "2022-01-19T17:55:53Z"),
-			Plan:            Enterprise,
+			Plan:            "enterprise",
 			MonthlyIngestGB: 100,
 			MaxUsers:        50,
 			MaxTeams:        10,
@@ -152,7 +152,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 			"name": "Axiom Industries Ltd",
 			"slug": "",
 			"inTrial": false,
-			"plan": "basic",
+			"plan": "enterprise",
 			"planCreated": "1970-01-01T00:00:00Z",
 			"lastUsageSync": "0001-01-01T00:00:00Z",
 			"role": "admin",
@@ -192,54 +192,6 @@ func TestOrganizationsService_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
-}
-
-func TestPlan_Marshal(t *testing.T) {
-	exp := `{
-		"plan": "personal"
-	}`
-
-	b, err := json.Marshal(struct {
-		Plan Plan `json:"plan"`
-	}{
-		Plan: Personal,
-	})
-	require.NoError(t, err)
-	require.NotEmpty(t, b)
-
-	assert.JSONEq(t, exp, string(b))
-}
-
-func TestPlan_Unmarshal(t *testing.T) {
-	var act struct {
-		Plan Plan `json:"plan"`
-	}
-	err := json.Unmarshal([]byte(`{ "plan": "personal" }`), &act)
-	require.NoError(t, err)
-
-	assert.Equal(t, Personal, act.Plan)
-}
-
-func TestPlan_String(t *testing.T) {
-	// Check outer bounds.
-	assert.Empty(t, Plan(0).String())
-	assert.Empty(t, emptyPlan.String())
-	assert.Equal(t, emptyPlan, Plan(0))
-	assert.Contains(t, (Comped + 1).String(), "Plan(")
-
-	for p := Personal; p <= Comped; p++ {
-		s := p.String()
-		assert.NotEmpty(t, s)
-		assert.NotContains(t, s, "Plan(")
-	}
-}
-
-func TestPlanFromString(t *testing.T) {
-	for p := Personal; p <= Comped; p++ {
-		parsed, err := planFromString(p.String())
-		assert.NoError(t, err)
-		assert.Equal(t, p, parsed)
-	}
 }
 
 func TestPaymentStatus_Marshal(t *testing.T) {
@@ -293,7 +245,7 @@ func TestPaymentStatusFromString(t *testing.T) {
 func TestLicense(t *testing.T) {
 	exp := License{
 		ID:             "98baf1f7-0b51-403f-abc1-2ee91972a225",
-		Plan:           Personal,
+		Plan:           "personal",
 		MaxUsers:       50,
 		MaxTeams:       10,
 		MaxDatasets:    25,
