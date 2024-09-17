@@ -12,61 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Plan,PaymentStatus -linecomment -output=orgs_string.go
-
-// Plan represents the plan of an [Organization].
-type Plan uint8
-
-// All available [Organization] [Plan]s.
-const (
-	emptyPlan Plan = iota //
-
-	Personal   // personal
-	Basic      // basic
-	Team       // teamMonthly
-	Enterprise // enterprise
-	Comped     // comped
-)
-
-func planFromString(s string) (plan Plan, err error) {
-	switch s {
-	case emptyPlan.String():
-		plan = emptyPlan
-	case Personal.String():
-		plan = Personal
-	case Basic.String():
-		plan = Basic
-	case Team.String():
-		plan = Team
-	case Enterprise.String():
-		plan = Enterprise
-	case Comped.String():
-		plan = Comped
-	default:
-		err = fmt.Errorf("unknown plan %q", s)
-	}
-
-	return plan, err
-}
-
-// MarshalJSON implements [json.Marshaler]. It is in place to marshal the plan
-// to its string representation because that's what the server expects.
-func (p Plan) MarshalJSON() ([]byte, error) {
-	return json.Marshal(p.String())
-}
-
-// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// plan from the string representation the server returns.
-func (p *Plan) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	*p, err = planFromString(s)
-
-	return err
-}
+//go:generate go run golang.org/x/tools/cmd/stringer -type=PaymentStatus -linecomment -output=orgs_string.go
 
 // PaymentStatus represents the payment status of an [Organization].
 type PaymentStatus uint8
@@ -135,7 +81,7 @@ type License struct {
 	// ExpiresAt is the time the license expires.
 	ExpiresAt time.Time `json:"expiresAt"`
 	// Plan associated with the license.
-	Plan Plan `json:"tier"`
+	Plan string `json:"tier"`
 	// MonthlyIngestGB is the monthly amount of data in gigabytes that can be
 	// ingested as part of the license.
 	MonthlyIngestGB uint64 `json:"monthlyIngestGb"`
@@ -199,7 +145,7 @@ type Organization struct {
 	// Trial describes if the plan is trialed or not.
 	Trial bool `json:"inTrial"`
 	// Plan the organization is on.
-	Plan Plan `json:"plan"`
+	Plan string `json:"plan"`
 	// PlanCreated is the time the plan was created.
 	PlanCreated time.Time `json:"planCreated"`
 	// LastUsageSync is the last time the usage instance usage statistics were
