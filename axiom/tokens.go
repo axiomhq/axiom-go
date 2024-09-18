@@ -98,6 +98,15 @@ type DatasetCapabilities struct {
 	// VirtualFields is the VirtualFields capability and the actions that can be
 	// performed on them.
 	VirtualFields []Action `json:"virtualFields"`
+	// Trim is the trim capability and the actions that can be performed on
+	// them.
+	Trim []Action `json:"trim"`
+	// Vacuum is the vacuum capability and the actions that can be performed on
+	// them.
+	Vacuum []Action `json:"vacuum"`
+	// Data is the data capability and the actions that can be performed on
+	// them.
+	Data []Action `json:"data"`
 }
 
 // OrganisationCapabilities represents the capabilities available to a token for
@@ -109,6 +118,9 @@ type OrganisationCapabilities struct {
 	// APITokens is the APITokens capability and the actions that can be
 	// performed on them.
 	APITokens []Action `json:"apiTokens,omitempty"`
+	// AuditLog is the AuditLog capability and the actions that can be
+	// performed on it.
+	AuditLog []Action `json:"auditLog,omitempty"`
 	// Billing is the Billing capability and the actions that can be performed
 	// on them.
 	Billing []Action `json:"billing,omitempty"`
