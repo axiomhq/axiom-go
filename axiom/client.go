@@ -130,7 +130,7 @@ func NewClient(options ...Option) (*Client, error) {
 	}
 
 	client.Datasets = &DatasetsService{client: client, basePath: "/v2/datasets"}
-	client.Organizations = &OrganizationsService{client: client, basePath: "/v1/orgs"}
+	client.Organizations = &OrganizationsService{client: client, basePath: "/v2/orgs"}
 	client.Users = &UsersService{client: client, basePath: "/v2/users"}
 	client.Monitors = &MonitorsService{client: client, basePath: "/v2/monitors"}
 	client.Notifiers = &NotifiersService{client: client, basePath: "/v2/notifiers"}
