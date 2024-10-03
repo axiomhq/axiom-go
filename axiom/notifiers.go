@@ -73,8 +73,6 @@ type OpsGenieConfig struct {
 type PagerDutyConfig struct {
 	// RoutingKey is the routing key to use for authentication.
 	RoutingKey string `json:"routingKey,omitempty"`
-	// Token is the token to use for authentication.
-	Token string `json:"token,omitempty"`
 }
 
 type SlackConfig struct {
