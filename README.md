@@ -10,11 +10,6 @@
 </a>
 &nbsp;
 
-[![Go Reference][gopkg_badge]][gopkg]
-[![Workflow][workflow_badge]][workflow]
-[![Latest Release][release_badge]][release]
-[![License][license_badge]][license]
-
 The Axiom Go SDK allows you to send data from a Go app to Axiom.
 
 ## Documentation
