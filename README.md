@@ -17,8 +17,6 @@
 
 The Axiom Go SDK allows you to send data from a Go app to Axiom.
 
-## Documentation
-
 For more information about how to set up and use the Axiom Go SDK, see the [Axiom documentation](https://axiom.co/docs/guides/go).
 
 <!-- Badges -->
