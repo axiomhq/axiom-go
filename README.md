@@ -1,4 +1,6 @@
-{/* Keep this page in sync with https://github.com/axiomhq/docs/blob/main/guides/go.mdx */}
+<!---
+Keep this page in sync with https://github.com/axiomhq/docs/blob/main/guides/go.mdx */}
+-->
 
 # axiom-go
 
