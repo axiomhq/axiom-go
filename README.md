@@ -1,4 +1,6 @@
-# Axiom Go SDK
+{/* Keep this page in sync with https://github.com/axiomhq/docs/blob/main/guides/go.mdx */}
+
+# axiom-go
 
 <a href="https://axiom.co">
 <picture>
@@ -15,9 +17,89 @@
 [![Latest Release][release_badge]][release]
 [![License][license_badge]][license]
 
-The Axiom Go SDK allows you to send data from a Go app to Axiom.
+## Prerequisites
 
-For more information about how to set up and use the Axiom Go SDK, see the [Axiom documentation](https://axiom.co/docs/guides/go).
+- [Create an Axiom account](https://app.axiom.co/register).
+- [Create a dataset in Axiom](https://axiom.co/docs/reference/datasets) where you send your data.
+- [Create an API token in Axiom](https://axiom.co/docs/reference/tokens) with permissions to update the dataset you have created.
+
+## Install SDK
+
+To install the SDK, run the following:
+
+```shell
+go get github.com/axiomhq/axiom-go/axiom
+```
+
+Import the package:
+
+```go
+import "github.com/axiomhq/axiom-go/axiom"
+```
+
+If you use the [Axiom CLI](https://axiom.co/docs/reference/cli), run `eval $(axiom config export -f)` to configure your environment variables. Otherwise, [create an API token](https://axiom.co/docs/reference/tokens) and export it as `AXIOM_TOKEN`.
+
+Alternatively, configure the client using [options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option) passed to the `axiom.NewClient` function:
+
+```go
+client, err := axiom.NewClient(
+    axiom.SetPersonalTokenConfig("AXIOM_TOKEN"),
+)
+```
+
+## Use client
+
+Create and use a client in the following way:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/axiomhq/axiom-go/axiom"
+    "github.com/axiomhq/axiom-go/axiom/ingest"
+)
+
+func main() {
+    ctx := context.Background()
+
+    client, err := axiom.NewClient()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if _, err = client.IngestEvents(ctx, "my-dataset", []axiom.Event{
+        {ingest.TimestampField: time.Now(), "foo": "bar"},
+        {ingest.TimestampField: time.Now(), "bar": "foo"},
+    }); err != nil {
+        log.Fatal(err)
+    }
+
+    res, err := client.Query(ctx, "['my-dataset'] | where foo == 'bar' | limit 100")
+    if err != nil {
+        log.Fatal(err)
+    } else if res.Status.RowsMatched == 0 {
+        log.Fatal("No matches found")
+    }
+
+    rows := res.Tables[0].Rows()
+    if err := rows.Range(ctx, func(_ context.Context, row query.Row) error {
+        _, err := fmt.Println(row)
+        return err
+    }); err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+For more examples, see the [examples folder](https://github.com/axiomhq/axiom-go/tree/main/examples).
+
+## Adapters
+
+To use a logging package, see the [adapters folder](https://github.com/axiomhq/axiom-go/tree/main/adapters).
 
 <!-- Badges -->
 
