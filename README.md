@@ -1,3 +1,7 @@
+<!---
+Keep this page in sync with https://github.com/axiomhq/docs/blob/main/guides/go.mdx
+-->
+
 # axiom-go
 
 <a href="https://axiom.co">
@@ -33,9 +37,15 @@ For more information check out the
 [official documentation](https://axiom.co/docs) and our
 [community Discord](https://axiom.co/discord).
 
-## Quickstart
+## Prerequisites
 
-Install using `go get`:
+- [Create an Axiom account](https://app.axiom.co/register).
+- [Create a dataset in Axiom](https://axiom.co/docs/reference/datasets) where you send your data.
+- [Create an API token in Axiom](https://axiom.co/docs/reference/tokens) with permissions to update the dataset you have created.
+
+## Install SDK
+
+To install the SDK, run the following:
 
 ```shell
 go get github.com/axiomhq/axiom-go/axiom
@@ -47,33 +57,19 @@ Import the package:
 import "github.com/axiomhq/axiom-go/axiom"
 ```
 
-If you use the [Axiom CLI](https://github.com/axiomhq/cli), run
-`eval $(axiom config export -f)` to configure your environment variables.
+If you use the [Axiom CLI](https://axiom.co/docs/reference/cli), run `eval $(axiom config export -f)` to configure your environment variables. Otherwise, [create an API token](https://axiom.co/docs/reference/tokens) and export it as `AXIOM_TOKEN`.
 
-Otherwise create a personal token in [the Axiom settings](https://app.axiom.co/profile)
-and export it as `AXIOM_TOKEN`. Set `AXIOM_ORG_ID` to the organization ID from
-the settings page of the organization you want to access.
-
-> [!NOTE]
-> The organization ID is the slug below your organizations full name in [the Axiom settings](https://app.axiom.co/profile) which resembles the full name. It has a copy button next to it. Alternatively you can just extract it from your browsers address bar when browsing the Axiom App: `https://app.dev.axiomtestlabs.co/<your-org-id>/datasets`.
-
-You can also configure the client using [options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option)
-passed to the `axiom.NewClient` function:
+Alternatively, configure the client using [options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option) passed to the `axiom.NewClient` function:
 
 ```go
 client, err := axiom.NewClient(
-    axiom.SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
+    axiom.SetPersonalTokenConfig("AXIOM_TOKEN"),
 )
 ```
 
-> [!NOTE]
-> When only performing **ingest** or **query** operations, we recommend using
-an API token with minimal privileges, only! Create an API token with the
-appropriate scopes in
-[the Axiom API tokens settings](https://app.axiom.co/settings/api-tokens) and
-export it as `AXIOM_TOKEN`.
+## Use client
 
-Create and use a client like this:
+Create and use a client in the following way:
 
 ```go
 package main
@@ -94,7 +90,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    
+
     if _, err = client.IngestEvents(ctx, "my-dataset", []axiom.Event{
         {ingest.TimestampField: time.Now(), "foo": "bar"},
         {ingest.TimestampField: time.Now(), "bar": "foo"},
@@ -119,15 +115,11 @@ func main() {
 }
 ```
 
-For further examples, head over to the [examples](examples) directory.
+For more examples, see the [examples folder](https://github.com/axiomhq/axiom-go/tree/main/examples).
 
-If you want to use a logging package, check if there is already an adapter in
-the [adapters](adapters) directory. We happily accept contributions for new
-adapters.
+## Adapters
 
-## License
-
-Distributed under the [MIT License](LICENSE).
+To use a logging package, see the [adapters folder](https://github.com/axiomhq/axiom-go/tree/main/adapters).
 
 <!-- Badges -->
 
