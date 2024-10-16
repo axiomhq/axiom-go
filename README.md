@@ -17,6 +17,24 @@
 [![Latest Release][release_badge]][release]
 [![License][license_badge]][license]
 
+[Axiom](https://axiom.co) unlocks observability at any scale.
+
+- **Ingest with ease, store without limits:** Axiom's next-generation datastore
+  enables ingesting petabytes of data with ultimate efficiency. Ship logs from
+  Kubernetes, AWS, Azure, Google Cloud, DigitalOcean, Nomad, and others.
+- **Query everything, all the time:** Whether DevOps, SecOps, or EverythingOps,
+  query all your data no matter its age. No provisioning, no moving data from
+  cold/archive to "hot", and no worrying about slow queries. All your data, all.
+  the. time.
+- **Powerful dashboards, for continuous observability:** Build dashboards to
+  collect related queries and present information that's quick and easy to
+  digest for you and your team. Dashboards can be kept private or shared with
+  others, and are the perfect way to bring together data from different sources.
+
+For more information check out the
+[official documentation](https://axiom.co/docs) and our
+[community Discord](https://axiom.co/discord).
+
 ## Prerequisites
 
 - [Create an Axiom account](https://app.axiom.co/register).
