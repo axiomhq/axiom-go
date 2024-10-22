@@ -40,6 +40,7 @@ import (
 // ...
 
 core, err := adapter.New(
+    adapter.SetDataset("AXIOM_DATASET"),
     adapter.SetClientOptions(
         axiom.SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
     ),
