@@ -1,79 +1,10 @@
-# axiom-go
+# axiom-go [![Go Reference][gopkg_badge]][gopkg] [![Workflow][workflow_badge]][workflow] [![Latest Release][release_badge]][release] [![License][license_badge]][license]
 
-<a href="https://axiom.co">
-<picture>
-  <source media="(prefers-color-scheme: dark) and (min-width: 600px)" srcset="https://axiom.co/assets/github/axiom-github-banner-light-vertical.svg">
-  <source media="(prefers-color-scheme: light) and (min-width: 600px)" srcset="https://axiom.co/assets/github/axiom-github-banner-dark-vertical.svg">
-  <source media="(prefers-color-scheme: dark) and (max-width: 599px)" srcset="https://axiom.co/assets/github/axiom-github-banner-light-horizontal.svg">
-  <img alt="Axiom.co banner" src="https://axiom.co/assets/github/axiom-github-banner-dark-horizontal.svg" align="right">
-</picture>
-</a>
-&nbsp;
-
-[![Go Reference][gopkg_badge]][gopkg]
-[![Workflow][workflow_badge]][workflow]
-[![Latest Release][release_badge]][release]
-[![License][license_badge]][license]
-
-[Axiom](https://axiom.co) unlocks observability at any scale.
-
-- **Ingest with ease, store without limits:** Axiom's next-generation datastore
-  enables ingesting petabytes of data with ultimate efficiency. Ship logs from
-  Kubernetes, AWS, Azure, Google Cloud, DigitalOcean, Nomad, and others.
-- **Query everything, all the time:** Whether DevOps, SecOps, or EverythingOps,
-  query all your data no matter its age. No provisioning, no moving data from
-  cold/archive to "hot", and no worrying about slow queries. All your data, all.
-  the. time.
-- **Powerful dashboards, for continuous observability:** Build dashboards to
-  collect related queries and present information that's quick and easy to
-  digest for you and your team. Dashboards can be kept private or shared with
-  others, and are the perfect way to bring together data from different sources.
-
-For more information check out the
-[official documentation](https://axiom.co/docs) and our
-[community Discord](https://axiom.co/discord).
 
 ## Quickstart
 
-Install using `go get`:
-
-```shell
-go get github.com/axiomhq/axiom-go/axiom
-```
-
-Import the package:
-
-```go
-import "github.com/axiomhq/axiom-go/axiom"
-```
-
 If you use the [Axiom CLI](https://github.com/axiomhq/cli), run
 `eval $(axiom config export -f)` to configure your environment variables.
-
-Otherwise create a personal token in [the Axiom settings](https://app.axiom.co/profile)
-and export it as `AXIOM_TOKEN`. Set `AXIOM_ORG_ID` to the organization ID from
-the settings page of the organization you want to access.
-
-> [!NOTE]
-> The organization ID is the slug below your organizations full name in [the Axiom settings](https://app.axiom.co/profile) which resembles the full name. It has a copy button next to it. Alternatively you can just extract it from your browsers address bar when browsing the Axiom App: `https://app.dev.axiomtestlabs.co/<your-org-id>/datasets`.
-
-You can also configure the client using [options](https://pkg.go.dev/github.com/axiomhq/axiom-go/axiom#Option)
-passed to the `axiom.NewClient` function:
-
-```go
-client, err := axiom.NewClient(
-    axiom.SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
-)
-```
-
-> [!NOTE]
-> When only performing **ingest** or **query** operations, we recommend using
-an API token with minimal privileges, only! Create an API token with the
-appropriate scopes in
-[the Axiom API tokens settings](https://app.axiom.co/settings/api-tokens) and
-export it as `AXIOM_TOKEN`.
-
-Create and use a client like this:
 
 ```go
 package main
@@ -90,7 +21,11 @@ import (
 func main() {
     ctx := context.Background()
 
-    client, err := axiom.NewClient()
+    client, err := axiom.NewClient(
+        // If you don't want to configure your client using the environment,
+        // pass credentials explicitly:
+        // axiom.SetPersonalTokenConfig("AXIOM_TOKEN", "AXIOM_ORG_ID"),
+    )
     if err != nil {
         log.Fatal(err)
     }
@@ -125,9 +60,20 @@ If you want to use a logging package, check if there is already an adapter in
 the [adapters](adapters) directory. We happily accept contributions for new
 adapters.
 
+
+## Install
+
+```shell
+go get github.com/axiomhq/axiom-go
+```
+
+## Documentation
+
+Read documentation on [axiom.co/docs/guides/go](https://axiom.co/docs/guides/go).
+
 ## License
 
-Distributed under the [MIT License](LICENSE).
+[MIT](LICENSE)
 
 <!-- Badges -->
 
