@@ -1,8 +1,5 @@
 # axiom-go [![Go Reference][gopkg_badge]][gopkg] [![Workflow][workflow_badge]][workflow] [![Latest Release][release_badge]][release] [![License][license_badge]][license]
 
-
-## Quickstart
-
 If you use the [Axiom CLI](https://github.com/axiomhq/cli), run
 `eval $(axiom config export -f)` to configure your environment variables.
 
