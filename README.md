@@ -13,6 +13,11 @@ import (
 func main() {
     ctx := context.Background()
 
+    client, err := axiom.NewClient()
+    if err != nil {
+        log.Fatal(err)
+    }
+
     if _, err = client.IngestEvents(ctx, "my-dataset", []axiom.Event{
         {"foo": "bar"},
         {"bar": "foo"},
