@@ -20,10 +20,7 @@ func main() {
 
     client, err := axiom.NewClient(
         // If you don't want to configure your client using the environment,
-        // pass credentials explicitly.
-        // Personal token:
-        // axiom.SetPersonalTokenConfig("xapt-xyz", "acme-1234"),
-        // API token:
+        // pass credentials explicitly:
         // axiom.SetToken("xaat-xyz"),
     )
     if err != nil {
