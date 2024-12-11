@@ -13,3 +13,4 @@ We currently support a bunch of adapters right out of the box.
 * [Apex](https://github.com/apex/log): `import adapter "github.com/axiomhq/axiom-go/adapters/apex"`
 * [Logrus](https://github.com/sirupsen/logrus): `import adapter "github.com/axiomhq/axiom-go/adapters/logrus"`
 * [Zap](https://github.com/uber-go/zap): `import adapter "github.com/axiomhq/axiom-go/adapters/zap"`
+* [Zerolog](https://github.com/rs/zerolog): `import adapter "github.com/axiomhq/axiom-go/adapters/zerolog"`
