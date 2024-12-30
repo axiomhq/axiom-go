@@ -21,7 +21,7 @@ function:
 
 ```go
 writer, err := adapter.New(
-    WithDatasetName("logs"),
+    adapter.SetDataset("logs"),
 )
 l.Logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Timestamp().Logger()
 ```
