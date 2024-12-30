@@ -23,7 +23,7 @@ function:
 writer, err := adapter.New(
     WithDatasetName("logs"),
 )
-l.Logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Str("env", os.Getenv("ENV")).Timestamp().Logger()
+l.Logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Timestamp().Logger()
 ```
 
 To configure the underlying client manually either pass in a client that was
@@ -43,7 +43,7 @@ writer, err := adapter.New()
 if err != nil {
     log.Fatal(err)
 }
-l.Logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Str("env", os.Getenv("ENV")).Timestamp().Logger()
+l.Logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Timestamp().Logger()
 ```
 
 > [!IMPORTANT]
