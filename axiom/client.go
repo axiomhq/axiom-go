@@ -99,6 +99,7 @@ type Client struct {
 	Notifiers     *NotifiersService
 	Annotations   *AnnotationsService
 	Tokens        *TokensService
+	VirtualFields *VirtualFieldsService
 }
 
 // NewClient returns a new Axiom API client. It automatically takes its
@@ -136,6 +137,7 @@ func NewClient(options ...Option) (*Client, error) {
 	client.Notifiers = &NotifiersService{client: client, basePath: "/v2/notifiers"}
 	client.Annotations = &AnnotationsService{client: client, basePath: "/v2/annotations"}
 	client.Tokens = &TokensService{client: client, basePath: "/v2/tokens"}
+	client.VirtualFields = &VirtualFieldsService{client: client, basePath: "/v2/vfields"}
 
 	// Apply supplied options.
 	if err := client.Options(options...); err != nil {
