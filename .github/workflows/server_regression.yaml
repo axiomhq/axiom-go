@@ -51,5 +51,5 @@ jobs:
       - name: Cleanup (On Test Failure)
         if: failure()
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.10.0 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
+          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.14.0 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
