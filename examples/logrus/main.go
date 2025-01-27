@@ -37,6 +37,6 @@ func main() {
 
 	// 6. Log ⚡
 	logger.WithField("mood", "hyped").Info("This is awesome!")
-	logger.WithField("mood", "worried").Warn("This is no that awesome...")
+	logger.WithField("mood", "worried").Warn("This is not that awesome...")
 	logger.WithField("mood", "depressed").Error("This is rather bad.")
 }

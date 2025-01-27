@@ -25,7 +25,7 @@ func Test(t *testing.T) {
 		logger := slog.New(handler)
 
 		logger.Info("This is awesome!", slog.String("mood", "hyped"))
-		logger.Warn("This is no that awesome...", slog.String("mood", "worried"))
+		logger.Warn("This is not that awesome...", slog.String("mood", "worried"))
 		logger.Error("This is rather bad.", slog.String("mood", "depressed"))
 	})
 }

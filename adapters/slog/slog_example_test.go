@@ -19,6 +19,6 @@ func Example() {
 	logger := slog.New(handler)
 
 	logger.Info("This is awesome!", "mood", "hyped")
-	logger.With("mood", "worried").Warn("This is no that awesome...")
+	logger.With("mood", "worried").Warn("This is not that awesome...")
 	logger.Error("This is rather bad.", slog.String("mood", "depressed"))
 }

@@ -24,6 +24,6 @@ func Example() {
 	}()
 
 	logger.Info("This is awesome!", zap.String("mood", "hyped"))
-	logger.Warn("This is no that awesome...", zap.String("mood", "worried"))
+	logger.Warn("This is not that awesome...", zap.String("mood", "worried"))
 	logger.Error("This is rather bad.", zap.String("mood", "depressed"))
 }

@@ -18,6 +18,6 @@ func Example() {
 	log.SetHandler(handler)
 
 	log.WithField("mood", "hyped").Info("This is awesome!")
-	log.WithField("mood", "worried").Warn("This is no that awesome...")
+	log.WithField("mood", "worried").Warn("This is not that awesome...")
 	log.WithField("mood", "depressed").Error("This is rather bad.")
 }
