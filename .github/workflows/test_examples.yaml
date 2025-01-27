@@ -46,24 +46,24 @@ jobs:
         include:
           - example: apex
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 3'
           - example: ingestevent
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 2'
           - example: ingestfile
             setup: |
-              echo '[{"timestamp":"1668773301","mood":"hyped","msg":"This is awesome!"}]' >> logs.json
+              echo '[{"timestamp":"'$(date +%s)'","mood":"hyped","msg":"This is awesome!"}]' >> logs.json
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 1 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 1'
           - example: logrus
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 3'
           - example: otelinstrument
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . >= 1 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. >= 1'
           - example: oteltraces
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 2 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 2'
           - example: query
             setup: |
               echo '[{"mood":"hyped","msg":"This is awesome!"}]' >> logs.json
@@ -76,13 +76,13 @@ jobs:
               sleep 5
           - example: slog
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 3'
           - example: zap
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 3'
           - example: zerolog
             verify: |
-              axiom dataset info $AXIOM_DATASET -f=json | jq -e 'any( .numEvents ; . == 3 )'
+              axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 3'
     env:
       AXIOM_URL: ${{ secrets.TESTING_STAGING_API_URL }}
       AXIOM_TOKEN: ${{ secrets.TESTING_STAGING_TOKEN }}
