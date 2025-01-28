@@ -81,6 +81,9 @@ type APIToken struct {
 	// OrganisationCapabilities is the organisation capabilities available to
 	// the token.
 	OrganisationCapabilities OrganisationCapabilities `json:"orgCapabilities"`
+	// SAMLAuthenticated is a flag that determines whether the token can access
+	// a SAML authenticated org
+	SAMLAuthenticated bool `json:"samlAuthenticated"`
 }
 
 // DatasetCapabilities represents the capabilities available to a token for a
@@ -107,6 +110,9 @@ type DatasetCapabilities struct {
 	// Data is the data capability and the actions that can be performed on
 	// them.
 	Data []Action `json:"data"`
+	// Share is the share capability and the actions that can be performed on
+	// them.
+	Share []Action `json:"share"`
 }
 
 // OrganisationCapabilities represents the capabilities available to a token for
@@ -154,6 +160,9 @@ type OrganisationCapabilities struct {
 	// Users is the Users capability and the actions that can be performed on
 	// them.
 	Users []Action `json:"users,omitempty"`
+	// Views is the view capability and the actions that can be performed on
+	// them.
+	Views []Action `json:"views,omitempty"`
 }
 
 // CreateTokenRequest is the request payload for creating a new token with the

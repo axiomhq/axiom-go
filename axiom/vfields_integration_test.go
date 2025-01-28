@@ -37,7 +37,7 @@ func (s *VirtualFieldsTestSuite) SetupTest() {
 	var err error
 	s.vfield, err = s.client.VirtualFields.Create(s.ctx, axiom.VirtualField{
 		Dataset:    "test-dataset",
-		Name:       "Test Field",
+		Name:       "TestField",
 		Expression: "a + b",
 		Type:       "number",
 	})
@@ -61,7 +61,7 @@ func (s *VirtualFieldsTestSuite) Test() {
 	// Update the virtual field.
 	vfield, err := s.client.VirtualFields.Update(s.ctx, s.vfield.ID, axiom.VirtualField{
 		Dataset:    "test-dataset",
-		Name:       "Updated Test Field",
+		Name:       "UpdatedTestField",
 		Expression: "a - b",
 		Type:       "number",
 	})
@@ -89,7 +89,7 @@ func (s *VirtualFieldsTestSuite) TestCreateAndDeleteVirtualField() {
 	// Create a new virtual field.
 	vfield, err := s.client.VirtualFields.Create(s.ctx, axiom.VirtualField{
 		Dataset:    "test-dataset",
-		Name:       "New Test Field",
+		Name:       "NewTestField",
 		Expression: "x * y",
 		Type:       "number",
 	})

@@ -13,11 +13,12 @@ func _() {
 	_ = x[BelowOrEqual-2]
 	_ = x[Above-3]
 	_ = x[AboveOrEqual-4]
+	_ = x[AboveOrBelow-5]
 }
 
-const _Operator_name = "BelowBelowOrEqualAboveAboveOrEqual"
+const _Operator_name = "BelowBelowOrEqualAboveAboveOrEqualAboveOrBelow"
 
-var _Operator_index = [...]uint8{0, 0, 5, 17, 22, 34}
+var _Operator_index = [...]uint8{0, 0, 5, 17, 22, 34, 46}
 
 func (i Operator) String() string {
 	if i >= Operator(len(_Operator_index)-1) {
