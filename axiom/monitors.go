@@ -26,6 +26,7 @@ const (
 	BelowOrEqual // BelowOrEqual
 	Above        // Above
 	AboveOrEqual // AboveOrEqual
+	AboveOrBelow // AboveOrBelow
 )
 
 func operatorFromString(s string) (c Operator, err error) {
@@ -40,6 +41,8 @@ func operatorFromString(s string) (c Operator, err error) {
 		c = Above
 	case AboveOrEqual.String():
 		c = AboveOrEqual
+	case AboveOrBelow.String():
+		c = AboveOrBelow
 	default:
 		err = fmt.Errorf("unknown operator %q", s)
 	}
