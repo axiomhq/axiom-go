@@ -91,6 +91,8 @@ func (s *VirtualFieldsService) Create(ctx context.Context, req VirtualField) (*V
 func (s *VirtualFieldsService) Update(ctx context.Context, id string, req VirtualField) (*VirtualFieldWithID, error) {
 	ctx, span := s.client.trace(ctx, "VirtualFields.Update", trace.WithAttributes(
 		attribute.String("axiom.virtual_field_id", id),
+		attribute.String("axiom.param.dataset", req.Dataset),
+		attribute.String("axiom.param.name", req.Name),
 	))
 	defer span.End()
 
