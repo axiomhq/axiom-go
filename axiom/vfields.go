@@ -36,7 +36,7 @@ type VirtualFieldsService service
 // List all virtual fields for a given dataset.
 func (s *VirtualFieldsService) List(ctx context.Context, dataset string) ([]*VirtualFieldWithID, error) {
 	ctx, span := s.client.trace(ctx, "VirtualFields.List", trace.WithAttributes(
-		attribute.String("axiom.param.dataset", dataset),
+		attribute.String("axiom.dataset_id", dataset),
 	))
 	defer span.End()
 
