@@ -40,11 +40,17 @@ func (s *VirtualFieldsService) List(ctx context.Context, dataset string) ([]*Vir
 	))
 	defer span.End()
 
-	params := url.Values{}
-	params.Set("dataset", dataset)
+	path, err := AddURLOptions(s.basePath, struct {
+		Dataset string `url:"dataset"`
+	}{
+		Dataset: dataset,
+	})
+	if err != nil {
+		return nil, spanError(span, err)
+	}
 
 	var res []*VirtualFieldWithID
-	if err := s.client.Call(ctx, http.MethodGet, s.basePath+"?"+params.Encode(), nil, &res); err != nil {
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 

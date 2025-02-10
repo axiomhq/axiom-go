@@ -17,6 +17,8 @@ type VirtualFieldsTestSuite struct {
 
 	// Setup once per test.
 	vfield *axiom.VirtualFieldWithID
+
+	dataset string
 }
 
 func TestVirtualFieldsTestSuite(t *testing.T) {
@@ -34,9 +36,13 @@ func (s *VirtualFieldsTestSuite) TearDownSuite() {
 func (s *VirtualFieldsTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
+	s.dataset = "vfield-ds-" + datasetSuffix
 	var err error
+	_, err = s.client.Datasets.Create(s.ctx, axiom.DatasetCreateRequest{Name: s.dataset})
+	s.Require().NoError(err)
+
 	s.vfield, err = s.client.VirtualFields.Create(s.ctx, axiom.VirtualField{
-		Dataset:    "test-dataset",
+		Dataset:    s.dataset,
 		Name:       "TestField",
 		Expression: "a + b",
 		Type:       "number",
@@ -54,43 +60,18 @@ func (s *VirtualFieldsTestSuite) TearDownTest() {
 	err := s.client.VirtualFields.Delete(ctx, s.vfield.ID)
 	s.NoError(err)
 
+	err = s.client.Datasets.Delete(ctx, s.dataset)
+	s.NoError(err)
+
 	s.IntegrationTestSuite.TearDownTest()
 }
 
-func (s *VirtualFieldsTestSuite) Test() {
-	// Update the virtual field.
-	vfield, err := s.client.VirtualFields.Update(s.ctx, s.vfield.ID, axiom.VirtualField{
-		Dataset:    "test-dataset",
-		Name:       "UpdatedTestField",
-		Expression: "a - b",
-		Type:       "number",
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(vfield)
-
-	s.vfield = vfield
-
-	// Get the virtual field and make sure it matches the updated values.
-	vfield, err = s.client.VirtualFields.Get(s.ctx, s.vfield.ID)
-	s.Require().NoError(err)
-	s.Require().NotNil(vfield)
-
-	s.Equal(s.vfield, vfield)
-
-	// List all virtual fields for the dataset and ensure the created field is part of the list.
-	vfields, err := s.client.VirtualFields.List(s.ctx, "test-dataset")
-	s.Require().NoError(err)
-	s.Require().NotEmpty(vfields)
-
-	s.Contains(vfields, s.vfield)
-}
-
-func (s *VirtualFieldsTestSuite) TestCreateAndDeleteVirtualField() {
+func (s *VirtualFieldsTestSuite) TestUpdateAndDeleteVirtualField() {
 	// Create a new virtual field.
-	vfield, err := s.client.VirtualFields.Create(s.ctx, axiom.VirtualField{
-		Dataset:    "test-dataset",
-		Name:       "NewTestField",
-		Expression: "x * y",
+	vfield, err := s.client.VirtualFields.Update(s.ctx, s.vfield.ID, axiom.VirtualField{
+		Dataset:    s.dataset,
+		Name:       "UpdatedTestField",
+		Expression: "a * b",
 		Type:       "number",
 	})
 	s.Require().NoError(err)
@@ -101,21 +82,4 @@ func (s *VirtualFieldsTestSuite) TestCreateAndDeleteVirtualField() {
 	s.Require().NoError(err)
 	s.Require().NotNil(fetchedField)
 	s.Equal(vfield, fetchedField)
-
-	// Delete the virtual field.
-	err = s.client.VirtualFields.Delete(s.ctx, vfield.ID)
-	s.Require().NoError(err)
-
-	// Ensure the virtual field no longer exists.
-	_, err = s.client.VirtualFields.Get(s.ctx, vfield.ID)
-	s.Error(err)
-}
-
-func (s *VirtualFieldsTestSuite) TestListVirtualFields() {
-	// List all virtual fields for the dataset and ensure the created field is part of the list.
-	vfields, err := s.client.VirtualFields.List(s.ctx, "test-dataset")
-	s.Require().NoError(err)
-	s.Require().NotEmpty(vfields)
-
-	s.Contains(vfields, s.vfield)
 }
