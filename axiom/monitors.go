@@ -247,6 +247,7 @@ func (s *MonitorsService) Create(ctx context.Context, req MonitorCreateRequest) 
 func (s *MonitorsService) Update(ctx context.Context, id string, req MonitorUpdateRequest) (*Monitor, error) {
 	ctx, span := s.client.trace(ctx, "Monitors.Update", trace.WithAttributes(
 		attribute.String("axiom.monitor_id", id),
+		attribute.String("axiom.param.name", req.Name),
 		attribute.String("axiom.param.description", req.Description),
 	))
 	defer span.End()
