@@ -212,7 +212,7 @@ func (s *OrganizationsService) List(ctx context.Context) ([]*Organization, error
 // Get an organization by id.
 func (s *OrganizationsService) Get(ctx context.Context, id string) (*Organization, error) {
 	ctx, span := s.client.trace(ctx, "Organizations.Get", trace.WithAttributes(
-		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.organization_id", id),
 	))
 	defer span.End()
 
