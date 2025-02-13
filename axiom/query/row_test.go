@@ -1,7 +1,3 @@
-//go:build go1.23
-
-// TODO(lukasmalkmus): Once Go 1.24 is released, remove the build constraint.
-
 package query_test
 
 import (
