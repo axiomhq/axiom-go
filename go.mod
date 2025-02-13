@@ -1,6 +1,6 @@
 module github.com/axiomhq/axiom-go
 
-go 1.22.1
+go 1.23
 
 require (
 	github.com/apex/log v1.9.0

@@ -2,6 +2,7 @@ package query
 
 import (
 	"encoding/json"
+	"iter"
 	"time"
 )
 
@@ -41,6 +42,11 @@ type Table struct {
 	// [Column] at index 0 has the values for the [Field] at index 0). In case
 	// of sub-groups, rows will repeat the group value.
 	Columns []Column `json:"columns"`
+}
+
+// Rows returns an iterator over the rows build from the columns in the table.
+func (t Table) Rows() iter.Seq[Row] {
+	return Rows(t.Columns)
 }
 
 // Source that was consulted in order to create a [Table].
@@ -100,6 +106,17 @@ type Buckets struct {
 
 // Column in a [Table] containing the raw values of a [Field].
 type Column []any
+
+// Values returns an iterator over the values of the column.
+func (c Column) Values() iter.Seq[any] {
+	return func(yield func(any) bool) {
+		for _, v := range c {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
 
 // Status of an APL query [Result].
 type Status struct {
