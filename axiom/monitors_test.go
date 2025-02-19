@@ -37,11 +37,11 @@ func TestMonitorsService_List(t *testing.T) {
 			"description": "test",
 			"disabledUntil": "2024-03-12T18:43:37Z",
 			"id": "test",
-			"IntervalMinutes": 0,
+			"intervalMinutes": 0,
 			"name": "test",
-			"NotifierIDs": null,
+			"notifierIDs": null,
 			"operator": "Above",
-			"RangeMinutes": 1,
+			"rangeMinutes": 1,
 			"threshold": 1
 		}]`)
 		assert.NoError(t, err)
@@ -78,11 +78,11 @@ func TestMonitorsService_Get(t *testing.T) {
 			"aplQuery": "['dataset'] | summarize count() by bin_auto(_time)",
 			"description": "test",
 			"id": "testID",
-			"IntervalMinutes": 0,
+			"intervalMinutes": 0,
 			"name": "test",
-			"NotifierIDs": null,
+			"notifierIDs": null,
 			"operator": "Above",
-			"RangeMinutes": 1,
+			"rangeMinutes": 1,
 			"threshold": 1,
 			"type": "Threshold"
 		}`)
@@ -120,11 +120,11 @@ func TestMonitorsService_Create(t *testing.T) {
 			"aplQuery": "['dataset'] | summarize count() by bin_auto(_time)",
 			"description": "test",
 			"id": "testID",
-			"IntervalMinutes": 0,
+			"intervalMinutes": 0,
 			"name": "test",
-			"NotifierIDs": null,
+			"notifierIDs": null,
 			"operator": "Above",
-			"RangeMinutes": 1,
+			"rangeMinutes": 1,
 			"threshold": 1
 		}`)
 		assert.NoError(t, err)
@@ -151,17 +151,25 @@ func TestMonitorsService_Create(t *testing.T) {
 
 func TestMonitorsService_Update(t *testing.T) {
 	exp := &Monitor{
-		AlertOnNoData: false,
-		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
-		Description:   "test",
-		DisabledUntil: parseTimeOrPanic("2024-05-12T18:43:37Z"),
-		ID:            "testID",
-		Interval:      0,
-		Name:          "test",
-		NotifierIDs:   nil,
-		Operator:      Above,
-		Range:         time.Minute,
-		Threshold:     1,
+		AlertOnNoData:                false,
+		APLQuery:                     "['dataset'] | summarize count() by bin_auto(_time)",
+		Description:                  "test",
+		DisabledUntil:                parseTimeOrPanic("2024-05-12T18:43:37Z"),
+		ID:                           "testID",
+		Interval:                     0,
+		Name:                         "newTest",
+		NotifierIDs:                  nil,
+		Operator:                     Above,
+		Range:                        time.Minute,
+		Threshold:                    1,
+		SecondDelay:                  10 * time.Second,
+		NotifyEveryRun:               true,
+		SkipResolved:                 false,
+		TriggerFromNRuns:             5,
+		TriggerAfterNPositiveResults: 3,
+		Type:                         MonitorTypeThreshold,
+		Tolerance:                    4,
+		CompareDays:                  8,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
@@ -174,12 +182,20 @@ func TestMonitorsService_Update(t *testing.T) {
 			"description": "test",
 			"disabledUntil": "2024-05-12T18:43:37Z",
 			"id": "testID",
-			"IntervalMinutes": 0,
-			"name": "test",
-			"NotifierIDs": null,
+			"intervalMinutes": 0,
+			"name": "newTest",
+			"notifierIDs": null,
 			"operator": "Above",
-			"RangeMinutes": 1,
-			"threshold": 1
+			"rangeMinutes": 1,
+			"threshold": 1,
+			"secondDelay": 10,
+			"notifyEveryRun": true,
+			"skipResolved": false,
+			"triggerFromNRuns": 5,
+			"triggerAfterNPositiveResults": 3,
+			"type": "Threshold",
+			"tolerance": 4,
+			"compareDays": 8
 		}`)
 		assert.NoError(t, err)
 	}
@@ -192,11 +208,12 @@ func TestMonitorsService_Update(t *testing.T) {
 		DisabledUntil: parseTimeOrPanic("2024-05-12T18:43:37Z"),
 		ID:            "testID",
 		Interval:      0,
-		Name:          "test",
+		Name:          "newTest",
 		NotifierIDs:   nil,
 		Operator:      Above,
 		Range:         time.Minute,
 		Threshold:     1,
+		SecondDelay:   10,
 	}})
 	require.NoError(t, err)
 

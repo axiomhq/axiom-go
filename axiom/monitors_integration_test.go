@@ -58,14 +58,19 @@ func (s *MonitorsTestSuite) SetupTest() {
 	var err error
 	s.monitor, err = s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
-			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
-			Description:   "A test monitor",
-			Interval:      time.Minute,
-			Name:          "Test Monitor",
-			Operator:      axiom.BelowOrEqual,
-			Range:         time.Minute * 5,
-			Threshold:     1,
+			AlertOnNoData:                false,
+			APLQuery:                     fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
+			Description:                  "A test monitor",
+			Interval:                     time.Minute,
+			Name:                         "Test Monitor",
+			Operator:                     axiom.BelowOrEqual,
+			Range:                        time.Minute * 5,
+			Threshold:                    1,
+			SecondDelay:                  10,
+			NotifyEveryRun:               true,
+			SkipResolved:                 false,
+			TriggerFromNRuns:             3,
+			TriggerAfterNPositiveResults: 2,
 		},
 	})
 	s.Require().NoError(err)
@@ -169,4 +174,25 @@ func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
 	s.False(monitor.Disabled, "monitor should be enabled")
+}
+
+func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
+	// Create the monitor
+	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			AlertOnNoData: false,
+			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin(_time, 5m)", s.datasetID),
+			Description:   "A very good test monitor",
+			Interval:      time.Minute,
+			Name:          "Test Monitor",
+			Operator:      axiom.Below,
+			Range:         time.Minute * 10,
+			Tolerance:     5,
+			CompareDays:   7,
+			Type:          axiom.MonitorTypeAnonalyDetection,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+	s.Equal(axiom.MonitorTypeAnonalyDetection.String(), monitor.Type.String())
 }
