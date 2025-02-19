@@ -213,11 +213,12 @@ func TestMonitorsService_Update(t *testing.T) {
 		Operator:      Above,
 		Range:         time.Minute,
 		Threshold:     1,
-		SecondDelay:   10,
+		SecondDelay:   10 * time.Second,
 	}})
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
+	assert.Equal(t, 10*time.Second, res.SecondDelay)
 }
 
 func TestMonitorsService_Delete(t *testing.T) {

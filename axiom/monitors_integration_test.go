@@ -66,7 +66,7 @@ func (s *MonitorsTestSuite) SetupTest() {
 			Operator:                     axiom.BelowOrEqual,
 			Range:                        time.Minute * 5,
 			Threshold:                    1,
-			SecondDelay:                  10,
+			SecondDelay:                  10 * time.Second,
 			NotifyEveryRun:               true,
 			SkipResolved:                 false,
 			TriggerFromNRuns:             3,
@@ -75,6 +75,7 @@ func (s *MonitorsTestSuite) SetupTest() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.monitor)
+	s.Equal(10*time.Second, s.monitor.SecondDelay)
 }
 
 func (s *MonitorsTestSuite) TearDownTest() {
