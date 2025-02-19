@@ -32,11 +32,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[MonitorTypeThreshold-0]
 	_ = x[MonitorTypeMatchEvent-1]
+	_ = x[MonitorTypeAnonalyDetection-2]
 }
 
-const _MonitorType_name = "ThresholdMatchEvent"
+const _MonitorType_name = "ThresholdMatchEventAnomalyDetection"
 
-var _MonitorType_index = [...]uint8{0, 9, 19}
+var _MonitorType_index = [...]uint8{0, 9, 19, 35}
 
 func (i MonitorType) String() string {
 	if i >= MonitorType(len(_MonitorType_index)-1) {
