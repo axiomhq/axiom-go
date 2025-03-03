@@ -80,6 +80,8 @@ type Dataset struct {
 	CreatedBy string `json:"who"`
 	// CreatedAt is the time the dataset was created at.
 	CreatedAt time.Time `json:"created"`
+	// CanWrite sets whether writeable access is granted.
+	CanWrite bool `json:"canWrite"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.

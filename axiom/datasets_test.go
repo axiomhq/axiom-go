@@ -362,6 +362,7 @@ func TestDatasetsService_List(t *testing.T) {
 			Description: "",
 			CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
 			CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
+			CanWrite:    true,
 		},
 	}
 
@@ -374,7 +375,8 @@ func TestDatasetsService_List(t *testing.T) {
 				"id": "test",
 				"name": "test",
 				"who": "f83e245a-afdc-47ad-a765-4addd1994321",
-				"created": "2020-11-17T22:29:00.521238198Z"
+				"created": "2020-11-17T22:29:00.521238198Z",
+				"canWrite": true
 			}
 		]`)
 		assert.NoError(t, err)
