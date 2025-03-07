@@ -84,8 +84,8 @@ type License struct {
 	Plan string `json:"tier"`
 	// MonthlyIngestGB is the monthly amount of ingest data in gigabytes that are included as part of the platform fee.
 	MonthlyIngestGB uint64 `json:"monthlyIngestGb"`
-	// MonthlyQueryGbHours is the monthly amount of query compute that are cluded as part of the platform fee.
-	MonthlyQueryGbHours uint64 `json:"monthlyIngestGbHours"`
+	// MonthlyQueryGbHours is the monthly amount of query compute that are included as part of the platform fee.
+	MonthlyQueryGBHours uint64 `json:"monthlyIngestGbHours"`
 	// StorageAllowanceGB is the amount of storage data in gigabytes that are included as part of the platform fee.
 	StorageAllowanceGB uint64 `json:"storageAllowanceGb"`
 	// MaxUsers is the maximum amount of teams allowed.
