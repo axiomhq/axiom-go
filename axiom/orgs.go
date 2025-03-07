@@ -151,8 +151,8 @@ type Organization struct {
 	Slug string `json:"slug"`
 	// Plan the organization is on.
 	Plan string `json:"plan"`
-	// OrgCreated is the time the organization was created.
-	OrgCreated time.Time `json:"orgCreated"`
+	// PlanCreated is the time the organization was created.
+	PlanCreated time.Time `json:"orgCreated"`
 	// LastUsageSync is the last time the usage instance usage statistics were
 	// synchronized.
 	LastUsageSync time.Time `json:"lastUsageSync"`
