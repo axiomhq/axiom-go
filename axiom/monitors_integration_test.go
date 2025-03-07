@@ -37,6 +37,9 @@ func (s *MonitorsTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.Require().NotNil(dataset)
 
+	_, err = s.client.Datasets.IngestEvents(s.suiteCtx, dataset.ID, []axiom.Event{{"new": "event"}})
+	s.Require().NoError(err)
+
 	s.datasetID = dataset.ID
 }
 
@@ -182,7 +185,7 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
+			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
 			Description:   "A very good test monitor",
 			Interval:      time.Minute,
 			Name:          "Test Monitor",
