@@ -82,15 +82,22 @@ type License struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 	// Plan associated with the license.
 	Plan string `json:"tier"`
-	// MonthlyIngestGB is the monthly amount of data in gigabytes that can be
-	// ingested as part of the license.
+	// MonthlyIngestGB is the monthly amount of ingest data in gigabytes that are included as part of the platform fee.
 	MonthlyIngestGB uint64 `json:"monthlyIngestGb"`
+	// MonthlyQueryGbHours is the monthly amount of query compute that are cluded as part of the platform fee.
+	MonthlyQueryGbHours uint64 `json:"monthlyIngestGbHours"`
+	// StorageAllowanceGB is the amount of storage data in gigabytes that are included as part of the platform fee.
+	StorageAllowanceGB uint64 `json:"storageAllowanceGb"`
 	// MaxUsers is the maximum amount of teams allowed.
 	MaxUsers uint64 `json:"maxUsers"`
-	// MaxTeams is the maximum amount of user allowed.
-	MaxTeams uint64 `json:"maxTeams"`
+	// MaxFields is the maximum amount of fields allowed.
+	MaxFields uint64 `json:"maxFields"`
 	// MaxDatasets is the maximum amount of datasets allowed.
 	MaxDatasets uint64 `json:"maxDatasets"`
+	// MaxMonitors is the maximum amount of monitors allowed.
+	MaxMonitors uint64 `json:"maxMonitors"`
+	// MaxEndpoints is the maximum amount of endpoints allowed.
+	MaxEndpoints uint64 `json:"maxEndpoints"`
 	// MaxQueryWindow is the maximum query window allowed.
 	MaxQueryWindow time.Duration `json:"maxQueryWindowSeconds"`
 	// MaxAuditWindow is the maximum audit window allowed.
@@ -142,12 +149,10 @@ type Organization struct {
 	Name string `json:"name"`
 	// Slug of the organization.
 	Slug string `json:"slug"`
-	// Trial describes if the plan is trialed or not.
-	Trial bool `json:"inTrial"`
 	// Plan the organization is on.
 	Plan string `json:"plan"`
-	// PlanCreated is the time the plan was created.
-	PlanCreated time.Time `json:"planCreated"`
+	// OrgCreated is the time the organization was created.
+	OrgCreated time.Time `json:"orgCreated"`
 	// LastUsageSync is the last time the usage instance usage statistics were
 	// synchronized.
 	LastUsageSync time.Time `json:"lastUsageSync"`
