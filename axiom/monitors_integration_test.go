@@ -59,7 +59,7 @@ func (s *MonitorsTestSuite) SetupTest() {
 	s.monitor, err = s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData:                false,
-			APLQuery:                     fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
+			APLQuery:                     fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
 			Description:                  "A test monitor",
 			Interval:                     time.Minute,
 			Name:                         "Test Monitor",
@@ -95,7 +95,7 @@ func (s *MonitorsTestSuite) Test() {
 	monitor, err := s.client.Monitors.Update(s.ctx, s.monitor.ID, axiom.MonitorUpdateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
+			APLQuery:      fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
 			Description:   "A very good test monitor",
 			DisabledUntil: time.Now().Add(time.Minute * 10),
 			Interval:      time.Minute,
