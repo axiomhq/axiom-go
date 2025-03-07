@@ -182,7 +182,7 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
 			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin(_time, 5m)", s.datasetID),
+			APLQuery:      fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
 			Description:   "A very good test monitor",
 			Interval:      time.Minute,
 			Name:          "Test Monitor",
