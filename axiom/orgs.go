@@ -88,7 +88,7 @@ type License struct {
 	MonthlyQueryGBHours uint64 `json:"monthlyIngestGbHours"`
 	// StorageAllowanceGB is the amount of storage data in gigabytes that are included as part of the platform fee.
 	StorageAllowanceGB uint64 `json:"storageAllowanceGb"`
-	// MaxUsers is the maximum amount of teams allowed.
+	// MaxUsers is the maximum amount of users allowed.
 	MaxUsers uint64 `json:"maxUsers"`
 	// MaxFields is the maximum amount of fields allowed.
 	MaxFields uint64 `json:"maxFields"`
