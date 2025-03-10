@@ -1219,7 +1219,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 	assert.Equal(t, expLegacyQueryRes, res)
 }
 
-func TestDatasetsService_QueryInvalid_InvalidSaveKind(t *testing.T) {
+func TestDatasetsService_QueryLegacyInvalid_InvalidSaveKind(t *testing.T) {
 	client := setup(t, "POST /v1/datasets/test/query", nil)
 
 	_, err := client.Datasets.QueryLegacy(t.Context(), "test", querylegacy.Query{}, querylegacy.Options{
