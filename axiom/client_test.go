@@ -649,8 +649,8 @@ func TestClient_Do_ValidOnlyAPITokenPaths(t *testing.T) {
 	hf := func(http.ResponseWriter, *http.Request) {}
 
 	tests := []string{
-		"/v1/datasets/test/query",
-		"/v1/datasets/_apl",
+		"/v2/datasets/test/query",
+		"/v2/datasets/_apl",
 	}
 	for _, tt := range tests {
 		t.Run(tt, func(t *testing.T) {

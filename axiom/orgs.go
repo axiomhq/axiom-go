@@ -183,7 +183,7 @@ type wrappedOrganization struct {
 // OrganizationsService handles communication with the organization related
 // operations of the Axiom API.
 //
-// Axiom API Reference: /v1/orgs
+// Axiom API Reference: /v2/orgs
 type OrganizationsService service
 
 // List all available organizations.
