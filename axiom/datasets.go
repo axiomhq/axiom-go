@@ -741,7 +741,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 			return nil, spanError(span, err)
 		}
 	} else {
-		// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
+		// TODO(lukasmalkmus): Use 's.basePath' once query v2 is available.
 		path, err = url.JoinPath("/v1/datasets", "_apl")
 		if err != nil {
 			return nil, spanError(span, err)
