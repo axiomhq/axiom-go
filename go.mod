@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/apex/log v1.9.0
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/golangci/golangci-lint v1.64.7
+	github.com/golangci/golangci-lint v1.64.8
 	github.com/google/go-querystring v1.1.0
 	github.com/klauspost/compress v1.17.11
 	github.com/schollz/progressbar/v3 v3.18.0
