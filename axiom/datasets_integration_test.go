@@ -103,8 +103,10 @@ func (s *DatasetsTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
-	err := s.client.Datasets.Delete(ctx, s.dataset.ID)
-	s.NoError(err)
+	if s.dataset != nil {
+		err := s.client.Datasets.Delete(ctx, s.dataset.ID)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownTest()
 }

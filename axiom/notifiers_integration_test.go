@@ -53,8 +53,10 @@ func (s *NotifiersTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
-	err := s.client.Notifiers.Delete(ctx, s.notifier.ID)
-	s.NoError(err)
+	if s.notifier != nil {
+		err := s.client.Notifiers.Delete(ctx, s.notifier.ID)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownTest()
 }

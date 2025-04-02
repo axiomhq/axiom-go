@@ -59,14 +59,20 @@ func (s *AnnotationsTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
-	err := s.client.Datasets.Delete(ctx, s.datasetA.ID)
-	s.NoError(err)
+	if s.datasetA != nil {
+		err := s.client.Datasets.Delete(ctx, s.datasetA.ID)
+		s.NoError(err)
+	}
 
-	err = s.client.Datasets.Delete(ctx, s.datasetB.ID)
-	s.NoError(err)
+	if s.datasetB != nil {
+		err := s.client.Datasets.Delete(ctx, s.datasetB.ID)
+		s.NoError(err)
+	}
 
-	err = s.client.Annotations.Delete(ctx, s.annotation.ID)
-	s.NoError(err)
+	if s.annotation != nil {
+		err := s.client.Annotations.Delete(ctx, s.annotation.ID)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownTest()
 }
