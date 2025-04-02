@@ -82,6 +82,10 @@ type Dataset struct {
 	CreatedAt time.Time `json:"created"`
 	// CanWrite sets whether writeable access is granted.
 	CanWrite bool `json:"canWrite"`
+	// UseRetentionPeriod sets whether the dataset uses a retention period.
+	UseRetentionPeriod bool `json:"useRetentionPeriod"`
+	// RetentionDays is the number of days events are kept in the dataset.
+	RetentionDays int `json:"retentionDays"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.
