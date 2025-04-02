@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"maps"
 	"os"
 	"sync"
 	"time"
@@ -171,9 +172,7 @@ func (h *Hook) Fire(entry *logrus.Entry) error {
 	event := axiom.Event{}
 
 	// Set fields first.
-	for k, v := range entry.Data {
-		event[k] = v
-	}
+	maps.Copy(event, entry.Data)
 
 	// Set timestamp, severity and actual message.
 	event[ingest.TimestampField] = entry.Time.Format(time.RFC3339Nano)
