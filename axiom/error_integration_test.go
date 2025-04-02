@@ -33,7 +33,7 @@ func (s *ErrorTestSuite) Test() {
 	// (unauthenticated).
 	_, err = s.client.Datasets.Get(s.ctx, invalidDatasetName)
 	s.Require().Error(err)
-	s.Require().ErrorIs(err, axiom.ErrUnauthorized)
+	s.Require().ErrorIs(err, axiom.ErrUnauthenticated)
 
 	// Restore valid credentials.
 	s.newClient()
