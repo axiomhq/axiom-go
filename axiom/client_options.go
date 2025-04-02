@@ -93,8 +93,11 @@ func SetNoRetry() Option {
 	}
 }
 
-// SetNoTracing prevents the [Client] from acquiring a tracer from the global
-// tracer provider, even if one is configured.
+// SetNoTracing prevents the [Client] from acquiring a tracer. It doesn't
+// affect the default HTTP client transport used by the [Client], which uses
+// [otelhttp.NewTransport] to create a new trace for each outgoing HTTP request.
+// To prevent that behavior, users must provide their own HTTP client via
+// [SetClient].
 func SetNoTracing() Option {
 	return func(c *Client) error {
 		c.tracer = noop.Tracer{}
