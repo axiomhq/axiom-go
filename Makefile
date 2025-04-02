@@ -1,7 +1,6 @@
 # TOOLCHAIN
 GO	  := CGO_ENABLED=0 go
 CGO	  := CGO_ENABLED=1 go
-GOFMT := $(GO)fmt
 
 # ENVIRONMENT
 VERBOSE =
@@ -68,9 +67,9 @@ dep.stamp: $(GOMODDEPS)
 	@touch $@
 
 .PHONY: fmt
-fmt: ## Format and simplify the source code using `gofmt`
+fmt: ## Format and simplify the source code using `golangci-lint fmt`
 	@echo ">> formatting code"
-	@! $(GOFMT) -s -w $(shell find . -path -prune -o -name '*.go' -print) | grep '^'
+	@$(call go-run-tool, golangci-lint) fmt
 
 .PHONY: generate
 generate: \

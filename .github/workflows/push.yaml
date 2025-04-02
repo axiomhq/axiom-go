@@ -43,8 +43,8 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           cache: false
-      - run: echo "GOLANGCI_LINT_VERSION=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint)" >> $GITHUB_ENV
-      - uses: golangci/golangci-lint-action@v6
+      - run: echo "GOLANGCI_LINT_VERSION=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint/v2)" >> $GITHUB_ENV
+      - uses: golangci/golangci-lint-action@v7
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
