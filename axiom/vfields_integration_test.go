@@ -57,11 +57,15 @@ func (s *VirtualFieldsTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
-	err := s.client.VirtualFields.Delete(ctx, s.vfield.ID)
-	s.NoError(err)
+	if s.vfield != nil {
+		err := s.client.VirtualFields.Delete(ctx, s.vfield.ID)
+		s.NoError(err)
+	}
 
-	err = s.client.Datasets.Delete(ctx, s.dataset)
-	s.NoError(err)
+	if s.dataset != "" {
+		err := s.client.Datasets.Delete(ctx, s.dataset)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownTest()
 }

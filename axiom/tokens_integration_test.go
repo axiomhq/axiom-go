@@ -45,8 +45,10 @@ func (s *TokensTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	err := s.client.Tokens.Delete(ctx, s.apiToken.ID)
-	s.NoError(err)
+	if s.apiToken != nil {
+		err := s.client.Tokens.Delete(ctx, s.apiToken.ID)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownTest()
 }

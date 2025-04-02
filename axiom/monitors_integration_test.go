@@ -49,8 +49,10 @@ func (s *MonitorsTestSuite) TearDownSuite() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.suiteCtx), time.Second*15)
 	defer cancel()
 
-	err := s.client.Datasets.Delete(ctx, s.datasetID)
-	s.NoError(err)
+	if s.datasetID != "" {
+		err := s.client.Datasets.Delete(ctx, s.datasetID)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownSuite()
 }
@@ -87,8 +89,10 @@ func (s *MonitorsTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 
-	err := s.client.Monitors.Delete(ctx, s.monitor.ID)
-	s.NoError(err)
+	if s.monitor != nil {
+		err := s.client.Monitors.Delete(ctx, s.monitor.ID)
+		s.NoError(err)
+	}
 
 	s.IntegrationTestSuite.TearDownTest()
 }
