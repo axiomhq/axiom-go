@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	stdlog "log"
+	"maps"
 	"os"
 	"sync"
 	"time"
@@ -153,9 +154,7 @@ func (h *Handler) HandleLog(entry *log.Entry) error {
 	event := axiom.Event{}
 
 	// Set fields first.
-	for k, v := range entry.Fields {
-		event[k] = v
-	}
+	maps.Copy(event, entry.Fields)
 
 	// Set timestamp, severity and actual message.
 	event[ingest.TimestampField] = entry.Timestamp.Format(time.RFC3339Nano)

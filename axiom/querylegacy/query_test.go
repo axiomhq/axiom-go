@@ -103,7 +103,7 @@ func TestQuery_UnarshalJSON(t *testing.T) {
 			}
 
 			var act Query
-			err := act.UnmarshalJSON([]byte(fmt.Sprintf(`{ "resolution": "%s" }`, tt.input)))
+			err := act.UnmarshalJSON(fmt.Appendf(nil, `{ "resolution": "%s" }`, tt.input))
 			require.NoError(t, err)
 
 			assert.Equal(t, exp, act)
