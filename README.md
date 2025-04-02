@@ -26,7 +26,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    
+
     if _, err = client.IngestEvents(ctx, "my-dataset", []axiom.Event{
         {ingest.TimestampField: time.Now(), "foo": "bar"},
         {ingest.TimestampField: time.Now(), "bar": "foo"},
@@ -41,12 +41,8 @@ func main() {
         log.Fatal("No matches found")
     }
 
-    rows := res.Tables[0].Rows()
-    if err := rows.Range(ctx, func(_ context.Context, row query.Row) error {
-        _, err := fmt.Println(row)
-        return err
-    }); err != nil {
-        log.Fatal(err)
+    for row := range res.Tables[0].Rows() {
+      _, _ = fmt.Println(row)
     }
 }
 ```
@@ -56,7 +52,6 @@ For further examples, head over to the [examples](examples) directory.
 If you want to use a logging package, check if there is already an adapter in
 the [adapters](adapters) directory. We happily accept contributions for new
 adapters.
-
 
 ## Install
 

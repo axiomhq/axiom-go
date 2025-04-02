@@ -20,9 +20,9 @@ To quickstart, export the environment variables below.
 > If you have the [Axiom CLI](github.com/axiomhq/cli) installed and are logged
 > in, you can easily export most of the required environment variables:
 >
->```shell
->eval $(axiom config export -f)
->```
+> ```shell
+> eval $(axiom config export -f)
+> ```
 
 ### Required environment variables
 
@@ -57,6 +57,8 @@ To quickstart, export the environment variables below.
   [Slog](https://pkg.go.dev/log/slog) structured logging package.
 - [zap](zap/main.go): How to ship logs to Axiom using the popular
   [Zap](https://github.com/uber-go/zap) logging package.
+- [zerolog](zerolog/main.go): How to ship logs to Axiom using the popular
+  [Zerolog](https://github.com/rs/zerolog) logging package.
 
 ## OpenTelemetry usage
 
