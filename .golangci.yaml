@@ -1,9 +1,10 @@
+version: "2"
+
 run:
   modules-download-mode: readonly
-  timeout: 5m
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
     - copyloopvar
@@ -12,44 +13,62 @@ linters:
     - errcheck
     - exhaustive
     - goconst
-    - gofmt
-    - goimports
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - nolintlint
-    # - paralleltest
     - prealloc
     - revive
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
+  settings:
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    staticcheck:
+      checks:
+        - -SA1019
+        - all
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gosec
+        path: _test\.go
+        text: "G115: integer overflow conversion"
+      - linters:
+          - staticcheck
+        text: 'SA1019: "github.com/axiomhq/axiom-go/axiom/querylegacy" is deprecated'
+      - linters:
+          - staticcheck
+        text: "SA1019:.*QueryLegacy is deprecated"
+    paths:
+      - .git
+      - .github
+      - .vscode
+      - dist
 
-linters-settings:
-  goimports:
-    local-prefixes: github.com/axiomhq/axiom-go
-  nolintlint:
-    require-explanation: true
-    require-specific: true
-  staticcheck:
-    checks:
-      - all
-      - "-SA1019"
-
-issues:
-  exclude-dirs:
-    - .git
-    - .github
-    - .vscode
-    - dist
-  exclude-rules:
-    - linters:
-        - gosec
-      text: "G115: integer overflow conversion"
-      path: _test\.go
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/axiomhq/axiom-go
+  exclusions:
+    generated: lax
+    paths:
+      - .git
+      - .github
+      - .vscode
+      - dist

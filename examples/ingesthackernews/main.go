@@ -53,7 +53,7 @@ func main() {
 
 	// 4. Wrap the channel that streams up to maxItemID events to present a
 	// progress bar.
-	bar := progressbar.NewOptions64(int64(maxItemID),
+	bar := progressbar.NewOptions64(int64(maxItemID), //nolint:gosec // This is fine!
 		progressbar.OptionOnCompletion(func() {
 			fmt.Fprint(os.Stderr, "\n")
 		}),
@@ -123,10 +123,10 @@ func getMaxItemID() (uint64, error) {
 	return maxItemID, nil
 }
 
-func generateIDs(max uint64) <-chan uint64 {
+func generateIDs(maxID uint64) <-chan uint64 {
 	ch := make(chan uint64, maxWorkers*10)
 	go func() {
-		for i := range max + 1 {
+		for i := range maxID + 1 {
 			ch <- i
 		}
 		close(ch)

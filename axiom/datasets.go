@@ -601,7 +601,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	}
 	res.TraceID = resp.TraceID()
 
-	setQueryStatusOnSpan(span, res.Result.Status)
+	setQueryStatusOnSpan(span, res.Status)
 	span.SetAttributes(attribute.String("axiom.trace_id", res.TraceID))
 
 	return &res.Result, nil
@@ -654,7 +654,7 @@ func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q queryleg
 	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
 	res.TraceID = resp.TraceID()
 
-	setLegacyQueryStatusOnSpan(span, res.Result.Status)
+	setLegacyQueryStatusOnSpan(span, res.Status)
 	span.SetAttributes(attribute.String("axiom.trace_id", res.TraceID))
 
 	return &res.Result, nil
