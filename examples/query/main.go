@@ -1,5 +1,3 @@
-//go:build go1.23
-
 // The purpose of this example is to show how to query a dataset using the Axiom
 // Processing Language (APL).
 package main
