@@ -22,25 +22,29 @@ func _() {
 	_ = x[OpMax-11]
 	_ = x[OpMaxIf-12]
 	_ = x[OpTopk-13]
-	_ = x[OpPercentiles-14]
-	_ = x[OpHistogram-15]
-	_ = x[OpStandardDeviation-16]
-	_ = x[OpStandardDeviationIf-17]
-	_ = x[OpVariance-18]
-	_ = x[OpVarianceIf-19]
-	_ = x[OpArgMin-20]
-	_ = x[OpArgMax-21]
-	_ = x[OpRate-22]
-	_ = x[OpPearson-23]
-	_ = x[OpMakeSet-24]
-	_ = x[OpMakeSetIf-25]
-	_ = x[OpMakeList-26]
-	_ = x[OpMakeListIf-27]
+	_ = x[OpTopkIf-14]
+	_ = x[OpPercentiles-15]
+	_ = x[OpPercentilesIf-16]
+	_ = x[OpHistogram-17]
+	_ = x[OpHistogramIf-18]
+	_ = x[OpStandardDeviation-19]
+	_ = x[OpStandardDeviationIf-20]
+	_ = x[OpVariance-21]
+	_ = x[OpVarianceIf-22]
+	_ = x[OpArgMin-23]
+	_ = x[OpArgMax-24]
+	_ = x[OpRate-25]
+	_ = x[OpMakeSet-26]
+	_ = x[OpMakeSetIf-27]
+	_ = x[OpMakeList-28]
+	_ = x[OpMakeListIf-29]
+	_ = x[OpComputed-30]
+	_ = x[OpSpotlight-31]
 }
 
-const _AggregationOp_name = "unknowncountcountifdistinctdistinctifsumsumifavgavgifminminifmaxmaxiftopkpercentileshistogramstdevstdevifvariancevarianceifargminargmaxratepearson_correlationmakesetmakesetifmakelistmakelistif"
+const _AggregationOp_name = "unknowncountcountifdistinctdistinctifsumsumifavgavgifminminifmaxmaxiftopktopkifpercentilespercentilesifhistogramhistogramifstdevstdevifvariancevarianceifargminargmaxratemakesetmakesetifmakelistmakelistifcomputedspotlight"
 
-var _AggregationOp_index = [...]uint8{0, 7, 12, 19, 27, 37, 40, 45, 48, 53, 56, 61, 64, 69, 73, 84, 93, 98, 105, 113, 123, 129, 135, 139, 158, 165, 174, 182, 192}
+var _AggregationOp_index = [...]uint8{0, 7, 12, 19, 27, 37, 40, 45, 48, 53, 56, 61, 64, 69, 73, 79, 90, 103, 112, 123, 128, 135, 143, 153, 159, 165, 169, 176, 185, 193, 203, 211, 220}
 
 func (i AggregationOp) String() string {
 	if i >= AggregationOp(len(_AggregationOp_index)-1) {

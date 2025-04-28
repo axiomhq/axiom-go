@@ -28,8 +28,11 @@ const (
 	OpMax                 // max
 	OpMaxIf               // maxif
 	OpTopk                // topk
+	OpTopkIf              // topkif
 	OpPercentiles         // percentiles
+	OpPercentilesIf       // percentilesif
 	OpHistogram           // histogram
+	OpHistogramIf         // histogramif
 	OpStandardDeviation   // stdev
 	OpStandardDeviationIf // stdevif
 	OpVariance            // variance
@@ -37,11 +40,12 @@ const (
 	OpArgMin              // argmin
 	OpArgMax              // argmax
 	OpRate                // rate
-	OpPearson             // pearson_correlation
 	OpMakeSet             // makeset
 	OpMakeSetIf           // makesetif
 	OpMakeList            // makelist
 	OpMakeListIf          // makelistif
+	OpComputed            // computed
+	OpSpotlight           // spotlight
 )
 
 func aggregationOpFromString(s string) (op AggregationOp, err error) {
@@ -72,10 +76,16 @@ func aggregationOpFromString(s string) (op AggregationOp, err error) {
 		op = OpMaxIf
 	case OpTopk.String():
 		op = OpTopk
+	case OpTopkIf.String():
+		op = OpTopkIf
 	case OpPercentiles.String():
 		op = OpPercentiles
+	case OpPercentilesIf.String():
+		op = OpPercentilesIf
 	case OpHistogram.String():
 		op = OpHistogram
+	case OpHistogramIf.String():
+		op = OpHistogramIf
 	case OpStandardDeviation.String():
 		op = OpStandardDeviation
 	case OpStandardDeviationIf.String():
@@ -90,8 +100,6 @@ func aggregationOpFromString(s string) (op AggregationOp, err error) {
 		op = OpArgMax
 	case OpRate.String():
 		op = OpRate
-	case OpPearson.String():
-		op = OpPearson
 	case OpMakeSet.String():
 		op = OpMakeSet
 	case OpMakeSetIf.String():
@@ -100,6 +108,10 @@ func aggregationOpFromString(s string) (op AggregationOp, err error) {
 		op = OpMakeList
 	case OpMakeListIf.String():
 		op = OpMakeListIf
+	case OpComputed.String():
+		op = OpComputed
+	case OpSpotlight.String():
+		op = OpSpotlight
 	default:
 		return OpUnknown, fmt.Errorf("unknown aggregation operation: %s", s)
 	}
