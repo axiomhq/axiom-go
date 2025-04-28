@@ -21,9 +21,9 @@ func TestAggregationOp_Unmarshal(t *testing.T) {
 func TestAggregationOp_String(t *testing.T) {
 	// Check outer bounds.
 	assert.Equal(t, OpUnknown, AggregationOp(0))
-	assert.Contains(t, (OpMakeListIf + 1).String(), "AggregationOp(")
+	assert.Contains(t, (OpSpotlight + 1).String(), "AggregationOp(")
 
-	for op := OpUnknown; op <= OpMakeListIf; op++ {
+	for op := OpUnknown; op <= OpSpotlight; op++ {
 		s := op.String()
 		assert.NotEmpty(t, s)
 		assert.NotContains(t, s, "AggregationOp(")
@@ -31,7 +31,7 @@ func TestAggregationOp_String(t *testing.T) {
 }
 
 func TestAggregationOpFromString(t *testing.T) {
-	for op := OpCount; op <= OpMakeListIf; op++ {
+	for op := OpCount; op <= OpSpotlight; op++ {
 		s := op.String()
 
 		parsedOp, err := aggregationOpFromString(s)
