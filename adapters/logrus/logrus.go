@@ -81,6 +81,7 @@ type Hook struct {
 	levels        []logrus.Level
 
 	eventCh   chan axiom.Event
+	stopCh    chan struct{}
 	closeCh   chan struct{}
 	closeOnce sync.Once
 }
@@ -105,6 +106,7 @@ func New(options ...Option) (*Hook, error) {
 		levels: logrus.AllLevels,
 
 		eventCh: make(chan axiom.Event, defaultBatchSize),
+		stopCh:  make(chan struct{}),
 		closeCh: make(chan struct{}),
 	}
 
@@ -139,13 +141,20 @@ func New(options ...Option) (*Hook, error) {
 
 		logger := log.New(os.Stderr, "[AXIOM|LOGRUS]", 0)
 
-		res, err := hook.client.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...)
-		if err != nil {
-			logger.Printf("failed to ingest events: %s\n", err)
-		} else if res.Failed > 0 {
-			// Best effort on notifying the user about the ingest failure.
-			logger.Printf("event at %s failed to ingest: %s\n",
-				res.Failures[0].Timestamp, res.Failures[0].Error)
+		for {
+			if res, err := hook.client.IngestChannel(context.Background(), hook.datasetName, hook.eventCh, hook.ingestOptions...); err != nil {
+				logger.Printf("failed to ingest events: %s\n", err)
+			} else if res.Failed > 0 {
+				// Best effort on notifying the user about the ingest failure.
+				logger.Printf("event at %s failed to ingest: %s\n",
+					res.Failures[0].Timestamp, res.Failures[0].Error)
+			}
+
+			select {
+			case <-hook.stopCh:
+				return
+			case <-time.After(time.Second):
+			}
 		}
 	}()
 
@@ -157,6 +166,7 @@ func New(options ...Option) (*Hook, error) {
 // unusable for further use.
 func (h *Hook) Close() {
 	h.closeOnce.Do(func() {
+		close(h.stopCh)
 		close(h.eventCh)
 		<-h.closeCh
 	})

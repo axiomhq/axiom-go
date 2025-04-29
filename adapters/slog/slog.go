@@ -86,6 +86,7 @@ type rootHandler struct {
 	ingestOptions []ingest.Option
 
 	eventCh   chan axiom.Event
+	stopCh    chan struct{}
 	closeCh   chan struct{}
 	closeOnce sync.Once
 }
@@ -118,6 +119,7 @@ type Handler struct {
 func New(options ...Option) (*Handler, error) {
 	root := &rootHandler{
 		eventCh: make(chan axiom.Event, defaultBatchSize),
+		stopCh:  make(chan struct{}),
 		closeCh: make(chan struct{}),
 	}
 
@@ -156,13 +158,20 @@ func New(options ...Option) (*Handler, error) {
 
 		logger := log.New(os.Stderr, "[AXIOM|SLOG]", 0)
 
-		res, err := root.client.IngestChannel(context.Background(), root.datasetName, root.eventCh, root.ingestOptions...)
-		if err != nil {
-			logger.Printf("failed to ingest events: %s\n", err)
-		} else if res.Failed > 0 {
-			// Best effort on notifying the user about the ingest failure.
-			logger.Printf("event at %s failed to ingest: %s\n",
-				res.Failures[0].Timestamp, res.Failures[0].Error)
+		for {
+			if res, err := root.client.IngestChannel(context.Background(), root.datasetName, root.eventCh, root.ingestOptions...); err != nil {
+				logger.Printf("failed to ingest events: %s\n", err)
+			} else if res.Failed > 0 {
+				// Best effort on notifying the user about the ingest failure.
+				logger.Printf("event at %s failed to ingest: %s\n",
+					res.Failures[0].Timestamp, res.Failures[0].Error)
+			}
+
+			select {
+			case <-root.stopCh:
+				return
+			case <-time.After(time.Second):
+			}
 		}
 	}()
 
@@ -173,6 +182,7 @@ func New(options ...Option) (*Handler, error) {
 // renders it unusable for further use.
 func (h *Handler) Close() {
 	h.closeOnce.Do(func() {
+		close(h.stopCh)
 		close(h.eventCh)
 		<-h.closeCh
 	})
