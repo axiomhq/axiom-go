@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"runtime"
 	"slices"
 	"sync"
 	"time"
@@ -69,6 +70,14 @@ func SetLevel(level slog.Leveler) Option {
 	}
 }
 
+// SetAddSource specifies whether to add the source of the log message to The
+func SetAddSource(addSource bool) Option {
+	return func(h *Handler) error {
+		h.addSource = addSource
+		return nil
+	}
+}
+
 type rootHandler struct {
 	client      *axiom.Client
 	datasetName string
@@ -85,9 +94,10 @@ type rootHandler struct {
 type Handler struct {
 	*rootHandler
 
-	level  slog.Leveler
-	attrs  []slog.Attr
-	groups []string
+	level     slog.Leveler
+	attrs     []slog.Attr
+	groups    []string
+	addSource bool
 }
 
 // New creates a new handler that ingests logs into Axiom. It automatically
@@ -202,6 +212,10 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	event[slog.LevelKey] = r.Level.String()
 	event[slog.MessageKey] = r.Message
 
+	if h.addSource {
+		event[slog.SourceKey] = source(r)
+	}
+
 	select {
 	case <-h.closeCh:
 		return errors.New("handler closed")
@@ -235,9 +249,10 @@ func (h *Handler) clone() *Handler {
 	return &Handler{
 		rootHandler: h.rootHandler,
 
-		level:  h.level,
-		attrs:  slices.Clip(h.attrs),
-		groups: slices.Clip(h.groups),
+		level:     h.level,
+		attrs:     slices.Clip(h.attrs),
+		groups:    slices.Clip(h.groups),
+		addSource: h.addSource,
 	}
 }
 
@@ -258,5 +273,19 @@ func addAttrToEvent(event axiom.Event, attr slog.Attr) {
 		}
 	} else {
 		event[attr.Key] = v.Any()
+	}
+}
+
+// source returns a Source for the log event.
+// If the Record was created without the necessary information,
+// or if the location is unavailable, it returns a non-nil *Source
+// with zero fields.
+func source(r slog.Record) *slog.Source {
+	fs := runtime.CallersFrames([]uintptr{r.PC})
+	f, _ := fs.Next()
+	return &slog.Source{
+		Function: f.Function,
+		File:     f.File,
+		Line:     f.Line,
 	}
 }
