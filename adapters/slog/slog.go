@@ -71,9 +71,9 @@ func SetLevel(level slog.Leveler) Option {
 }
 
 // SetAddSource specifies whether to add the source of the log message to the event.
-func SetAddSource(addSource bool) Option {
+func SetAddSource() Option {
 	return func(h *Handler) error {
-		h.addSource = addSource
+		h.addSource = true
 		return nil
 	}
 }
