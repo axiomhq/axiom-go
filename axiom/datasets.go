@@ -512,8 +512,8 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 			return fmt.Errorf("failed to ingest events: %w", err)
 		}
 		ingestStatus.Add(res)
-		t.Reset(flushInterval) // Reset the ticker.
 		batch = batch[:0]      // Clear the batch.
+		t.Reset(flushInterval) // Reset the ticker.
 
 		return nil
 	}
@@ -521,7 +521,6 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	for {
 		select {
 		case <-ctx.Done():
-
 			return &ingestStatus, spanError(span, context.Cause(ctx))
 		case event, ok := <-events:
 			if !ok {

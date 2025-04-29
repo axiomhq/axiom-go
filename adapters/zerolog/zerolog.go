@@ -169,15 +169,12 @@ func (w *Writer) runBackgroundJob() {
 	var (
 		counter = 0
 		buffer  = &bytes.Buffer{}
-		t       = time.NewTicker(flushInterval)
 		encoder = axiom.ZstdEncoder()
 	)
-	defer t.Stop()
 
 	flush := func() error {
 		defer func() {
 			counter = 0
-			t.Reset(flushInterval)
 			buffer.Reset()
 		}()
 
@@ -244,7 +241,7 @@ func (w *Writer) runBackgroundJob() {
 					logger.Printf("failed to ingest events: %s\n", err)
 				}
 			}
-		case <-t.C:
+		case <-time.After(flushInterval):
 			if err := flush(); err != nil {
 				logger.Printf("failed to ingest events: %s\n", err)
 			}
