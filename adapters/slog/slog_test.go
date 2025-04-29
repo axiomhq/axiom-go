@@ -74,8 +74,9 @@ func TestHandler(t *testing.T) {
 }
 
 func TestHandler_Source(t *testing.T) {
-	_, file, _, _ := runtime.Caller(0)
-	sourceStr := fmt.Sprintf(`{"file":"%s", "function":"github.com/axiomhq/axiom-go/adapters/slog.TestHandler_Source", "line":105}`, file)
+	_, file, line, _ := runtime.Caller(0)
+	line += 29 // Account for the lines until the log line.
+	sourceStr := fmt.Sprintf(`{"file":"%s", "function":"github.com/axiomhq/axiom-go/adapters/slog.TestHandler_Source", "line":%d}`, file, line)
 
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message", "source":%s}`,
 		time.Now().Format(time.RFC3339Nano), sourceStr)
