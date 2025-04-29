@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -62,6 +63,42 @@ func TestHandler(t *testing.T) {
 	}
 
 	logger, closeHandler := adapters.Setup(t, hf, setup(t))
+
+	logger.
+		With("key", "value").
+		Info("my message")
+
+	closeHandler()
+
+	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
+}
+
+func TestHandler_Source(t *testing.T) {
+	_, file, _, _ := runtime.Caller(0)
+	sourceStr := fmt.Sprintf(`{"file":"%s", "function":"github.com/axiomhq/axiom-go/adapters/slog.TestHandler_Source", "line":105}`, file)
+
+	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message", "source":%s}`,
+		time.Now().Format(time.RFC3339Nano), sourceStr)
+
+	var hasRun uint64
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		b, err := io.ReadAll(zsr)
+		assert.NoError(t, err)
+
+		str := string(b)
+
+		testhelper.JSONEqExp(t, exp, str, []string{ingest.TimestampField})
+
+		atomic.AddUint64(&hasRun, 1)
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte("{}"))
+	}
+
+	logger, closeHandler := adapters.Setup(t, hf, setupWithSource(t))
 
 	logger.
 		With("key", "value").
@@ -147,6 +184,22 @@ func setup(t *testing.T) func(dataset string, client *axiom.Client) (*slog.Logge
 		handler, err := New(
 			SetClient(client),
 			SetDataset(dataset),
+		)
+		require.NoError(t, err)
+		t.Cleanup(handler.Close)
+
+		return slog.New(handler), handler.Close
+	}
+}
+
+func setupWithSource(t *testing.T) func(dataset string, client *axiom.Client) (*slog.Logger, func()) {
+	return func(dataset string, client *axiom.Client) (*slog.Logger, func()) {
+		t.Helper()
+
+		handler, err := New(
+			SetClient(client),
+			SetDataset(dataset),
+			SetAddSource(true),
 		)
 		require.NoError(t, err)
 		t.Cleanup(handler.Close)
