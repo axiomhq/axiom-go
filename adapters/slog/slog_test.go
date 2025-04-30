@@ -200,7 +200,7 @@ func setupWithSource(t *testing.T) func(dataset string, client *axiom.Client) (*
 		handler, err := New(
 			SetClient(client),
 			SetDataset(dataset),
-			SetAddSource(true),
+			SetAddSource(),
 		)
 		require.NoError(t, err)
 		t.Cleanup(handler.Close)
