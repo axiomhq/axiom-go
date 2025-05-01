@@ -110,6 +110,39 @@ func TestHandler_Source(t *testing.T) {
 	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
 }
 
+func TestHandler_WithError(t *testing.T) {
+	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message","error":"this is an error"}`,
+		time.Now().Format(time.RFC3339Nano))
+
+	var hasRun uint64
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		b, err := io.ReadAll(zsr)
+		assert.NoError(t, err)
+
+		testhelper.JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
+
+		atomic.AddUint64(&hasRun, 1)
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte("{}"))
+	}
+
+	logger, closeHandler := adapters.Setup(t, hf, setup(t))
+
+	err := fmt.Errorf("this is an error")
+
+	logger.
+		With("key", "value").
+		Info("my message", slog.Any("error", err))
+
+	closeHandler()
+
+	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
+}
+
 func TestHandler_NoPanicAfterClose(t *testing.T) {
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message"}`,
 		time.Now().Format(time.RFC3339Nano))
