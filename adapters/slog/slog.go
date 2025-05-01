@@ -282,7 +282,12 @@ func addAttrToEvent(event axiom.Event, attr slog.Attr) {
 			event[attr.Key] = group
 		}
 	} else {
-		event[attr.Key] = v.Any()
+		a := v.Any()
+		if err, ok := a.(error); ok {
+			//If the value is an error, we want to use the error message.
+			a = err.Error()
+		}
+		event[attr.Key] = a
 	}
 }
 
