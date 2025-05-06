@@ -77,15 +77,15 @@ type MonitorType uint8
 const (
 	MonitorTypeThreshold        MonitorType = iota // Threshold
 	MonitorTypeMatchEvent                          // MatchEvent
-	MonitorTypeAnonalyDetection                    // AnomalyDetection
+	MonitorTypeAnomalyDetection                    // AnomalyDetection
 )
 
 func typeFromString(s string) (c MonitorType) {
 	switch s {
 	case MonitorTypeMatchEvent.String():
 		return MonitorTypeMatchEvent
-	case MonitorTypeAnonalyDetection.String():
-		return MonitorTypeAnonalyDetection
+	case MonitorTypeAnomalyDetection.String():
+		return MonitorTypeAnomalyDetection
 	default:
 		return MonitorTypeThreshold
 	}
