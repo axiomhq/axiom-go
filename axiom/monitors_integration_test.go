@@ -197,10 +197,10 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 			Range:         time.Minute * 10,
 			Tolerance:     5,
 			CompareDays:   7,
-			Type:          axiom.MonitorTypeAnonalyDetection,
+			Type:          axiom.MonitorTypeAnomalyDetection,
 		},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
-	s.Equal(axiom.MonitorTypeAnonalyDetection.String(), monitor.Type.String())
+	s.Equal(axiom.MonitorTypeAnomalyDetection.String(), monitor.Type.String())
 }
