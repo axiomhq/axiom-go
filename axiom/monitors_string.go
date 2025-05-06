@@ -32,7 +32,7 @@ func _() {
 	var x [1]struct{}
 	_ = x[MonitorTypeThreshold-0]
 	_ = x[MonitorTypeMatchEvent-1]
-	_ = x[MonitorTypeAnonalyDetection-2]
+	_ = x[MonitorTypeAnomalyDetection-2]
 }
 
 const _MonitorType_name = "ThresholdMatchEventAnomalyDetection"
