@@ -423,11 +423,13 @@ func TestDatasetsService_Get(t *testing.T) {
 
 func TestDatasetsService_Create(t *testing.T) {
 	exp := &Dataset{
-		ID:          "test",
-		Name:        "test",
-		Description: "This is a test description",
-		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
-		CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		ID:                 "test",
+		Name:               "test",
+		Description:        "This is a test description",
+		UseRetentionPeriod: true,
+		RetentionDays:      30,
+		CreatedBy:          "f83e245a-afdc-47ad-a765-4addd1994321",
+		CreatedAt:          testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -439,6 +441,8 @@ func TestDatasetsService_Create(t *testing.T) {
 			"id": "test",
 			"name": "test",
 			"description": "This is a test description",
+			"useRetentionPeriod": true,
+			"retentionDays": 30,
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
@@ -448,8 +452,10 @@ func TestDatasetsService_Create(t *testing.T) {
 	client := setup(t, "POST /v2/datasets", hf)
 
 	res, err := client.Datasets.Create(context.Background(), DatasetCreateRequest{
-		Name:        "test",
-		Description: "This is a test description",
+		Name:               "test",
+		Description:        "This is a test description",
+		UseRetentionPeriod: true,
+		RetentionDays:      30,
 	})
 	require.NoError(t, err)
 
@@ -458,11 +464,13 @@ func TestDatasetsService_Create(t *testing.T) {
 
 func TestDatasetsService_Update(t *testing.T) {
 	exp := &Dataset{
-		ID:          "test",
-		Name:        "test",
-		Description: "This is the new description",
-		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
-		CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
+		ID:                 "test",
+		Name:               "test",
+		Description:        "This is the new description",
+		UseRetentionPeriod: false, // This should be set to false after setting RetentionDays to 0.
+		RetentionDays:      0,
+		CreatedBy:          "f83e245a-afdc-47ad-a765-4addd1994321",
+		CreatedAt:          testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -474,6 +482,7 @@ func TestDatasetsService_Update(t *testing.T) {
 			"id": "test",
 			"name": "test",
 			"description": "This is the new description",
+			"retentionDays": 0,
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
@@ -483,7 +492,8 @@ func TestDatasetsService_Update(t *testing.T) {
 	client := setup(t, "PUT /v2/datasets/test", hf)
 
 	res, err := client.Datasets.Update(context.Background(), "test", DatasetUpdateRequest{
-		Description: "This is the new description",
+		Description:   "This is the new description",
+		RetentionDays: 0,
 	})
 	require.NoError(t, err)
 
