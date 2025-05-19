@@ -96,12 +96,20 @@ type DatasetCreateRequest struct {
 	Name string `json:"name"`
 	// Description of the dataset to create.
 	Description string `json:"description"`
+	// UseRetentionPeriod sets whether the dataset uses a retention period.
+	UseRetentionPeriod bool `json:"useRetentionPeriod"`
+	// RetentionDays is the number of days events are kept in the dataset.
+	RetentionDays int `json:"retentionDays"`
 }
 
 // DatasetUpdateRequest is a request used to update a dataset.
 type DatasetUpdateRequest struct {
 	// Description of the dataset to update.
 	Description string `json:"description"`
+	// UseRetentionPeriod sets whether the dataset uses a retention period.
+	UseRetentionPeriod bool `json:"useRetentionPeriod"`
+	// RetentionDays is the number of days events are kept in the dataset.
+	RetentionDays int `json:"retentionDays"`
 }
 
 type wrappedDataset struct {
@@ -185,6 +193,8 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 	ctx, span := s.client.trace(ctx, "Datasets.Create", trace.WithAttributes(
 		attribute.String("axiom.param.name", req.Name),
 		attribute.String("axiom.param.description", req.Description),
+		attribute.Bool("axiom.param.use_retention_period", req.UseRetentionPeriod),
+		attribute.Int("axiom.param.retention_days", req.RetentionDays),
 	))
 	defer span.End()
 
@@ -201,6 +211,8 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 	ctx, span := s.client.trace(ctx, "Datasets.Update", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.String("axiom.param.description", req.Description),
+		attribute.Bool("axiom.param.use_retention_period", req.UseRetentionPeriod),
+		attribute.Int("axiom.param.retention_days", req.RetentionDays),
 	))
 	defer span.End()
 
