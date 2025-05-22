@@ -49,13 +49,13 @@ dep-clean: ## Remove obsolete dependencies
 dep-upgrade: ## Upgrade all direct dependencies to their latest version
 	@echo ">> upgrading dependencies"
 	@$(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
-	@$(MAKE) dep
+	@make dep
 
 .PHONY: dep-upgrade-tools
 dep-upgrade-tools: ## Upgrade all tool dependencies to their latest version
 	@echo ">> upgrading tool dependencies"
 	@$(GO) get $(GOTOOLS)
-	@$(MAKE) dep
+	@make dep
 
 .PHONY: dep
 dep: dep-clean dep.stamp ## Install and verify dependencies and remove obsolete ones
@@ -112,4 +112,4 @@ axiom/%_string.go: axiom/%.go
 # MISC TARGETS
 
 $(COVERPROFILE):
-	@$(MAKE) test
+	@make test
