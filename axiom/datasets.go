@@ -86,6 +86,8 @@ type Dataset struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
+	// ObjectFields is the list of fields that are defined to be objects.
+	ObjectFields []string `json:"objectFields"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.
@@ -100,6 +102,8 @@ type DatasetCreateRequest struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
+	// ObjectFields is the list of fields that are defined to be objects.
+	ObjectFields []string `json:"objectFields"`
 }
 
 // DatasetUpdateRequest is a request used to update a dataset.
@@ -110,6 +114,8 @@ type DatasetUpdateRequest struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
+	// ObjectFields is the list of fields that are defined to be objects.
+	ObjectFields []string `json:"objectFields"`
 }
 
 type wrappedDataset struct {
@@ -195,6 +201,7 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 		attribute.String("axiom.param.description", req.Description),
 		attribute.Bool("axiom.param.use_retention_period", req.UseRetentionPeriod),
 		attribute.Int("axiom.param.retention_days", req.RetentionDays),
+		attribute.StringSlice("axiom.param.object_fields", req.ObjectFields),
 	))
 	defer span.End()
 
@@ -213,6 +220,7 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 		attribute.String("axiom.param.description", req.Description),
 		attribute.Bool("axiom.param.use_retention_period", req.UseRetentionPeriod),
 		attribute.Int("axiom.param.retention_days", req.RetentionDays),
+		attribute.StringSlice("axiom.param.object_fields", req.ObjectFields),
 	))
 	defer span.End()
 
