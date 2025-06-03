@@ -428,6 +428,7 @@ func TestDatasetsService_Create(t *testing.T) {
 		Description:        "This is a test description",
 		UseRetentionPeriod: true,
 		RetentionDays:      30,
+		ObjectFields:       []string{"data", "data2"},
 		CreatedBy:          "f83e245a-afdc-47ad-a765-4addd1994321",
 		CreatedAt:          testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
@@ -443,6 +444,7 @@ func TestDatasetsService_Create(t *testing.T) {
 			"description": "This is a test description",
 			"useRetentionPeriod": true,
 			"retentionDays": 30,
+			"objectFields": ["data", "data2"],
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
@@ -456,6 +458,7 @@ func TestDatasetsService_Create(t *testing.T) {
 		Description:        "This is a test description",
 		UseRetentionPeriod: true,
 		RetentionDays:      30,
+		ObjectFields:       []string{"data", "data2"},
 	})
 	require.NoError(t, err)
 
@@ -469,6 +472,7 @@ func TestDatasetsService_Update(t *testing.T) {
 		Description:        "This is the new description",
 		UseRetentionPeriod: false, // This should be set to false after setting RetentionDays to 0.
 		RetentionDays:      0,
+		ObjectFields:       []string{"data-new", "data2-new"},
 		CreatedBy:          "f83e245a-afdc-47ad-a765-4addd1994321",
 		CreatedAt:          testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
@@ -483,6 +487,7 @@ func TestDatasetsService_Update(t *testing.T) {
 			"name": "test",
 			"description": "This is the new description",
 			"retentionDays": 0,
+			"objectFields": ["data-new", "data2-new"],
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
@@ -494,6 +499,7 @@ func TestDatasetsService_Update(t *testing.T) {
 	res, err := client.Datasets.Update(context.Background(), "test", DatasetUpdateRequest{
 		Description:   "This is the new description",
 		RetentionDays: 0,
+		ObjectFields:  []string{"data-new", "data2-new"},
 	})
 	require.NoError(t, err)
 
