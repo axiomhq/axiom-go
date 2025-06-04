@@ -524,6 +524,64 @@ func TestDatasetsService_Trim(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestDatasetsService_ListMapFields(t *testing.T) {
+	exp := MapFields{"field1", "field2"}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `["field1", "field2"]`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "GET /v2/datasets/test/mapfields", hf)
+
+	res, err := client.Datasets.ListMapFields(context.Background(), "test")
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestDatasetsService_CreateMapField(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	client := setup(t, "POST /v2/datasets/test/mapfields", hf)
+
+	err := client.Datasets.CreateMapField(context.Background(), "test", "field1")
+	require.NoError(t, err)
+}
+
+func TestDatasetsService_UpdateMapFields(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	client := setup(t, "PUT /v2/datasets/test/mapfields", hf)
+
+	err := client.Datasets.UpdateMapFields(context.Background(), "test", MapFields{"field1", "field2"})
+	require.NoError(t, err)
+}
+
+func TestDatasetsService_DeleteMapField(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodDelete, r.Method)
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	client := setup(t, "DELETE /v2/datasets/test/mapfields/field1", hf)
+
+	err := client.Datasets.DeleteMapField(context.Background(), "test", "field1")
+	require.NoError(t, err)
+}
+
 // TestDatasetsService_Ingest tests the ingest functionality of the client. It
 // also tests the event labels functionality by setting two individual labels.
 func TestDatasetsService_Ingest(t *testing.T) {

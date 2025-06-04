@@ -68,6 +68,9 @@ const (
 // [DatasetsService.IngestChannel] as an [Option].
 type Event map[string]any
 
+// MapFields contain the names of the fields defined to be map-fields.
+type MapFields []string
+
 // Dataset represents an Axiom dataset.
 type Dataset struct {
 	// ID of the dataset.
@@ -86,6 +89,8 @@ type Dataset struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
+	// MapFields contain the names of the fields defined to be map-fields.
+	MapFields MapFields `json:"mapFields"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.
@@ -126,6 +131,11 @@ type datasetTrimRequest struct {
 	// MaxDuration marks the oldest timestamp an event can have before getting
 	// deleted.
 	MaxDuration string `json:"maxDuration"`
+}
+
+type datasetCreateMapFieldRequest struct {
+	// Name of the map-field to create.
+	Name string `json:"name"`
 }
 
 type aplQueryRequest struct {
@@ -268,6 +278,90 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 	}
 
 	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
+}
+
+// List all available map-fields on the dataset identified by the given id.
+func (s *DatasetsService) ListMapFields(ctx context.Context, id string) (MapFields, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.ListMapFields", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+	))
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, id, "mapfields")
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	var res MapFields
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	return res, nil
+}
+
+// Create a new map-field with the given name on the dataset identified by the given id.
+func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name string) error {
+	ctx, span := s.client.trace(ctx, "Datasets.CreateMapField", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.name", name),
+	))
+	defer span.End()
+
+	req := datasetCreateMapFieldRequest{
+		Name: name,
+	}
+
+	path, err := url.JoinPath(s.basePath, id, "mapfields")
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
+}
+
+// Update map-fields on the dataset identified by the given id.
+func (s *DatasetsService) UpdateMapFields(ctx context.Context, id string, mapFields MapFields) error {
+	ctx, span := s.client.trace(ctx, "Datasets.UpdateMapFields", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.StringSlice("axiom.param.map_fields", mapFields),
+	))
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, id, "mapfields")
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodPut, path, mapFields, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
+}
+
+// Delete a map-field with the given name on the dataset identified by the given id.
+func (s *DatasetsService) DeleteMapField(ctx context.Context, id string, name string) error {
+	ctx, span := s.client.trace(ctx, "Datasets.DeleteMapField", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.name", name),
+	))
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, id, "mapfields", name)
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodDelete, path, nil, nil); err != nil {
 		return spanError(span, err)
 	}
 
