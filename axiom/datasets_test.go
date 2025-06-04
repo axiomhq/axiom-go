@@ -524,8 +524,8 @@ func TestDatasetsService_Trim(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestDatasetsService_ListObjectFields(t *testing.T) {
-	exp := ObjectFields{"field1", "field2"}
+func TestDatasetsService_ListMapFields(t *testing.T) {
+	exp := MapFields{"field1", "field2"}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
@@ -535,50 +535,50 @@ func TestDatasetsService_ListObjectFields(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	client := setup(t, "GET /v2/datasets/test/objectfields", hf)
+	client := setup(t, "GET /v2/datasets/test/mapfields", hf)
 
-	res, err := client.Datasets.ListObjectFields(context.Background(), "test")
+	res, err := client.Datasets.ListMapFields(context.Background(), "test")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
 }
 
-func TestDatasetsService_CreateObjectField(t *testing.T) {
+func TestDatasetsService_CreateMapField(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client := setup(t, "POST /v2/datasets/test/objectfields", hf)
+	client := setup(t, "POST /v2/datasets/test/mapfields", hf)
 
-	err := client.Datasets.CreateObjectField(context.Background(), "test", "field1")
+	err := client.Datasets.CreateMapField(context.Background(), "test", "field1")
 	require.NoError(t, err)
 }
 
-func TestDatasetsService_UpdateObjectFields(t *testing.T) {
+func TestDatasetsService_UpdateMapFields(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
 
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client := setup(t, "PUT /v2/datasets/test/objectfields", hf)
+	client := setup(t, "PUT /v2/datasets/test/mapfields", hf)
 
-	err := client.Datasets.UpdateObjectFields(context.Background(), "test", ObjectFields{"field1", "field2"})
+	err := client.Datasets.UpdateMapFields(context.Background(), "test", MapFields{"field1", "field2"})
 	require.NoError(t, err)
 }
 
-func TestDatasetsService_DeleteObjectField(t *testing.T) {
+func TestDatasetsService_DeleteMapField(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodDelete, r.Method)
 
 		w.WriteHeader(http.StatusNoContent)
 	}
 
-	client := setup(t, "DELETE /v2/datasets/test/objectfields/field1", hf)
+	client := setup(t, "DELETE /v2/datasets/test/mapfields/field1", hf)
 
-	err := client.Datasets.DeleteObjectField(context.Background(), "test", "field1")
+	err := client.Datasets.DeleteMapField(context.Background(), "test", "field1")
 	require.NoError(t, err)
 }
 
