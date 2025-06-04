@@ -68,6 +68,9 @@ const (
 // [DatasetsService.IngestChannel] as an [Option].
 type Event map[string]any
 
+// ObjectFields contain the names of the fields defined to be map-fields.
+type ObjectFields []string
+
 // Dataset represents an Axiom dataset.
 type Dataset struct {
 	// ID of the dataset.
@@ -87,7 +90,7 @@ type Dataset struct {
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
 	// ObjectFields is the list of fields that are defined to be objects.
-	ObjectFields []string `json:"objectFields"`
+	ObjectFields ObjectFields `json:"objectFields"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.
@@ -102,8 +105,6 @@ type DatasetCreateRequest struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
-	// ObjectFields is the list of fields that are defined to be objects.
-	ObjectFields []string `json:"objectFields"`
 }
 
 // DatasetUpdateRequest is a request used to update a dataset.
@@ -114,8 +115,6 @@ type DatasetUpdateRequest struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
-	// ObjectFields is the list of fields that are defined to be objects.
-	ObjectFields []string `json:"objectFields"`
 }
 
 type wrappedDataset struct {
@@ -132,6 +131,11 @@ type datasetTrimRequest struct {
 	// MaxDuration marks the oldest timestamp an event can have before getting
 	// deleted.
 	MaxDuration string `json:"maxDuration"`
+}
+
+type datasetCreateObjectFieldRequest struct {
+	// Name of the object field to create.
+	Name string `json:"name"`
 }
 
 type aplQueryRequest struct {
@@ -201,7 +205,6 @@ func (s *DatasetsService) Create(ctx context.Context, req DatasetCreateRequest) 
 		attribute.String("axiom.param.description", req.Description),
 		attribute.Bool("axiom.param.use_retention_period", req.UseRetentionPeriod),
 		attribute.Int("axiom.param.retention_days", req.RetentionDays),
-		attribute.StringSlice("axiom.param.object_fields", req.ObjectFields),
 	))
 	defer span.End()
 
@@ -220,7 +223,6 @@ func (s *DatasetsService) Update(ctx context.Context, id string, req DatasetUpda
 		attribute.String("axiom.param.description", req.Description),
 		attribute.Bool("axiom.param.use_retention_period", req.UseRetentionPeriod),
 		attribute.Int("axiom.param.retention_days", req.RetentionDays),
-		attribute.StringSlice("axiom.param.object_fields", req.ObjectFields),
 	))
 	defer span.End()
 
@@ -276,6 +278,97 @@ func (s *DatasetsService) Trim(ctx context.Context, id string, maxDuration time.
 	}
 
 	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
+}
+
+// List all available object-fields on the dataset identified by the given id.
+func (s *DatasetsService) ListObjectFields(ctx context.Context, id string) (ObjectFields, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.ListObjectFields", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+	))
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, id, "objectfields")
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	var res []*string
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	fmt.Println(res)
+
+	objectFields := make(ObjectFields, len(res))
+	for i, r := range res {
+		objectFields[i] = *r
+	}
+
+	return objectFields, nil
+}
+
+// Create a new object-field with the given name on the dataset identified by the given id.
+func (s *DatasetsService) CreateObjectField(ctx context.Context, id string, name string) error {
+	ctx, span := s.client.trace(ctx, "Datasets.CreateObjectField", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.name", name),
+	))
+	defer span.End()
+
+	req := datasetCreateObjectFieldRequest{
+		Name: name,
+	}
+
+	path, err := url.JoinPath(s.basePath, id, "objectfields")
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
+}
+
+// Update object-fields on the dataset identified by the given id.
+func (s *DatasetsService) UpdateObjectFields(ctx context.Context, id string, objectFields ObjectFields) error {
+	ctx, span := s.client.trace(ctx, "Datasets.UpdateObjectFields", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.StringSlice("axiom.param.object_fields", objectFields),
+	))
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, id, "objectfields")
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodPut, path, objectFields, nil); err != nil {
+		return spanError(span, err)
+	}
+
+	return nil
+}
+
+// Delete a object-field with the given name on the dataset identified by the given id.
+func (s *DatasetsService) DeleteObjectField(ctx context.Context, id string, name string) error {
+	ctx, span := s.client.trace(ctx, "Datasets.DeleteObjectField", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.String("axiom.param.name", name),
+	))
+	defer span.End()
+
+	path, err := url.JoinPath(s.basePath, id, "objectfields", name)
+	if err != nil {
+		return spanError(span, err)
+	}
+
+	if err := s.client.Call(ctx, http.MethodDelete, path, nil, nil); err != nil {
 		return spanError(span, err)
 	}
 
