@@ -301,8 +301,6 @@ func (s *DatasetsService) ListObjectFields(ctx context.Context, id string) (Obje
 		return nil, spanError(span, err)
 	}
 
-	fmt.Println(res)
-
 	objectFields := make(ObjectFields, len(res))
 	for i, r := range res {
 		objectFields[i] = *r
