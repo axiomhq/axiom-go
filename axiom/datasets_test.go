@@ -428,7 +428,6 @@ func TestDatasetsService_Create(t *testing.T) {
 		Description:        "This is a test description",
 		UseRetentionPeriod: true,
 		RetentionDays:      30,
-		ObjectFields:       []string{"data", "data2"},
 		CreatedBy:          "f83e245a-afdc-47ad-a765-4addd1994321",
 		CreatedAt:          testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
@@ -444,7 +443,6 @@ func TestDatasetsService_Create(t *testing.T) {
 			"description": "This is a test description",
 			"useRetentionPeriod": true,
 			"retentionDays": 30,
-			"objectFields": ["data", "data2"],
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
@@ -458,7 +456,6 @@ func TestDatasetsService_Create(t *testing.T) {
 		Description:        "This is a test description",
 		UseRetentionPeriod: true,
 		RetentionDays:      30,
-		ObjectFields:       []string{"data", "data2"},
 	})
 	require.NoError(t, err)
 
@@ -472,7 +469,6 @@ func TestDatasetsService_Update(t *testing.T) {
 		Description:        "This is the new description",
 		UseRetentionPeriod: false, // This should be set to false after setting RetentionDays to 0.
 		RetentionDays:      0,
-		ObjectFields:       []string{"data-new", "data2-new"},
 		CreatedBy:          "f83e245a-afdc-47ad-a765-4addd1994321",
 		CreatedAt:          testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-18T21:30:20.623322799Z"),
 	}
@@ -487,7 +483,6 @@ func TestDatasetsService_Update(t *testing.T) {
 			"name": "test",
 			"description": "This is the new description",
 			"retentionDays": 0,
-			"objectFields": ["data-new", "data2-new"],
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-18T21:30:20.623322799Z"
 		}`)
@@ -499,7 +494,6 @@ func TestDatasetsService_Update(t *testing.T) {
 	res, err := client.Datasets.Update(context.Background(), "test", DatasetUpdateRequest{
 		Description:   "This is the new description",
 		RetentionDays: 0,
-		ObjectFields:  []string{"data-new", "data2-new"},
 	})
 	require.NoError(t, err)
 
@@ -527,6 +521,64 @@ func TestDatasetsService_Trim(t *testing.T) {
 	client := setup(t, "POST /v2/datasets/test/trim", hf)
 
 	err := client.Datasets.Trim(context.Background(), "test", time.Hour)
+	require.NoError(t, err)
+}
+
+func TestDatasetsService_ListObjectFields(t *testing.T) {
+	exp := ObjectFields{"field1", "field2"}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `["field1", "field2"]`)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "GET /v2/datasets/test/objectfields", hf)
+
+	res, err := client.Datasets.ListObjectFields(context.Background(), "test")
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestDatasetsService_CreateObjectField(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	client := setup(t, "POST /v2/datasets/test/objectfields", hf)
+
+	err := client.Datasets.CreateObjectField(context.Background(), "test", "field1")
+	require.NoError(t, err)
+}
+
+func TestDatasetsService_UpdateObjectFields(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	client := setup(t, "PUT /v2/datasets/test/objectfields", hf)
+
+	err := client.Datasets.UpdateObjectFields(context.Background(), "test", ObjectFields{"field1", "field2"})
+	require.NoError(t, err)
+}
+
+func TestDatasetsService_DeleteObjectField(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodDelete, r.Method)
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	client := setup(t, "DELETE /v2/datasets/test/objectfields/field1", hf)
+
+	err := client.Datasets.DeleteObjectField(context.Background(), "test", "field1")
 	require.NoError(t, err)
 }
 
