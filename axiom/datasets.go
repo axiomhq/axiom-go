@@ -296,18 +296,7 @@ func (s *DatasetsService) ListMapFields(ctx context.Context, id string) (MapFiel
 		return nil, spanError(span, err)
 	}
 
-	/*
-		var res []*string
-		if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
-			return nil, spanError(span, err)
-		}
-
-		mapFields := make(MapFields, len(res))
-		for i, r := range res {
-			mapFields[i] = *r
-		}
-	*/
-	var res []string
+	var res MapFields
 	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
