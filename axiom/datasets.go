@@ -125,6 +125,7 @@ type wrappedDataset struct {
 	IntegrationConfigs any `json:"integrationConfigs,omitempty"`
 	IntegrationFilters any `json:"integrationFilters,omitempty"`
 	QuickQueries       any `json:"quickQueries,omitempty"`
+	SharedByOrg        any `json:"sharedByOrg,omitempty"`
 }
 
 type datasetTrimRequest struct {
