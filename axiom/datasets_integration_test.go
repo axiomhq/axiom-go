@@ -490,6 +490,92 @@ func (s *DatasetsTestSuite) TestCursor() {
 	}
 }
 
+func (s *DatasetsTestSuite) TestMapFields() {
+	s.Run("CreateMapField", func() {
+		// Create a map field...
+		err := s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
+		s.Require().NoError(err)
+
+		// ...and verify it's listed on the dataset.
+		dataset, err := s.client.Datasets.Get(s.ctx, s.dataset.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(dataset)
+		s.Equal(axiom.MapFields{"foo"}, dataset.MapFields)
+
+		// Try to create a map field that already exists.
+		err = s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
+		s.Require().Error(err)
+
+		// Try to create a map field with an invalid name.
+		err = s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "__invalid__")
+		s.Require().Error(err)
+	})
+
+	s.Run("UpdateMapFields", func() {
+		// Update the map fields with an empty list...
+		err := s.client.Datasets.UpdateMapFields(s.ctx, s.dataset.ID, axiom.MapFields{})
+		s.Require().NoError(err)
+
+		// ...and verify they're empty on the dataset.
+		dataset, err := s.client.Datasets.Get(s.ctx, s.dataset.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(dataset)
+		s.Empty(dataset.MapFields)
+
+		// Update the map fields with three fields...
+		err = s.client.Datasets.UpdateMapFields(s.ctx, s.dataset.ID, axiom.MapFields{"bar", "baz", "buz"})
+		s.Require().NoError(err)
+
+		// ...and verify they're listed on the dataset.
+		dataset, err = s.client.Datasets.Get(s.ctx, s.dataset.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(dataset)
+		s.ElementsMatch(axiom.MapFields{"bar", "baz", "buz"}, dataset.MapFields)
+
+		// Try to update the map fields with duplicate names.
+		err = s.client.Datasets.UpdateMapFields(s.ctx, s.dataset.ID, axiom.MapFields{"dupe", "dupe"})
+		s.Require().Error(err)
+
+		// Try to update the map fields with an invalid name.
+		err = s.client.Datasets.UpdateMapFields(s.ctx, s.dataset.ID, axiom.MapFields{"__invalid__"})
+		s.Require().Error(err)
+	})
+
+	s.Run("DeleteMapFields", func() {
+		// Delete one map field...
+		err := s.client.Datasets.DeleteMapField(s.ctx, s.dataset.ID, "bar")
+		s.Require().NoError(err)
+
+		// ...and verify they're deleted on the dataset.
+		dataset, err := s.client.Datasets.Get(s.ctx, s.dataset.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(dataset)
+		s.ElementsMatch(axiom.MapFields{"baz", "buz"}, dataset.MapFields)
+
+		// Try to delete a map field that doesn't exist.
+		err = s.client.Datasets.DeleteMapField(s.ctx, s.dataset.ID, "bar")
+		s.Require().Error(err)
+	})
+
+	s.Run("ListMapFields", func() {
+		// List the map fields we now have on the dataset.
+		mapFields, err := s.client.Datasets.ListMapFields(s.ctx, s.dataset.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(mapFields)
+		s.ElementsMatch(axiom.MapFields{"baz", "buz"}, mapFields)
+
+		// Update the map fields with an empty list...
+		err = s.client.Datasets.UpdateMapFields(s.ctx, s.dataset.ID, axiom.MapFields{})
+		s.Require().NoError(err)
+
+		// ...and verify they're empty.
+		mapFields, err = s.client.Datasets.ListMapFields(s.ctx, s.dataset.ID)
+		s.Require().NoError(err)
+		s.Require().NotNil(mapFields)
+		s.Empty(mapFields)
+	})
+}
+
 func getEventChan() <-chan axiom.Event {
 	eventCh := make(chan axiom.Event)
 	go func() {
