@@ -645,7 +645,7 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 
 	now := time.Now().Truncate(time.Second)
 	startTime := now.Add(-time.Minute)
-	endTime := now.Add(time.Minute)
+	endTime := now.Add(2 * time.Minute)
 
 	// Ingest some data containing an object.
 	ingestObjectDataFn(s, ingestDataMapFields1)
