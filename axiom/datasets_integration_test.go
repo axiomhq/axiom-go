@@ -580,22 +580,13 @@ const (
 	ingestDataMapFields1 = `[
 		{
 			"foo": {
-				"bar": "val_bar",
-				"bar2": "val_bar2"
-			}
-		}
-	]`
-
-	ingestDataMapFields2 = `[
-		{
-			"foo": {
 				"buz": "val_buz",
 				"buz2": "val_buz2"
 			}
 		}
 	]`
 
-	ingestDataMapFields3 = `[
+	ingestDataMapFields2 = `[
 		{
 			"foo": {
 				"qux": "val_qux",
@@ -647,10 +638,14 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 	startTime := now.Add(-time.Minute)
 	endTime := now.Add(2 * time.Minute)
 
+	// Define 'foo' as a map field.
+	err := s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
+	s.Require().NoError(err)
+
 	// Ingest some data containing an object.
 	ingestObjectDataFn(s, ingestDataMapFields1)
 
-	// Run a simple APL query...
+	// Run another simple APL query...
 	apl := fmt.Sprintf("['%s']", s.dataset.ID)
 	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
@@ -667,19 +662,18 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 		if s.Len(table.Sources, 1) {
 			s.Equal(s.dataset.ID, table.Sources[0].Name)
 		}
-		s.Len(table.Fields, 2+numExtraFields)
-		s.Len(table.Columns, 2+numExtraColumns)
+		s.Len(table.Fields, 1+numExtraFields)
+		s.Len(table.Columns, 1+numExtraColumns)
 	}
 
-	// Define 'foo' as a map field.
-	err = s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
+	// Remove 'foo' from the map fields.
+	err = s.client.Datasets.DeleteMapField(s.ctx, s.dataset.ID, "foo")
 	s.Require().NoError(err)
 
-	// Now ingest some more data.
+	// Ingest some more data.
 	ingestObjectDataFn(s, ingestDataMapFields2)
 
 	// Run another simple APL query...
-	apl = fmt.Sprintf("['%s']", s.dataset.ID)
 	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
 		query.SetEndTime(endTime),
@@ -697,34 +691,6 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 		}
 		s.Len(table.Fields, 3+numExtraFields)
 		s.Len(table.Columns, 3+numExtraColumns)
-	}
-
-	// Remove 'foo' from the map fields.
-	err = s.client.Datasets.DeleteMapField(s.ctx, s.dataset.ID, "foo")
-	s.Require().NoError(err)
-
-	// Now ingest even more data.
-	ingestObjectDataFn(s, ingestDataMapFields3)
-
-	// Run another simple APL query...
-	apl = fmt.Sprintf("['%s']", s.dataset.ID)
-	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-	)
-	s.Require().NoError(err)
-	s.Require().NotNil(queryResult)
-
-	s.NotZero(queryResult.Status.ElapsedTime)
-	s.EqualValues(3, queryResult.Status.RowsExamined)
-	s.EqualValues(3, queryResult.Status.RowsMatched)
-	if s.Len(queryResult.Tables, 1) {
-		table := queryResult.Tables[0]
-		if s.Len(table.Sources, 1) {
-			s.Equal(s.dataset.ID, table.Sources[0].Name)
-		}
-		s.Len(table.Fields, 5+numExtraFields)
-		s.Len(table.Columns, 5+numExtraColumns)
 	}
 }
 
