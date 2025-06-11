@@ -576,6 +576,191 @@ func (s *DatasetsTestSuite) TestMapFields() {
 	})
 }
 
+const (
+	ingestDataMapFields1 = `[
+		{
+			"foo": {
+				"bar": "val_bar",
+				"bar2": "val_bar2"
+			}
+		}
+	]`
+
+	ingestDataMapFields2 = `[
+		{
+			"foo": {
+				"buz": "val_buz",
+				"buz2": "val_buz2"
+			}
+		}
+	]`
+
+	ingestDataMapFields3 = `[
+		{
+			"foo": {
+				"qux": "val_qux",
+				"qux2": "val_qux2"
+			}
+		}
+	]`
+)
+
+func (s *DatasetsTestSuite) TestIngestWithMapFields() {
+	const (
+		// FIXME(lukasmalkmus): Tabular results format is not yet returning the _rowID column.
+		numExtraFields  = 3 // 1 label field + 2 system fields
+		numExtraColumns = 3 // 1 label field + 2 system fields
+		// numExtraFields  = 4 // 1 label field + 3 system fields
+		// numExtraColumns = 4 // 1 label field + 3 system fields
+	)
+
+	// Ingest some events with a map field.
+	var (
+		ingested bytes.Buffer
+		r        io.Reader
+
+		resetBuffer = func(data string, contentEncoders ...axiom.ContentEncoder) {
+			ingested.Reset()
+			r = io.TeeReader(strings.NewReader(data), &ingested)
+
+			for _, contentEncoder := range contentEncoders {
+				var ceErr error
+				r, ceErr = contentEncoder(r)
+				s.Require().NoError(ceErr)
+			}
+		}
+	)
+
+	now := time.Now().Truncate(time.Second)
+	startTime := now.Add(-time.Minute)
+	endTime := now.Add(time.Minute)
+
+	// Ingest some data containing an object.
+	s.Run("IngestObjectData", func() {
+		const (
+			expTableFieldsLen  = 2 + numExtraFields
+			expTableColumnsLen = 2 + numExtraColumns
+		)
+
+		resetBuffer(ingestDataMapFields1)
+		ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, ingest.SetEventLabel("region", "eu-west-1"))
+		s.Require().NoError(err)
+		s.Require().NotNil(ingestStatus)
+
+		s.EqualValues(1, ingestStatus.Ingested)
+		s.Zero(ingestStatus.Failed)
+		s.Empty(ingestStatus.Failures)
+		s.EqualValues(ingested.Len()+22, ingestStatus.ProcessedBytes) // 22 bytes extra for the event label
+
+		// Run a simple APL query...
+		apl := fmt.Sprintf("['%s']", s.dataset.ID)
+		queryResult, err := s.client.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(startTime),
+			query.SetEndTime(endTime),
+		)
+		s.Require().NoError(err)
+		s.Require().NotNil(queryResult)
+
+		s.NotZero(queryResult.Status.ElapsedTime)
+		s.EqualValues(1, queryResult.Status.RowsExamined)
+		s.EqualValues(1, queryResult.Status.RowsMatched)
+		if s.Len(queryResult.Tables, 1) {
+			table := queryResult.Tables[0]
+			if s.Len(table.Sources, 1) {
+				s.Equal(s.dataset.ID, table.Sources[0].Name)
+			}
+			s.Len(table.Fields, expTableFieldsLen)
+			s.Len(table.Columns, expTableFieldsLen)
+		}
+	})
+
+	s.Run("IngestObjectDataWithMapField", func() {
+		const (
+			expTableFieldsLen  = 3 + numExtraFields
+			expTableColumnsLen = 3 + numExtraColumns
+		)
+
+		// Define 'foo' as a map field.
+		err := s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
+		s.Require().NoError(err)
+
+		// Now ingest some more data.
+		resetBuffer(ingestDataMapFields2)
+		ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, ingest.SetEventLabel("region", "eu-west-1"))
+		s.Require().NoError(err)
+		s.Require().NotNil(ingestStatus)
+
+		s.EqualValues(1, ingestStatus.Ingested)
+		s.Zero(ingestStatus.Failed)
+		s.Empty(ingestStatus.Failures)
+		s.EqualValues(ingested.Len()+22, ingestStatus.ProcessedBytes) // 22 bytes extra for the event label
+
+		// Run another simple APL query...
+		apl := fmt.Sprintf("['%s']", s.dataset.ID)
+		queryResult, err := s.client.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(startTime),
+			query.SetEndTime(endTime),
+		)
+		s.Require().NoError(err)
+		s.Require().NotNil(queryResult)
+
+		s.NotZero(queryResult.Status.ElapsedTime)
+		s.EqualValues(2, queryResult.Status.RowsExamined)
+		s.EqualValues(2, queryResult.Status.RowsMatched)
+		if s.Len(queryResult.Tables, 1) {
+			table := queryResult.Tables[0]
+			if s.Len(table.Sources, 1) {
+				s.Equal(s.dataset.ID, table.Sources[0].Name)
+			}
+			s.Len(table.Fields, expTableFieldsLen)
+			s.Len(table.Columns, expTableColumnsLen)
+		}
+	})
+
+	s.Run("IngestObjectDataWithMapFieldRemoved", func() {
+		const (
+			expTableFieldsLen  = 5 + numExtraFields
+			expTableColumnsLen = 5 + numExtraColumns
+		)
+
+		// Remove 'foo' from the map fields.
+		err := s.client.Datasets.DeleteMapField(s.ctx, s.dataset.ID, "foo")
+		s.Require().NoError(err)
+
+		// Now ingest even more data.
+		resetBuffer(ingestDataMapFields3)
+		ingestStatus, err := s.client.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity, ingest.SetEventLabel("region", "eu-west-1"))
+		s.Require().NoError(err)
+		s.Require().NotNil(ingestStatus)
+
+		s.EqualValues(1, ingestStatus.Ingested)
+		s.Zero(ingestStatus.Failed)
+		s.Empty(ingestStatus.Failures)
+		s.EqualValues(ingested.Len()+22, ingestStatus.ProcessedBytes) // 22 bytes extra for the event label
+
+		// Run another simple APL query...
+		apl := fmt.Sprintf("['%s']", s.dataset.ID)
+		queryResult, err := s.client.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(startTime),
+			query.SetEndTime(endTime),
+		)
+		s.Require().NoError(err)
+		s.Require().NotNil(queryResult)
+
+		s.NotZero(queryResult.Status.ElapsedTime)
+		s.EqualValues(3, queryResult.Status.RowsExamined)
+		s.EqualValues(3, queryResult.Status.RowsMatched)
+		if s.Len(queryResult.Tables, 1) {
+			table := queryResult.Tables[0]
+			if s.Len(table.Sources, 1) {
+				s.Equal(s.dataset.ID, table.Sources[0].Name)
+			}
+			s.Len(table.Fields, expTableFieldsLen)
+			s.Len(table.Columns, expTableColumnsLen)
+		}
+	})
+}
+
 func getEventChan() <-chan axiom.Event {
 	eventCh := make(chan axiom.Event)
 	go func() {
