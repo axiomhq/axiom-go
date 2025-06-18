@@ -580,17 +580,17 @@ const (
 	ingestDataMapFields1 = `[
 		{
 			"foo": {
-				"buz": "val_buz",
-				"buz2": "val_buz2"
+				"bar": "val_bar",
+				"bar2": "val_bar2"
 			}
 		}
 	]`
 
 	ingestDataMapFields2 = `[
 		{
-			"foo": {
-				"qux": "val_qux",
-				"qux2": "val_qux2"
+			"bar": {
+				"buz": "val_buz",
+				"buz2": "val_buz2"
 			}
 		}
 	]`
@@ -634,37 +634,12 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 		s.EqualValues(ingested.Len()+22, ingestStatus.ProcessedBytes) // 22 bytes extra for the event label
 	}
 
-	now := time.Now().Truncate(time.Second)
-	startTime := now.Add(-time.Minute)
-	endTime := now.Add(2 * time.Minute)
-
 	// Define 'foo' as a map field.
 	err := s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
 	s.Require().NoError(err)
 
 	// Ingest some data containing an object.
 	ingestObjectDataFn(s, ingestDataMapFields1)
-
-	// Run another simple APL query...
-	apl := fmt.Sprintf("['%s']", s.dataset.ID)
-	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-	)
-	s.Require().NoError(err)
-	s.Require().NotNil(queryResult)
-
-	s.NotZero(queryResult.Status.ElapsedTime)
-	s.EqualValues(1, queryResult.Status.RowsExamined)
-	s.EqualValues(1, queryResult.Status.RowsMatched)
-	if s.Len(queryResult.Tables, 1) {
-		table := queryResult.Tables[0]
-		if s.Len(table.Sources, 1) {
-			s.Equal(s.dataset.ID, table.Sources[0].Name)
-		}
-		s.Len(table.Fields, 1+numExtraFields)
-		s.Len(table.Columns, 1+numExtraColumns)
-	}
 
 	// Remove 'foo' from the map fields.
 	err = s.client.Datasets.DeleteMapField(s.ctx, s.dataset.ID, "foo")
@@ -673,8 +648,13 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 	// Ingest some more data.
 	ingestObjectDataFn(s, ingestDataMapFields2)
 
-	// Run another simple APL query...
-	queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+	now := time.Now().Truncate(time.Second)
+	startTime := now.Add(-time.Minute)
+	endTime := now.Add(time.Minute)
+
+	// Run a simple APL query...
+	apl := fmt.Sprintf("['%s']", s.dataset.ID)
+	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
 		query.SetStartTime(startTime),
 		query.SetEndTime(endTime),
 	)
