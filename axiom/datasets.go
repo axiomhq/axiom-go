@@ -134,10 +134,13 @@ type datasetTrimRequest struct {
 	MaxDuration string `json:"maxDuration"`
 }
 
-type datasetCreateMapFieldRequest struct {
+type mapField struct {
 	// Name of the map-field to create.
 	Name string `json:"name"`
 }
+
+type datasetCreateMapFieldRequest mapField
+type datasetCreateMapFieldResponse mapField
 
 type aplQueryRequest struct {
 	query.Options
@@ -306,7 +309,7 @@ func (s *DatasetsService) ListMapFields(ctx context.Context, id string) (MapFiel
 }
 
 // Create a new map-field with the given name on the dataset identified by the given id.
-func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name string) error {
+func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name string) (*string, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.CreateMapField", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.String("axiom.param.name", name),
@@ -319,18 +322,19 @@ func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name st
 
 	path, err := url.JoinPath(s.basePath, id, "mapfields")
 	if err != nil {
-		return spanError(span, err)
+		return nil, spanError(span, err)
 	}
 
-	if err := s.client.Call(ctx, http.MethodPost, path, req, nil); err != nil {
-		return spanError(span, err)
+	var res datasetCreateMapFieldResponse
+	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
+		return nil, spanError(span, err)
 	}
 
-	return nil
+	return &res.Name, nil
 }
 
 // Update map-fields on the dataset identified by the given id.
-func (s *DatasetsService) UpdateMapFields(ctx context.Context, id string, mapFields MapFields) error {
+func (s *DatasetsService) UpdateMapFields(ctx context.Context, id string, mapFields MapFields) (MapFields, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.UpdateMapFields", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.StringSlice("axiom.param.map_fields", mapFields),
@@ -339,14 +343,15 @@ func (s *DatasetsService) UpdateMapFields(ctx context.Context, id string, mapFie
 
 	path, err := url.JoinPath(s.basePath, id, "mapfields")
 	if err != nil {
-		return spanError(span, err)
+		return nil, spanError(span, err)
 	}
 
-	if err := s.client.Call(ctx, http.MethodPut, path, mapFields, nil); err != nil {
-		return spanError(span, err)
+	var res MapFields
+	if err := s.client.Call(ctx, http.MethodPut, path, mapFields, &res); err != nil {
+		return nil, spanError(span, err)
 	}
 
-	return nil
+	return res, nil
 }
 
 // Delete a map-field with the given name on the dataset identified by the given id.

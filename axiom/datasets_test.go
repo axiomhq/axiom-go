@@ -546,27 +546,39 @@ func TestDatasetsService_ListMapFields(t *testing.T) {
 func TestDatasetsService_CreateMapField(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `{
+			"name": "field1"
+		}`)
+		assert.NoError(t, err)
 	}
 
 	client := setup(t, "POST /v2/datasets/test/mapfields", hf)
 
-	err := client.Datasets.CreateMapField(context.Background(), "test", "field1")
+	res, err := client.Datasets.CreateMapField(context.Background(), "test", "field1")
 	require.NoError(t, err)
+
+	assert.Equal(t, "field1", *res)
 }
 
 func TestDatasetsService_UpdateMapFields(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `["field1", "field2"]`)
+		assert.NoError(t, err)
 	}
 
 	client := setup(t, "PUT /v2/datasets/test/mapfields", hf)
 
-	err := client.Datasets.UpdateMapFields(context.Background(), "test", MapFields{"field1", "field2"})
+	res, err := client.Datasets.UpdateMapFields(context.Background(), "test", MapFields{"field1", "field2"})
 	require.NoError(t, err)
+
+	assert.Equal(t, MapFields{"field1", "field2"}, res)
 }
 
 func TestDatasetsService_DeleteMapField(t *testing.T) {
