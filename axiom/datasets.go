@@ -306,7 +306,7 @@ func (s *DatasetsService) ListMapFields(ctx context.Context, id string) (MapFiel
 }
 
 // Create a new map-field with the given name on the dataset identified by the given id.
-func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name string) (*string, error) {
+func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name string) (string, error) {
 	ctx, span := s.client.trace(ctx, "Datasets.CreateMapField", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.String("axiom.param.name", name),
@@ -319,15 +319,15 @@ func (s *DatasetsService) CreateMapField(ctx context.Context, id string, name st
 
 	path, err := url.JoinPath(s.basePath, id, "mapfields")
 	if err != nil {
-		return nil, spanError(span, err)
+		return "", spanError(span, err)
 	}
 
 	var res mapField
 	if err := s.client.Call(ctx, http.MethodPost, path, req, &res); err != nil {
-		return nil, spanError(span, err)
+		return "", spanError(span, err)
 	}
 
-	return &res.Name, nil
+	return res.Name, nil
 }
 
 // Update map-fields on the dataset identified by the given id.

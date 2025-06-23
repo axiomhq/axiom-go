@@ -496,7 +496,7 @@ func (s *DatasetsTestSuite) TestMapFields() {
 		res, err := s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
 		s.Require().NoError(err)
 		s.Require().NotNil(res)
-		s.Equal("foo", *res)
+		s.Equal("foo", res)
 
 		// ...and verify it's listed on the dataset.
 		dataset, err := s.client.Datasets.Get(s.ctx, s.dataset.ID)
@@ -646,7 +646,7 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 	res, err := s.client.Datasets.CreateMapField(s.ctx, s.dataset.ID, "foo")
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
-	s.Equal("foo", *res)
+	s.Equal("foo", res)
 
 	// Ingest some data containing an object.
 	ingestObjectDataFn(s, ingestDataMapFields1)

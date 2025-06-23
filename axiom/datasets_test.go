@@ -560,7 +560,7 @@ func TestDatasetsService_CreateMapField(t *testing.T) {
 	res, err := client.Datasets.CreateMapField(context.Background(), "test", "field1")
 	require.NoError(t, err)
 
-	assert.Equal(t, "field1", *res)
+	assert.Equal(t, "field1", res)
 }
 
 func TestDatasetsService_UpdateMapFields(t *testing.T) {
