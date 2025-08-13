@@ -35,6 +35,13 @@ To quickstart, export the environment variables below.
   [Axiom CLI](github.com/axiomhq/cli) to create a dataset:
   `axiom dataset create`.
 
+
+#### Optional environment variables
+
+- `AXIOM_URL`: [Region](https://axiom.co/docs/reference/regions#axiom-api-reference) to use. Defaults to US.
+- `AXIOM_ORG_ID`: Organization identifier of the organization to (when using a
+  personal token).
+
 ## Package usage
 
 - [ingestevent](ingestevent/main.go): How to ingest events into Axiom.
