@@ -370,15 +370,15 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			return resp, err
 		}
 
-		if val := resp.Header.Get(headerContentType); strings.HasPrefix(val, mediaTypeJSON) {
-			dec := json.NewDecoder(resp.Body)
-			if c.strictDecoding {
-				dec.DisallowUnknownFields()
-			}
-			return resp, dec.Decode(v)
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
+			return resp, fmt.Errorf("cannot decode response with unsupported content type %q", ct)
 		}
 
-		return resp, errors.New("cannot decode response with unknown content type")
+		dec := json.NewDecoder(resp.Body)
+		if c.strictDecoding {
+			dec.DisallowUnknownFields()
+		}
+		return resp, dec.Decode(v)
 	}
 
 	return resp, nil
