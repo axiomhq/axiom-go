@@ -322,7 +322,7 @@ func TestClient_Options_SetUserAgent(t *testing.T) {
 	assert.Equal(t, exp, client.userAgent)
 }
 
-func TestClient_newRequest_BadURL(t *testing.T) {
+func TestClient_NewRequest_BadURL(t *testing.T) {
 	client := newClient(t)
 
 	_, err := client.NewRequest(context.Background(), http.MethodGet, ":", nil)
@@ -339,7 +339,7 @@ func TestClient_newRequest_BadURL(t *testing.T) {
 // is fine, since there is no difference between an HTTP request body that is an
 // empty string versus one that is not set at all. However in certain cases,
 // intermediate systems may treat these differently resulting in subtle errors.
-func TestClient_newRequest_EmptyBody(t *testing.T) {
+func TestClient_NewRequest_EmptyBody(t *testing.T) {
 	client := newClient(t)
 
 	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
@@ -348,7 +348,7 @@ func TestClient_newRequest_EmptyBody(t *testing.T) {
 	assert.Empty(t, req.Body)
 }
 
-func TestClient_do(t *testing.T) {
+func TestClient_Do(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
@@ -372,7 +372,7 @@ func TestClient_do(t *testing.T) {
 	assert.Equal(t, foo{"a"}, body)
 }
 
-func TestClient_do_ioWriter(t *testing.T) {
+func TestClient_Do_ioWriter(t *testing.T) {
 	content := `{"A":"a"}`
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -394,7 +394,36 @@ func TestClient_do_ioWriter(t *testing.T) {
 	assert.Equal(t, content, buf.String())
 }
 
-func TestClient_do_HTTPError(t *testing.T) {
+func TestClient_Do_unsupportedContentType(t *testing.T) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", mediaTypeJSON+"bad")
+		_, _ = fmt.Fprint(w, `{"A":"a"}`)
+	}
+
+	client := setup(t, "GET /", hf)
+
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	_, err = client.Do(req, struct{}{})
+	require.ErrorContains(t, err, "cannot decode response with unsupported content type")
+}
+
+func TestClient_Do_unsupportedContentType_empty(t *testing.T) {
+	hf := func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprint(w, `{"A":"a"}`)
+	}
+
+	client := setup(t, "GET /", hf)
+
+	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	_, err = client.Do(req, struct{}{})
+	require.ErrorContains(t, err, "cannot decode response with unsupported content type")
+}
+
+func TestClient_Do_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		w.WriteHeader(http.StatusBadRequest)
@@ -415,7 +444,7 @@ func TestClient_do_HTTPError(t *testing.T) {
 	}
 }
 
-func TestClient_do_HTTPError_Typed(t *testing.T) {
+func TestClient_Do_HTTPError_Typed(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		_, _ = w.Write([]byte(http.StatusText(http.StatusForbidden)))
@@ -431,7 +460,7 @@ func TestClient_do_HTTPError_Typed(t *testing.T) {
 	}
 }
 
-func TestClient_do_HTTPError_JSON(t *testing.T) {
+func TestClient_Do_HTTPError_JSON(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
@@ -456,7 +485,7 @@ func TestClient_do_HTTPError_JSON(t *testing.T) {
 	}
 }
 
-func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
+func TestClient_Do_HTTPError_Unauthenticated(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -475,7 +504,7 @@ func TestClient_do_HTTPError_Unauthenticated(t *testing.T) {
 	assert.ErrorIs(t, err, ErrUnauthenticated)
 }
 
-func TestClient_do_RateLimit(t *testing.T) {
+func TestClient_Do_RateLimit(t *testing.T) {
 	// Truncated time for testing as the [LimitError.Error] method uses
 	// [time.Until] which will yield different milliseconds when comparing the
 	// time values with [errors.Is].
@@ -526,7 +555,7 @@ func TestClient_do_RateLimit(t *testing.T) {
 	assert.Equal(t, expErr.Limit, resp.Limit)
 }
 
-func TestClient_do_RedirectLoop(t *testing.T) {
+func TestClient_Do_RedirectLoop(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
@@ -540,7 +569,7 @@ func TestClient_do_RedirectLoop(t *testing.T) {
 	assert.IsType(t, new(url.Error), err)
 }
 
-func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
+func TestClient_Do_ValidOnlyAPITokenPaths(t *testing.T) {
 	hf := func(http.ResponseWriter, *http.Request) {}
 
 	tests := []string{
@@ -563,7 +592,7 @@ func TestClient_do_ValidOnlyAPITokenPaths(t *testing.T) {
 	}
 }
 
-func TestClient_do_Backoff(t *testing.T) {
+func TestClient_Do_Backoff(t *testing.T) {
 	payload := `{"foo":"bar"}`
 
 	var (
@@ -619,7 +648,7 @@ func TestClient_do_Backoff(t *testing.T) {
 	assert.Equal(t, 3, getBodyCounter)
 }
 
-func TestClient_do_Backoff_NoRetryOn400(t *testing.T) {
+func TestClient_Do_Backoff_NoRetryOn400(t *testing.T) {
 	var currentCalls int
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		currentCalls++
