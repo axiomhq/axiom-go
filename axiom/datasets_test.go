@@ -359,6 +359,7 @@ func TestDatasetsService_List(t *testing.T) {
 		{
 			ID:          "test",
 			Name:        "test",
+			Kind:        "axiom:events:v1",
 			Description: "",
 			CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
 			CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
@@ -374,6 +375,7 @@ func TestDatasetsService_List(t *testing.T) {
 			{
 				"id": "test",
 				"name": "test",
+				"kind": "axiom:events:v1",
 				"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 				"created": "2020-11-17T22:29:00.521238198Z",
 				"canWrite": true
@@ -394,6 +396,7 @@ func TestDatasetsService_Get(t *testing.T) {
 	exp := &Dataset{
 		ID:          "test",
 		Name:        "test",
+		Kind:        "axiom:events:v1",
 		Description: "This is a test description",
 		CreatedBy:   "f83e245a-afdc-47ad-a765-4addd1994321",
 		CreatedAt:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T22:29:00.521238198Z"),
@@ -406,6 +409,7 @@ func TestDatasetsService_Get(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
+			"kind": "axiom:events:v1",
 			"description": "This is a test description",
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-17T22:29:00.521238198Z"
@@ -425,6 +429,7 @@ func TestDatasetsService_Create(t *testing.T) {
 	exp := &Dataset{
 		ID:                 "test",
 		Name:               "test",
+		Kind:               "axiom:events:v1",
 		Description:        "This is a test description",
 		UseRetentionPeriod: true,
 		RetentionDays:      30,
@@ -440,6 +445,7 @@ func TestDatasetsService_Create(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
+			"kind": "axiom:events:v1",
 			"description": "This is a test description",
 			"useRetentionPeriod": true,
 			"retentionDays": 30,
@@ -453,6 +459,7 @@ func TestDatasetsService_Create(t *testing.T) {
 
 	res, err := client.Datasets.Create(context.Background(), DatasetCreateRequest{
 		Name:               "test",
+		Kind:               "axiom:events:v1",
 		Description:        "This is a test description",
 		UseRetentionPeriod: true,
 		RetentionDays:      30,
