@@ -77,6 +77,8 @@ type Dataset struct {
 	ID string `json:"id"`
 	// Name is the unique name of the dataset.
 	Name string `json:"name"`
+	// Kind is the type of the dataset (e.g., "axiom:events:v1", "otel:metrics:v1").
+	Kind string `json:"kind"`
 	// Description of the dataset.
 	Description string `json:"description"`
 	// CreatedBy is the ID of the user who created the dataset.
@@ -99,6 +101,9 @@ type DatasetCreateRequest struct {
 	// and special characters "-", "_" and ".". Special characters cannot be a
 	// prefix or suffix. The prefix cannot be "axiom-".
 	Name string `json:"name"`
+	// Kind is the type of the dataset (e.g., "axiom:events:v1", "otel:metrics:v1").
+	// If not specified, defaults to "axiom:events:v1".
+	Kind string `json:"kind,omitempty"`
 	// Description of the dataset to create.
 	Description string `json:"description"`
 	// UseRetentionPeriod sets whether the dataset uses a retention period.
