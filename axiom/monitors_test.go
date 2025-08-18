@@ -161,7 +161,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		Operator:                     Above,
 		Range:                        time.Minute,
 		Threshold:                    1,
-		SecondDelay:                  10 * time.Second,
+		Delay:                        time.Second * 10,
 		NotifyEveryRun:               true,
 		SkipResolved:                 false,
 		TriggerFromNRuns:             5,
@@ -212,12 +212,12 @@ func TestMonitorsService_Update(t *testing.T) {
 		Operator:      Above,
 		Range:         time.Minute,
 		Threshold:     1,
-		SecondDelay:   10 * time.Second,
+		Delay:         time.Second * 10,
 	}})
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
-	assert.Equal(t, 10*time.Second, res.SecondDelay)
+	assert.Equal(t, time.Second*10, res.Delay)
 }
 
 func TestMonitorsService_Delete(t *testing.T) {

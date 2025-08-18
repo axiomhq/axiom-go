@@ -129,38 +129,46 @@ type Monitor struct {
 	APLQuery string `json:"aplQuery"`
 	// Operator is the operator to use for the monitor.
 	Operator Operator `json:"operator"`
-	// Threshold the query result is compared against, which evaluates if the monitor acts or not.
+	// Threshold the query result is compared against, which evaluates if the
+	// monitor acts or not.
 	Threshold float64 `json:"threshold"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
 	// NotifyByGroup tracks each non-time group independently.
 	NotifyByGroup bool `json:"notifyByGroup"`
-	// Resolvable determines whether the events triggered by the monitor are resolvable. This has no effect on threshold monitors.
+	// Resolvable determines whether the events triggered by the monitor are
+	// resolvable. This has no effect on threshold monitors.
 	Resolvable bool `json:"resolvable"`
 	// NotifierIDs attached to the monitor.
 	NotifierIDs []string `json:"notifierIDs"`
 
-	// Interval is the interval in minutes in which the monitor will run. The lowest resolution is 1 minute.
+	// Interval is the interval in minutes in which the monitor will run. The
+	// lowest resolution is 1 minute.
 	Interval time.Duration `json:"intervalMinutes"`
-	// Range the monitor goes back in time and looks at the data it acts on. The lowest resolution is 1 minute.
+	// Range the monitor goes back in time and looks at the data it acts on. The
+	// lowest resolution is 1 minute.
 	Range time.Duration `json:"rangeMinutes"`
 	// Disabled sets whether the monitor is disabled or not.
 	Disabled bool `json:"disabled"`
 	// DisabledUntil is the time that the monitor will be disabled until.
 	DisabledUntil time.Time `json:"disabledUntil"`
-	// SecondDelay is the delay in seconds after the end time that the monitor runs. The lowest resolution is 1 second.
-	SecondDelay time.Duration `json:"secondDelay,omitempty"`
+	// Delay after the end time that the monitor runs. The lowest resolution is
+	// 1 second.
+	Delay time.Duration `json:"secondDelay,omitempty"`
 	// NotifyEveryRun indicates whether to notify on every trigger.
 	NotifyEveryRun bool `json:"notifyEveryRun,omitempty"`
 	// SkipResolved indicates whether to skip resolved alerts.
 	SkipResolved bool `json:"skipResolved,omitempty"`
 	// Tolerance is the acceptable tolerance for an anomaly detection monitor.
 	Tolerance float64 `json:"tolerance,omitempty"`
-	// TriggerFromNRuns indicates the number of runs to consider when determining whether the current run should notify.
+	// TriggerFromNRuns indicates the number of runs to consider when
+	// determining whether the current run should notify.
 	TriggerFromNRuns int64 `json:"triggerFromNRuns,omitempty"`
-	// TriggerAfterNPositiveResults indicates the number of positive results required to trigger a notification (can be from a larger set of TriggerFromNRuns)
+	// TriggerAfterNPositiveResults indicates the number of positive results
+	// required to trigger a notification (can be from a larger set of TriggerFromNRuns)
 	TriggerAfterNPositiveResults int64 `json:"triggerAfterNPositiveResults,omitempty"`
-	// CompareDays indicates the number of days to compare for anomaly detection only.
+	// CompareDays indicates the number of days to compare for anomaly detection
+	// only.
 	CompareDays int64 `json:"compareDays,omitempty"`
 }
 
@@ -173,7 +181,7 @@ func (m Monitor) MarshalJSON() ([]byte, error) {
 	// Set to the value in minutes.
 	m.Range = time.Duration(m.Range.Minutes())
 	m.Interval = time.Duration(m.Interval.Minutes())
-	m.SecondDelay = time.Duration(m.SecondDelay.Seconds())
+	m.Delay = time.Duration(m.Delay.Seconds())
 
 	return json.Marshal(localMonitor(m))
 }
@@ -197,7 +205,7 @@ func (m *Monitor) UnmarshalJSON(b []byte) error {
 	// value in seconds.
 	m.Range *= time.Minute
 	m.Interval *= time.Minute
-	m.SecondDelay *= time.Second
+	m.Delay *= time.Second
 
 	return nil
 }
