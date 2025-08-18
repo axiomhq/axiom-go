@@ -69,7 +69,7 @@ func BenchmarkEncoder(b *testing.B) {
 	}
 	for _, bb := range benchmarks {
 		b.Run(fmt.Sprintf("encoder=%s", bb.name), func(b *testing.B) {
-			for range b.N {
+			for b.Loop() {
 				r, err := bb.encoder(bytes.NewReader(data))
 				require.NoError(b, err)
 
