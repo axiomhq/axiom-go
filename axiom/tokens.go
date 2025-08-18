@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Action -linecomment -output=tokens_string.go
+//go:generate go tool stringer -type=Action -linecomment -output=tokens_string.go
 
 // Action represents an action that can be performed on an Axiom resource.
 type Action uint8

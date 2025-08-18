@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Kind -linecomment -output=kind_string.go
+//go:generate go tool stringer -type=Kind -linecomment -output=kind_string.go
 
 // Kind represents the role of a query.
 type Kind uint8

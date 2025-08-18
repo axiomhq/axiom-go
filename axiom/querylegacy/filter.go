@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=FilterOp -linecomment -output=filter_string.go
+//go:generate go tool stringer -type=FilterOp -linecomment -output=filter_string.go
 
 // A FilterOp can be applied on queries to filter based on different conditions.
 type FilterOp uint8

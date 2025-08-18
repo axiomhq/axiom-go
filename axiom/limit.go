@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=limitType,LimitScope -linecomment -output=limit_string.go
+//go:generate go tool stringer -type=limitType,LimitScope -linecomment -output=limit_string.go
 
 const (
 	headerIngestLimit     = "X-IngestLimit-Limit"

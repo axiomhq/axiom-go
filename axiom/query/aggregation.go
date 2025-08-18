@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=AggregationOp -linecomment -output=aggregation_string.go
+//go:generate go tool stringer -type=AggregationOp -linecomment -output=aggregation_string.go
 
 // An AggregationOp describes the [Aggregation] operation applied on a [Field].
 type AggregationOp uint8
