@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -43,7 +42,7 @@ func TestUsersService_Current(t *testing.T) {
 
 	client := setup(t, "GET /v2/user", hf)
 
-	res, err := client.Users.Current(context.Background())
+	res, err := client.Users.Current(t.Context())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)

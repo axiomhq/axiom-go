@@ -44,8 +44,6 @@ func (s *MonitorsTestSuite) SetupSuite() {
 }
 
 func (s *MonitorsTestSuite) TearDownSuite() {
-	// Teardown routines use their own context to avoid not being run at all
-	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.suiteCtx), time.Second*15)
 	defer cancel()
 

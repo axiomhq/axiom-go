@@ -1,7 +1,6 @@
 package axiom_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -36,7 +35,7 @@ func TestClient_Manual(t *testing.T) {
 	path, err := axiom.AddURLOptions("/v1/test", opts)
 	require.NoError(t, err)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, path, nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, path, nil)
 	require.NoError(t, err)
 
 	resp, err := client.Do(req, nil)
@@ -70,6 +69,6 @@ func TestClient_Call(t *testing.T) {
 	path, err := axiom.AddURLOptions("/v1/test", opts)
 	require.NoError(t, err)
 
-	err = client.Call(context.Background(), http.MethodGet, path, nil, nil)
+	err = client.Call(t.Context(), http.MethodGet, path, nil, nil)
 	require.NoError(t, err)
 }

@@ -29,7 +29,7 @@ func TestTracingIntegration(t *testing.T) {
 	// Clear the environment to avoid unexpected behavior.
 	testhelper.SafeClearEnv(t)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(t.Context(), time.Minute)
 	t.Cleanup(cancel)
 
 	userAgent := fmt.Sprintf("axiom-go-otel-integration-test/%s", datasetSuffix)

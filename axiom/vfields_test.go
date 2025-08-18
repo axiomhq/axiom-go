@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -39,7 +38,7 @@ func TestVirtualFieldsService_List(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/vfields", hf)
 
-	res, err := client.VirtualFields.List(context.Background(), "dataset1")
+	res, err := client.VirtualFields.List(t.Context(), "dataset1")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -71,7 +70,7 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/vfields/vfield1", hf)
 
-	res, err := client.VirtualFields.Get(context.Background(), "vfield1")
+	res, err := client.VirtualFields.Get(t.Context(), "vfield1")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -103,7 +102,7 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/vfields", hf)
 
-	res, err := client.VirtualFields.Create(context.Background(), VirtualField{
+	res, err := client.VirtualFields.Create(t.Context(), VirtualField{
 		Dataset:    "dataset1",
 		Name:       "field1",
 		Expression: "a + b",
@@ -140,7 +139,7 @@ func TestVirtualFieldsService_Update(t *testing.T) {
 	}
 	client := setup(t, "PUT /v2/vfields/vfield1", hf)
 
-	res, err := client.VirtualFields.Update(context.Background(), "vfield1", VirtualField{
+	res, err := client.VirtualFields.Update(t.Context(), "vfield1", VirtualField{
 		Dataset:    "dataset1",
 		Name:       "field1_updated",
 		Expression: "a - b",
@@ -160,6 +159,6 @@ func TestVirtualFieldsService_Delete(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/vfields/vfield1", hf)
 
-	err := client.VirtualFields.Delete(context.Background(), "vfield1")
+	err := client.VirtualFields.Delete(t.Context(), "vfield1")
 	require.NoError(t, err)
 }

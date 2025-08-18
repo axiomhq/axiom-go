@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -104,7 +103,7 @@ func TestOrganizationsService_List(t *testing.T) {
 
 	client := setup(t, "GET /v2/orgs", hf)
 
-	res, err := client.Organizations.List(context.Background())
+	res, err := client.Organizations.List(t.Context())
 	require.NoError(t, err)
 
 	assert.EqualValues(t, exp, res)
@@ -196,7 +195,7 @@ func TestOrganizationsService_Get(t *testing.T) {
 
 	client := setup(t, "GET /v2/orgs/axiom", hf)
 
-	res, err := client.Organizations.Get(context.Background(), "axiom")
+	res, err := client.Organizations.Get(t.Context(), "axiom")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)

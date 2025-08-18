@@ -2,7 +2,6 @@ package axiom
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -325,7 +324,7 @@ func TestClient_Options_SetUserAgent(t *testing.T) {
 func TestClient_NewRequest_BadURL(t *testing.T) {
 	client := newClient(t)
 
-	_, err := client.NewRequest(context.Background(), http.MethodGet, ":", nil)
+	_, err := client.NewRequest(t.Context(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
 
 	if assert.IsType(t, new(url.Error), err) {
@@ -342,7 +341,7 @@ func TestClient_NewRequest_BadURL(t *testing.T) {
 func TestClient_NewRequest_EmptyBody(t *testing.T) {
 	client := newClient(t)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	assert.Empty(t, req.Body)
@@ -362,7 +361,7 @@ func TestClient_Do(t *testing.T) {
 		A string
 	}
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	var body foo
@@ -384,7 +383,7 @@ func TestClient_Do_ioWriter(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	var buf bytes.Buffer
@@ -402,7 +401,7 @@ func TestClient_Do_unsupportedContentType(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	_, err = client.Do(req, struct{}{})
@@ -416,7 +415,7 @@ func TestClient_Do_unsupportedContentType_empty(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	_, err = client.Do(req, struct{}{})
@@ -432,7 +431,7 @@ func TestClient_Do_HTTPError(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, HTTPError{
@@ -452,7 +451,7 @@ func TestClient_Do_HTTPError_Typed(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, ErrUnauthorized) {
@@ -473,7 +472,7 @@ func TestClient_Do_HTTPError_JSON(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	if _, err = client.Do(req, nil); assert.ErrorIs(t, err, HTTPError{
@@ -497,7 +496,7 @@ func TestClient_Do_HTTPError_Unauthenticated(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	_, err = client.Do(req, nil)
@@ -542,7 +541,7 @@ func TestClient_Do_RateLimit(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	// Request should fail with a "*LimitError".
@@ -562,7 +561,7 @@ func TestClient_Do_RedirectLoop(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	_, err = client.Do(req, nil)
@@ -583,7 +582,7 @@ func TestClient_Do_ValidOnlyAPITokenPaths(t *testing.T) {
 			err := client.Options(SetToken("xaat-123"))
 			require.NoError(t, err)
 
-			req, err := client.NewRequest(context.Background(), http.MethodGet, tt, nil)
+			req, err := client.NewRequest(t.Context(), http.MethodGet, tt, nil)
 			require.Nil(t, err)
 
 			_, err = client.Do(req, nil)
@@ -628,7 +627,7 @@ func TestClient_Do_Backoff(t *testing.T) {
 	// readers it can read in full to optimize the request.
 	var r io.Reader = strings.NewReader(payload)
 	r = io.TeeReader(r, io.Discard)
-	req, err := client.NewRequest(context.Background(), http.MethodPost, "/", r)
+	req, err := client.NewRequest(t.Context(), http.MethodPost, "/", r)
 	require.NoError(t, err)
 
 	// Make sure the request body can be re-read.
@@ -657,7 +656,7 @@ func TestClient_Do_Backoff_NoRetryOn400(t *testing.T) {
 
 	client := setup(t, "GET /", hf)
 
-	req, err := client.NewRequest(context.Background(), http.MethodGet, "/", nil)
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
 	resp, err := client.Do(req, nil)

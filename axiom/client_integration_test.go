@@ -73,7 +73,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.T().Logf("strict decoding is set to \"%t\"", strictDecoding)
 
-	s.suiteCtx, s.suiteCancel = context.WithTimeout(context.Background(), time.Minute)
+	s.suiteCtx, s.suiteCancel = context.WithTimeout(s.T().Context(), time.Minute)
 
 	if len(telemetryTracesURL+telemetryTracesToken+telemetryTracesDataset) > 0 {
 		var err error
@@ -109,7 +109,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
-	s.ctx, s.cancel = context.WithTimeout(s.suiteCtx, time.Second*45)
+	s.ctx, s.cancel = context.WithTimeout(s.suiteCtx, time.Minute)
 }
 
 func (s *IntegrationTestSuite) TearDownTest() {

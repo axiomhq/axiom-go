@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -30,7 +29,7 @@ func TestAnnotationService_Create(t *testing.T) {
 
 	client := setup(t, "POST /v2/annotations", hf)
 
-	res, err := client.Annotations.Create(context.Background(), exp)
+	res, err := client.Annotations.Create(t.Context(), exp)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp.Type, res.Type)
@@ -57,7 +56,7 @@ func TestAnnotationService_Get(t *testing.T) {
 
 	client := setup(t, "GET /v2/annotations/ann_test", hf)
 
-	res, err := client.Annotations.Get(context.Background(), "ann_test")
+	res, err := client.Annotations.Get(t.Context(), "ann_test")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp.Type, res.Type)
@@ -89,7 +88,7 @@ func TestAnnotationService_List(t *testing.T) {
 
 	client := setup(t, "GET /v2/annotations", hf)
 
-	res, err := client.Annotations.List(context.Background(), nil)
+	res, err := client.Annotations.List(t.Context(), nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -115,7 +114,7 @@ func TestAnnotationService_Update(t *testing.T) {
 
 	client := setup(t, "PUT /v2/annotations/ann_test", hf)
 
-	res, err := client.Annotations.Update(context.Background(), "ann_test", exp)
+	res, err := client.Annotations.Update(t.Context(), "ann_test", exp)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp.Type, res.Type)
@@ -131,6 +130,6 @@ func TestAnnotationService_Delete(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/annotations/ann_test", hf)
 
-	err := client.Annotations.Delete(context.Background(), "ann_test")
+	err := client.Annotations.Delete(t.Context(), "ann_test")
 	require.NoError(t, err)
 }

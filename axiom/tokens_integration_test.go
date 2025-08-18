@@ -40,9 +40,7 @@ func (s *TokensTestSuite) SetupTest() {
 }
 
 func (s *TokensTestSuite) TearDownTest() {
-	// Teardown routines use their own context to avoid not being run at all
-	// when the suite gets cancelled or times out.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.suiteCtx), time.Second*15)
 	defer cancel()
 
 	if s.apiToken != nil {
