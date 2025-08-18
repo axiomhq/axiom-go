@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Operator,MonitorType -linecomment -output=monitors_string.go
+//go:generate go tool stringer -type=Operator,MonitorType -linecomment -output=monitors_string.go
 
 // Operator represents a comparison operation for a monitor. A [Monitor] acts on
 // the result of comparing a query result with a threshold.

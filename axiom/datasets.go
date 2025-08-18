@@ -23,7 +23,7 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
+//go:generate go tool stringer -type=ContentType,ContentEncoding -linecomment -output=datasets_string.go
 
 // ErrUnknownContentType is raised when the given [ContentType] is not valid.
 var ErrUnknownContentType = errors.New("unknown content type")

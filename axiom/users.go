@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=UserRole -linecomment -output=users_string.go
+//go:generate go tool stringer -type=UserRole -linecomment -output=users_string.go
 
 // UserRole represents the role of an [User].
 type UserRole uint8

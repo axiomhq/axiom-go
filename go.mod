@@ -2,10 +2,15 @@ module github.com/axiomhq/axiom-go
 
 go 1.24.0
 
+tool (
+	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	golang.org/x/tools/cmd/stringer
+	gotest.tools/gotestsum
+)
+
 require (
 	github.com/apex/log v1.9.0
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/golangci/golangci-lint/v2 v2.4.0
 	github.com/google/go-querystring v1.1.0
 	github.com/klauspost/compress v1.18.0
 	github.com/schollz/progressbar/v3 v3.18.0
@@ -20,8 +25,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.37.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.16.0
-	golang.org/x/tools v0.36.0
-	gotest.tools/gotestsum v1.12.3
 )
 
 require (
@@ -33,9 +36,12 @@ require (
 	github.com/ashanbrown/forbidigo/v2 v2.1.0 // indirect
 	github.com/ashanbrown/makezero/v2 v2.0.1 // indirect
 	github.com/bombsimon/wsl/v5 v5.1.1 // indirect
+	github.com/golangci/golangci-lint/v2 v2.4.0 // indirect
 	github.com/golangci/swaggoswag v0.0.0-20250504205917-77f2aca3143e // indirect
 	github.com/manuelarte/embeddedstructfieldcheck v0.3.0 // indirect
 	go.augendre.info/arangolint v0.2.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
+	gotest.tools/gotestsum v1.12.3 // indirect
 )
 
 require (

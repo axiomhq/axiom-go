@@ -5,9 +5,6 @@ CGO	  := CGO_ENABLED=1 go
 # ENVIRONMENT
 VERBOSE =
 
-# GO TOOLS
-GOTOOLS := $(shell cat tools.go | grep "_ \"" | awk '{ print $$2 }' | tr -d '"')
-
 # MISC
 COVERPROFILE := coverage.out
 
@@ -22,10 +19,6 @@ GOTESTSUM_FLAGS =
 ifdef VERBOSE
 	GOTESTSUM_FLAGS += --format=standard-verbose
 endif
-
-# FUNCTIONS
-# func go-run-tool(name)
-go-run-tool = $(CGO) run $(shell echo $(GOTOOLS) | tr ' ' '\n' | grep -w $1)
 
 .PHONY: all
 all: dep generate fmt lint test ## Run dep, generate, fmt, lint and test
@@ -48,13 +41,7 @@ dep-clean: ## Remove obsolete dependencies
 .PHONY: dep-upgrade
 dep-upgrade: ## Upgrade all direct dependencies to their latest version
 	@echo ">> upgrading dependencies"
-	@$(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
-	@$(MAKE) dep
-
-.PHONY: dep-upgrade-tools
-dep-upgrade-tools: ## Upgrade all tool dependencies to their latest version
-	@echo ">> upgrading tool dependencies"
-	@$(GO) get $(GOTOOLS)
+	@$(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all) $(shell $(GO) list tool)
 	@$(MAKE) dep
 
 .PHONY: dep
@@ -69,7 +56,7 @@ dep.stamp: $(GOMODDEPS)
 .PHONY: fmt
 fmt: ## Format and simplify the source code using `golangci-lint fmt`
 	@echo ">> formatting code"
-	@$(call go-run-tool, golangci-lint) fmt
+	@$(GO) tool golangci-lint fmt
 
 .PHONY: generate
 generate: \
@@ -87,17 +74,17 @@ generate: \
 .PHONY: lint
 lint: ## Lint the source code
 	@echo ">> linting code"
-	@$(call go-run-tool, golangci-lint) run
+	@$(GO) tool golangci-lint run
 
 PHONY: test-integration
 test-integration: ## Run all unit and integration tests. Run with VERBOSE=1 to get verbose test output ('-v' flag). Requires AXIOM_TOKEN and AXIOM_URL to be set.
 	@echo ">> running unit and integration tests"
-	@AXIOM_INTEGRATION_TESTS=1 $(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
+	@AXIOM_INTEGRATION_TESTS=1 $(CGO) tool gotestsum $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: test
 test: ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
 	@echo ">> running unit tests"
-	@$(call go-run-tool, gotestsum) $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
+	@$(GO) tool gotestsum $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: help
 help:

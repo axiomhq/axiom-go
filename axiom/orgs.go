@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=PaymentStatus -linecomment -output=orgs_string.go
+//go:generate go tool stringer -type=PaymentStatus -linecomment -output=orgs_string.go
 
 // PaymentStatus represents the payment status of an [Organization].
 type PaymentStatus uint8
