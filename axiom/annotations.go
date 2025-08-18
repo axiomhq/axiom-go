@@ -41,9 +41,9 @@ type AnnotationCreateRequest struct {
 	Type string `json:"type"`
 	// Optional:
 	// Time is the start time of the Annotation.
-	Time time.Time `json:"time,omitempty"`
+	Time time.Time `json:"time,omitzero"`
 	// EndTime is the end time of the Annotation.
-	EndTime time.Time `json:"endTime,omitempty"`
+	EndTime time.Time `json:"endTime,omitzero"`
 	// Title is the title of the Annotation.
 	Title string `json:"title,omitempty"`
 	// Description is the description of the Annotation.
@@ -57,9 +57,9 @@ type AnnotationUpdateRequest struct {
 	// Datasets is a list of dataset IDs that the Annotation is attached to.
 	Datasets []string `json:"datasets,omitempty"`
 	// Time is the start time of the Annotation.
-	Time time.Time `json:"time,omitempty"`
+	Time time.Time `json:"time,omitzero"`
 	// EndTime is the end time of the Annotation.
-	EndTime time.Time `json:"endTime,omitempty"`
+	EndTime time.Time `json:"endTime,omitzero"`
 	// Title is the title of the Annotation.
 	Title string `json:"title,omitempty"`
 	// Description is the description of the Annotation.

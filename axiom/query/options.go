@@ -5,9 +5,9 @@ import "time"
 // Options specifies the optional parameters for a query.
 type Options struct {
 	// StartTime for the interval to query.
-	StartTime time.Time `json:"startTime,omitempty"`
+	StartTime time.Time `json:"startTime,omitzero"`
 	// EndTime of the interval to query.
-	EndTime time.Time `json:"endTime,omitempty"`
+	EndTime time.Time `json:"endTime,omitzero"`
 	// Cursor to use for pagination. When used, don't specify new start and end
 	// times but rather use the start and end times of the query that returned
 	// the cursor that will be used.
