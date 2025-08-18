@@ -30,7 +30,7 @@ func TestTracing(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	stop, err := axiotel.InitTracing(ctx, "test-dataset", "axiom-go-otel-test", "v1.0.0",
 		axiotel.SetURL(srv.URL),

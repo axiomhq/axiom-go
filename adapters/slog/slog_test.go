@@ -2,7 +2,6 @@ package slog
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -201,7 +200,7 @@ func TestHandler_Groups(t *testing.T) {
 
 	logger, closeHandler := adapters.Setup(t, hf, setup(t))
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	logger.WithGroup("s").LogAttrs(ctx, slog.LevelInfo, "my message", slog.Int("a", 1), slog.Int("b", 2))
 	logger.LogAttrs(ctx, slog.LevelInfo, "my message", slog.Group("s", slog.Int("a", 1), slog.Int("b", 2)))

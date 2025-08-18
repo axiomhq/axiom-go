@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -63,7 +62,7 @@ func TestTokensService_List(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/tokens", hf)
 
-	res, err := client.Tokens.List(context.Background())
+	res, err := client.Tokens.List(t.Context())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -116,7 +115,7 @@ func TestTokensService_Get(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/tokens/test", hf)
 
-	res, err := client.Tokens.Get(context.Background(), "test")
+	res, err := client.Tokens.Get(t.Context(), "test")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -170,7 +169,7 @@ func TestTokensService_Create(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/tokens", hf)
 
-	res, err := client.Tokens.Create(context.Background(), CreateTokenRequest{
+	res, err := client.Tokens.Create(t.Context(), CreateTokenRequest{
 		Name:        "test",
 		Description: "test",
 		ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
@@ -238,7 +237,7 @@ func TestTokensService_Regenerate(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/tokens/test/regenerate", hf)
 
-	res, err := client.Tokens.Regenerate(context.Background(), "test", RegenerateTokenRequest{
+	res, err := client.Tokens.Regenerate(t.Context(), "test", RegenerateTokenRequest{
 		ExistingTokenExpiresAt: tokenTime,
 		NewTokenExpiresAt:      tokenTime.Add(time.Hour * 24),
 	})
@@ -256,7 +255,7 @@ func TestTokensService_Delete(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/tokens/testID", hf)
 
-	err := client.Tokens.Delete(context.Background(), "testID")
+	err := client.Tokens.Delete(t.Context(), "testID")
 	require.NoError(t, err)
 }
 

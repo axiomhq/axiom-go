@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -48,7 +47,7 @@ func TestMonitorsService_List(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/monitors", hf)
 
-	res, err := client.Monitors.List(context.Background())
+	res, err := client.Monitors.List(t.Context())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -90,7 +89,7 @@ func TestMonitorsService_Get(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/monitors/testID", hf)
 
-	res, err := client.Monitors.Get(context.Background(), "testID")
+	res, err := client.Monitors.Get(t.Context(), "testID")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -131,7 +130,7 @@ func TestMonitorsService_Create(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/monitors", hf)
 
-	res, err := client.Monitors.Create(context.Background(), MonitorCreateRequest{Monitor{
+	res, err := client.Monitors.Create(t.Context(), MonitorCreateRequest{Monitor{
 		AlertOnNoData: false,
 		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
 		Description:   "test",
@@ -201,7 +200,7 @@ func TestMonitorsService_Update(t *testing.T) {
 	}
 	client := setup(t, "PUT /v2/monitors/testID", hf)
 
-	res, err := client.Monitors.Update(context.Background(), "testID", MonitorUpdateRequest{Monitor{
+	res, err := client.Monitors.Update(t.Context(), "testID", MonitorUpdateRequest{Monitor{
 		AlertOnNoData: false,
 		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
 		Description:   "test",
@@ -230,6 +229,6 @@ func TestMonitorsService_Delete(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/monitors/testID", hf)
 
-	err := client.Monitors.Delete(context.Background(), "testID")
+	err := client.Monitors.Delete(t.Context(), "testID")
 	require.NoError(t, err)
 }

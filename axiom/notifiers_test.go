@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -44,7 +43,7 @@ func TestNotifiersService_List(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/notifiers", hf)
 
-	res, err := client.Notifiers.List(context.Background())
+	res, err := client.Notifiers.List(t.Context())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -80,7 +79,7 @@ func TestNotifiersService_Get(t *testing.T) {
 	}
 	client := setup(t, "GET /v2/notifiers/test", hf)
 
-	res, err := client.Notifiers.Get(context.Background(), "test")
+	res, err := client.Notifiers.Get(t.Context(), "test")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -116,7 +115,7 @@ func TestNotifiersService_Create(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/notifiers", hf)
 
-	res, err := client.Notifiers.Create(context.Background(), Notifier{
+	res, err := client.Notifiers.Create(t.Context(), Notifier{
 		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
@@ -159,7 +158,7 @@ func TestNotifiersService_Update(t *testing.T) {
 	}
 	client := setup(t, "PUT /v2/notifiers/test", hf)
 
-	res, err := client.Notifiers.Update(context.Background(), "test", Notifier{
+	res, err := client.Notifiers.Update(t.Context(), "test", Notifier{
 		Name: "test",
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
@@ -181,7 +180,7 @@ func TestNotifiersService_Delete(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/notifiers/testID", hf)
 
-	err := client.Notifiers.Delete(context.Background(), "testID")
+	err := client.Notifiers.Delete(t.Context(), "testID")
 	require.NoError(t, err)
 }
 
@@ -221,7 +220,7 @@ func TestNotifiersService_Create_CustomWebhook(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/notifiers", hf)
 
-	res, err := client.Notifiers.Create(context.Background(), Notifier{
+	res, err := client.Notifiers.Create(t.Context(), Notifier{
 		Name: "test",
 		Properties: NotifierProperties{
 			CustomWebhook: &CustomWebhook{

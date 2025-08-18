@@ -52,8 +52,6 @@ func (s *VirtualFieldsTestSuite) SetupTest() {
 }
 
 func (s *VirtualFieldsTestSuite) TearDownTest() {
-	// Teardown routines use their own context to avoid not being run at all
-	// when the suite gets cancelled or times out.
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
 

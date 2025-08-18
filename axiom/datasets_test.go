@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -386,7 +385,7 @@ func TestDatasetsService_List(t *testing.T) {
 
 	client := setup(t, "GET /v2/datasets", hf)
 
-	res, err := client.Datasets.List(context.Background())
+	res, err := client.Datasets.List(t.Context())
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -419,7 +418,7 @@ func TestDatasetsService_Get(t *testing.T) {
 
 	client := setup(t, "GET /v2/datasets/test", hf)
 
-	res, err := client.Datasets.Get(context.Background(), "test")
+	res, err := client.Datasets.Get(t.Context(), "test")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -457,7 +456,7 @@ func TestDatasetsService_Create(t *testing.T) {
 
 	client := setup(t, "POST /v2/datasets", hf)
 
-	res, err := client.Datasets.Create(context.Background(), DatasetCreateRequest{
+	res, err := client.Datasets.Create(t.Context(), DatasetCreateRequest{
 		Name:               "test",
 		Kind:               "axiom:events:v1",
 		Description:        "This is a test description",
@@ -498,7 +497,7 @@ func TestDatasetsService_Update(t *testing.T) {
 
 	client := setup(t, "PUT /v2/datasets/test", hf)
 
-	res, err := client.Datasets.Update(context.Background(), "test", DatasetUpdateRequest{
+	res, err := client.Datasets.Update(t.Context(), "test", DatasetUpdateRequest{
 		Description:   "This is the new description",
 		RetentionDays: 0,
 	})
@@ -516,7 +515,7 @@ func TestDatasetsService_Delete(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/datasets/test", hf)
 
-	err := client.Datasets.Delete(context.Background(), "test")
+	err := client.Datasets.Delete(t.Context(), "test")
 	require.NoError(t, err)
 }
 
@@ -527,7 +526,7 @@ func TestDatasetsService_Trim(t *testing.T) {
 
 	client := setup(t, "POST /v2/datasets/test/trim", hf)
 
-	err := client.Datasets.Trim(context.Background(), "test", time.Hour)
+	err := client.Datasets.Trim(t.Context(), "test", time.Hour)
 	require.NoError(t, err)
 }
 
@@ -544,7 +543,7 @@ func TestDatasetsService_ListMapFields(t *testing.T) {
 
 	client := setup(t, "GET /v2/datasets/test/mapfields", hf)
 
-	res, err := client.Datasets.ListMapFields(context.Background(), "test")
+	res, err := client.Datasets.ListMapFields(t.Context(), "test")
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -564,7 +563,7 @@ func TestDatasetsService_CreateMapField(t *testing.T) {
 
 	client := setup(t, "POST /v2/datasets/test/mapfields", hf)
 
-	res, err := client.Datasets.CreateMapField(context.Background(), "test", "field1")
+	res, err := client.Datasets.CreateMapField(t.Context(), "test", "field1")
 	require.NoError(t, err)
 
 	assert.Equal(t, "field1", res)
@@ -582,7 +581,7 @@ func TestDatasetsService_UpdateMapFields(t *testing.T) {
 
 	client := setup(t, "PUT /v2/datasets/test/mapfields", hf)
 
-	res, err := client.Datasets.UpdateMapFields(context.Background(), "test", MapFields{"field1", "field2"})
+	res, err := client.Datasets.UpdateMapFields(t.Context(), "test", MapFields{"field1", "field2"})
 	require.NoError(t, err)
 
 	assert.Equal(t, MapFields{"field1", "field2"}, res)
@@ -597,7 +596,7 @@ func TestDatasetsService_DeleteMapField(t *testing.T) {
 
 	client := setup(t, "DELETE /v2/datasets/test/mapfields/field1", hf)
 
-	err := client.Datasets.DeleteMapField(context.Background(), "test", "field1")
+	err := client.Datasets.DeleteMapField(t.Context(), "test", "field1")
 	require.NoError(t, err)
 }
 
@@ -665,7 +664,7 @@ func TestDatasetsService_Ingest(t *testing.T) {
 		}
 	]`)
 
-	res, err := client.Datasets.Ingest(context.Background(), "test", r, JSON, Identity,
+	res, err := client.Datasets.Ingest(t.Context(), "test", r, JSON, Identity,
 		ingest.SetTimestampField("time"),
 		ingest.SetTimestampFormat("2/Jan/2006:15:04:05 +0000"),
 		ingest.SetCSVDelimiter(";"), // Obviously not valid for JSON, but perfectly fine to test for its presence in this test.
@@ -744,7 +743,7 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 		},
 	}
 
-	res, err := client.Datasets.IngestEvents(context.Background(), "test", events, ingest.SetEventLabels(
+	res, err := client.Datasets.IngestEvents(t.Context(), "test", events, ingest.SetEventLabels(
 		map[string]any{
 			"region":   "eu-west-1",
 			"instance": 1,
@@ -827,7 +826,7 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 		},
 	}
 
-	res, err := client.Datasets.IngestEvents(context.Background(), "test", events)
+	res, err := client.Datasets.IngestEvents(t.Context(), "test", events)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -901,7 +900,7 @@ func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {
 		close(eventCh)
 	}()
 
-	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -979,7 +978,7 @@ func TestDatasetsService_IngestChannel_Buffered(t *testing.T) {
 		close(eventCh)
 	}()
 
-	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -1058,7 +1057,7 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 		close(eventCh)
 	}()
 
-	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -1139,7 +1138,7 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 		close(eventCh)
 	}()
 
-	res, err := client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+	res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
@@ -1172,7 +1171,7 @@ func TestDatasetsService_Query(t *testing.T) {
 
 	client := setup(t, "POST /v1/datasets/_apl", hf)
 
-	res, err := client.Datasets.Query(context.Background(),
+	res, err := client.Datasets.Query(t.Context(),
 		"['test'] | where response == 304",
 		query.SetStartTime(time.Now().Add(-time.Minute*5)),
 	)
@@ -1202,7 +1201,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 
 	client := setup(t, "POST /v1/datasets/test/query", hf)
 
-	res, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{
+	res, err := client.Datasets.QueryLegacy(t.Context(), "test", querylegacy.Query{
 		StartTime: testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
 		EndTime:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
 	}, querylegacy.Options{
@@ -1218,7 +1217,7 @@ func TestDatasetsService_QueryLegacy(t *testing.T) {
 func TestDatasetsService_QueryInvalid_InvalidSaveKind(t *testing.T) {
 	client := setup(t, "POST /v1/datasets/test/query", nil)
 
-	_, err := client.Datasets.QueryLegacy(context.Background(), "test", querylegacy.Query{}, querylegacy.Options{
+	_, err := client.Datasets.QueryLegacy(t.Context(), "test", querylegacy.Query{}, querylegacy.Options{
 		SaveKind: querylegacy.APL,
 	})
 	require.EqualError(t, err, `invalid query kind "apl": must be "analytics" or "stream"`)
