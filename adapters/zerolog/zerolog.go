@@ -214,8 +214,6 @@ func (w *Writer) runBackgroundJob() {
 				continue
 			}
 
-			counter++
-
 			lvlStr, err := jsonparser.GetUnsafeString(data, zerolog.LevelFieldName)
 			if err != nil {
 				logger.Printf("failed to retrieve level field name from data: %s\n", err)
@@ -231,6 +229,8 @@ func (w *Writer) runBackgroundJob() {
 			if _, enabled := w.levels[lvl]; !enabled {
 				continue
 			}
+
+			counter++
 
 			data, _ = jsonparser.Set(data, loggerName, "logger")
 
