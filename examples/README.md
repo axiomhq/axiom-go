@@ -67,6 +67,10 @@ To quickstart, export the environment variables below.
 
 ## OpenTelemetry usage
 
+- [adk](adk/main.go): How to build a Google Agent Development Kit (ADK) agent
+  with filesystem, Axiom query, and web fetch tools. Exports OpenTelemetry
+  traces and logs to Axiom. Requires `AXIOM_TRACES_DATASET`,
+  `AXIOM_LOGS_DATASET`, and `GOOGLE_API_KEY` environment variables.
 - [otelinstrument](otelinstrument/main.go): How to instrument the Axiom Go
   client using OpenTelemetry.
 - [oteltraces](oteltraces/main.go): How to ship traces to Axiom using the
