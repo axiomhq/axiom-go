@@ -136,6 +136,8 @@ type Status struct {
 	RowsExamined uint64 `json:"rowsExamined"`
 	// RowsMatched is the amount of rows that matched the query.
 	RowsMatched uint64 `json:"rowsMatched"`
+	// Messages is an optional list of messages that was emitted during query execution.
+	Messages []Message `json:"messages,omitempty"`
 }
 
 // UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
@@ -153,4 +155,18 @@ func (s *Status) UnmarshalJSON(b []byte) error {
 	s.ElapsedTime *= time.Microsecond
 
 	return nil
+}
+
+// Message represents a message emitted by the Axiom database while executing a request.
+type Message struct {
+	// Priority is one of "trace", "debug", "info", "warn", "error", or "fatal".
+	Priority string `json:"priority"`
+	// Count is the number of times this message was observed.
+	// All messages with the same Code is colated into one Message.
+	Count int `json:"count"`
+	// Code is a fixed string that is used to deduplicate messages.
+	// Not intended for display; but primarily for automatic processing.
+	Code string `json:"code,omitempty"`
+	// Msg is the human readable display form of the message.
+	Msg string `json:"msg"`
 }
