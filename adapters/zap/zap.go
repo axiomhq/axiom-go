@@ -18,6 +18,8 @@ import (
 
 var _ zapcore.WriteSyncer = (*WriteSyncer)(nil)
 
+const defaultMaxBufferCapacity = 1 << 20 // 1MB
+
 // Matches https://github.com/uber-go/zap/blob/master/config.go#L98 but modifies
 // the timestamp field to be Axiom compatible.
 var encoderConfig = zapcore.EncoderConfig{
@@ -87,15 +89,26 @@ func SetLevelEnabler(levelEnabler zapcore.LevelEnabler) Option {
 	}
 }
 
+// SetMaxBufferCapacity configures the maximum buffer capacity in bytes. Buffers
+// exceeding this capacity are released after syncing to prevent memory bloat
+// from traffic spikes. Defaults to 1MB.
+func SetMaxBufferCapacity(size int) Option {
+	return func(ws *WriteSyncer) error {
+		ws.maxBufferCapacity = size
+		return nil
+	}
+}
+
 // WriteSyncer implements a [zapcore.WriteSyncer] used for shipping logs to
 // Axiom.
 type WriteSyncer struct {
 	client      *axiom.Client
 	datasetName string
 
-	clientOptions []axiom.Option
-	ingestOptions []ingest.Option
-	levelEnabler  zapcore.LevelEnabler
+	clientOptions     []axiom.Option
+	ingestOptions     []ingest.Option
+	levelEnabler      zapcore.LevelEnabler
+	maxBufferCapacity int
 
 	buf    bytes.Buffer
 	bufMtx sync.Mutex
@@ -118,6 +131,7 @@ func New(options ...Option) (zapcore.Core, error) {
 		levelEnabler: zap.LevelEnablerFunc(func(zapcore.Level) bool {
 			return true
 		}),
+		maxBufferCapacity: defaultMaxBufferCapacity,
 	}
 
 	// Apply supplied options.
@@ -170,8 +184,13 @@ func (ws *WriteSyncer) Sync() error {
 		return nil
 	}
 
-	// Make sure to reset the buffer.
-	defer ws.buf.Reset()
+	defer func() {
+		if ws.buf.Cap() > ws.maxBufferCapacity {
+			ws.buf = bytes.Buffer{}
+			return
+		}
+		ws.buf.Reset()
+	}()
 
 	r, err := axiom.ZstdEncoder()(&ws.buf)
 	if err != nil {
