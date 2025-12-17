@@ -29,8 +29,9 @@ var (
 )
 
 const (
-	defaultBatchSize = 10_000
-	flushInterval    = time.Second
+	defaultBatchSize         = 10_000
+	defaultMaxBufferCapacity = 1 << 20 // 1MB
+	flushInterval            = time.Second
 )
 
 // Writer is a axiom events writer with std io.Writer interface.
@@ -38,9 +39,10 @@ type Writer struct {
 	client  *axiom.Client
 	dataset string
 
-	clientOptions []axiom.Option
-	ingestOptions []ingest.Option
-	levels        map[zerolog.Level]struct{}
+	clientOptions     []axiom.Option
+	ingestOptions     []ingest.Option
+	levels            map[zerolog.Level]struct{}
+	maxBufferCapacity int
 
 	byteCh    chan []byte
 	closeOnce sync.Once
@@ -107,6 +109,15 @@ func SetIngestOptions(ingestOptions []ingest.Option) Option {
 	})
 }
 
+// SetMaxBufferCapacity configures the maximum buffer capacity in bytes. Buffers
+// exceeding this capacity are released after flushing to prevent memory bloat
+// from traffic spikes. Defaults to 1MB.
+func SetMaxBufferCapacity(size int) Option {
+	return Option(func(cfg *Writer) {
+		cfg.maxBufferCapacity = size
+	})
+}
+
 // New creates a new Writer that ingests logs into Axiom. It automatically takes
 // its configuration from the environment. To connect, export the following
 // environment variables:
@@ -124,11 +135,12 @@ func SetIngestOptions(ingestOptions []ingest.Option) Option {
 // [Writer.Close].
 func New(opts ...Option) (*Writer, error) {
 	w := &Writer{
-		levels:        make(map[zerolog.Level]struct{}),
-		ingestOptions: []ingest.Option{ingest.SetTimestampField(zerolog.TimestampFieldName), ingest.SetTimestampFormat(zerolog.TimeFieldFormat)},
-		clientOptions: []axiom.Option{},
-		byteCh:        make(chan []byte, defaultBatchSize),
-		closeCh:       make(chan struct{}),
+		levels:            make(map[zerolog.Level]struct{}),
+		ingestOptions:     []ingest.Option{ingest.SetTimestampField(zerolog.TimestampFieldName), ingest.SetTimestampFormat(zerolog.TimeFieldFormat)},
+		clientOptions:     []axiom.Option{},
+		maxBufferCapacity: defaultMaxBufferCapacity,
+		byteCh:            make(chan []byte, defaultBatchSize),
+		closeCh:           make(chan struct{}),
 	}
 
 	// func supplied options.
@@ -175,6 +187,10 @@ func (w *Writer) runBackgroundJob() {
 	flush := func() error {
 		defer func() {
 			counter = 0
+			if buffer.Cap() > w.maxBufferCapacity {
+				buffer = &bytes.Buffer{}
+				return
+			}
 			buffer.Reset()
 		}()
 
@@ -200,6 +216,9 @@ func (w *Writer) runBackgroundJob() {
 	}
 
 	defer close(w.closeCh)
+
+	ticker := time.NewTicker(flushInterval)
+	defer ticker.Stop()
 
 	for {
 		select {
@@ -241,7 +260,7 @@ func (w *Writer) runBackgroundJob() {
 					logger.Printf("failed to ingest events: %s\n", err)
 				}
 			}
-		case <-time.After(flushInterval):
+		case <-ticker.C:
 			if err := flush(); err != nil {
 				logger.Printf("failed to ingest events: %s\n", err)
 			}
