@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/klauspost/compress/zstd"
@@ -1006,8 +1007,6 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 		assert.Len(t, events, 1)
 		zsr.Close()
 
-		// For the sake of simplicity in this handler, we'll just return the
-		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprintf(w, `{
@@ -1023,44 +1022,48 @@ func TestDatasetsService_IngestChannel_UnbufferedSlow(t *testing.T) {
 
 	client := setup(t, "POST /v1/datasets/test/ingest", hf)
 
-	events := []Event{
-		{
-			"time":        "17/May/2015:08:05:32 +0000",
-			"remote_ip":   "93.180.71.3",
-			"remote_user": "-",
-			"request":     "GET /downloads/product_1 HTTP/1.1",
-			"response":    304,
-			"bytes":       0,
-			"referrer":    "-",
-			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-		},
-		{
-			"time":        "17/May/2015:08:05:32 +0000",
-			"remote_ip":   "93.180.71.3",
-			"remote_user": "-",
-			"request":     "GET /downloads/product_1 HTTP/1.1",
-			"response":    304,
-			"bytes":       0,
-			"referrer":    "-",
-			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-		},
-	}
+	// Prevent idle keep-alive goroutines from blocking synctest's virtual
+	// clock advancement.
+	client.httpClient.Transport.(*http.Transport).DisableKeepAlives = true
 
-	eventCh := make(chan Event)
-	go func() {
-		for _, e := range events {
-			eventCh <- e
-			// Simulate a slow producer which should trigger the ticker based
-			// batch flush in the IngestChannel method.
-			time.Sleep(time.Second + time.Millisecond*250)
+	synctest.Test(t, func(t *testing.T) {
+		events := []Event{
+			{
+				"time":        "17/May/2015:08:05:32 +0000",
+				"remote_ip":   "93.180.71.3",
+				"remote_user": "-",
+				"request":     "GET /downloads/product_1 HTTP/1.1",
+				"response":    304,
+				"bytes":       0,
+				"referrer":    "-",
+				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+			},
+			{
+				"time":        "17/May/2015:08:05:32 +0000",
+				"remote_ip":   "93.180.71.3",
+				"remote_user": "-",
+				"request":     "GET /downloads/product_1 HTTP/1.1",
+				"response":    304,
+				"bytes":       0,
+				"referrer":    "-",
+				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+			},
 		}
-		close(eventCh)
-	}()
 
-	res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
-	require.NoError(t, err)
+		eventCh := make(chan Event)
+		go func() {
+			for _, e := range events {
+				eventCh <- e
+				time.Sleep(time.Second + time.Millisecond*250)
+			}
+			close(eventCh)
+		}()
 
-	assert.Equal(t, exp, res)
+		res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
+		require.NoError(t, err)
+
+		assert.Equal(t, exp, res)
+	})
 }
 
 func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
@@ -1087,8 +1090,6 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 		assert.Len(t, events, 1)
 		zsr.Close()
 
-		// For the sake of simplicity in this handler, we'll just return the
-		// same WAL length for each request.
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
 		_, err = fmt.Fprintf(w, `{
@@ -1104,45 +1105,49 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 
 	client := setup(t, "POST /v1/datasets/test/ingest", hf)
 
-	events := []Event{
-		{
-			"time":        "17/May/2015:08:05:32 +0000",
-			"remote_ip":   "93.180.71.3",
-			"remote_user": "-",
-			"request":     "GET /downloads/product_1 HTTP/1.1",
-			"response":    304,
-			"bytes":       0,
-			"referrer":    "-",
-			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-		},
-		{
-			"time":        "17/May/2015:08:05:32 +0000",
-			"remote_ip":   "93.180.71.3",
-			"remote_user": "-",
-			"request":     "GET /downloads/product_1 HTTP/1.1",
-			"response":    304,
-			"bytes":       0,
-			"referrer":    "-",
-			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-		},
-	}
+	// Prevent idle keep-alive goroutines from blocking synctest's virtual
+	// clock advancement.
+	client.httpClient.Transport.(*http.Transport).DisableKeepAlives = true
 
-	eventCh := make(chan Event, 2)
-	go func() {
-		for _, e := range events {
-			eventCh <- e
-			// Simulate a slow producer which should trigger the ticker based
-			// batch flush in the IngestChannel method.
-			time.Sleep(time.Second + time.Millisecond*250)
+	synctest.Test(t, func(t *testing.T) {
+		events := []Event{
+			{
+				"time":        "17/May/2015:08:05:32 +0000",
+				"remote_ip":   "93.180.71.3",
+				"remote_user": "-",
+				"request":     "GET /downloads/product_1 HTTP/1.1",
+				"response":    304,
+				"bytes":       0,
+				"referrer":    "-",
+				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+			},
+			{
+				"time":        "17/May/2015:08:05:32 +0000",
+				"remote_ip":   "93.180.71.3",
+				"remote_user": "-",
+				"request":     "GET /downloads/product_1 HTTP/1.1",
+				"response":    304,
+				"bytes":       0,
+				"referrer":    "-",
+				"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+			},
 		}
-		close(eventCh)
-	}()
 
-	res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
-	require.NoError(t, err)
+		eventCh := make(chan Event, 2)
+		go func() {
+			for _, e := range events {
+				eventCh <- e
+				time.Sleep(time.Second + time.Millisecond*250)
+			}
+			close(eventCh)
+		}()
 
-	assert.Equal(t, exp, res)
-	assert.Equal(t, 2, handlerInvokedCount)
+		res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
+		require.NoError(t, err)
+
+		assert.Equal(t, exp, res)
+		assert.Equal(t, 2, handlerInvokedCount)
+	})
 }
 
 // TODO(lukasmalkmus): Write an ingest test that contains some failures in the

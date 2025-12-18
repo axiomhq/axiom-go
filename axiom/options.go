@@ -13,7 +13,7 @@ import (
 // Ref: https://github.com/google/go-github/blob/master/github/github.go#L232.
 func AddURLOptions(s string, opt any) (string, error) {
 	v := reflect.ValueOf(opt)
-	if v.Kind() == reflect.Ptr && v.IsNil() {
+	if v.Kind() == reflect.Pointer && v.IsNil() {
 		return s, nil
 	}
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/klauspost/compress/zstd"
@@ -91,23 +92,33 @@ func TestHook_FlushFullBatch(t *testing.T) {
 		_, _ = w.Write([]byte("{}"))
 	}
 
-	logger, _ := adapters.Setup(t, hf, setup(t))
+	client := adapters.SetupClient(t, hf)
 
-	for range 10_001 {
-		logger.Info().Str("key", "value").Msg("my message")
-	}
+	synctest.Test(t, func(t *testing.T) {
+		writer, err := New(
+			SetClient(client),
+			SetDataset("test"),
+		)
+		require.NoError(t, err)
+		t.Cleanup(func() { writer.Close() })
 
-	// Let the server process.
-	time.Sleep(time.Millisecond * 750)
+		logger := zerolog.New(io.MultiWriter(writer, io.Discard)).With().Logger()
 
-	// Should have a full batch right away.
-	assert.EqualValues(t, 10_000, atomic.LoadUint64(&lines))
+		for range 10_001 {
+			logger.Info().Str("key", "value").Msg("my message")
+		}
 
-	// Wait for timer based hook flush.
-	time.Sleep(time.Second + time.Millisecond*250)
+		// Wait for the batch-full flush HTTP request to complete.
+		synctest.Wait()
 
-	// Should have received the last event.
-	assert.EqualValues(t, 10_001, atomic.LoadUint64(&lines))
+		assert.EqualValues(t, 10_000, atomic.LoadUint64(&lines))
+
+		// Advance virtual clock past the flush interval to trigger timer-based flush.
+		time.Sleep(flushInterval + time.Millisecond)
+		synctest.Wait()
+
+		assert.EqualValues(t, 10_001, atomic.LoadUint64(&lines))
+	})
 }
 
 func setup(t *testing.T) func(dataset string, client *axiom.Client) (*zerolog.Logger, func()) {

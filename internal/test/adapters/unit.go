@@ -16,16 +16,30 @@ import (
 func Setup[T any](t *testing.T, hf http.HandlerFunc, setupFunc func(dataset string, client *axiom.Client) (T, func())) (T, func()) {
 	t.Helper()
 
+	client := SetupClient(t, hf)
+
+	return setupFunc("test", client)
+}
+
+// SetupClient sets up a test http server and returns a client configured to
+// talk to it. Keep-alive connections are disabled to ensure compatibility with
+// synctest.
+func SetupClient(t *testing.T, hf http.HandlerFunc) *axiom.Client {
+	t.Helper()
+
 	srv := httptest.NewServer(hf)
 	t.Cleanup(srv.Close)
+
+	httpClient := srv.Client()
+	httpClient.Transport.(*http.Transport).DisableKeepAlives = true
 
 	client, err := axiom.NewClient(
 		axiom.SetNoEnv(),
 		axiom.SetURL(srv.URL),
 		axiom.SetToken("xaat-test"),
-		axiom.SetClient(srv.Client()),
+		axiom.SetClient(httpClient),
 	)
 	require.NoError(t, err)
 
-	return setupFunc("test", client)
+	return client
 }
