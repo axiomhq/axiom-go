@@ -6,7 +6,6 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"runtime"
 	"slices"
 	"sync"
 	"time"
@@ -223,7 +222,7 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	event[slog.MessageKey] = r.Message
 
 	if h.addSource {
-		event[slog.SourceKey] = source(r)
+		event[slog.SourceKey] = r.Source()
 	}
 
 	select {
@@ -288,19 +287,5 @@ func addAttrToEvent(event axiom.Event, attr slog.Attr) {
 			a = err.Error()
 		}
 		event[attr.Key] = a
-	}
-}
-
-// source returns a Source for the log event.
-// If the Record was created without the necessary information,
-// or if the location is unavailable, it returns a non-nil *Source
-// with zero fields.
-func source(r slog.Record) *slog.Source {
-	fs := runtime.CallersFrames([]uintptr{r.PC})
-	f, _ := fs.Next()
-	return &slog.Source{
-		Function: f.Function,
-		File:     f.File,
-		Line:     f.Line,
 	}
 }
