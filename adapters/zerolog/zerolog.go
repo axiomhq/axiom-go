@@ -70,52 +70,61 @@ func (w *Writer) Close() {
 }
 
 // Option configures axiom events writer.
-type Option func(*Writer)
+type Option func(*Writer) error
 
 // SetClient configures a custom axiom client.
 func SetClient(client *axiom.Client) Option {
-	return Option(func(cfg *Writer) {
+	return func(cfg *Writer) error {
 		cfg.client = client
-	})
+		return nil
+	}
 }
 
 // SetLevels configures zerolog levels that have to be sent to Axiom.
 func SetLevels(levels []zerolog.Level) Option {
-	return Option(func(cfg *Writer) {
+	return func(cfg *Writer) error {
 		for _, level := range levels {
 			cfg.levels[level] = struct{}{}
 		}
-	})
+		return nil
+	}
 }
 
 // SetDataset configures the axiom dataset name.
 func SetDataset(dataset string) Option {
-	return Option(func(cfg *Writer) {
+	return func(cfg *Writer) error {
 		cfg.dataset = dataset
-	})
+		return nil
+	}
 }
 
 // SetClientOptions configures the axiom client options.
 func SetClientOptions(clientOptions []axiom.Option) Option {
-	return Option(func(cfg *Writer) {
+	return func(cfg *Writer) error {
 		cfg.clientOptions = clientOptions
-	})
+		return nil
+	}
 }
 
 // SetIngestOptions configures the axiom ingest options.
 func SetIngestOptions(ingestOptions []ingest.Option) Option {
-	return Option(func(cfg *Writer) {
+	return func(cfg *Writer) error {
 		cfg.ingestOptions = ingestOptions
-	})
+		return nil
+	}
 }
 
 // SetMaxBufferCapacity configures the maximum buffer capacity in bytes. Buffers
 // exceeding this capacity are released after flushing to prevent memory bloat
-// from traffic spikes. Defaults to 1MB.
+// from traffic spikes. Set to 0 to always release the buffer. Defaults to 1MB.
 func SetMaxBufferCapacity(size int) Option {
-	return Option(func(cfg *Writer) {
+	return func(cfg *Writer) error {
+		if size < 0 {
+			return errors.New("max buffer capacity cannot be negative")
+		}
 		cfg.maxBufferCapacity = size
-	})
+		return nil
+	}
 }
 
 // New creates a new Writer that ingests logs into Axiom. It automatically takes
@@ -143,12 +152,14 @@ func New(opts ...Option) (*Writer, error) {
 		closeCh:           make(chan struct{}),
 	}
 
-	// func supplied options.
+	// Apply supplied options.
 	for _, option := range opts {
 		if option == nil {
 			continue
 		}
-		option(w)
+		if err := option(w); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(w.levels) == 0 {

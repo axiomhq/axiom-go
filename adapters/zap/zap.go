@@ -91,9 +91,12 @@ func SetLevelEnabler(levelEnabler zapcore.LevelEnabler) Option {
 
 // SetMaxBufferCapacity configures the maximum buffer capacity in bytes. Buffers
 // exceeding this capacity are released after syncing to prevent memory bloat
-// from traffic spikes. Defaults to 1MB.
+// from traffic spikes. Set to 0 to always release the buffer. Defaults to 1MB.
 func SetMaxBufferCapacity(size int) Option {
 	return func(ws *WriteSyncer) error {
+		if size < 0 {
+			return errors.New("max buffer capacity cannot be negative")
+		}
 		ws.maxBufferCapacity = size
 		return nil
 	}
