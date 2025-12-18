@@ -20,8 +20,9 @@ const _PaymentStatus_name = "successnafailedblocked"
 var _PaymentStatus_index = [...]uint8{0, 0, 7, 9, 15, 22}
 
 func (i PaymentStatus) String() string {
-	if i >= PaymentStatus(len(_PaymentStatus_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_PaymentStatus_index)-1 {
 		return "PaymentStatus(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _PaymentStatus_name[_PaymentStatus_index[i]:_PaymentStatus_index[i+1]]
+	return _PaymentStatus_name[_PaymentStatus_index[idx]:_PaymentStatus_index[idx+1]]
 }
