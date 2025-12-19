@@ -84,7 +84,7 @@ test-integration: ## Run all unit and integration tests. Run with VERBOSE=1 to g
 .PHONY: test
 test: ## Run all unit tests. Run with VERBOSE=1 to get verbose test output ('-v' flag).
 	@echo ">> running unit tests"
-	@$(GO) tool gotestsum $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
+	@$(CGO) tool gotestsum $(GOTESTSUM_FLAGS) -- $(GO_TEST_FLAGS) ./...
 
 .PHONY: help
 help:
