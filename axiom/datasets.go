@@ -407,12 +407,24 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		}
 	}
 
-	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
-	path, err := url.JoinPath("/v1/datasets", id, "ingest")
-	if err != nil {
-		return nil, spanError(span, err)
-	} else if path, err = AddURLOptions(path, opts); err != nil {
-		return nil, spanError(span, err)
+	// Build the ingest path - use edge URL if configured.
+	var (
+		path string
+		err  error
+	)
+	if edgeURL := s.client.config.EdgeIngestURL(id); edgeURL != nil {
+		path = edgeURL.String()
+		if path, err = AddURLOptions(path, opts); err != nil {
+			return nil, spanError(span, err)
+		}
+	} else {
+		// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
+		path, err = url.JoinPath("/v1/datasets", id, "ingest")
+		if err != nil {
+			return nil, spanError(span, err)
+		} else if path, err = AddURLOptions(path, opts); err != nil {
+			return nil, spanError(span, err)
+		}
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
@@ -489,12 +501,24 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		}
 	}
 
-	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
-	path, err := url.JoinPath("/v1/datasets", id, "ingest")
-	if err != nil {
-		return nil, spanError(span, err)
-	} else if path, err = AddURLOptions(path, opts); err != nil {
-		return nil, spanError(span, err)
+	// Build the ingest path - use edge URL if configured.
+	var (
+		path string
+		err  error
+	)
+	if edgeURL := s.client.config.EdgeIngestURL(id); edgeURL != nil {
+		path = edgeURL.String()
+		if path, err = AddURLOptions(path, opts); err != nil {
+			return nil, spanError(span, err)
+		}
+	} else {
+		// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
+		path, err = url.JoinPath("/v1/datasets", id, "ingest")
+		if err != nil {
+			return nil, spanError(span, err)
+		} else if path, err = AddURLOptions(path, opts); err != nil {
+			return nil, spanError(span, err)
+		}
 	}
 
 	getBody := func() (io.ReadCloser, error) {
@@ -688,12 +712,24 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		Format: "tabular", // Hardcode tabular result format for now.
 	}
 
-	// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
-	path, err := url.JoinPath("/v1/datasets", "_apl")
-	if err != nil {
-		return nil, spanError(span, err)
-	} else if path, err = AddURLOptions(path, queryParams); err != nil {
-		return nil, spanError(span, err)
+	// Build the query path - use edge URL if configured.
+	var (
+		path string
+		err  error
+	)
+	if edgeURL := s.client.config.EdgeQueryURL(); edgeURL != nil {
+		path = edgeURL.String()
+		if path, err = AddURLOptions(path, queryParams); err != nil {
+			return nil, spanError(span, err)
+		}
+	} else {
+		// TODO(lukasmalkmus): Use 's.basePath' once ingest v2 is available.
+		path, err = url.JoinPath("/v1/datasets", "_apl")
+		if err != nil {
+			return nil, spanError(span, err)
+		} else if path, err = AddURLOptions(path, queryParams); err != nil {
+			return nil, spanError(span, err)
+		}
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, aplQueryRequest{
