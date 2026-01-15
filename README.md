@@ -53,6 +53,29 @@ If you want to use a logging package, check if there is already an adapter in
 the [adapters](adapters) directory. We happily accept contributions for new
 adapters.
 
+## Edge Ingestion
+
+For improved data locality, you can configure the client to use regional edge
+endpoints for ingest and query operations. All other API operations continue to
+use the main Axiom API endpoint.
+
+```go
+// Using a regional edge domain
+client, err := axiom.NewClient(
+    axiom.SetEdgeRegion("eu-central-1.aws.edge.axiom.co"),
+)
+
+// Or using an explicit edge URL
+client, err := axiom.NewClient(
+    axiom.SetEdgeURL("https://custom-edge.example.com"),
+)
+```
+
+You can also configure edge endpoints via environment variables:
+
+- `AXIOM_EDGE_REGION` - Regional edge domain (e.g., `eu-central-1.aws.edge.axiom.co`)
+- `AXIOM_EDGE_URL` - Explicit edge URL (takes precedence over `AXIOM_EDGE_REGION`)
+
 ## Install
 
 ```shell

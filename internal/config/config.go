@@ -16,6 +16,13 @@ type Config struct {
 	// organizationID is the Axiom organization ID that will be set on the
 	// 'X-Axiom-Org-Id' header. Not required for API tokens.
 	organizationID string
+
+	// edgeURL is an explicit edge endpoint URL for ingest and query operations.
+	// Takes precedence over edgeRegion if both are set.
+	edgeURL *url.URL
+	// edgeRegion is the regional edge domain (e.g., "eu-central-1.aws.edge.axiom.co").
+	// When set, edge URLs are built as "https://{edgeRegion}/v1/ingest/{dataset}".
+	edgeRegion string
 }
 
 // Default returns a default configuration with the base URL set.
@@ -55,6 +62,71 @@ func (c *Config) SetOrganizationID(organizationID string) {
 	c.organizationID = organizationID
 }
 
+// EdgeURL returns the edge URL.
+func (c Config) EdgeURL() *url.URL {
+	return c.edgeURL
+}
+
+// EdgeRegion returns the edge region.
+func (c Config) EdgeRegion() string {
+	return c.edgeRegion
+}
+
+// SetEdgeURL sets the edge URL.
+func (c *Config) SetEdgeURL(edgeURL *url.URL) {
+	c.edgeURL = edgeURL
+}
+
+// SetEdgeRegion sets the edge region.
+func (c *Config) SetEdgeRegion(edgeRegion string) {
+	c.edgeRegion = edgeRegion
+}
+
+// IsEdgeConfigured returns true if an edge endpoint is configured.
+func (c Config) IsEdgeConfigured() bool {
+	return c.edgeURL != nil || c.edgeRegion != ""
+}
+
+// EdgeIngestURL returns the URL for edge-based ingestion for the given dataset.
+// Returns nil if no edge configuration is set.
+func (c Config) EdgeIngestURL(dataset string) *url.URL {
+	if c.edgeURL != nil {
+		u := *c.edgeURL
+		u.Path = "/v1/ingest/" + dataset
+		return &u
+	}
+
+	if c.edgeRegion != "" {
+		return &url.URL{
+			Scheme: "https",
+			Host:   c.edgeRegion,
+			Path:   "/v1/ingest/" + dataset,
+		}
+	}
+
+	return nil
+}
+
+// EdgeQueryURL returns the URL for edge-based query operations.
+// Returns nil if no edge configuration is set.
+func (c Config) EdgeQueryURL() *url.URL {
+	if c.edgeURL != nil {
+		u := *c.edgeURL
+		u.Path = "/v1/query/_apl"
+		return &u
+	}
+
+	if c.edgeRegion != "" {
+		return &url.URL{
+			Scheme: "https",
+			Host:   c.edgeRegion,
+			Path:   "/v1/query/_apl",
+		}
+	}
+
+	return nil
+}
+
 // Options applies options to the configuration.
 func (c *Config) Options(options ...Option) error {
 	for _, option := range options {
@@ -74,8 +146,10 @@ func (c *Config) IncorporateEnvironment() error {
 		envURL            = os.Getenv("AXIOM_URL")
 		envToken          = os.Getenv("AXIOM_TOKEN")
 		envOrganizationID = os.Getenv("AXIOM_ORG_ID")
+		envEdgeURL        = os.Getenv("AXIOM_EDGE_URL")
+		envEdgeRegion     = os.Getenv("AXIOM_EDGE_REGION")
 
-		options   = make([]Option, 0, 3)
+		options   = make([]Option, 0, 5)
 		addOption = func(option Option) { options = append(options, option) }
 	)
 
@@ -89,6 +163,14 @@ func (c *Config) IncorporateEnvironment() error {
 
 	if envOrganizationID != "" {
 		addOption(SetOrganizationID(envOrganizationID))
+	}
+
+	if envEdgeURL != "" {
+		addOption(SetEdgeURL(envEdgeURL))
+	}
+
+	if envEdgeRegion != "" {
+		addOption(SetEdgeRegion(envEdgeRegion))
 	}
 
 	return c.Options(options...)
