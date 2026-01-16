@@ -378,13 +378,37 @@ func TestClient_EdgeQueryURL(t *testing.T) {
 	// No edge configured - should return nil
 	assert.Nil(t, client.config.EdgeQueryURL())
 
-	// Configure edge URL
-	err := client.Options(SetEdgeURL("https://custom-edge.example.com"))
+	// Configure edge URL with custom path - should use as-is
+	err := client.Options(SetEdgeURL("https://custom-edge.example.com/custom/query"))
 	require.NoError(t, err)
 
 	edgeURL := client.config.EdgeQueryURL()
 	require.NotNil(t, edgeURL)
-	assert.Equal(t, "https://custom-edge.example.com/v1/query/_apl", edgeURL.String())
+	assert.Equal(t, "https://custom-edge.example.com/custom/query", edgeURL.String())
+}
+
+func TestClient_EdgeIngestURL_BackwardsCompat(t *testing.T) {
+	client := newClient(t)
+
+	// Configure edge URL without path - should append legacy format
+	err := client.Options(SetEdgeURL("https://api.eu.axiom.co"))
+	require.NoError(t, err)
+
+	edgeURL := client.config.EdgeIngestURL("my-dataset")
+	require.NotNil(t, edgeURL)
+	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/my-dataset/ingest", edgeURL.String())
+}
+
+func TestClient_EdgeIngestURL_CustomPath(t *testing.T) {
+	client := newClient(t)
+
+	// Configure edge URL with custom path - should use as-is
+	err := client.Options(SetEdgeURL("http://localhost:3400/ingest"))
+	require.NoError(t, err)
+
+	edgeURL := client.config.EdgeIngestURL("my-dataset")
+	require.NotNil(t, edgeURL)
+	assert.Equal(t, "http://localhost:3400/ingest", edgeURL.String())
 }
 
 func TestClient_NewRequest_BadURL(t *testing.T) {

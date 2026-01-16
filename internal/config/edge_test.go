@@ -9,17 +9,46 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfig_EdgeIngestURL_WithEdgeURL(t *testing.T) {
-	edgeURL, err := url.Parse("https://custom-edge.example.com")
+func TestConfig_EdgeIngestURL_WithEdgeURL_NoPath(t *testing.T) {
+	edgeURL, err := url.Parse("https://api.eu.axiom.co")
 	require.NoError(t, err)
 
 	cfg := Config{
 		edgeURL: edgeURL,
 	}
 
+	// No path provided - should append legacy format for backwards compatibility
 	result := cfg.EdgeIngestURL("test-dataset")
 	require.NotNil(t, result)
-	assert.Equal(t, "https://custom-edge.example.com/v1/ingest/test-dataset", result.String())
+	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/test-dataset/ingest", result.String())
+}
+
+func TestConfig_EdgeIngestURL_WithEdgeURL_WithPath(t *testing.T) {
+	edgeURL, err := url.Parse("http://localhost:3400/ingest")
+	require.NoError(t, err)
+
+	cfg := Config{
+		edgeURL: edgeURL,
+	}
+
+	// URL has a custom path - should use as-is
+	result := cfg.EdgeIngestURL("test-dataset")
+	require.NotNil(t, result)
+	assert.Equal(t, "http://localhost:3400/ingest", result.String())
+}
+
+func TestConfig_EdgeIngestURL_WithEdgeURL_TrailingSlash(t *testing.T) {
+	edgeURL, err := url.Parse("https://api.eu.axiom.co/")
+	require.NoError(t, err)
+
+	cfg := Config{
+		edgeURL: edgeURL,
+	}
+
+	// Trailing slash only - should append legacy format
+	result := cfg.EdgeIngestURL("test-dataset")
+	require.NotNil(t, result)
+	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/test-dataset/ingest", result.String())
 }
 
 func TestConfig_EdgeIngestURL_WithEdgeRegion(t *testing.T) {
@@ -33,7 +62,7 @@ func TestConfig_EdgeIngestURL_WithEdgeRegion(t *testing.T) {
 }
 
 func TestConfig_EdgeIngestURL_EdgeURLTakesPrecedence(t *testing.T) {
-	edgeURL, err := url.Parse("https://custom-edge.example.com")
+	edgeURL, err := url.Parse("https://custom-edge.example.com/custom/path")
 	require.NoError(t, err)
 
 	cfg := Config{
@@ -41,9 +70,10 @@ func TestConfig_EdgeIngestURL_EdgeURLTakesPrecedence(t *testing.T) {
 		edgeRegion: "eu-central-1.aws.edge.axiom.co",
 	}
 
+	// edgeURL takes precedence over edgeRegion, and custom path is used as-is
 	result := cfg.EdgeIngestURL("test-dataset")
 	require.NotNil(t, result)
-	assert.Equal(t, "https://custom-edge.example.com/v1/ingest/test-dataset", result.String())
+	assert.Equal(t, "https://custom-edge.example.com/custom/path", result.String())
 }
 
 func TestConfig_EdgeIngestURL_NoEdgeConfigured(t *testing.T) {
@@ -53,17 +83,32 @@ func TestConfig_EdgeIngestURL_NoEdgeConfigured(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-func TestConfig_EdgeQueryURL_WithEdgeURL(t *testing.T) {
-	edgeURL, err := url.Parse("https://custom-edge.example.com")
+func TestConfig_EdgeQueryURL_WithEdgeURL_NoPath(t *testing.T) {
+	edgeURL, err := url.Parse("https://api.eu.axiom.co")
 	require.NoError(t, err)
 
 	cfg := Config{
 		edgeURL: edgeURL,
 	}
 
+	// No path provided - should append legacy format for backwards compatibility
 	result := cfg.EdgeQueryURL()
 	require.NotNil(t, result)
-	assert.Equal(t, "https://custom-edge.example.com/v1/query/_apl", result.String())
+	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/_apl", result.String())
+}
+
+func TestConfig_EdgeQueryURL_WithEdgeURL_WithPath(t *testing.T) {
+	edgeURL, err := url.Parse("http://localhost:3400/query")
+	require.NoError(t, err)
+
+	cfg := Config{
+		edgeURL: edgeURL,
+	}
+
+	// URL has a custom path - should use as-is
+	result := cfg.EdgeQueryURL()
+	require.NotNil(t, result)
+	assert.Equal(t, "http://localhost:3400/query", result.String())
 }
 
 func TestConfig_EdgeQueryURL_WithEdgeRegion(t *testing.T) {
