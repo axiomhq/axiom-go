@@ -18,13 +18,15 @@ import (
 )
 
 var (
-	edgeURL    string
-	edgeRegion string
+	edgeURL           string
+	edgeRegion        string
+	edgeDatasetRegion string
 )
 
 func init() {
 	edgeURL = os.Getenv("AXIOM_EDGE_URL")
 	edgeRegion = os.Getenv("AXIOM_EDGE_REGION")
+	edgeDatasetRegion = os.Getenv("AXIOM_EDGE_DATASET_REGION")
 }
 
 // EdgeTestSuite tests ingest and query operations using edge endpoints.
@@ -41,11 +43,6 @@ func TestEdgeTestSuite(t *testing.T) {
 
 func (s *EdgeTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
-
-	// Skip if no edge configuration is provided
-	if edgeURL == "" && edgeRegion == "" {
-		s.T().Skip("skipping edge integration tests; set AXIOM_EDGE_URL or AXIOM_EDGE_REGION to run")
-	}
 
 	// Create edge client with edge configuration
 	var edgeOptions []axiom.Option
@@ -67,11 +64,19 @@ func (s *EdgeTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
 	// Create test dataset using the main client (not edge - dataset creation isn't supported on edge)
-	var err error
-	s.dataset, err = s.client.Datasets.Create(s.ctx, axiom.DatasetCreateRequest{
+	req := axiom.DatasetCreateRequest{
 		Name:        "test-axiom-go-edge-" + datasetSuffix,
 		Description: "This is a test dataset for edge integration tests.",
-	})
+	}
+
+	// Set dataset region if configured (required for edge routing)
+	if edgeDatasetRegion != "" {
+		req.Region = edgeDatasetRegion
+		s.T().Logf("creating dataset with region %q", edgeDatasetRegion)
+	}
+
+	var err error
+	s.dataset, err = s.client.Datasets.Create(s.ctx, req)
 	s.Require().NoError(err)
 	s.Require().NotNil(s.dataset)
 }
