@@ -387,16 +387,16 @@ func TestClient_EdgeQueryURL(t *testing.T) {
 	assert.Equal(t, "https://custom-edge.example.com/custom/query", edgeURL.String())
 }
 
-func TestClient_EdgeIngestURL_BackwardsCompat(t *testing.T) {
+func TestClient_EdgeIngestURL_NoPath(t *testing.T) {
 	client := newClient(t)
 
-	// Configure edge URL without path - should append legacy format
-	err := client.Options(SetEdgeURL("https://api.eu.axiom.co"))
+	// Configure edge URL without path - should append edge format
+	err := client.Options(SetEdgeURL("https://eu-central-1.aws.edge.axiom.co"))
 	require.NoError(t, err)
 
 	edgeURL := client.config.EdgeIngestURL("my-dataset")
 	require.NotNil(t, edgeURL)
-	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/my-dataset/ingest", edgeURL.String())
+	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/ingest/my-dataset", edgeURL.String())
 }
 
 func TestClient_EdgeIngestURL_CustomPath(t *testing.T) {
