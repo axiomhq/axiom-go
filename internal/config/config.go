@@ -93,7 +93,7 @@ func (c Config) IsEdgeConfigured() bool {
 //
 // URL handling follows this priority:
 //   - If edgeURL has a custom path, it is used as-is
-//   - If edgeURL has no path (or only "/"), "/v1/datasets/{dataset}/ingest" is appended for backwards compatibility
+//   - If edgeURL has no path (or only "/"), "/v1/ingest/{dataset}" is appended (edge format)
 //   - If edgeRegion is set, builds "https://{region}/v1/ingest/{dataset}"
 func (c Config) EdgeIngestURL(dataset string) *url.URL {
 	if c.edgeURL != nil {
@@ -105,8 +105,8 @@ func (c Config) EdgeIngestURL(dataset string) *url.URL {
 			return &u
 		}
 
-		// No path provided - append legacy format for backwards compatibility
-		u.Path = "/v1/datasets/" + dataset + "/ingest"
+		// No path provided - append edge format
+		u.Path = "/v1/ingest/" + dataset
 		return &u
 	}
 
@@ -126,7 +126,7 @@ func (c Config) EdgeIngestURL(dataset string) *url.URL {
 //
 // URL handling follows this priority:
 //   - If edgeURL has a custom path, it is used as-is
-//   - If edgeURL has no path (or only "/"), "/v1/datasets/_apl" is appended for backwards compatibility
+//   - If edgeURL has no path (or only "/"), "/v1/query/_apl" is appended (edge format)
 //   - If edgeRegion is set, builds "https://{region}/v1/query/_apl"
 func (c Config) EdgeQueryURL() *url.URL {
 	if c.edgeURL != nil {
@@ -138,8 +138,8 @@ func (c Config) EdgeQueryURL() *url.URL {
 			return &u
 		}
 
-		// No path provided - append legacy format for backwards compatibility
-		u.Path = "/v1/datasets/_apl"
+		// No path provided - append edge format
+		u.Path = "/v1/query/_apl"
 		return &u
 	}
 

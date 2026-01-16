@@ -10,17 +10,17 @@ import (
 )
 
 func TestConfig_EdgeIngestURL_WithEdgeURL_NoPath(t *testing.T) {
-	edgeURL, err := url.Parse("https://api.eu.axiom.co")
+	edgeURL, err := url.Parse("https://eu-central-1.aws.edge.axiom.co")
 	require.NoError(t, err)
 
 	cfg := Config{
 		edgeURL: edgeURL,
 	}
 
-	// No path provided - should append legacy format for backwards compatibility
+	// No path provided - should append edge format
 	result := cfg.EdgeIngestURL("test-dataset")
 	require.NotNil(t, result)
-	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/test-dataset/ingest", result.String())
+	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/ingest/test-dataset", result.String())
 }
 
 func TestConfig_EdgeIngestURL_WithEdgeURL_WithPath(t *testing.T) {
@@ -38,17 +38,17 @@ func TestConfig_EdgeIngestURL_WithEdgeURL_WithPath(t *testing.T) {
 }
 
 func TestConfig_EdgeIngestURL_WithEdgeURL_TrailingSlash(t *testing.T) {
-	edgeURL, err := url.Parse("https://api.eu.axiom.co/")
+	edgeURL, err := url.Parse("https://eu-central-1.aws.edge.axiom.co/")
 	require.NoError(t, err)
 
 	cfg := Config{
 		edgeURL: edgeURL,
 	}
 
-	// Trailing slash only - should append legacy format
+	// Trailing slash only - should append edge format
 	result := cfg.EdgeIngestURL("test-dataset")
 	require.NotNil(t, result)
-	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/test-dataset/ingest", result.String())
+	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/ingest/test-dataset", result.String())
 }
 
 func TestConfig_EdgeIngestURL_WithEdgeRegion(t *testing.T) {
@@ -84,17 +84,17 @@ func TestConfig_EdgeIngestURL_NoEdgeConfigured(t *testing.T) {
 }
 
 func TestConfig_EdgeQueryURL_WithEdgeURL_NoPath(t *testing.T) {
-	edgeURL, err := url.Parse("https://api.eu.axiom.co")
+	edgeURL, err := url.Parse("https://eu-central-1.aws.edge.axiom.co")
 	require.NoError(t, err)
 
 	cfg := Config{
 		edgeURL: edgeURL,
 	}
 
-	// No path provided - should append legacy format for backwards compatibility
+	// No path provided - should append edge format
 	result := cfg.EdgeQueryURL()
 	require.NotNil(t, result)
-	assert.Equal(t, "https://api.eu.axiom.co/v1/datasets/_apl", result.String())
+	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/query/_apl", result.String())
 }
 
 func TestConfig_EdgeQueryURL_WithEdgeURL_WithPath(t *testing.T) {
