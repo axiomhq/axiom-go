@@ -110,6 +110,9 @@ type DatasetCreateRequest struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
+	// Region is the regional edge domain for data ingestion
+	// (e.g., "cloud.eu-central-1.aws").
+	Region string `json:"region,omitempty"`
 }
 
 // DatasetUpdateRequest is a request used to update a dataset.
