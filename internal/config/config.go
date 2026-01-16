@@ -3,6 +3,7 @@ package config
 import (
 	"net/url"
 	"os"
+	"strings"
 )
 
 // Config is the configuration for Axiom related functionality. It should never
@@ -89,10 +90,23 @@ func (c Config) IsEdgeConfigured() bool {
 
 // EdgeIngestURL returns the URL for edge-based ingestion for the given dataset.
 // Returns nil if no edge configuration is set.
+//
+// URL handling follows this priority:
+//   - If edgeURL has a custom path, it is used as-is
+//   - If edgeURL has no path (or only "/"), "/v1/datasets/{dataset}/ingest" is appended for backwards compatibility
+//   - If edgeRegion is set, builds "https://{region}/v1/ingest/{dataset}"
 func (c Config) EdgeIngestURL(dataset string) *url.URL {
 	if c.edgeURL != nil {
 		u := *c.edgeURL
-		u.Path = "/v1/ingest/" + dataset
+		path := strings.TrimSuffix(u.Path, "/")
+
+		// If URL has a custom path, use as-is
+		if path != "" {
+			return &u
+		}
+
+		// No path provided - append legacy format for backwards compatibility
+		u.Path = "/v1/datasets/" + dataset + "/ingest"
 		return &u
 	}
 
@@ -109,10 +123,23 @@ func (c Config) EdgeIngestURL(dataset string) *url.URL {
 
 // EdgeQueryURL returns the URL for edge-based query operations.
 // Returns nil if no edge configuration is set.
+//
+// URL handling follows this priority:
+//   - If edgeURL has a custom path, it is used as-is
+//   - If edgeURL has no path (or only "/"), "/v1/datasets/_apl" is appended for backwards compatibility
+//   - If edgeRegion is set, builds "https://{region}/v1/query/_apl"
 func (c Config) EdgeQueryURL() *url.URL {
 	if c.edgeURL != nil {
 		u := *c.edgeURL
-		u.Path = "/v1/query/_apl"
+		path := strings.TrimSuffix(u.Path, "/")
+
+		// If URL has a custom path, use as-is
+		if path != "" {
+			return &u
+		}
+
+		// No path provided - append legacy format for backwards compatibility
+		u.Path = "/v1/datasets/_apl"
 		return &u
 	}
 
