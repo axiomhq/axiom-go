@@ -97,17 +97,15 @@ func (c Config) IsEdgeConfigured() bool {
 //   - If edgeRegion is set, builds "https://{region}/v1/ingest/{dataset}"
 func (c Config) EdgeIngestURL(dataset string) *url.URL {
 	if c.edgeURL != nil {
-		u := *c.edgeURL
-		path := strings.TrimSuffix(u.Path, "/")
+		path := strings.TrimSuffix(c.edgeURL.Path, "/")
 
 		// If URL has a custom path, use as-is
 		if path != "" {
-			return &u
+			return c.edgeURL
 		}
 
-		// No path provided - append edge format
-		u.Path = "/v1/ingest/" + dataset
-		return &u
+		// No path provided - resolve edge format path
+		return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/ingest/" + dataset})
 	}
 
 	if c.edgeRegion != "" {
@@ -130,17 +128,15 @@ func (c Config) EdgeIngestURL(dataset string) *url.URL {
 //   - If edgeRegion is set, builds "https://{region}/v1/query/_apl"
 func (c Config) EdgeQueryURL() *url.URL {
 	if c.edgeURL != nil {
-		u := *c.edgeURL
-		path := strings.TrimSuffix(u.Path, "/")
+		path := strings.TrimSuffix(c.edgeURL.Path, "/")
 
 		// If URL has a custom path, use as-is
 		if path != "" {
-			return &u
+			return c.edgeURL
 		}
 
-		// No path provided - append edge format
-		u.Path = "/v1/query/_apl"
-		return &u
+		// No path provided - resolve edge format path
+		return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/query/_apl"})
 	}
 
 	if c.edgeRegion != "" {

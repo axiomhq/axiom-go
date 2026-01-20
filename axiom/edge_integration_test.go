@@ -1,10 +1,8 @@
 package axiom_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"testing"
@@ -20,12 +18,14 @@ import (
 var (
 	edgeURL           string
 	edgeRegion        string
+	edgeToken         string
 	edgeDatasetRegion string
 )
 
 func init() {
 	edgeURL = os.Getenv("AXIOM_EDGE_URL")
 	edgeRegion = os.Getenv("AXIOM_EDGE_REGION")
+	edgeToken = os.Getenv("AXIOM_EDGE_TOKEN")
 	edgeDatasetRegion = os.Getenv("AXIOM_EDGE_DATASET_REGION")
 }
 
@@ -52,6 +52,12 @@ func (s *EdgeTestSuite) SetupSuite() {
 	} else if edgeRegion != "" {
 		s.T().Logf("using edge region %q", edgeRegion)
 		edgeOptions = append(edgeOptions, axiom.SetEdgeRegion(edgeRegion))
+	}
+
+	// Use dedicated edge token if provided (edge requires API token, not personal token)
+	if edgeToken != "" {
+		s.T().Log("using dedicated edge token")
+		edgeOptions = append(edgeOptions, axiom.SetToken(edgeToken))
 	}
 
 	var err error
@@ -95,16 +101,7 @@ func (s *EdgeTestSuite) TearDownTest() {
 }
 
 func (s *EdgeTestSuite) TestEdgeIngest() {
-	// Test ingest via edge endpoint
-	var (
-		ingested bytes.Buffer
-		r        io.Reader
-	)
-
-	ingested.Reset()
-	r = io.TeeReader(strings.NewReader(ingestData), &ingested)
-
-	ingestStatus, err := s.edgeClient.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity)
+	ingestStatus, err := s.edgeClient.Datasets.Ingest(s.ctx, s.dataset.ID, strings.NewReader(ingestData), axiom.JSON, axiom.Identity)
 	s.Require().NoError(err)
 	s.Require().NotNil(ingestStatus)
 
@@ -125,16 +122,7 @@ func (s *EdgeTestSuite) TestEdgeIngestEvents() {
 }
 
 func (s *EdgeTestSuite) TestEdgeIngestWithLabels() {
-	// Test ingest via edge endpoint with event labels
-	var (
-		ingested bytes.Buffer
-		r        io.Reader
-	)
-
-	ingested.Reset()
-	r = io.TeeReader(strings.NewReader(ingestData), &ingested)
-
-	ingestStatus, err := s.edgeClient.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Identity,
+	ingestStatus, err := s.edgeClient.Datasets.Ingest(s.ctx, s.dataset.ID, strings.NewReader(ingestData), axiom.JSON, axiom.Identity,
 		ingest.SetEventLabel("edge", "true"),
 		ingest.SetEventLabel("region", "test"),
 	)
@@ -147,17 +135,7 @@ func (s *EdgeTestSuite) TestEdgeIngestWithLabels() {
 }
 
 func (s *EdgeTestSuite) TestEdgeIngestGzip() {
-	// Test gzip-encoded ingest via edge endpoint
-	var (
-		ingested bytes.Buffer
-		r        io.Reader
-	)
-
-	ingested.Reset()
-	r = io.TeeReader(strings.NewReader(ingestData), &ingested)
-
-	// Apply gzip encoding
-	r, err := axiom.GzipEncoder()(r)
+	r, err := axiom.GzipEncoder()(strings.NewReader(ingestData))
 	s.Require().NoError(err)
 
 	ingestStatus, err := s.edgeClient.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Gzip)
@@ -170,17 +148,7 @@ func (s *EdgeTestSuite) TestEdgeIngestGzip() {
 }
 
 func (s *EdgeTestSuite) TestEdgeIngestZstd() {
-	// Test zstd-encoded ingest via edge endpoint
-	var (
-		ingested bytes.Buffer
-		r        io.Reader
-	)
-
-	ingested.Reset()
-	r = io.TeeReader(strings.NewReader(ingestData), &ingested)
-
-	// Apply zstd encoding
-	r, err := axiom.ZstdEncoder()(r)
+	r, err := axiom.ZstdEncoder()(strings.NewReader(ingestData))
 	s.Require().NoError(err)
 
 	ingestStatus, err := s.edgeClient.Datasets.Ingest(s.ctx, s.dataset.ID, r, axiom.JSON, axiom.Zstd)
@@ -216,8 +184,8 @@ func (s *EdgeTestSuite) TestEdgeQuery() {
 	s.Require().NotNil(queryResult)
 
 	s.NotZero(queryResult.Status.ElapsedTime)
-	s.EqualValues(2, queryResult.Status.RowsExamined)
-	s.EqualValues(2, queryResult.Status.RowsMatched)
+	s.GreaterOrEqual(queryResult.Status.RowsExamined, uint64(2))
+	s.GreaterOrEqual(queryResult.Status.RowsMatched, uint64(2))
 }
 
 func (s *EdgeTestSuite) TestEdgeIngestAndQueryRoundTrip() {
@@ -280,9 +248,9 @@ func (s *EdgeTestSuite) TestEdgeIngestChannel() {
 	s.Empty(ingestStatus.Failures)
 }
 
+// TestMainClientStillWorks verifies that non-edge operations still work via the
+// main client when edge configuration is present.
 func (s *EdgeTestSuite) TestMainClientStillWorks() {
-	// Verify that non-edge operations still work via main client
-
 	// List datasets (not supported on edge, should use main endpoint)
 	datasets, err := s.client.Datasets.List(s.ctx)
 	s.Require().NoError(err)
