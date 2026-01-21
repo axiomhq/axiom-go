@@ -21,10 +21,11 @@ const _MessageCode_name = "virtual_field_finalize_errormissing_columnlicense_lim
 var _MessageCode_index = [...]uint8{0, 0, 28, 42, 73, 94, 98}
 
 func (i MessageCode) String() string {
-	if i >= MessageCode(len(_MessageCode_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_MessageCode_index)-1 {
 		return "MessageCode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _MessageCode_name[_MessageCode_index[i]:_MessageCode_index[i+1]]
+	return _MessageCode_name[_MessageCode_index[idx]:_MessageCode_index[idx+1]]
 }
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
@@ -44,8 +45,9 @@ const _MessagePriority_name = "tracedebuginfowarnerrorfatal"
 var _MessagePriority_index = [...]uint8{0, 0, 5, 10, 14, 18, 23, 28}
 
 func (i MessagePriority) String() string {
-	if i >= MessagePriority(len(_MessagePriority_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_MessagePriority_index)-1 {
 		return "MessagePriority(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _MessagePriority_name[_MessagePriority_index[i]:_MessagePriority_index[i+1]]
+	return _MessagePriority_name[_MessagePriority_index[idx]:_MessagePriority_index[idx+1]]
 }

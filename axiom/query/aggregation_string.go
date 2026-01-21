@@ -47,8 +47,9 @@ const _AggregationOp_name = "unknowncountcountifdistinctdistinctifsumsumifavgavg
 var _AggregationOp_index = [...]uint8{0, 7, 12, 19, 27, 37, 40, 45, 48, 53, 56, 61, 64, 69, 73, 79, 90, 103, 112, 123, 128, 135, 143, 153, 159, 165, 169, 176, 185, 193, 203, 211, 220}
 
 func (i AggregationOp) String() string {
-	if i >= AggregationOp(len(_AggregationOp_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_AggregationOp_index)-1 {
 		return "AggregationOp(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _AggregationOp_name[_AggregationOp_index[i]:_AggregationOp_index[i+1]]
+	return _AggregationOp_name[_AggregationOp_index[idx]:_AggregationOp_index[idx+1]]
 }

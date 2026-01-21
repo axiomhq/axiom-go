@@ -18,11 +18,11 @@ const _limitType_name = "ingestqueryrate"
 var _limitType_index = [...]uint8{0, 6, 11, 15}
 
 func (i limitType) String() string {
-	i -= 1
-	if i >= limitType(len(_limitType_index)-1) {
-		return "limitType(" + strconv.FormatInt(int64(i+1), 10) + ")"
+	idx := int(i) - 1
+	if i < 1 || idx >= len(_limitType_index)-1 {
+		return "limitType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _limitType_name[_limitType_index[i]:_limitType_index[i+1]]
+	return _limitType_name[_limitType_index[idx]:_limitType_index[idx+1]]
 }
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
@@ -39,8 +39,9 @@ const _LimitScope_name = "unknownuserorganizationanonymous"
 var _LimitScope_index = [...]uint8{0, 7, 11, 23, 32}
 
 func (i LimitScope) String() string {
-	if i >= LimitScope(len(_LimitScope_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_LimitScope_index)-1 {
 		return "LimitScope(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _LimitScope_name[_LimitScope_index[i]:_LimitScope_index[i+1]]
+	return _LimitScope_name[_LimitScope_index[idx]:_LimitScope_index[idx+1]]
 }
