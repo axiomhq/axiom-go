@@ -31,8 +31,9 @@ const _AggregationOp_name = "unknowncountdistinctmakesetmakelistsumavgminmaxtopk
 var _AggregationOp_index = [...]uint8{0, 7, 12, 20, 27, 35, 38, 41, 44, 47, 51, 62, 71, 76, 84, 90, 96}
 
 func (i AggregationOp) String() string {
-	if i >= AggregationOp(len(_AggregationOp_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_AggregationOp_index)-1 {
 		return "AggregationOp(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _AggregationOp_name[_AggregationOp_index[i]:_AggregationOp_index[i+1]]
+	return _AggregationOp_name[_AggregationOp_index[idx]:_AggregationOp_index[idx+1]]
 }

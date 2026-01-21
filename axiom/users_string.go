@@ -21,8 +21,9 @@ const _UserRole_name = "customnoneread-onlyuseradminowner"
 var _UserRole_index = [...]uint8{0, 6, 10, 19, 23, 28, 33}
 
 func (i UserRole) String() string {
-	if i >= UserRole(len(_UserRole_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_UserRole_index)-1 {
 		return "UserRole(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _UserRole_name[_UserRole_index[i]:_UserRole_index[i+1]]
+	return _UserRole_name[_UserRole_index[idx]:_UserRole_index[idx+1]]
 }

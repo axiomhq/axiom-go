@@ -35,8 +35,9 @@ const _FilterOp_name = "andornot==!=existsnot-exists>>=<<=starts-withnot-starts-
 var _FilterOp_index = [...]uint8{0, 0, 3, 5, 8, 10, 12, 18, 28, 29, 31, 32, 34, 45, 60, 69, 82, 88, 98, 106, 118}
 
 func (i FilterOp) String() string {
-	if i >= FilterOp(len(_FilterOp_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_FilterOp_index)-1 {
 		return "FilterOp(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _FilterOp_name[_FilterOp_index[i]:_FilterOp_index[i+1]]
+	return _FilterOp_name[_FilterOp_index[idx]:_FilterOp_index[idx+1]]
 }

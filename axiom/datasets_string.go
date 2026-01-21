@@ -18,11 +18,11 @@ const _ContentType_name = "application/jsonapplication/x-ndjsontext/csv"
 var _ContentType_index = [...]uint8{0, 16, 36, 44}
 
 func (i ContentType) String() string {
-	i -= 1
-	if i >= ContentType(len(_ContentType_index)-1) {
-		return "ContentType(" + strconv.FormatInt(int64(i+1), 10) + ")"
+	idx := int(i) - 1
+	if i < 1 || idx >= len(_ContentType_index)-1 {
+		return "ContentType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _ContentType_name[_ContentType_index[i]:_ContentType_index[i+1]]
+	return _ContentType_name[_ContentType_index[idx]:_ContentType_index[idx+1]]
 }
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
@@ -38,9 +38,9 @@ const _ContentEncoding_name = "gzipzstd"
 var _ContentEncoding_index = [...]uint8{0, 0, 4, 8}
 
 func (i ContentEncoding) String() string {
-	i -= 1
-	if i >= ContentEncoding(len(_ContentEncoding_index)-1) {
-		return "ContentEncoding(" + strconv.FormatInt(int64(i+1), 10) + ")"
+	idx := int(i) - 1
+	if i < 1 || idx >= len(_ContentEncoding_index)-1 {
+		return "ContentEncoding(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _ContentEncoding_name[_ContentEncoding_index[i]:_ContentEncoding_index[i+1]]
+	return _ContentEncoding_name[_ContentEncoding_index[idx]:_ContentEncoding_index[idx+1]]
 }
