@@ -19,11 +19,7 @@ type Config struct {
 	organizationID string
 
 	// edgeURL is an explicit edge endpoint URL for ingest and query operations.
-	// Takes precedence over edgeRegion if both are set.
 	edgeURL *url.URL
-	// edgeRegion is the regional edge domain (e.g., "eu-central-1.aws.edge.axiom.co").
-	// When set, edge URLs are built as "https://{edgeRegion}/v1/ingest/{dataset}".
-	edgeRegion string
 }
 
 // Default returns a default configuration with the base URL set.
@@ -68,86 +64,58 @@ func (c Config) EdgeURL() *url.URL {
 	return c.edgeURL
 }
 
-// EdgeRegion returns the edge region.
-func (c Config) EdgeRegion() string {
-	return c.edgeRegion
-}
-
 // SetEdgeURL sets the edge URL.
 func (c *Config) SetEdgeURL(edgeURL *url.URL) {
 	c.edgeURL = edgeURL
 }
 
-// SetEdgeRegion sets the edge region.
-func (c *Config) SetEdgeRegion(edgeRegion string) {
-	c.edgeRegion = edgeRegion
-}
-
 // IsEdgeConfigured returns true if an edge endpoint is configured.
 func (c Config) IsEdgeConfigured() bool {
-	return c.edgeURL != nil || c.edgeRegion != ""
+	return c.edgeURL != nil
 }
 
 // EdgeIngestURL returns the URL for edge-based ingestion for the given dataset.
 // Returns nil if no edge configuration is set.
 //
-// URL handling follows this priority:
+// URL handling:
 //   - If edgeURL has a custom path, it is used as-is
-//   - If edgeURL has no path (or only "/"), "/v1/ingest/{dataset}" is appended (edge format)
-//   - If edgeRegion is set, builds "https://{region}/v1/ingest/{dataset}"
+//   - If edgeURL has no path (or only "/"), "/v1/ingest/{dataset}" is appended
 func (c Config) EdgeIngestURL(dataset string) *url.URL {
-	if c.edgeURL != nil {
-		path := strings.TrimSuffix(c.edgeURL.Path, "/")
-
-		// If URL has a custom path, use as-is
-		if path != "" {
-			return c.edgeURL
-		}
-
-		// No path provided - resolve edge format path
-		return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/ingest/" + dataset})
+	if c.edgeURL == nil {
+		return nil
 	}
 
-	if c.edgeRegion != "" {
-		return &url.URL{
-			Scheme: "https",
-			Host:   c.edgeRegion,
-			Path:   "/v1/ingest/" + dataset,
-		}
+	path := strings.TrimSuffix(c.edgeURL.Path, "/")
+
+	// If URL has a custom path, use as-is
+	if path != "" {
+		return c.edgeURL
 	}
 
-	return nil
+	// No path provided - resolve edge format path
+	return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/ingest/" + dataset})
 }
 
 // EdgeQueryURL returns the URL for edge-based query operations.
 // Returns nil if no edge configuration is set.
 //
-// URL handling follows this priority:
+// URL handling:
 //   - If edgeURL has a custom path, it is used as-is
-//   - If edgeURL has no path (or only "/"), "/v1/query/_apl" is appended (edge format)
-//   - If edgeRegion is set, builds "https://{region}/v1/query/_apl"
+//   - If edgeURL has no path (or only "/"), "/v1/query/_apl" is appended
 func (c Config) EdgeQueryURL() *url.URL {
-	if c.edgeURL != nil {
-		path := strings.TrimSuffix(c.edgeURL.Path, "/")
-
-		// If URL has a custom path, use as-is
-		if path != "" {
-			return c.edgeURL
-		}
-
-		// No path provided - resolve edge format path
-		return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/query/_apl"})
+	if c.edgeURL == nil {
+		return nil
 	}
 
-	if c.edgeRegion != "" {
-		return &url.URL{
-			Scheme: "https",
-			Host:   c.edgeRegion,
-			Path:   "/v1/query/_apl",
-		}
+	path := strings.TrimSuffix(c.edgeURL.Path, "/")
+
+	// If URL has a custom path, use as-is
+	if path != "" {
+		return c.edgeURL
 	}
 
-	return nil
+	// No path provided - resolve edge format path
+	return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/query/_apl"})
 }
 
 // Options applies options to the configuration.
@@ -170,9 +138,8 @@ func (c *Config) IncorporateEnvironment() error {
 		envToken          = os.Getenv("AXIOM_TOKEN")
 		envOrganizationID = os.Getenv("AXIOM_ORG_ID")
 		envEdgeURL        = os.Getenv("AXIOM_EDGE_URL")
-		envEdgeRegion     = os.Getenv("AXIOM_EDGE_REGION")
 
-		options   = make([]Option, 0, 5)
+		options   = make([]Option, 0, 4)
 		addOption = func(option Option) { options = append(options, option) }
 	)
 
@@ -190,10 +157,6 @@ func (c *Config) IncorporateEnvironment() error {
 
 	if envEdgeURL != "" {
 		addOption(SetEdgeURL(envEdgeURL))
-	}
-
-	if envEdgeRegion != "" {
-		addOption(SetEdgeRegion(envEdgeRegion))
 	}
 
 	return c.Options(options...)
