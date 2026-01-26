@@ -42,6 +42,7 @@ func SetOrganizationID(organizationID string) Option {
 
 // SetEdgeURL specifies the edge URL to use for ingest and query operations.
 // The URL should include the scheme (e.g., "https://eu-central-1.aws.edge.axiom.co").
+// This takes precedence over [SetEdge] if both are set.
 func SetEdgeURL(edgeURL string) Option {
 	return func(config *Config) (err error) {
 		parsedURL, err := url.ParseRequestURI(edgeURL)
@@ -51,6 +52,16 @@ func SetEdgeURL(edgeURL string) Option {
 
 		config.SetEdgeURL(parsedURL)
 
+		return nil
+	}
+}
+
+// SetEdge specifies the regional edge domain to use for ingest and query
+// operations. Specify the domain only (e.g., "eu-central-1.aws.edge.axiom.co").
+// When set, edge URLs are built as "https://{edge}/v1/ingest/{dataset}".
+func SetEdge(edge string) Option {
+	return func(config *Config) error {
+		config.SetEdge(edge)
 		return nil
 	}
 }

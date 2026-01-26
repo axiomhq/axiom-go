@@ -17,14 +17,14 @@ import (
 
 var (
 	edgeURL           string
-	edgeRegion        string
+	edge              string
 	edgeToken         string
 	edgeDatasetRegion string
 )
 
 func init() {
 	edgeURL = os.Getenv("AXIOM_EDGE_URL")
-	edgeRegion = os.Getenv("AXIOM_EDGE_REGION")
+	edge = os.Getenv("AXIOM_EDGE")
 	edgeToken = os.Getenv("AXIOM_EDGE_TOKEN")
 	edgeDatasetRegion = os.Getenv("AXIOM_EDGE_DATASET_REGION")
 }
@@ -49,11 +49,9 @@ func (s *EdgeTestSuite) SetupSuite() {
 	if edgeURL != "" {
 		s.T().Logf("using edge URL %q", edgeURL)
 		edgeOptions = append(edgeOptions, axiom.SetEdgeURL(edgeURL))
-	} else if edgeRegion != "" {
-		// Build full URL from region domain
-		fullEdgeURL := "https://" + edgeRegion
-		s.T().Logf("using edge region %q (URL: %s)", edgeRegion, fullEdgeURL)
-		edgeOptions = append(edgeOptions, axiom.SetEdgeURL(fullEdgeURL))
+	} else if edge != "" {
+		s.T().Logf("using edge %q", edge)
+		edgeOptions = append(edgeOptions, axiom.SetEdge(edge))
 	}
 
 	// Use dedicated edge token if provided (edge requires API token, not personal token)
