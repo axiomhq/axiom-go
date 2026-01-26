@@ -13,3 +13,7 @@ var ErrMissingOrganizationID = errors.New("missing organization id")
 
 // ErrInvalidToken is returned when the token is invalid.
 var ErrInvalidToken = errors.New("invalid token")
+
+// ErrPersonalTokenNotSupportedForEdge is returned when a personal token is
+// used for edge operations. Edge endpoints only support API tokens.
+var ErrPersonalTokenNotSupportedForEdge = errors.New("personal tokens are not supported for edge operations, use an API token (xaat-)")

@@ -50,8 +50,10 @@ func (s *EdgeTestSuite) SetupSuite() {
 		s.T().Logf("using edge URL %q", edgeURL)
 		edgeOptions = append(edgeOptions, axiom.SetEdgeURL(edgeURL))
 	} else if edgeRegion != "" {
-		s.T().Logf("using edge region %q", edgeRegion)
-		edgeOptions = append(edgeOptions, axiom.SetEdgeRegion(edgeRegion))
+		// Build full URL from region domain
+		fullEdgeURL := "https://" + edgeRegion
+		s.T().Logf("using edge region %q (URL: %s)", edgeRegion, fullEdgeURL)
+		edgeOptions = append(edgeOptions, axiom.SetEdgeURL(fullEdgeURL))
 	}
 
 	// Use dedicated edge token if provided (edge requires API token, not personal token)

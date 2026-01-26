@@ -106,20 +106,11 @@ func SetNoTracing() Option {
 }
 
 // SetEdgeURL specifies the edge URL used by the [Client] for ingest and query
-// operations. The URL should include the scheme (e.g., "https://custom-edge.example.com").
-// This takes precedence over [SetEdgeRegion] if both are set.
+// operations. The URL should include the scheme (e.g., "https://eu-central-1.aws.edge.axiom.co").
+// When set, ingest requests are sent to "{edgeURL}/v1/ingest/{dataset}" and query
+// requests are sent to "{edgeURL}/v1/query/_apl".
 //
 // Can also be specified using the "AXIOM_EDGE_URL" environment variable.
 func SetEdgeURL(edgeURL string) Option {
 	return func(c *Client) error { return c.config.Options(config.SetEdgeURL(edgeURL)) }
-}
-
-// SetEdgeRegion specifies the regional edge domain used by the [Client] for
-// ingest and query operations. Specify the domain only (e.g., "eu-central-1.aws.edge.axiom.co").
-// When set, ingest and query requests are sent to "https://{region}/v1/ingest/{dataset}"
-// and "https://{region}/v1/datasets/_apl" respectively.
-//
-// Can also be specified using the "AXIOM_EDGE_REGION" environment variable.
-func SetEdgeRegion(edgeRegion string) Option {
-	return func(c *Client) error { return c.config.Options(config.SetEdgeRegion(edgeRegion)) }
 }

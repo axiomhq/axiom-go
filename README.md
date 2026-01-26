@@ -60,21 +60,14 @@ endpoints for ingest and query operations. All other API operations continue to
 use the main Axiom API endpoint.
 
 ```go
-// Using a regional edge domain
 client, err := axiom.NewClient(
-    axiom.SetEdgeRegion("eu-central-1.aws.edge.axiom.co"),
-)
-
-// Or using an explicit edge URL
-client, err := axiom.NewClient(
-    axiom.SetEdgeURL("https://custom-edge.example.com"),
+    axiom.SetEdgeURL("https://eu-central-1.aws.edge.axiom.co"),
 )
 ```
 
-You can also configure edge endpoints via environment variables:
+You can also configure via the `AXIOM_EDGE_URL` environment variable.
 
-- `AXIOM_EDGE_REGION` - Regional edge domain (e.g., `eu-central-1.aws.edge.axiom.co`)
-- `AXIOM_EDGE_URL` - Explicit edge URL (takes precedence over `AXIOM_EDGE_REGION`)
+**Note:** Edge endpoints require API tokens (`xaat-`), not personal tokens.
 
 ## Install
 
