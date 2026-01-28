@@ -125,3 +125,18 @@ func SetEdgeURL(edgeURL string) Option {
 func SetEdge(edge string) Option {
 	return func(c *Client) error { return c.config.Options(config.SetEdge(edge)) }
 }
+
+// SetOtelEnabled enables OpenTelemetry-based ingestion via the /v1/logs endpoint.
+// When enabled, the [Client.IngestEvents] and [Client.IngestChannel] methods will
+// use the OTel logs endpoint instead of the standard ingest endpoint.
+//
+// Can also be specified using the "AXIOM_OTEL_ENABLED" environment variable
+// with a value of "true" or "1".
+func SetOtelEnabled(enabled bool) Option {
+	return func(c *Client) error {
+		if enabled {
+			return c.config.Options(config.SetOtelEnabled("true"))
+		}
+		return c.config.Options(config.SetOtelEnabled("false"))
+	}
+}

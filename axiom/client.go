@@ -34,6 +34,7 @@ const (
 	headerAuthorization  = "Authorization"
 	headerOrganizationID = "X-Axiom-Org-Id"
 	headerEventLabels    = "X-Axiom-Event-Labels"
+	headerDataset        = "X-Axiom-Dataset"
 
 	headerAccept      = "Accept"
 	headerContentType = "Content-Type"
@@ -42,8 +43,9 @@ const (
 	headerTraceID = "X-Axiom-Trace-Id"
 
 	defaultMediaType = "application/octet-stream"
-	mediaTypeJSON    = "application/json"
-	mediaTypeNDJSON  = "application/x-ndjson"
+	mediaTypeJSON     = "application/json"
+	mediaTypeNDJSON   = "application/x-ndjson"
+	mediaTypeOTelLogs = "application/vnd.axiom.logs+json"
 
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
@@ -424,6 +426,28 @@ func (c *Client) Ingest(ctx context.Context, id string, r io.Reader, typ Content
 // [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
 func (c *Client) IngestEvents(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
 	return c.Datasets.IngestEvents(ctx, id, events, options...)
+}
+
+// IngestOtel ingests events into the dataset identified by its id using the
+// OpenTelemetry logs endpoint (/v1/logs).
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
+// timestamp format is auto detected.
+//
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
+//
+// For ingesting large amounts of data, consider using the [Client.Ingest] or
+// [Client.IngestChannel] method.
+//
+// This function is an alias to [DatasetsService.IngestOtel].
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
+func (c *Client) IngestOtel(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
+	return c.Datasets.IngestOtel(ctx, id, events, options...)
 }
 
 // IngestChannel ingests events from a channel into the dataset identified by
