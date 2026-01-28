@@ -43,9 +43,8 @@ const (
 	headerTraceID = "X-Axiom-Trace-Id"
 
 	defaultMediaType = "application/octet-stream"
-	mediaTypeJSON     = "application/json"
-	mediaTypeNDJSON   = "application/x-ndjson"
-	mediaTypeOTelLogs = "application/vnd.axiom.logs+json"
+	mediaTypeJSON    = "application/json"
+	mediaTypeNDJSON  = "application/x-ndjson"
 
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )

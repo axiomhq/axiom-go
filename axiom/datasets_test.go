@@ -765,37 +765,7 @@ func TestDatasetsService_IngestOtel(t *testing.T) {
 		TraceID:        "abc",
 	}
 
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
-		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
-		assert.Equal(t, "test", r.Header.Get("X-Axiom-Dataset"))
-
-		zsr, err := zstd.NewReader(r.Body)
-		require.NoError(t, err)
-
-		// Decode OTLP format - it's an object with resourceLogs
-		var otlpLogs map[string]any
-		err = json.NewDecoder(zsr).Decode(&otlpLogs)
-		require.NoError(t, err)
-		// Verify it has resourceLogs structure
-		assert.Contains(t, otlpLogs, "resourceLogs")
-		zsr.Close()
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set("X-Axiom-Trace-Id", "abc")
-		_, err = fmt.Fprint(w, `{
-			"ingested": 2,
-			"failed": 0,
-			"failures": [],
-			"processedBytes": 630,
-			"blocksCreated": 0,
-			"walLength": 2
-		}`)
-		assert.NoError(t, err)
-	}
-
-	client := setup(t, "POST /v1/logs", hf)
+	client := setup(t, "POST /v1/logs", otelIngestHandler(t))
 
 	events := []Event{
 		{
@@ -837,38 +807,7 @@ func TestDatasetsService_IngestEvents_WithOtelEnabled(t *testing.T) {
 		TraceID:        "abc",
 	}
 
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
-		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
-		assert.Equal(t, "test", r.Header.Get("X-Axiom-Dataset"))
-
-		zsr, err := zstd.NewReader(r.Body)
-		require.NoError(t, err)
-
-		// Decode OTLP format - it's an object with resourceLogs
-		var otlpLogs map[string]any
-		err = json.NewDecoder(zsr).Decode(&otlpLogs)
-		require.NoError(t, err)
-		// Verify it has resourceLogs structure
-		assert.Contains(t, otlpLogs, "resourceLogs")
-		zsr.Close()
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set("X-Axiom-Trace-Id", "abc")
-		_, err = fmt.Fprint(w, `{
-			"ingested": 2,
-			"failed": 0,
-			"failures": [],
-			"processedBytes": 630,
-			"blocksCreated": 0,
-			"walLength": 2
-		}`)
-		assert.NoError(t, err)
-	}
-
-	// Setup client with OTel enabled - requests should go to /v1/logs
-	client := setup(t, "POST /v1/logs", hf)
+	client := setup(t, "POST /v1/logs", otelIngestHandler(t))
 	err := client.Options(SetOtelEnabled(true))
 	require.NoError(t, err)
 
@@ -895,11 +834,40 @@ func TestDatasetsService_IngestEvents_WithOtelEnabled(t *testing.T) {
 		},
 	}
 
-	// IngestEvents should use OTel endpoint when OtelEnabled is true
 	res, err := client.Datasets.IngestEvents(t.Context(), "test", events)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
+}
+
+func otelIngestHandler(t *testing.T) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+		assert.Equal(t, "test", r.Header.Get("X-Axiom-Dataset"))
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		var otlpLogs map[string]any
+		err = json.NewDecoder(zsr).Decode(&otlpLogs)
+		require.NoError(t, err)
+		assert.Contains(t, otlpLogs, "resourceLogs")
+		zsr.Close()
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
+		_, err = fmt.Fprint(w, `{
+			"ingested": 2,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
 }
 
 // TestDatasetsService_IngestEvents_Retry tests the retry ingest functionality
