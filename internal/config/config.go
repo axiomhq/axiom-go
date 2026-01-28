@@ -24,6 +24,9 @@ type Config struct {
 	// edge is the regional edge domain (e.g., "eu-central-1.aws.edge.axiom.co").
 	// When set, edge URLs are built as "https://{edge}/v1/ingest/{dataset}".
 	edge string
+
+	// otelEnabled enables OpenTelemetry-based ingestion via the /v1/logs endpoint.
+	otelEnabled bool
 }
 
 // Default returns a default configuration with the base URL set.
@@ -81,6 +84,16 @@ func (c Config) Edge() string {
 // SetEdge sets the edge domain.
 func (c *Config) SetEdge(edge string) {
 	c.edge = edge
+}
+
+// OtelEnabled returns whether OpenTelemetry-based ingestion is enabled.
+func (c Config) OtelEnabled() bool {
+	return c.otelEnabled
+}
+
+// SetOtelEnabled sets whether OpenTelemetry-based ingestion is enabled.
+func (c *Config) SetOtelEnabled(enabled bool) {
+	c.otelEnabled = enabled
 }
 
 // IsEdgeConfigured returns true if an edge endpoint is configured.
@@ -171,8 +184,9 @@ func (c *Config) IncorporateEnvironment() error {
 		envOrganizationID = os.Getenv("AXIOM_ORG_ID")
 		envEdgeURL        = os.Getenv("AXIOM_EDGE_URL")
 		envEdge           = os.Getenv("AXIOM_EDGE")
+		envOtelEnabled    = os.Getenv("AXIOM_OTEL_ENABLED")
 
-		options   = make([]Option, 0, 5)
+		options   = make([]Option, 0, 6)
 		addOption = func(option Option) { options = append(options, option) }
 	)
 
@@ -194,6 +208,10 @@ func (c *Config) IncorporateEnvironment() error {
 
 	if envEdge != "" {
 		addOption(SetEdge(envEdge))
+	}
+
+	if envOtelEnabled != "" {
+		addOption(SetOtelEnabled(envOtelEnabled))
 	}
 
 	return c.Options(options...)

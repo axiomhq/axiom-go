@@ -324,3 +324,42 @@ func TestSetEdge(t *testing.T) {
 
 	assert.Equal(t, "eu-central-1.aws.edge.axiom.co", cfg.Edge())
 }
+
+func TestSetOtelEnabled(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		expected bool
+	}{
+		{name: "true lowercase", value: "true", expected: true},
+		{name: "true uppercase", value: "TRUE", expected: true},
+		{name: "true mixed case", value: "True", expected: true},
+		{name: "1", value: "1", expected: true},
+		{name: "false", value: "false", expected: false},
+		{name: "0", value: "0", expected: false},
+		{name: "empty string", value: "", expected: false},
+		{name: "random string", value: "enabled", expected: false},
+		{name: "true with whitespace", value: " true ", expected: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := Default()
+			err := cfg.Options(SetOtelEnabled(tt.value))
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, cfg.OtelEnabled())
+		})
+	}
+}
+
+func TestConfig_IncorporateEnvironment_OtelEnabled(t *testing.T) {
+	testhelper.SafeClearEnv(t)
+
+	t.Setenv("AXIOM_OTEL_ENABLED", "true")
+
+	cfg := Default()
+	err := cfg.IncorporateEnvironment()
+	require.NoError(t, err)
+
+	assert.True(t, cfg.OtelEnabled())
+}

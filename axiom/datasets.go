@@ -15,6 +15,8 @@ import (
 	"unicode"
 
 	"github.com/klauspost/compress/zstd"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -494,6 +496,11 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 //
 // [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
 func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
+	// If OTel is enabled, delegate to IngestOtel.
+	if s.client.config.OtelEnabled() {
+		return s.IngestOtel(ctx, id, events, options...)
+	}
+
 	ctx, span := s.client.trace(ctx, "Datasets.IngestEvents", trace.WithAttributes(
 		attribute.String("axiom.dataset_id", id),
 		attribute.Int("axiom.events_to_ingest", len(events)),
@@ -584,6 +591,113 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	}
 
 	req.Header.Set("Content-Type", NDJSON.String())
+	req.Header.Set("Content-Encoding", Zstd.String())
+
+	var (
+		res  ingest.Status
+		resp *Response
+	)
+	if resp, err = s.client.Do(req, &res); err != nil {
+		return nil, spanError(span, err)
+	}
+	res.TraceID = resp.TraceID()
+
+	setIngestStatusOnSpan(span, res)
+
+	return &res, nil
+}
+
+// IngestOtel ingests events into the dataset identified by its id using the
+// OpenTelemetry logs endpoint (/v1/logs).
+//
+// The timestamp of the events will be set by the server to the current server
+// time if the "_time" field is not set. The server can be instructed to use a
+// different field as the timestamp by setting the [ingest.SetTimestampField]
+// option. If not explicitly specified by [ingest.SetTimestampFormat], the
+// timestamp format is auto detected.
+//
+// Restrictions for field names (JSON object keys) can be reviewed in
+// [our documentation].
+//
+// For ingesting large amounts of data, consider using the
+// [DatasetsService.Ingest] or [DatasetsService.IngestChannel] method.
+//
+// [our documentation]: https://www.axiom.co/docs/usage/field-restrictions
+func (s *DatasetsService) IngestOtel(ctx context.Context, id string, events []Event, options ...ingest.Option) (*ingest.Status, error) {
+	ctx, span := s.client.trace(ctx, "Datasets.IngestOtel", trace.WithAttributes(
+		attribute.String("axiom.dataset_id", id),
+		attribute.Int("axiom.events_to_ingest", len(events)),
+	))
+	defer span.End()
+
+	if len(events) == 0 {
+		return &ingest.Status{}, nil
+	}
+
+	// Apply supplied options.
+	var opts ingest.Options
+	for _, option := range options {
+		if option != nil {
+			option(&opts)
+		}
+	}
+
+	// Build the OTel logs ingest path.
+	var (
+		path = "/v1/logs"
+		err  error
+	)
+	if path, err = AddURLOptions(path, opts); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	// Convert events to OTLP format.
+	logs := eventsToOTLP(events)
+	marshaler := &plog.JSONMarshaler{}
+	data, err := marshaler.MarshalLogs(logs)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	getBody := func() (io.ReadCloser, error) {
+		pr, pw := io.Pipe()
+
+		zsw, wErr := zstd.NewWriter(pw)
+		if wErr != nil {
+			_ = pr.Close()
+			_ = pw.Close()
+			return nil, wErr
+		}
+
+		go func() {
+			_, encErr := zsw.Write(data)
+
+			if closeErr := zsw.Close(); encErr == nil {
+				encErr = closeErr
+			}
+			_ = pw.CloseWithError(encErr)
+		}()
+
+		return pr, nil
+	}
+
+	r, err := getBody()
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
+	if err != nil {
+		return nil, spanError(span, err)
+	}
+	req.GetBody = getBody
+
+	if err = setOptionHeaders(req, opts, JSON); err != nil {
+		return nil, spanError(span, err)
+	}
+
+	req.Header.Set(headerDataset, id)
+	req.Header.Set("Content-Type", mediaTypeJSON)
 	req.Header.Set("Content-Encoding", Zstd.String())
 
 	var (
@@ -950,4 +1064,63 @@ func setEventLabels(req *http.Request, labels map[string]any) error {
 	req.Header.Set(headerEventLabels, string(b))
 
 	return nil
+}
+
+// eventsToOTLP converts a slice of events to OTLP logs format.
+func eventsToOTLP(events []Event) plog.Logs {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+	logRecords := scopeLogs.LogRecords()
+
+	for _, event := range events {
+		logRecord := logRecords.AppendEmpty()
+
+		// Set timestamp if _time is present.
+		if ts, ok := event[ingest.TimestampField]; ok {
+			if tsStr, ok := ts.(string); ok {
+				if t, err := time.Parse(time.RFC3339Nano, tsStr); err == nil {
+					logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+				}
+			} else if t, ok := ts.(time.Time); ok {
+				logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+			}
+		}
+
+		// Set body as JSON string of the event.
+		bodyBytes, _ := json.Marshal(event)
+		logRecord.Body().SetStr(string(bodyBytes))
+
+		// Copy event fields to attributes.
+		attrs := logRecord.Attributes()
+		for k, v := range event {
+			if k == ingest.TimestampField {
+				continue
+			}
+			setAttributeValue(attrs, k, v)
+		}
+	}
+
+	return logs
+}
+
+// setAttributeValue sets an attribute value based on the Go type.
+func setAttributeValue(attrs pcommon.Map, key string, value any) {
+	switch v := value.(type) {
+	case string:
+		attrs.PutStr(key, v)
+	case int:
+		attrs.PutInt(key, int64(v))
+	case int64:
+		attrs.PutInt(key, v)
+	case float64:
+		attrs.PutDouble(key, v)
+	case bool:
+		attrs.PutBool(key, v)
+	default:
+		// For complex types, marshal to JSON string.
+		if b, err := json.Marshal(v); err == nil {
+			attrs.PutStr(key, string(b))
+		}
+	}
 }

@@ -754,6 +754,122 @@ func TestDatasetsService_IngestEvents(t *testing.T) {
 	assert.Equal(t, exp, res)
 }
 
+func TestDatasetsService_IngestOtel(t *testing.T) {
+	exp := &ingest.Status{
+		Ingested:       2,
+		Failed:         0,
+		Failures:       []*ingest.Failure{},
+		ProcessedBytes: 630,
+		BlocksCreated:  0,
+		WALLength:      2,
+		TraceID:        "abc",
+	}
+
+	client := setup(t, "POST /v1/logs", otelIngestHandler(t))
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	res, err := client.Datasets.IngestOtel(t.Context(), "test", events)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestDatasetsService_IngestEvents_WithOtelEnabled(t *testing.T) {
+	exp := &ingest.Status{
+		Ingested:       2,
+		Failed:         0,
+		Failures:       []*ingest.Failure{},
+		ProcessedBytes: 630,
+		BlocksCreated:  0,
+		WALLength:      2,
+		TraceID:        "abc",
+	}
+
+	client := setup(t, "POST /v1/logs", otelIngestHandler(t))
+	err := client.Options(SetOtelEnabled(true))
+	require.NoError(t, err)
+
+	events := []Event{
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+		{
+			"time":        "17/May/2015:08:05:32 +0000",
+			"remote_ip":   "93.180.71.3",
+			"remote_user": "-",
+			"request":     "GET /downloads/product_1 HTTP/1.1",
+			"response":    304,
+			"bytes":       0,
+			"referrer":    "-",
+			"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
+		},
+	}
+
+	res, err := client.Datasets.IngestEvents(t.Context(), "test", events)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func otelIngestHandler(t *testing.T) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
+		assert.Equal(t, "zstd", r.Header.Get("Content-Encoding"))
+		assert.Equal(t, "test", r.Header.Get("X-Axiom-Dataset"))
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+
+		var otlpLogs map[string]any
+		err = json.NewDecoder(zsr).Decode(&otlpLogs)
+		require.NoError(t, err)
+		assert.Contains(t, otlpLogs, "resourceLogs")
+		zsr.Close()
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		w.Header().Set("X-Axiom-Trace-Id", "abc")
+		_, err = fmt.Fprint(w, `{
+			"ingested": 2,
+			"failed": 0,
+			"failures": [],
+			"processedBytes": 630,
+			"blocksCreated": 0,
+			"walLength": 2
+		}`)
+		assert.NoError(t, err)
+	}
+}
+
 // TestDatasetsService_IngestEvents_Retry tests the retry ingest functionality
 // of the client. It also tests the event labels functionality by setting no
 // labels. It also tests for the presence of a trace ID in the response.

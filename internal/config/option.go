@@ -1,6 +1,9 @@
 package config
 
-import "net/url"
+import (
+	"net/url"
+	"strings"
+)
 
 // An Option modifies the configuration.
 type Option func(config *Config) error
@@ -62,6 +65,16 @@ func SetEdgeURL(edgeURL string) Option {
 func SetEdge(edge string) Option {
 	return func(config *Config) error {
 		config.SetEdge(edge)
+		return nil
+	}
+}
+
+// SetOtelEnabled enables or disables OpenTelemetry-based ingestion via the
+// /v1/logs endpoint. The value should be "true" or "1" to enable.
+func SetOtelEnabled(enabled string) Option {
+	return func(config *Config) error {
+		enabled = strings.ToLower(strings.TrimSpace(enabled))
+		config.SetOtelEnabled(enabled == "true" || enabled == "1")
 		return nil
 	}
 }
