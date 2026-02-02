@@ -98,10 +98,12 @@ func SetDataset(dataset string) Option {
 	}
 }
 
-// SetClientOptions configures the axiom client options.
-func SetClientOptions(clientOptions []axiom.Option) Option {
+// SetClientOptions specifies the Axiom client options to pass to
+// [axiom.NewClient] which is only called if no [axiom.Client] was specified by
+// the [SetClient] option.
+func SetClientOptions(options ...axiom.Option) Option {
 	return func(cfg *Writer) error {
-		cfg.clientOptions = clientOptions
+		cfg.clientOptions = options
 		return nil
 	}
 }
