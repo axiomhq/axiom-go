@@ -66,6 +66,7 @@ func DefaultHTTPClient() *http.Client {
 // [DefaultHTTPClient].
 func DefaultHTTPTransport() http.RoundTripper {
 	return otelhttp.NewTransport(gzhttp.Transport(&http.Transport{
+		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			Timeout:   time.Second * 30,
 			KeepAlive: time.Second * 30,
