@@ -24,6 +24,10 @@ func main() {
 	defer handler.Close()
 
 	// 3. Create the logger.
+	//
+	// Go 1.26+: Use slog.NewMultiHandler to fan out to multiple handlers.
+	// multi := slog.NewMultiHandler(handler, slog.NewTextHandler(os.Stderr, nil))
+	// logger := slog.New(multi)
 	logger := slog.New(handler)
 
 	// 4. 💡 Optional: Make the Go log package use the structured logger.

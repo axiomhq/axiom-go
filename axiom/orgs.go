@@ -127,9 +127,9 @@ func (l License) MarshalJSON() ([]byte, error) {
 // MaxQueryWindow and MaxAuditWindow into a proper [time.Duration] value because
 // the server returns it in seconds.
 func (l *License) UnmarshalJSON(b []byte) error {
-	type localLicense *License
+	type localLicense License
 
-	if err := json.Unmarshal(b, localLicense(l)); err != nil {
+	if err := json.Unmarshal(b, (*localLicense)(l)); err != nil {
 		return err
 	}
 

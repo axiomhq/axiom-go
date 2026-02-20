@@ -48,12 +48,10 @@ linters:
           - gosec
         path: _test\.go
         text: "G115: integer overflow conversion"
+      # Deprecated axiom-go APIs the module still has to reference and test.
       - linters:
           - staticcheck
-        text: 'SA1019: "github.com/axiomhq/axiom-go/axiom/querylegacy" is deprecated'
-      - linters:
-          - staticcheck
-        text: "SA1019:.*QueryLegacy is deprecated"
+        text: "SA1019:.*(querylegacy|QueryLegacy|BlocksCreated|WALLength) is deprecated"
       - linters:
           - revive
         path: adapters/slog/

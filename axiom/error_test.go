@@ -45,8 +45,8 @@ func TestLimitError_As(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var act axiom.HTTPError
-			require.True(t, errors.As(tt.err, &act))
+			act, ok := errors.AsType[axiom.HTTPError](tt.err)
+			require.True(t, ok)
 
 			// The projection must carry every field, not just the type.
 			assert.Equal(t, httpErr, act)
@@ -54,8 +54,8 @@ func TestLimitError_As(t *testing.T) {
 	}
 
 	t.Run("still matches its own type", func(t *testing.T) {
-		var act axiom.LimitError
-		require.True(t, errors.As(error(limitErr), &act))
+		act, ok := errors.AsType[axiom.LimitError](error(limitErr))
+		require.True(t, ok)
 
 		assert.Equal(t, limitErr, act)
 	})
