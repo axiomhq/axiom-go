@@ -150,9 +150,9 @@ type Status struct {
 // elapsed time into a proper [time.Duration] value because the server returns
 // it in microseconds.
 func (s *Status) UnmarshalJSON(b []byte) error {
-	type localStatus *Status
+	type localStatus Status
 
-	if err := json.Unmarshal(b, localStatus(s)); err != nil {
+	if err := json.Unmarshal(b, (*localStatus)(s)); err != nil {
 		return err
 	}
 

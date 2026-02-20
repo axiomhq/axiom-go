@@ -3,6 +3,7 @@ package axiom
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -405,8 +406,7 @@ func TestClient_NewRequest_BadURL(t *testing.T) {
 	_, err := client.NewRequest(t.Context(), http.MethodGet, ":", nil)
 	assert.Error(t, err)
 
-	if assert.IsType(t, new(url.Error), err) {
-		urlErr := err.(*url.Error)
+	if urlErr, ok := errors.AsType[*url.Error](err); ok {
 		assert.Equal(t, urlErr.Op, "parse")
 	}
 }
@@ -643,7 +643,8 @@ func TestClient_Do_RedirectLoop(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.Do(req, nil)
-	assert.IsType(t, new(url.Error), err)
+	_, ok := errors.AsType[*url.Error](err)
+	assert.True(t, ok)
 }
 
 func TestClient_Do_ValidOnlyAPITokenPaths(t *testing.T) {
