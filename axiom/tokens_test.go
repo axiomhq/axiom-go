@@ -3,6 +3,7 @@ package axiom
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -190,6 +191,10 @@ func TestTokensService_Create(t *testing.T) {
 
 func TestTokensService_Regenerate(t *testing.T) {
 	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
+	req := RegenerateTokenRequest{
+		ExistingTokenExpiresAt: tokenTime,
+		NewTokenExpiresAt:      tokenTime.Add(time.Hour * 24),
+	}
 	exp := &CreateTokenResponse{
 		APIToken: APIToken{
 			Name:        "test",
@@ -211,8 +216,13 @@ func TestTokensService_Regenerate(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		var gotReq RegenerateTokenRequest
+		err := json.NewDecoder(r.Body).Decode(&gotReq)
+		require.NoError(t, err)
+		assert.Equal(t, req, gotReq)
+
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
+		_, err = fmt.Fprint(w, `{
         "datasetCapabilities": {
             "dataset": {
                 "ingest": [
@@ -237,10 +247,92 @@ func TestTokensService_Regenerate(t *testing.T) {
 	}
 	client := setup(t, "POST /v2/tokens/test/regenerate", hf)
 
-	res, err := client.Tokens.Regenerate(t.Context(), "test", RegenerateTokenRequest{
+	res, err := client.Tokens.Regenerate(t.Context(), "test", req)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp, res)
+}
+
+func TestTokensService_RegenerateWithNewToken(t *testing.T) {
+	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
+
+	replacementReq := CreateTokenRequest{
+		Name:        "replacement",
+		Description: "replacement token",
+		ExpiresAt:   tokenTime.Add(48 * time.Hour),
+		DatasetCapabilities: map[string]DatasetCapabilities{
+			"dataset": {
+				Ingest: []Action{ActionCreate},
+			},
+		},
+		OrganisationCapabilities: OrganisationCapabilities{
+			APITokens: []Action{ActionCreate},
+		},
+	}
+	req := RegenerateTokenRequest{
 		ExistingTokenExpiresAt: tokenTime,
-		NewTokenExpiresAt:      tokenTime.Add(time.Hour * 24),
-	})
+		NewToken:               &replacementReq,
+	}
+
+	exp := &CreateTokenResponse{
+		APIToken: APIToken{
+			Name:        "replacement",
+			Description: "replacement token",
+			ExpiresAt:   tokenTime.Add(48 * time.Hour).UTC().Truncate(time.Second),
+			DatasetCapabilities: map[string]DatasetCapabilities{
+				"dataset": {
+					Ingest: []Action{ActionCreate},
+				},
+			},
+			OrganisationCapabilities: OrganisationCapabilities{
+				APITokens: []Action{ActionCreate},
+			},
+		},
+		Token: "replacement-token",
+	}
+
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
+
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		var rawReq map[string]json.RawMessage
+		err = json.Unmarshal(body, &rawReq)
+		require.NoError(t, err)
+
+		assert.Contains(t, rawReq, "newToken")
+
+		var gotReq RegenerateTokenRequest
+		err = json.Unmarshal(body, &gotReq)
+		require.NoError(t, err)
+		assert.Equal(t, req, gotReq)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err = fmt.Fprint(w, `{
+        "datasetCapabilities": {
+            "dataset": {
+                "ingest": [
+                  "create"
+                ]
+            }
+        },
+                "expiresAt": "2024-04-21T17:55:53Z",
+        "description": "replacement token",
+        "name": "replacement",
+        "orgCapabilities": {
+            "apiTokens": [
+                "create"
+            ]
+        },
+                "token":"replacement-token"
+    }`)
+		assert.NoError(t, err)
+	}
+	client := setup(t, "POST /v2/tokens/test/regenerate", hf)
+
+	res, err := client.Tokens.Regenerate(t.Context(), "test", req)
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
