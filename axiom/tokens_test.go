@@ -303,6 +303,7 @@ func TestTokensService_RegenerateWithNewToken(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Contains(t, rawReq, "newToken")
+		assert.NotContains(t, rawReq, "newTokenExpiresAt")
 
 		var gotReq RegenerateTokenRequest
 		err = json.Unmarshal(body, &gotReq)

@@ -200,7 +200,7 @@ type RegenerateTokenRequest struct {
 	// capabilities and metadata from the existing token.
 	NewToken *CreateTokenRequest `json:"newToken,omitempty"`
 	// NewTokenExpiresAt is the time when the new token will expire.
-	NewTokenExpiresAt time.Time `json:"newTokenExpiresAt,omitempty"`
+	NewTokenExpiresAt time.Time `json:"newTokenExpiresAt,omitzero"`
 }
 
 // TokensService handles communication with the api token related operations
