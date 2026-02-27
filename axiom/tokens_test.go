@@ -312,23 +312,23 @@ func TestTokensService_RegenerateWithNewToken(t *testing.T) {
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err = fmt.Fprint(w, `{
-        "datasetCapabilities": {
-            "dataset": {
-                "ingest": [
-                  "create"
-                ]
-            }
-        },
-                "expiresAt": "2024-04-21T17:55:53Z",
-        "description": "replacement token",
-        "name": "replacement",
-        "orgCapabilities": {
-            "apiTokens": [
-                "create"
-            ]
-        },
-                "token":"replacement-token"
-    }`)
+		"datasetCapabilities": {
+			"dataset": {
+				"ingest": [
+					"create"
+				]
+			}
+		},
+		"expiresAt": "2024-04-21T17:55:53Z",
+		"description": "replacement token",
+		"name": "replacement",
+		"orgCapabilities": {
+			"apiTokens": [
+				"create"
+			]
+		},
+		"token":"replacement-token"
+	}`)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "POST /v2/tokens/test/regenerate", hf)
