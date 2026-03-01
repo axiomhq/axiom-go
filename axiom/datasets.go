@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -32,6 +33,20 @@ var ErrUnknownContentType = errors.New("unknown content type")
 // ErrUnknownContentEncoding is raised when the given [ContentEncoding] is not
 // valid.
 var ErrUnknownContentEncoding = errors.New("unknown content encoding")
+
+// zstdWriterPool reuses zstd encoders to avoid the ~4 MB allocation cost per
+// zstd.NewWriter call. Writers are created with SpeedFastest to further reduce
+// memory footprint. Each writer is Reset() before use, which is safe and
+// discards all internal state from prior uses.
+var zstdWriterPool = sync.Pool{
+	New: func() any {
+		w, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
+		if err != nil {
+			panic("zstd: failed to create writer: " + err.Error())
+		}
+		return w
+	},
+}
 
 // ContentType describes the content type of the data to ingest.
 type ContentType uint8
@@ -539,12 +554,8 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	getBody := func() (io.ReadCloser, error) {
 		pr, pw := io.Pipe()
 
-		zsw, wErr := zstd.NewWriter(pw)
-		if wErr != nil {
-			_ = pr.Close()
-			_ = pw.Close()
-			return nil, wErr
-		}
+		zsw := zstdWriterPool.Get().(*zstd.Encoder)
+		zsw.Reset(pw)
 
 		go func() {
 			var (
@@ -562,6 +573,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 				// that one.
 				encErr = closeErr
 			}
+			zstdWriterPool.Put(zsw)
 			_ = pw.CloseWithError(encErr)
 		}()
 
