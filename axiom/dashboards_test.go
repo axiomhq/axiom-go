@@ -147,8 +147,19 @@ func TestDashboardsService_UpdateRaw(t *testing.T) {
 
 	res, err := client.Dashboards.UpdateRaw(t.Context(), "db_test", raw)
 	require.NoError(t, err)
-	assert.Contains(t, string(res), `"status": "updated"`)
-	assert.Contains(t, string(res), `"name": "Updated Raw Dashboard"`)
+	assert.JSONEq(t, `{
+		"status": "updated",
+		"dashboard": {
+			"uid": "db_test",
+			"id": "dash_123",
+			"version": 2,
+			"dashboard": {"name": "Updated Raw Dashboard"},
+			"createdAt": "2026-01-01T00:00:00Z",
+			"updatedAt": "2026-01-02T00:00:00Z",
+			"createdBy": "usr_1",
+			"updatedBy": "usr_2"
+		}
+	}`, string(res))
 }
 
 func TestDashboardsService_Delete(t *testing.T) {
