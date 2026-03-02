@@ -51,6 +51,60 @@ func TestZstdEncoder(t *testing.T) {
 	assert.Equal(t, exp, string(act))
 }
 
+func BenchmarkZstdEncoder_Allocs(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	for b.Loop() {
+		r, err := ZstdEncoder()(bytes.NewReader(data))
+		require.NoError(b, err)
+		_, err = io.Copy(io.Discard, r)
+		require.NoError(b, err)
+	}
+}
+
+func BenchmarkGzipEncoder_Allocs(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	for b.Loop() {
+		r, err := GzipEncoder()(bytes.NewReader(data))
+		require.NoError(b, err)
+		_, err = io.Copy(io.Discard, r)
+		require.NoError(b, err)
+	}
+}
+
+func BenchmarkZstdEncoder_Parallel(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			r, err := ZstdEncoder()(bytes.NewReader(data))
+			if err != nil {
+				b.Fatal(err)
+			}
+			if _, err = io.Copy(io.Discard, r); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkGzipEncoder_Parallel(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			r, err := GzipEncoder()(bytes.NewReader(data))
+			if err != nil {
+				b.Fatal(err)
+			}
+			if _, err = io.Copy(io.Discard, r); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func BenchmarkEncoder(b *testing.B) {
 	data := testdata.Load(b)
 
