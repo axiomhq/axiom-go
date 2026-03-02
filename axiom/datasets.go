@@ -14,6 +14,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/klauspost/compress/zstd"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -538,7 +539,8 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	getBody := func() (io.ReadCloser, error) {
 		pr, pw := io.Pipe()
 
-		zsw := zstdPool.Get()
+		pool := zstdPools[zstdPoolIndex(zstd.SpeedDefault)]
+		zsw := pool.Get()
 		zsw.Reset(pw)
 
 		go func() {
@@ -557,7 +559,7 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 					encErr = closeErr
 				}
 			} else {
-				zstdPool.Put(zsw)
+				pool.Put(zsw)
 			}
 			_ = pw.CloseWithError(encErr)
 		}()
