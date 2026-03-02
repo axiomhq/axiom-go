@@ -37,20 +37,6 @@ func (s *DashboardsTestSuite) SetupTest() {
 
 	_, err = s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, []axiom.Event{{"service": "integration", "status": 200}})
 	s.Require().NoError(err)
-
-	s.monitor, err = s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			Name:        "test-dashboard-monitor",
-			Description: "Monitor used by dashboards integration test",
-			Type:        axiom.MonitorTypeThreshold,
-			APLQuery:    fmt.Sprintf("['%s'] | summarize count()", s.dataset.ID),
-			Operator:    axiom.Above,
-			Threshold:   0,
-			Interval:    time.Minute,
-			Range:       time.Minute,
-		},
-	})
-	s.Require().NoError(err)
 }
 
 func (s *DashboardsTestSuite) TearDownTest() {
@@ -160,6 +146,21 @@ func (s *DashboardsTestSuite) TestRawCRUD() {
 func (s *DashboardsTestSuite) TestAllChartTypes() {
 	uid := fmt.Sprintf("dash-all-charts-%d", time.Now().UnixNano())
 	s.dashboardUID = uid
+
+	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			Name:        "test-dashboard-monitor",
+			Description: "Monitor used by dashboards integration test",
+			Type:        axiom.MonitorTypeThreshold,
+			APLQuery:    fmt.Sprintf("['%s'] | summarize count()", s.dataset.ID),
+			Operator:    axiom.Above,
+			Threshold:   0,
+			Interval:    time.Minute,
+			Range:       time.Minute,
+		},
+	})
+	s.Require().NoError(err)
+	s.monitor = monitor
 
 	baseQuery := map[string]any{"apl": fmt.Sprintf("['%s'] | summarize count()", s.dataset.ID)}
 
