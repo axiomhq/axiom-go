@@ -3,6 +3,7 @@ package axiom
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -103,23 +104,15 @@ func (s *DashboardsService) UpdateRaw(ctx context.Context, uid string, payload [
 func (s *DashboardsService) rawCall(ctx context.Context, method, path string, payload []byte) ([]byte, error) {
 	var body any
 	if payload != nil {
-		body = bytes.NewReader(payload)
-	}
-
-	req, err := s.client.NewRequest(ctx, method, path, body)
-	if err != nil {
-		return nil, err
-	}
-	if payload != nil {
-		req.Header.Set(headerContentType, mediaTypeJSON)
+		body = json.RawMessage(payload)
 	}
 
 	var buf bytes.Buffer
-	if _, err := s.client.Do(req, &buf); err != nil {
+	if err := s.client.Call(ctx, method, path, body, &buf); err != nil {
 		return nil, err
 	}
 
-	return append([]byte(nil), buf.Bytes()...), nil
+	return bytes.Clone(buf.Bytes()), nil
 }
 
 // Delete the dashboard identified by uid.
