@@ -115,7 +115,7 @@ func (s *DashboardsService) rawCall(ctx context.Context, method, path string, pa
 	return bytes.Clone(buf.Bytes()), nil
 }
 
-// Delete the dashboard identified by uid.
+// Delete the dashboard identified by the given uid.
 func (s *DashboardsService) Delete(ctx context.Context, uid string) error {
 	ctx, span := s.client.trace(ctx, "Dashboards.Delete", trace.WithAttributes(
 		attribute.String("axiom.dashboard_uid", uid),
