@@ -13,8 +13,9 @@ import (
 // functionality and returns that enhanced reader. The content type of the
 // encoded content must obviously be accepted by the server.
 //
-// The built-in encoders returned by [GzipEncoder], [GzipEncoderWithLevel] and
-// [ZstdEncoder] pool compression writers internally to amortize allocation
+// The built-in encoders returned by [GzipEncoder], [GzipEncoderWithLevel],
+// [ZstdEncoder] and [ZstdEncoderWithLevel] pool compression writers internally
+// to amortize allocation
 // costs. Use [NewPooledEncoder] to create a pooled encoder for a custom
 // compression writer.
 //
@@ -51,14 +52,27 @@ func (p *encoderPool[T]) Put(v T) {
 	p.pool.Put(v)
 }
 
-// zstdPool is the package-level pool for zstd writers (SpeedDefault).
-var zstdPool = newEncoderPool(func() *zstd.Encoder {
-	w, err := zstd.NewWriter(nil)
-	if err != nil {
-		panic("zstd: failed to create writer: " + err.Error())
+// zstdPools holds per-level pools for zstd writers. The array is indexed by
+// zstdPoolIndex, covering all valid zstd levels from SpeedFastest (1) through
+// SpeedBestCompression (4).
+var zstdPools [zstd.SpeedBestCompression - zstd.SpeedFastest + 1]*encoderPool[*zstd.Encoder]
+
+func init() {
+	for level := zstd.SpeedFastest; level <= zstd.SpeedBestCompression; level++ {
+		l := level
+		zstdPools[zstdPoolIndex(l)] = newEncoderPool(func() *zstd.Encoder {
+			w, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(l))
+			if err != nil {
+				panic("zstd: failed to create writer: " + err.Error())
+			}
+			return w
+		})
 	}
-	return w
-})
+}
+
+func zstdPoolIndex(level zstd.EncoderLevel) int {
+	return int(level - zstd.SpeedFastest)
+}
 
 // gzipPools holds per-level pools for gzip writers. The array is indexed by
 // gzipPoolIndex, covering all valid gzip levels from HuffmanOnly (-2) through
@@ -132,8 +146,22 @@ func GzipEncoderWithLevel(level int) ContentEncoder {
 }
 
 // ZstdEncoder returns a content encoder that zstd compresses the data it reads
-// from the provided reader. Writers are pooled internally to avoid the ~4 MB
+// from the provided reader. The compression level defaults to
+// [zstd.SpeedDefault]. Writers are pooled internally to avoid the ~4 MB
 // allocation cost per [zstd.NewWriter] call.
 func ZstdEncoder() ContentEncoder {
-	return pooledContentEncoder(zstdPool)
+	return ZstdEncoderWithLevel(zstd.SpeedDefault)
+}
+
+// ZstdEncoderWithLevel returns a content encoder that zstd compresses data
+// using the specified compression level. Writers are pooled internally per
+// compression level.
+func ZstdEncoderWithLevel(level zstd.EncoderLevel) ContentEncoder {
+	idx := zstdPoolIndex(level)
+	if idx < 0 || idx >= len(zstdPools) || zstdPools[idx] == nil {
+		return func(_ io.Reader) (io.Reader, error) {
+			return nil, fmt.Errorf("unsupported zstd compression level: %d", level)
+		}
+	}
+	return pooledContentEncoder(zstdPools[idx])
 }
