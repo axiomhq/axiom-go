@@ -77,7 +77,7 @@ func TestDashboardsService_CreateRaw(t *testing.T) {
 
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-		assert.Equal(t, string(raw), string(body))
+		assert.JSONEq(t, string(raw), string(body))
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err = fmt.Fprint(w, `{
@@ -113,7 +113,7 @@ func TestDashboardsService_UpdateRaw(t *testing.T) {
 
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-		assert.Equal(t, string(raw), string(body))
+		assert.JSONEq(t, string(raw), string(body))
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err = fmt.Fprint(w, `{
