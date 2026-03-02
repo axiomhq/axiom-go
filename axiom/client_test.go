@@ -221,6 +221,7 @@ func TestNewClient_Valid(t *testing.T) {
 
 	// Are endpoints/resources present?
 	assert.NotNil(t, client.Datasets)
+	assert.NotNil(t, client.Dashboards)
 	assert.NotNil(t, client.Organizations)
 	assert.NotNil(t, client.Users)
 
