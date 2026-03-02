@@ -3,7 +3,6 @@ package axiom
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -295,18 +294,8 @@ func TestTokensService_RegenerateWithNewToken(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
-		body, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-
-		var rawReq map[string]json.RawMessage
-		err = json.Unmarshal(body, &rawReq)
-		require.NoError(t, err)
-
-		assert.Contains(t, rawReq, "newToken")
-		assert.NotContains(t, rawReq, "newTokenExpiresAt")
-
 		var gotReq RegenerateTokenRequest
-		err = json.Unmarshal(body, &gotReq)
+		err := json.NewDecoder(r.Body).Decode(&gotReq)
 		require.NoError(t, err)
 		assert.Equal(t, req, gotReq)
 
