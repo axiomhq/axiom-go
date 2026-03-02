@@ -75,6 +75,88 @@ func (s *DashboardsTestSuite) TearDownTest() {
 	s.IntegrationTestSuite.TearDownTest()
 }
 
+func (s *DashboardsTestSuite) TestRawCRUD() {
+	uid := fmt.Sprintf("dash-raw-crud-%d", time.Now().UnixNano())
+	s.dashboardUID = uid
+
+	createPayload, err := json.Marshal(map[string]any{
+		"uid": uid,
+		"dashboard": map[string]any{
+			"name":            "raw crud dashboard",
+			"owner":           s.testUser.ID,
+			"description":     "raw dashboards CRUD integration test",
+			"charts":          []map[string]any{{"id": "note-1", "type": "Note", "text": "hello"}},
+			"layout":          []map[string]any{{"i": "note-1", "x": 0, "y": 0, "w": 4, "h": 4}},
+			"refreshTime":     60,
+			"schemaVersion":   2,
+			"timeWindowStart": "qr-now-1h",
+			"timeWindowEnd":   "qr-now",
+		},
+		"overwrite": true,
+		"message":   "integration create",
+	})
+	s.Require().NoError(err)
+
+	created, err := s.client.Dashboards.CreateRaw(s.ctx, createPayload)
+	s.Require().NoError(err)
+
+	var createdPayload map[string]any
+	s.Require().NoError(json.Unmarshal(created, &createdPayload))
+	createdDashboard, ok := createdPayload["dashboard"].(map[string]any)
+	s.Require().True(ok, "response missing object dashboard: %#v", createdPayload)
+	s.Equal(uid, createdDashboard["uid"])
+
+	updatePayload, err := json.Marshal(map[string]any{
+		"dashboard": map[string]any{
+			"name":            "raw crud dashboard updated",
+			"owner":           s.testUser.ID,
+			"description":     "raw dashboards CRUD integration test",
+			"charts":          []map[string]any{{"id": "note-1", "type": "Note", "text": "updated"}},
+			"layout":          []map[string]any{{"i": "note-1", "x": 0, "y": 0, "w": 4, "h": 4}},
+			"refreshTime":     60,
+			"schemaVersion":   2,
+			"timeWindowStart": "qr-now-1h",
+			"timeWindowEnd":   "qr-now",
+		},
+		"overwrite": true,
+		"message":   "integration update",
+	})
+	s.Require().NoError(err)
+
+	updated, err := s.client.Dashboards.UpdateRaw(s.ctx, uid, updatePayload)
+	s.Require().NoError(err)
+
+	var updatedPayload map[string]any
+	s.Require().NoError(json.Unmarshal(updated, &updatedPayload))
+	updatedDashboard, ok := updatedPayload["dashboard"].(map[string]any)
+	s.Require().True(ok, "response missing object dashboard: %#v", updatedPayload)
+	s.Equal(uid, updatedDashboard["uid"])
+
+	got, err := s.client.Dashboards.GetRaw(s.ctx, uid)
+	s.Require().NoError(err)
+
+	var gotPayload map[string]any
+	s.Require().NoError(json.Unmarshal(got, &gotPayload))
+	gotDashboard, ok := gotPayload["dashboard"].(map[string]any)
+	s.Require().True(ok, "response missing object dashboard: %#v", gotPayload)
+	s.Equal("raw crud dashboard updated", gotDashboard["name"])
+
+	listed, err := s.client.Dashboards.ListRaw(s.ctx, nil)
+	s.Require().NoError(err)
+
+	var listedDashboards []map[string]any
+	s.Require().NoError(json.Unmarshal(listed, &listedDashboards))
+
+	var found bool
+	for _, dashboard := range listedDashboards {
+		if dashboard["uid"] == uid {
+			found = true
+			break
+		}
+	}
+	s.True(found, "created dashboard %q was not returned by ListRaw", uid)
+}
+
 func (s *DashboardsTestSuite) TestAllChartTypes() {
 	uid := fmt.Sprintf("dash-all-charts-%d", time.Now().UnixNano())
 	s.dashboardUID = uid
