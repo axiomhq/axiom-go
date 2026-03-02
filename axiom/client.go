@@ -94,6 +94,7 @@ type Client struct {
 
 	// Services for communicating with different parts of the Axiom API.
 	Datasets      *DatasetsService
+	Dashboards    *DashboardsService
 	Organizations *OrganizationsService
 	Users         *UsersService
 	Monitors      *MonitorsService
@@ -132,6 +133,7 @@ func NewClient(options ...Option) (*Client, error) {
 	}
 
 	client.Datasets = &DatasetsService{client: client, basePath: "/v2/datasets"}
+	client.Dashboards = &DashboardsService{client: client, basePath: "/v2/dashboards"}
 	client.Organizations = &OrganizationsService{client: client, basePath: "/v2/orgs"}
 	client.Users = &UsersService{client: client, basePath: "/v2/users"}
 	client.Monitors = &MonitorsService{client: client, basePath: "/v2/monitors"}
