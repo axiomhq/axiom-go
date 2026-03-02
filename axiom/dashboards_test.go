@@ -100,8 +100,19 @@ func TestDashboardsService_CreateRaw(t *testing.T) {
 
 	res, err := client.Dashboards.CreateRaw(t.Context(), raw)
 	require.NoError(t, err)
-	assert.Contains(t, string(res), `"status": "created"`)
-	assert.Contains(t, string(res), `"name": "Raw Dashboard"`)
+	assert.JSONEq(t, `{
+		"status": "created",
+		"dashboard": {
+			"uid": "db_test",
+			"id": "dash_123",
+			"version": 1,
+			"dashboard": {"name": "Raw Dashboard"},
+			"createdAt": "2026-01-01T00:00:00Z",
+			"updatedAt": "2026-01-01T00:00:00Z",
+			"createdBy": "usr_1",
+			"updatedBy": "usr_1"
+		}
+	}`, string(res))
 }
 
 func TestDashboardsService_UpdateRaw(t *testing.T) {
