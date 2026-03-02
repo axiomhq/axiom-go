@@ -195,8 +195,12 @@ type CreateTokenResponse struct {
 type RegenerateTokenRequest struct {
 	// ExistingTokenExpiresAt is the time when the existing token will expire.
 	ExistingTokenExpiresAt time.Time `json:"existingTokenExpiresAt"`
+	// NewToken is an optional replacement token payload. When set, the
+	// replacement token is created from this payload instead of cloning
+	// capabilities and metadata from the existing token.
+	NewToken *CreateTokenRequest `json:"newToken,omitempty"`
 	// NewTokenExpiresAt is the time when the new token will expire.
-	NewTokenExpiresAt time.Time `json:"newTokenExpiresAt"`
+	NewTokenExpiresAt time.Time `json:"newTokenExpiresAt,omitzero"`
 }
 
 // TokensService handles communication with the api token related operations

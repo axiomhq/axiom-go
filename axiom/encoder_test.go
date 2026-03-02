@@ -51,6 +51,91 @@ func TestZstdEncoder(t *testing.T) {
 	assert.Equal(t, exp, string(act))
 }
 
+func TestZstdEncoderWithLevel(t *testing.T) {
+	exp := "Some fox jumps over a fence."
+
+	levels := []zstd.EncoderLevel{
+		zstd.SpeedFastest,
+		zstd.SpeedDefault,
+		zstd.SpeedBetterCompression,
+		zstd.SpeedBestCompression,
+	}
+	for _, level := range levels {
+		t.Run(level.String(), func(t *testing.T) {
+			r, err := ZstdEncoderWithLevel(level)(strings.NewReader(exp))
+			require.NoError(t, err)
+
+			zsr, err := zstd.NewReader(r)
+			require.NoError(t, err)
+			defer zsr.Close()
+
+			act, err := io.ReadAll(zsr)
+			require.NoError(t, err)
+
+			assert.Equal(t, exp, string(act))
+		})
+	}
+
+	t.Run("invalid", func(t *testing.T) {
+		_, err := ZstdEncoderWithLevel(zstd.EncoderLevel(42))(strings.NewReader(exp))
+		assert.ErrorContains(t, err, "unsupported zstd compression level")
+	})
+}
+
+func BenchmarkZstdEncoder_Allocs(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	for b.Loop() {
+		r, err := ZstdEncoder()(bytes.NewReader(data))
+		require.NoError(b, err)
+		_, err = io.Copy(io.Discard, r)
+		require.NoError(b, err)
+	}
+}
+
+func BenchmarkGzipEncoder_Allocs(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	for b.Loop() {
+		r, err := GzipEncoder()(bytes.NewReader(data))
+		require.NoError(b, err)
+		_, err = io.Copy(io.Discard, r)
+		require.NoError(b, err)
+	}
+}
+
+func BenchmarkZstdEncoder_Parallel(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			r, err := ZstdEncoder()(bytes.NewReader(data))
+			if err != nil {
+				b.Fatal(err)
+			}
+			if _, err = io.Copy(io.Discard, r); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkGzipEncoder_Parallel(b *testing.B) {
+	b.ReportAllocs()
+	data := testdata.Load(b)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			r, err := GzipEncoder()(bytes.NewReader(data))
+			if err != nil {
+				b.Fatal(err)
+			}
+			if _, err = io.Copy(io.Discard, r); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func BenchmarkEncoder(b *testing.B) {
 	data := testdata.Load(b)
 

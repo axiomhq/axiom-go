@@ -539,12 +539,9 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 	getBody := func() (io.ReadCloser, error) {
 		pr, pw := io.Pipe()
 
-		zsw, wErr := zstd.NewWriter(pw)
-		if wErr != nil {
-			_ = pr.Close()
-			_ = pw.Close()
-			return nil, wErr
-		}
+		pool := zstdPools[zstdPoolIndex(zstd.SpeedDefault)]
+		zsw := pool.Get()
+		zsw.Reset(pw)
 
 		go func() {
 			var (
@@ -557,10 +554,12 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 				}
 			}
 
-			if closeErr := zsw.Close(); encErr == nil {
-				// If we have no error from encoding but from closing, capture
-				// that one.
-				encErr = closeErr
+			if closeErr := zsw.Close(); closeErr != nil {
+				if encErr == nil {
+					encErr = closeErr
+				}
+			} else {
+				pool.Put(zsw)
 			}
 			_ = pw.CloseWithError(encErr)
 		}()
