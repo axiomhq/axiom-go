@@ -38,14 +38,15 @@ var ErrUnknownContentEncoding = errors.New("unknown content encoding")
 // zstd.NewWriter call. Writers are created with SpeedFastest to further reduce
 // memory footprint. Each writer is Reset() before use, which is safe and
 // discards all internal state from prior uses.
-var zstdWriterPool = sync.Pool{
-	New: func() any {
-		w, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
-		if err != nil {
-			panic("zstd: failed to create writer: " + err.Error())
+var zstdWriterPool sync.Pool
+
+func getZstdWriter() (*zstd.Encoder, error) {
+	if v := zstdWriterPool.Get(); v != nil {
+		if w, ok := v.(*zstd.Encoder); ok {
+			return w, nil
 		}
-		return w
-	},
+	}
+	return zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
 }
 
 // ContentType describes the content type of the data to ingest.
@@ -551,33 +552,35 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		}
 	}
 
+	// Compress events into a buffer eagerly. This avoids spawning a
+	// goroutine + io.Pipe per call, which leaked goroutines when the pipe
+	// reader was abandoned (e.g. on HTTP retries or context cancellation).
+	var compressedBody bytes.Buffer
+	{
+		zsw, wErr := getZstdWriter()
+		if wErr != nil {
+			return nil, spanError(span, wErr)
+		}
+		zsw.Reset(&compressedBody)
+
+		enc := json.NewEncoder(zsw)
+		var encErr error
+		for _, event := range events {
+			if encErr = enc.Encode(event); encErr != nil {
+				break
+			}
+		}
+		if closeErr := zsw.Close(); encErr == nil {
+			encErr = closeErr
+		}
+		zstdWriterPool.Put(zsw)
+		if encErr != nil {
+			return nil, spanError(span, encErr)
+		}
+	}
+
 	getBody := func() (io.ReadCloser, error) {
-		pr, pw := io.Pipe()
-
-		zsw := zstdWriterPool.Get().(*zstd.Encoder)
-		zsw.Reset(pw)
-
-		go func() {
-			var (
-				enc    = json.NewEncoder(zsw)
-				encErr error
-			)
-			for _, event := range events {
-				if encErr = enc.Encode(event); encErr != nil {
-					break
-				}
-			}
-
-			if closeErr := zsw.Close(); encErr == nil {
-				// If we have no error from encoding but from closing, capture
-				// that one.
-				encErr = closeErr
-			}
-			zstdWriterPool.Put(zsw)
-			_ = pw.CloseWithError(encErr)
-		}()
-
-		return pr, nil
+		return io.NopCloser(bytes.NewReader(compressedBody.Bytes())), nil
 	}
 
 	r, err := getBody()
