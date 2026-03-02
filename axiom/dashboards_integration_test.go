@@ -3,6 +3,7 @@ package axiom_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -27,6 +28,9 @@ func TestDashboardsTestSuite(t *testing.T) {
 
 func (s *DashboardsTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
+	s.dataset = nil
+	s.monitor = nil
+	s.dashboardUID = ""
 
 	var err error
 	s.dataset, err = s.client.Datasets.Create(s.ctx, axiom.DatasetCreateRequest{
@@ -45,12 +49,16 @@ func (s *DashboardsTestSuite) TearDownTest() {
 
 	if s.dashboardUID != "" {
 		err := s.client.Dashboards.Delete(ctx, s.dashboardUID)
-		s.NoError(err)
+		if !isNotFound(err) {
+			s.NoError(err)
+		}
 	}
 
 	if s.monitor != nil {
 		err := s.client.Monitors.Delete(ctx, s.monitor.ID)
-		s.NoError(err)
+		if !isNotFound(err) {
+			s.NoError(err)
+		}
 	}
 
 	if s.dataset != nil {
@@ -63,7 +71,6 @@ func (s *DashboardsTestSuite) TearDownTest() {
 
 func (s *DashboardsTestSuite) TestRawCRUD() {
 	uid := fmt.Sprintf("dash-raw-crud-%d", time.Now().UnixNano())
-	s.dashboardUID = uid
 
 	createPayload, err := json.Marshal(map[string]any{
 		"uid": uid,
@@ -85,6 +92,7 @@ func (s *DashboardsTestSuite) TestRawCRUD() {
 
 	created, err := s.client.Dashboards.CreateRaw(s.ctx, createPayload)
 	s.Require().NoError(err)
+	s.dashboardUID = uid
 
 	var createdPayload map[string]any
 	s.Require().NoError(json.Unmarshal(created, &createdPayload))
@@ -145,7 +153,6 @@ func (s *DashboardsTestSuite) TestRawCRUD() {
 
 func (s *DashboardsTestSuite) TestAllChartTypes() {
 	uid := fmt.Sprintf("dash-all-charts-%d", time.Now().UnixNano())
-	s.dashboardUID = uid
 
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
 		Monitor: axiom.Monitor{
@@ -175,7 +182,7 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 		{"id": "statistic-1", "type": "Statistic", "name": "Statistic", "query": baseQuery},
 		{"id": "sectionheader-1", "type": "SectionHeader", "name": "Section Header", "query": baseQuery},
 		{"id": "note-1", "type": "Note", "text": "Integration note"},
-		{"id": "monitorlist-1", "type": "MonitorList", "name": "Monitor List", "selectedMonitors": []string{s.monitor.ID}, "columns": map[string]any{"status": true}},
+		{"id": "monitorlist-1", "type": "MonitorList", "name": "Monitor List", "selectedMonitors": []string{s.monitor.ID}, "columns": map[string]any{"status": true, "history": false, "dataset": false, "type": false, "notifiers": false}},
 		{"id": "smartfilter-1", "type": "SmartFilter", "name": "Filter Bar", "filters": []map[string]any{{"type": "search", "id": "sf-search"}}},
 		{"id": "spacer-1", "type": "Spacer", "name": "Spacer"},
 		{"id": "placeholder-1", "type": "Placeholder"},
@@ -212,6 +219,7 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 
 	created, err := s.client.Dashboards.CreateRaw(s.ctx, rawPayload)
 	s.Require().NoError(err)
+	s.dashboardUID = uid
 
 	var createdPayload map[string]any
 	s.Require().NoError(json.Unmarshal(created, &createdPayload))
@@ -259,4 +267,13 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 	for typ, present := range expectedTypes {
 		s.True(present, "missing chart type %s in stored dashboard", typ)
 	}
+}
+
+func isNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var httpErr axiom.HTTPError
+	return errors.As(err, &httpErr) && httpErr.Status == 404
 }
