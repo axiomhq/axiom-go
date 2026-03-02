@@ -87,3 +87,46 @@ func (s *TokensTestSuite) Test() {
 	s.NotContains(tokens, oldToken)
 	s.Contains(tokens, &regeneratedToken.APIToken)
 }
+
+func (s *TokensTestSuite) TestRegenerateWithNewTokenPayload() {
+	oldToken := s.apiToken
+	existingTokenExpiresAt := time.Now().Add(time.Minute)
+	newTokenExpiresAt := time.Now().Add(48 * time.Hour)
+
+	replacementTokenName := "Test replacement token"
+	replacementTokenDescription := "replacement token description"
+
+	regeneratedToken, err := s.client.Tokens.Regenerate(s.ctx, oldToken.ID, axiom.RegenerateTokenRequest{
+		ExistingTokenExpiresAt: existingTokenExpiresAt,
+		NewToken: &axiom.CreateTokenRequest{
+			Name:        replacementTokenName,
+			Description: replacementTokenDescription,
+			ExpiresAt:   newTokenExpiresAt,
+			DatasetCapabilities: map[string]axiom.DatasetCapabilities{
+				"*": {Query: []axiom.Action{axiom.ActionRead}},
+			},
+			OrganisationCapabilities: axiom.OrganisationCapabilities{
+				Users: []axiom.Action{axiom.ActionRead},
+			},
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(regeneratedToken)
+
+	s.NotEqual(oldToken.ID, regeneratedToken.ID)
+	s.Equal(replacementTokenName, regeneratedToken.Name)
+	s.Equal(replacementTokenDescription, regeneratedToken.Description)
+	s.WithinDuration(newTokenExpiresAt, regeneratedToken.ExpiresAt, time.Minute)
+
+	s.Equal([]axiom.Action{axiom.ActionRead}, regeneratedToken.DatasetCapabilities["*"].Query)
+	s.Equal([]axiom.Action{axiom.ActionRead}, regeneratedToken.OrganisationCapabilities.Users)
+
+	s.apiToken = &regeneratedToken.APIToken
+
+	tokens, err := s.client.Tokens.List(s.ctx)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(tokens)
+
+	s.NotContains(tokens, oldToken)
+	s.Contains(tokens, &regeneratedToken.APIToken)
+}
