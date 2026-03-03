@@ -15,8 +15,10 @@ import (
 	"github.com/axiomhq/axiom-go/internal/test/testdata"
 )
 
+const testEncoderInput = "Some fox jumps over a fence."
+
 func TestGzipEncoder(t *testing.T) {
-	exp := "Some fox jumps over a fence."
+	exp := testEncoderInput
 
 	r, err := GzipEncoder()(strings.NewReader(exp))
 	require.NoError(t, err)
@@ -36,7 +38,7 @@ func TestGzipEncoder(t *testing.T) {
 }
 
 func TestZstdEncoder(t *testing.T) {
-	exp := "Some fox jumps over a fence."
+	exp := testEncoderInput
 
 	r, err := ZstdEncoder()(strings.NewReader(exp))
 	require.NoError(t, err)
@@ -52,7 +54,7 @@ func TestZstdEncoder(t *testing.T) {
 }
 
 func TestZstdEncoderWithLevel(t *testing.T) {
-	exp := "Some fox jumps over a fence."
+	exp := testEncoderInput
 
 	levels := []zstd.EncoderLevel{
 		zstd.SpeedFastest,

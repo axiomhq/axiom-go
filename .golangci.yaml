@@ -52,6 +52,14 @@ linters:
       - linters:
           - staticcheck
         text: "SA1019:.*QueryLegacy is deprecated"
+      - linters:
+          - revive
+        path: adapters/slog/
+        text: "var-naming: avoid package names that conflict"
+      - linters:
+          - revive
+        path: internal/version/
+        text: "var-naming: avoid package names that conflict"
     paths:
       - .git
       - .github

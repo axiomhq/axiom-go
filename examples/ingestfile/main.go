@@ -52,6 +52,6 @@ func main() {
 
 	// 5. Make sure everything went smoothly.
 	for _, fail := range res.Failures {
-		log.Print(fail.Error)
+		log.Print(fail.Error) //nolint:gosec // G706: Error from trusted Axiom API response.
 	}
 }

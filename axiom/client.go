@@ -264,7 +264,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 		err = backoff.Retry(func() error {
 			var httpResp *http.Response
-			//nolint:bodyclose // The response body is closed later down below.
+			//nolint:bodyclose,gosec // The response body is closed later down below. G704: URL is from trusted configuration.
 			httpResp, err = c.httpClient.Do(req)
 			switch {
 			case errors.Is(err, context.Canceled):
@@ -292,7 +292,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}, bck)
 	} else {
 		var httpResp *http.Response
-		//nolint:bodyclose // The response body is closed later down below.
+		//nolint:bodyclose,gosec // The response body is closed later down below. G704: URL is from trusted configuration.
 		if httpResp, err = c.httpClient.Do(req); err != nil {
 			return nil, err
 		}

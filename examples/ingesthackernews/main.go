@@ -99,7 +99,7 @@ func main() {
 	// Note: If you ever make it here, you have ingested all of Hacknews into
 	// Axiom. Congratulations... I guess?! 🤔
 	for _, fail := range res.Failures {
-		log.Print(fail.Error)
+		log.Print(fail.Error) //nolint:gosec // G706: Error from trusted Axiom API response.
 	}
 }
 
