@@ -49,7 +49,7 @@ func (s *DashboardsTestSuite) TearDownTest() {
 
 	if s.dashboardUID != "" {
 		err := s.client.Dashboards.Delete(ctx, s.dashboardUID)
-		if !isNotFound(err) {
+		if !errors.Is(err, axiom.ErrNotFound) {
 			s.NoError(err)
 		}
 	}
