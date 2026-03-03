@@ -90,7 +90,7 @@ func (s *DashboardsTestSuite) TestRawCRUD() {
 	})
 	s.Require().NoError(err)
 
-	created, err := s.client.Dashboards.CreateRaw(s.ctx, createPayload)
+	created, err := s.client.Dashboards.CreateRaw(s.ctx, json.RawMessage(createPayload))
 	s.Require().NoError(err)
 	s.dashboardUID = uid
 
@@ -117,7 +117,7 @@ func (s *DashboardsTestSuite) TestRawCRUD() {
 	})
 	s.Require().NoError(err)
 
-	updated, err := s.client.Dashboards.UpdateRaw(s.ctx, uid, updatePayload)
+	updated, err := s.client.Dashboards.UpdateRaw(s.ctx, uid, json.RawMessage(updatePayload))
 	s.Require().NoError(err)
 
 	var updatedPayload map[string]any
@@ -217,7 +217,7 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 	})
 	s.Require().NoError(err)
 
-	created, err := s.client.Dashboards.CreateRaw(s.ctx, rawPayload)
+	created, err := s.client.Dashboards.CreateRaw(s.ctx, json.RawMessage(rawPayload))
 	s.Require().NoError(err)
 	s.dashboardUID = uid
 

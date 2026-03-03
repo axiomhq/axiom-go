@@ -1,6 +1,7 @@
 package axiom
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -69,7 +70,7 @@ func TestDashboardsService_ListRaw(t *testing.T) {
 }
 
 func TestDashboardsService_CreateRaw(t *testing.T) {
-	raw := []byte(`{"uid":"db_test","dashboard":{"name":"Raw Dashboard"}}`)
+	raw := json.RawMessage(`{"uid":"db_test","dashboard":{"name":"Raw Dashboard"}}`)
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
@@ -116,7 +117,7 @@ func TestDashboardsService_CreateRaw(t *testing.T) {
 }
 
 func TestDashboardsService_UpdateRaw(t *testing.T) {
-	raw := []byte(`{"dashboard":{"name":"Updated Raw Dashboard"},"overwrite":true}`)
+	raw := json.RawMessage(`{"dashboard":{"name":"Updated Raw Dashboard"},"overwrite":true}`)
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)
