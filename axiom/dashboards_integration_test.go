@@ -268,12 +268,3 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 		s.True(present, "missing chart type %s in stored dashboard", typ)
 	}
 }
-
-func isNotFound(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	var httpErr axiom.HTTPError
-	return errors.As(err, &httpErr) && httpErr.Status == 404
-}
