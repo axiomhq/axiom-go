@@ -1,7 +1,6 @@
 package axiom
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -25,7 +24,7 @@ type DashboardsListOptions struct {
 }
 
 // ListRaw returns dashboards as raw JSON.
-func (s *DashboardsService) ListRaw(ctx context.Context, opts *DashboardsListOptions) ([]byte, error) {
+func (s *DashboardsService) ListRaw(ctx context.Context, opts *DashboardsListOptions) (json.RawMessage, error) {
 	ctx, span := s.client.trace(ctx, "Dashboards.ListRaw")
 	defer span.End()
 
@@ -34,8 +33,8 @@ func (s *DashboardsService) ListRaw(ctx context.Context, opts *DashboardsListOpt
 		return nil, spanError(span, err)
 	}
 
-	res, err := s.rawCall(ctx, http.MethodGet, path, nil)
-	if err != nil {
+	var res json.RawMessage
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -43,7 +42,7 @@ func (s *DashboardsService) ListRaw(ctx context.Context, opts *DashboardsListOpt
 }
 
 // GetRaw returns a dashboard as raw JSON.
-func (s *DashboardsService) GetRaw(ctx context.Context, uid string) ([]byte, error) {
+func (s *DashboardsService) GetRaw(ctx context.Context, uid string) (json.RawMessage, error) {
 	ctx, span := s.client.trace(ctx, "Dashboards.GetRaw", trace.WithAttributes(
 		attribute.String("axiom.dashboard_uid", uid),
 	))
@@ -54,8 +53,8 @@ func (s *DashboardsService) GetRaw(ctx context.Context, uid string) ([]byte, err
 		return nil, spanError(span, err)
 	}
 
-	res, err := s.rawCall(ctx, http.MethodGet, path, nil)
-	if err != nil {
+	var res json.RawMessage
+	if err := s.client.Call(ctx, http.MethodGet, path, nil, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -66,12 +65,12 @@ func (s *DashboardsService) GetRaw(ctx context.Context, uid string) ([]byte, err
 //
 // The payload is sent as-is, which is useful when callers already have the
 // request document in JSON form.
-func (s *DashboardsService) CreateRaw(ctx context.Context, payload []byte) ([]byte, error) {
+func (s *DashboardsService) CreateRaw(ctx context.Context, payload json.RawMessage) (json.RawMessage, error) {
 	ctx, span := s.client.trace(ctx, "Dashboards.CreateRaw")
 	defer span.End()
 
-	res, err := s.rawCall(ctx, http.MethodPost, s.basePath, payload)
-	if err != nil {
+	var res json.RawMessage
+	if err := s.client.Call(ctx, http.MethodPost, s.basePath, payload, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
@@ -82,7 +81,7 @@ func (s *DashboardsService) CreateRaw(ctx context.Context, payload []byte) ([]by
 //
 // The payload is sent as-is, which is useful when callers already have the
 // request document in JSON form.
-func (s *DashboardsService) UpdateRaw(ctx context.Context, uid string, payload []byte) ([]byte, error) {
+func (s *DashboardsService) UpdateRaw(ctx context.Context, uid string, payload json.RawMessage) (json.RawMessage, error) {
 	ctx, span := s.client.trace(ctx, "Dashboards.UpdateRaw", trace.WithAttributes(
 		attribute.String("axiom.dashboard_uid", uid),
 	))
@@ -93,26 +92,12 @@ func (s *DashboardsService) UpdateRaw(ctx context.Context, uid string, payload [
 		return nil, spanError(span, err)
 	}
 
-	res, err := s.rawCall(ctx, http.MethodPut, path, payload)
-	if err != nil {
+	var res json.RawMessage
+	if err := s.client.Call(ctx, http.MethodPut, path, payload, &res); err != nil {
 		return nil, spanError(span, err)
 	}
 
 	return res, nil
-}
-
-func (s *DashboardsService) rawCall(ctx context.Context, method, path string, payload []byte) ([]byte, error) {
-	var body any
-	if payload != nil {
-		body = json.RawMessage(payload)
-	}
-
-	var buf bytes.Buffer
-	if err := s.client.Call(ctx, method, path, body, &buf); err != nil {
-		return nil, err
-	}
-
-	return bytes.Clone(buf.Bytes()), nil
 }
 
 // Delete the dashboard identified by the given uid.
