@@ -56,7 +56,7 @@ func (s *DashboardsTestSuite) TearDownTest() {
 
 	if s.monitor != nil {
 		err := s.client.Monitors.Delete(ctx, s.monitor.ID)
-		if !isNotFound(err) {
+		if !errors.Is(err, axiom.ErrNotFound) {
 			s.NoError(err)
 		}
 	}
