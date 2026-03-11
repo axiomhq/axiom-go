@@ -178,6 +178,8 @@ type wrappedOrganization struct {
 	FirstFailedPayment any `json:"firstFailedPayment"`
 	ExternalPlan       any `json:"externalPlan"`
 	Version            any `json:"metaVersion"`
+	// DefaultEdgeDeployment is ignored until it is promoted to a proper field.
+	DefaultEdgeDeployment any `json:"defaultEdgeDeployment"`
 }
 
 // OrganizationsService handles communication with the organization related

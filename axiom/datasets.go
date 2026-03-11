@@ -138,6 +138,9 @@ type wrappedDataset struct {
 	IntegrationFilters any `json:"integrationFilters,omitempty"`
 	QuickQueries       any `json:"quickQueries,omitempty"`
 	SharedByOrg        any `json:"sharedByOrg,omitempty"`
+	// Region is the legacy name for EdgeDeployment. Ignored until the server
+	// stops returning it.
+	Region any `json:"region,omitempty"`
 }
 
 type datasetTrimRequest struct {
