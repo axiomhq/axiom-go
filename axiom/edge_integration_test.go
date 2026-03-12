@@ -16,15 +16,15 @@ import (
 )
 
 var (
-	edgeURL           string
-	edgeToken         string
-	edgeDatasetRegion string
+	edgeURL        string
+	edgeToken      string
+	edgeDeployment string
 )
 
 func init() {
 	edgeURL = os.Getenv("AXIOM_EDGE_URL")
 	edgeToken = os.Getenv("AXIOM_EDGE_TOKEN")
-	edgeDatasetRegion = os.Getenv("AXIOM_EDGE_DATASET_REGION")
+	edgeDeployment = os.Getenv("AXIOM_EDGE_DEPLOYMENT")
 }
 
 // EdgeTestSuite tests ingest and query operations using edge endpoints.
@@ -70,10 +70,10 @@ func (s *EdgeTestSuite) SetupTest() {
 		Description: "This is a test dataset for edge integration tests.",
 	}
 
-	// Set dataset region if configured (required for edge routing)
-	if edgeDatasetRegion != "" {
-		req.Region = edgeDatasetRegion
-		s.T().Logf("creating dataset with region %q", edgeDatasetRegion)
+	// Set dataset edge deployment if configured (required for edge routing)
+	if edgeDeployment != "" {
+		req.EdgeDeployment = edgeDeployment
+		s.T().Logf("creating dataset with edge deployment %q", edgeDeployment)
 	}
 
 	var err error
