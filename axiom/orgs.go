@@ -168,6 +168,9 @@ type Organization struct {
 	CreatedAt time.Time `json:"metaCreated"`
 	// ModifiedAt is the time the organization was last modified.
 	ModifiedAt time.Time `json:"metaModified"`
+	// DefaultEdgeDeployment is the default edge deployment of the
+	// organization (e.g., "cloud.eu-central-1.aws").
+	DefaultEdgeDeployment string `json:"defaultEdgeDeployment,omitempty"`
 }
 
 type wrappedOrganization struct {
@@ -178,6 +181,9 @@ type wrappedOrganization struct {
 	FirstFailedPayment any `json:"firstFailedPayment"`
 	ExternalPlan       any `json:"externalPlan"`
 	Version            any `json:"metaVersion"`
+
+	// Deprecated: DefaultRegion is replaced by DefaultEdgeDeployment.
+	DefaultRegion any `json:"defaultRegion"`
 }
 
 // OrganizationsService handles communication with the organization related

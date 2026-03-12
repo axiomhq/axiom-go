@@ -94,9 +94,9 @@ type Dataset struct {
 	RetentionDays int `json:"retentionDays"`
 	// MapFields contain the names of the fields defined to be map-fields.
 	MapFields MapFields `json:"mapFields"`
-	// Region is the regional edge domain where the dataset is stored
+	// EdgeDeployment is the edge deployment where the dataset is stored
 	// (e.g., "cloud.eu-central-1.aws").
-	Region string `json:"region,omitempty"`
+	EdgeDeployment string `json:"edgeDeployment,omitempty"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.
@@ -114,9 +114,9 @@ type DatasetCreateRequest struct {
 	UseRetentionPeriod bool `json:"useRetentionPeriod"`
 	// RetentionDays is the number of days events are kept in the dataset.
 	RetentionDays int `json:"retentionDays"`
-	// Region is the regional edge domain for data ingestion
+	// EdgeDeployment is the edge deployment for data ingestion
 	// (e.g., "cloud.eu-central-1.aws").
-	Region string `json:"region,omitempty"`
+	EdgeDeployment string `json:"edgeDeployment,omitempty"`
 }
 
 // DatasetUpdateRequest is a request used to update a dataset.
@@ -138,6 +138,9 @@ type wrappedDataset struct {
 	IntegrationFilters any `json:"integrationFilters,omitempty"`
 	QuickQueries       any `json:"quickQueries,omitempty"`
 	SharedByOrg        any `json:"sharedByOrg,omitempty"`
+
+	// Deprecated: Region is replaced by EdgeDeployment.
+	Region any `json:"region,omitempty"`
 }
 
 type datasetTrimRequest struct {
