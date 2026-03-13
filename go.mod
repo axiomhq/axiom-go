@@ -17,11 +17,14 @@ require (
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/sjson v1.2.5
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.67.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0
 	go.opentelemetry.io/otel v1.43.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.19.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0
+	go.opentelemetry.io/otel/log v0.19.0
 	go.opentelemetry.io/otel/sdk v1.43.0
+	go.opentelemetry.io/otel/sdk/log v0.19.0
 	go.opentelemetry.io/otel/trace v1.43.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/sync v0.20.0
@@ -41,7 +44,7 @@ require (
 	github.com/bombsimon/wsl/v5 v5.6.0 // indirect
 	github.com/godoc-lint/godoc-lint v0.11.2 // indirect
 	github.com/golangci/asciicheck v0.5.0 // indirect
-	github.com/golangci/golangci-lint/v2 v2.11.2 // indirect
+	github.com/golangci/golangci-lint/v2 v2.11.3 // indirect
 	github.com/golangci/swaggoswag v0.0.0-20250504205917-77f2aca3143e // indirect
 	github.com/ldez/structtags v0.6.1 // indirect
 	github.com/manuelarte/embeddedstructfieldcheck v0.4.0 // indirect
@@ -204,7 +207,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
 	github.com/sashamelentyev/usestdlibvars v1.29.0 // indirect
-	github.com/securego/gosec/v2 v2.24.7 // indirect
+	github.com/securego/gosec/v2 v2.24.8-0.20260309165252-619ce2117e08 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect
 	github.com/sonatard/noctx v0.5.0 // indirect
 	github.com/sourcegraph/go-diff v0.7.0 // indirect
