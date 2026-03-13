@@ -19,9 +19,12 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
 	go.opentelemetry.io/otel v1.47.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.23.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.47.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.47.0
+	go.opentelemetry.io/otel/log v1.47.0
 	go.opentelemetry.io/otel/sdk v1.47.0
+	go.opentelemetry.io/otel/sdk/log v1.47.0
 	go.opentelemetry.io/otel/trace v1.47.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/sync v0.24.0
@@ -59,7 +62,6 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/ryancurrah/gomodguard/v2 v2.1.3 // indirect
 	go.augendre.info/arangolint v0.4.0 // indirect
-	go.opentelemetry.io/otel/log v1.47.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/tools v0.52.0 // indirect
 	gotest.tools/gotestsum v1.13.0 // indirect
