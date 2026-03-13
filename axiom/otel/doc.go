@@ -4,12 +4,14 @@
 //
 //	import "github.com/axiomhq/axiom-go/axiom/otel"
 //
+// # Tracing
+//
 // Different levels of helpers are available, from just setting up tracing to
-// getting access to lower level components to costumize tracing or integrate
+// getting access to lower level components to customize tracing or integrate
 // with existing OpenTelemetry setups:
 //
 //   - [InitTracing]: Initializes OpenTelemetry and sets the global tracer
-//     prodiver so the official OpenTelemetry Go SDK can be used to get a tracer
+//     provider so the official OpenTelemetry Go SDK can be used to get a tracer
 //     and instrument code. Sane defaults for the tracer provider are applied.
 //   - [TracerProvider]: Configures and returns a new OpenTelemetry tracer
 //     provider but does not set it as the global tracer provider.
@@ -19,8 +21,7 @@
 //
 // If you wish for traces to propagate beyond the current process, you need to
 // set the global propagator to the OpenTelemetry trace context propagator. This
-// can be done
-// by calling:
+// can be done by calling:
 //
 //	import (
 //	    "go.opentelemetry.io/otel"
@@ -33,6 +34,22 @@
 //
 // Refer to https://opentelemetry.io/docs/instrumentation/go/manual/#propagators-and-context
 // for more information.
+//
+// # Logging
+//
+// Similar helpers exist for structured logging via OTel log records:
+//
+//   - [InitLogging]: Initializes OpenTelemetry logging and sets the global
+//     logger provider so the official OpenTelemetry Go SDK can be used to emit
+//     log records. Sane defaults for the logger provider are applied.
+//   - [LoggerProvider]: Configures and returns a new OpenTelemetry logger
+//     provider but does not set it as the global logger provider.
+//   - [LogExporter]: Configures and returns a new OpenTelemetry log exporter.
+//     This sets up the exporter that sends log records to Axiom but allows for
+//     a more advanced setup of the logger provider.
+//
+// Note: The OTel log SDK packages are at v0 (pre-stable). The logging API may
+// need to track upstream breaking changes in future releases.
 //
 // [OpenTelemetry]: https://opentelemetry.io
 package otel

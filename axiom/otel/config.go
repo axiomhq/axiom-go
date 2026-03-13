@@ -6,63 +6,61 @@ import (
 	"github.com/axiomhq/axiom-go/internal/config"
 )
 
-const defaultTraceAPIEndpoint = "/v1/traces"
-
-type traceConfig struct {
+type exporterConfig struct {
 	config.Config
 
-	// APIEndpoint is the endpoint to use for the trace exporter.
+	// APIEndpoint is the endpoint to use for the exporter.
 	APIEndpoint string
-	// Timeout is the timeout for the trace exporters underlying [http.Client].
+	// Timeout is the timeout for the exporters underlying [http.Client].
 	Timeout time.Duration
 	// NoEnv disables the use of "AXIOM_*" environment variables.
 	NoEnv bool
 }
 
-func defaultTraceConfig() traceConfig {
-	return traceConfig{
+func defaultExporterConfig(apiEndpoint string) exporterConfig {
+	return exporterConfig{
 		Config:      config.Default(),
-		APIEndpoint: defaultTraceAPIEndpoint,
+		APIEndpoint: apiEndpoint,
 	}
 }
 
-// A TraceOption modifies the behaviour of OpenTelemetry traces. Nonetheless,
+// An Option modifies the behaviour of OpenTelemetry exporters. Nonetheless,
 // the official "OTEL_*" environment variables are preferred over the options or
 // "AXIOM_*" environment variables.
-type TraceOption func(c *traceConfig) error
+type Option func(c *exporterConfig) error
 
 // SetURL sets the base URL used by the client.
 //
 // Can also be specified using the "AXIOM_URL" environment variable.
-func SetURL(baseURL string) TraceOption {
-	return func(c *traceConfig) error { return c.Options(config.SetURL(baseURL)) }
+func SetURL(baseURL string) Option {
+	return func(c *exporterConfig) error { return c.Options(config.SetURL(baseURL)) }
 }
 
 // SetToken specifies the authentication token used by the client.
 //
 // Can also be specified using the "AXIOM_TOKEN" environment variable.
-func SetToken(token string) TraceOption {
-	return func(c *traceConfig) error { return c.Options(config.SetToken(token)) }
+func SetToken(token string) Option {
+	return func(c *exporterConfig) error { return c.Options(config.SetToken(token)) }
 }
 
 // SetOrganizationID specifies the organization ID used by the client.
 //
 // Can also be specified using the "AXIOM_ORG_ID" environment variable.
-func SetOrganizationID(organizationID string) TraceOption {
-	return func(c *traceConfig) error { return c.Options(config.SetOrganizationID(organizationID)) }
+func SetOrganizationID(organizationID string) Option {
+	return func(c *exporterConfig) error { return c.Options(config.SetOrganizationID(organizationID)) }
 }
 
 // SetAPIEndpoint specifies the api endpoint used by the client.
-func SetAPIEndpoint(path string) TraceOption {
-	return func(c *traceConfig) error {
+func SetAPIEndpoint(path string) Option {
+	return func(c *exporterConfig) error {
 		c.APIEndpoint = path
 		return nil
 	}
 }
 
 // SetTimeout specifies the http timeout used by the client.
-func SetTimeout(timeout time.Duration) TraceOption {
-	return func(c *traceConfig) error {
+func SetTimeout(timeout time.Duration) Option {
+	return func(c *exporterConfig) error {
 		c.Timeout = timeout
 		return nil
 	}
@@ -70,8 +68,8 @@ func SetTimeout(timeout time.Duration) TraceOption {
 
 // SetNoEnv prevents the client from deriving its configuration from the
 // environment (by auto reading "AXIOM_*" environment variables).
-func SetNoEnv() TraceOption {
-	return func(c *traceConfig) error {
+func SetNoEnv() Option {
+	return func(c *exporterConfig) error {
 		c.NoEnv = true
 		return nil
 	}
