@@ -65,7 +65,7 @@ type EmailConfig struct {
 
 type OpsGenieConfig struct {
 	// APIKey is the API key to use for authentication.
-	APIKey string `json:"apiKey,omitempty"` //nolint:gosec // G117: Legitimate API configuration field.
+	APIKey string `json:"apiKey,omitempty"`
 	// IsEU indicates whether the OpsGenie instance is in the EU.
 	IsEU bool `json:"isEU,omitempty"`
 }
