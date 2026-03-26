@@ -30,6 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         example:
+          - adk
           - apex
           - ingestevent
           - ingestfile
@@ -44,6 +45,30 @@ jobs:
           - zap
           - zerolog
         include:
+          - example: adk
+            setup: |
+              axiom dataset create -n=$AXIOM_TRACES_DATASET -d="ADK traces"
+              axiom dataset create -n=$AXIOM_LOGS_DATASET -d="ADK logs"
+              cat > logs.json <<'EOF'
+              [
+                {"level":"info","service":"api","msg":"Request processed","duration_ms":42,"status":200,"path":"/v1/query"},
+                {"level":"info","service":"api","msg":"Request processed","duration_ms":187,"status":200,"path":"/v1/ingest"},
+                {"level":"warn","service":"api","msg":"Slow query detected","duration_ms":3201,"status":200,"path":"/v1/query"},
+                {"level":"error","service":"ingest","msg":"Failed to parse payload","status":400,"path":"/v1/ingest"},
+                {"level":"info","service":"auth","msg":"User authenticated","user":"alice@example.com","method":"api_token"},
+                {"level":"info","service":"auth","msg":"User authenticated","user":"bob@example.com","method":"personal_token"},
+                {"level":"info","service":"api","msg":"Request processed","duration_ms":15,"status":200,"path":"/v1/datasets"},
+                {"level":"info","service":"api","msg":"Request processed","duration_ms":95,"status":200,"path":"/v1/query"},
+                {"level":"warn","service":"ingest","msg":"Rate limit approaching","current_rate":4500,"limit":5000},
+                {"level":"error","service":"api","msg":"Internal server error","status":500,"path":"/v1/query","trace_id":"abc123"}
+              ]
+              EOF
+              axiom ingest $AXIOM_DATASET -f=logs.json
+              sleep 5
+            verify: |
+              sleep 5
+              axiom query -f=json "['$AXIOM_TRACES_DATASET'] | count" | jq -e '. >= 1'
+              axiom query -f=json "['$AXIOM_LOGS_DATASET'] | count" | jq -e '. >= 1'
           - example: apex
             verify: |
               axiom query -f=json "['$AXIOM_DATASET'] | count" | jq -e '. == 3'
@@ -88,6 +113,9 @@ jobs:
       AXIOM_TOKEN: ${{ secrets.TESTING_STAGING_TOKEN }}
       AXIOM_ORG_ID: ${{ secrets.TESTING_STAGING_ORG_ID }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
+      AXIOM_TRACES_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}-traces
+      AXIOM_LOGS_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}-logs
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -108,6 +136,11 @@ jobs:
       - name: Delete test dataset
         if: always()
         run: axiom dataset delete -f $AXIOM_DATASET
+      - name: Delete extra adk datasets
+        if: always() && matrix.example == 'adk'
+        run: |
+          axiom dataset delete -f $AXIOM_TRACES_DATASET
+          axiom dataset delete -f $AXIOM_LOGS_DATASET
 
   examples-pass:
     name: Examples Pass
