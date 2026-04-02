@@ -471,6 +471,30 @@ func TestClient_Do_ioWriter(t *testing.T) {
 	assert.Equal(t, content, buf.String())
 }
 
+func TestClient_Do_jsonTabularContentType(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+
+		w.Header().Set("Content-Type", mediaTypeJSONTabular)
+		_, _ = fmt.Fprint(w, `{"A":"a"}`)
+	}
+
+	client := setup(t, "GET /", hf)
+
+	type foo struct {
+		A string
+	}
+
+	req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	var body foo
+	_, err = client.Do(req, &body)
+	require.NoError(t, err)
+
+	assert.Equal(t, foo{"a"}, body)
+}
+
 func TestClient_Do_unsupportedContentType(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON+"bad")

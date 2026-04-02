@@ -41,9 +41,10 @@ const (
 
 	headerTraceID = "X-Axiom-Trace-Id"
 
-	defaultMediaType = "application/octet-stream"
-	mediaTypeJSON    = "application/json"
-	mediaTypeNDJSON  = "application/x-ndjson"
+	defaultMediaType     = "application/octet-stream"
+	mediaTypeJSON        = "application/json"
+	mediaTypeJSONTabular = "application/json+tabular"
+	mediaTypeNDJSON      = "application/x-ndjson"
 
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
@@ -248,6 +249,10 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, body any) 
 	return req, nil
 }
 
+func isJSONContentType(ct string) bool {
+	return ct == mediaTypeJSON || ct == mediaTypeJSONTabular
+}
+
 // Do sends an API request and returns the API response. The response body is
 // JSON decoded or directly written to v, depending on v being an [io.Writer] or
 // not.
@@ -327,7 +332,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}
 
 		// Handle a generic HTTP error if the response is not JSON formatted.
-		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); !isJSONContentType(ct) {
 			return resp, httpErr
 		}
 
@@ -373,7 +378,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			return resp, err
 		}
 
-		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); !isJSONContentType(ct) {
 			return resp, fmt.Errorf("cannot decode response with unsupported content type %q", ct)
 		}
 
