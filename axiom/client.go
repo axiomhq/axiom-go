@@ -270,6 +270,17 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			case errors.Is(err, context.Canceled):
 				return backoff.Permanent(err)
 			case err != nil:
+				// Reset the request body so it can be re-read on
+				// retry. Without this, retries after network errors
+				// (e.g. "io: read/write on closed pipe") would reuse
+				// the already-consumed body and fail immediately.
+				if req.GetBody != nil {
+					if body, resetErr := req.GetBody(); resetErr != nil {
+						return backoff.Permanent(resetErr)
+					} else {
+						req.Body = body
+					}
+				}
 				return err
 			}
 			resp = newResponse(httpResp)
