@@ -725,6 +725,68 @@ func TestClient_Do_Backoff(t *testing.T) {
 	assert.Equal(t, 3, getBodyCounter)
 }
 
+func TestClient_Do_Backoff_NetworkError(t *testing.T) {
+	payload := `{"foo":"bar"}`
+
+	var requestCount int
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		// Verify the body is present on every attempt, proving the
+		// body was properly reset between retries.
+		assert.Equal(t, payload, string(b))
+
+		w.WriteHeader(http.StatusOK)
+	}
+
+	client := setup(t, "POST /", hf)
+
+	// Use a transport that fails the first two attempts with a network
+	// error, simulating "io: read/write on closed pipe".
+	var transportAttempts int
+	origTransport := client.httpClient.Transport
+	client.httpClient.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		transportAttempts++
+		if transportAttempts <= 2 {
+			// Consume the body like a real transport would before
+			// returning a network error.
+			_, _ = io.Copy(io.Discard, req.Body)
+			return nil, io.ErrClosedPipe
+		}
+		return origTransport.RoundTrip(req)
+	})
+
+	var r io.Reader = strings.NewReader(payload)
+	r = io.TeeReader(r, io.Discard)
+	req, err := client.NewRequest(t.Context(), http.MethodPost, "/", r)
+	require.NoError(t, err)
+
+	getBodyCounter := 0
+	req.GetBody = func() (io.ReadCloser, error) {
+		getBodyCounter++
+		return io.NopCloser(strings.NewReader(payload)), nil
+	}
+
+	resp, err := client.Do(req, nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, 1, requestCount)     // Only the successful attempt hits the server.
+	assert.Equal(t, 3, transportAttempts) // 2 failures + 1 success.
+	assert.Equal(t, 2, getBodyCounter)    // Body reset before each retry after failure.
+}
+
+// roundTripFunc is an adapter to allow the use of ordinary functions as
+// [http.RoundTripper].
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
 func TestClient_Do_Backoff_NoRetryOn400(t *testing.T) {
 	var currentCalls int
 	hf := func(w http.ResponseWriter, _ *http.Request) {

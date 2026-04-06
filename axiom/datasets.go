@@ -657,6 +657,12 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		setIngestStatusOnSpan(span, ingestStatus)
 	}()
 
+	// Track consecutive flush failures. After maxConsecutiveErrors the
+	// method gives up and returns the error so the caller (e.g. the adapter
+	// background loop) can decide what to do.
+	const maxConsecutiveErrors = 3
+	var consecutiveErrors int
+
 	flush := func() error {
 		if len(batch) == 0 {
 			return nil
@@ -687,12 +693,26 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 
 			if len(batch) >= batchSize {
 				if err := flush(); err != nil {
-					return &ingestStatus, spanError(span, err)
+					consecutiveErrors++
+					span.RecordError(err)
+					if consecutiveErrors >= maxConsecutiveErrors {
+						return &ingestStatus, spanError(span, err)
+					}
+					// Batch is preserved for retry on next tick.
+				} else {
+					consecutiveErrors = 0
 				}
 			}
 		case <-t.C:
 			if err := flush(); err != nil {
-				return &ingestStatus, spanError(span, err)
+				consecutiveErrors++
+				span.RecordError(err)
+				if consecutiveErrors >= maxConsecutiveErrors {
+					return &ingestStatus, spanError(span, err)
+				}
+				// Batch is preserved for retry on next tick.
+			} else {
+				consecutiveErrors = 0
 			}
 		}
 	}
