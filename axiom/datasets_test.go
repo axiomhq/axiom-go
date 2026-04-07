@@ -1153,6 +1153,49 @@ func TestDatasetsService_IngestChannel_BufferedSlow(t *testing.T) {
 // TODO(lukasmalkmus): Write an ingest test that contains some failures in the
 // server response.
 
+func TestDatasetsService_IngestChannel_FlushRetry(t *testing.T) {
+	var handlerCalls int
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		handlerCalls++
+
+		zsr, err := zstd.NewReader(r.Body)
+		require.NoError(t, err)
+		events := assertValidJSON(t, zsr)
+		zsr.Close()
+
+		// First call fails — batch should be preserved for retry.
+		if handlerCalls <= 1 {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Retry succeeds — all events still present.
+		assert.Len(t, events, 2)
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, _ = fmt.Fprint(w, `{"ingested":2,"failed":0,"failures":[],"processedBytes":630,"blocksCreated":0,"walLength":2}`)
+	}
+
+	client := setup(t, "POST /v1/datasets/test/ingest", hf)
+	client.noRetry = true
+	client.httpClient.Transport.(*http.Transport).DisableKeepAlives = true
+
+	synctest.Test(t, func(t *testing.T) {
+		eventCh := make(chan Event)
+		go func() {
+			eventCh <- Event{"message": "hello", "time": "17/May/2015:08:05:32 +0000"}
+			eventCh <- Event{"message": "world", "time": "17/May/2015:08:05:33 +0000"}
+			time.Sleep(3 * time.Second)
+			close(eventCh)
+		}()
+
+		res, err := client.Datasets.IngestChannel(t.Context(), "test", eventCh)
+		require.NoError(t, err)
+		assert.Equal(t, 2, int(res.Ingested))
+		assert.GreaterOrEqual(t, handlerCalls, 2)
+	})
+}
+
 func TestDatasetsService_Query(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
