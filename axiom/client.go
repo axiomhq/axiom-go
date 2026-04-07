@@ -275,11 +275,11 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 				// (e.g. "io: read/write on closed pipe") would reuse
 				// the already-consumed body and fail immediately.
 				if req.GetBody != nil {
-					if body, resetErr := req.GetBody(); resetErr != nil {
+					body, resetErr := req.GetBody()
+					if resetErr != nil {
 						return backoff.Permanent(resetErr)
-					} else {
-						req.Body = body
 					}
+					req.Body = body
 				}
 				return err
 			}
