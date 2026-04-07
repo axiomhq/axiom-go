@@ -774,7 +774,7 @@ func TestClient_Do_Backoff_NetworkError(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, 1, requestCount)     // Only the successful attempt hits the server.
+	assert.Equal(t, 1, requestCount)      // Only the successful attempt hits the server.
 	assert.Equal(t, 3, transportAttempts) // 2 failures + 1 success.
 	assert.Equal(t, 2, getBodyCounter)    // Body reset before each retry after failure.
 }
