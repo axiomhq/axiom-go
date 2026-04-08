@@ -274,13 +274,11 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 				// retry. Without this, retries after network errors
 				// (e.g. "io: read/write on closed pipe") would reuse
 				// the already-consumed body and fail immediately.
-				if req.GetBody != nil {
-					body, resetErr := req.GetBody()
-					if resetErr != nil {
-						return backoff.Permanent(resetErr)
-					}
-					req.Body = body
+				body, resetErr := req.GetBody()
+				if resetErr != nil {
+					return backoff.Permanent(resetErr)
 				}
+				req.Body = body
 				return err
 			}
 			resp = newResponse(httpResp)

@@ -698,7 +698,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 					if consecutiveErrors >= maxConsecutiveErrors {
 						return &ingestStatus, spanError(span, err)
 					}
-					// Batch is preserved for retry on next tick.
+					// Batch is preserved; flush retried on next event or tick.
 				} else {
 					consecutiveErrors = 0
 				}
@@ -710,7 +710,7 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 				if consecutiveErrors >= maxConsecutiveErrors {
 					return &ingestStatus, spanError(span, err)
 				}
-				// Batch is preserved for retry on next tick.
+				// Batch is preserved; flush retried on next tick.
 			} else {
 				consecutiveErrors = 0
 			}
