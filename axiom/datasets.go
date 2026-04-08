@@ -657,9 +657,8 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		setIngestStatusOnSpan(span, ingestStatus)
 	}()
 
-	// Track consecutive flush failures. After maxConsecutiveErrors the
-	// method gives up and returns the error so the caller (e.g. the adapter
-	// background loop) can decide what to do.
+	// 3 attempts × up to ~10s Client.Do backoff ≈ 30s resilience window
+	// before we give up and hand the batch back to the adapter's outer loop.
 	const maxConsecutiveErrors = 3
 	var consecutiveErrors int
 
