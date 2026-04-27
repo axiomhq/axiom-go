@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -127,6 +128,8 @@ type Monitor struct {
 
 	// APLQuery is the APL query to use for the monitor.
 	APLQuery string `json:"aplQuery"`
+	// MPLQuery is the MPL query to use for the monitor.
+	MPLQuery string `json:"mplQuery,omitempty"`
 	// Operator is the operator to use for the monitor.
 	Operator Operator `json:"operator"`
 	// Threshold the query result is compared against, which evaluates if the
@@ -218,6 +221,21 @@ type MonitorUpdateRequest struct {
 	Monitor
 }
 
+func validateMonitorQueries(m Monitor) error {
+	hasAPL := strings.TrimSpace(m.APLQuery) != ""
+	hasMPL := strings.TrimSpace(m.MPLQuery) != ""
+
+	if hasAPL == hasMPL {
+		if hasAPL {
+			return fmt.Errorf("aplQuery and mplQuery are mutually exclusive, provide only one")
+		}
+
+		return fmt.Errorf("one of aplQuery or mplQuery is required")
+	}
+
+	return nil
+}
+
 // Axiom API Reference: /v2/monitors
 type MonitorsService service
 
@@ -262,6 +280,10 @@ func (s *MonitorsService) Create(ctx context.Context, req MonitorCreateRequest) 
 	))
 	defer span.End()
 
+	if err := validateMonitorQueries(req.Monitor); err != nil {
+		return nil, spanError(span, err)
+	}
+
 	var res Monitor
 	if err := s.client.Call(ctx, http.MethodPost, s.basePath, req, &res); err != nil {
 		return nil, spanError(span, err)
@@ -278,6 +300,10 @@ func (s *MonitorsService) Update(ctx context.Context, id string, req MonitorUpda
 		attribute.String("axiom.param.description", req.Description),
 	))
 	defer span.End()
+
+	if err := validateMonitorQueries(req.Monitor); err != nil {
+		return nil, spanError(span, err)
+	}
 
 	path, err := url.JoinPath(s.basePath, id)
 	if err != nil {
