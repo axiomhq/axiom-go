@@ -1,6 +1,7 @@
 package axiom
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -56,7 +57,7 @@ func TestMonitorsService_List(t *testing.T) {
 func TestMonitorsService_Get(t *testing.T) {
 	exp := &Monitor{
 		AlertOnNoData: false,
-		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
+		MPLQuery:      "`dataset`:`my-metric` | align to 5s using avg",
 		Description:   "test",
 		DisabledUntil: time.Time{},
 		ID:            "testID",
@@ -72,9 +73,10 @@ func TestMonitorsService_Get(t *testing.T) {
 		assert.Equal(t, http.MethodGet, r.Method)
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
-		_, err := fmt.Fprint(w, `{
+		mplQuery := "`dataset`:`my-metric` | align to 5s using avg"
+		_, err := fmt.Fprintf(w, `{
 			"alertOnNoData": false,
-			"aplQuery": "['dataset'] | summarize count() by bin_auto(_time)",
+			"mplQuery": %q,
 			"description": "test",
 			"id": "testID",
 			"intervalMinutes": 0,
@@ -84,7 +86,7 @@ func TestMonitorsService_Get(t *testing.T) {
 			"rangeMinutes": 1,
 			"threshold": 1,
 			"type": "Threshold"
-		}`)
+		}`, mplQuery)
 		assert.NoError(t, err)
 	}
 	client := setup(t, "GET /v2/monitors/testID", hf)
@@ -93,6 +95,69 @@ func TestMonitorsService_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, exp, res)
+}
+
+func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
+	exp := Monitor{
+		APLQuery:  "['dataset'] | summarize count() by bin_auto(_time)",
+		MPLQuery:  "`dataset`:`my-metric` | align to 5s using avg",
+		Interval:  2 * time.Minute,
+		Range:     3 * time.Minute,
+		Delay:     10 * time.Second,
+		Threshold: 1,
+	}
+
+	b, err := json.Marshal(exp)
+	require.NoError(t, err)
+
+	var gotPayload map[string]any
+	err = json.Unmarshal(b, &gotPayload)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp.APLQuery, gotPayload["aplQuery"])
+	assert.Equal(t, exp.MPLQuery, gotPayload["mplQuery"])
+	assert.Equal(t, float64(2), gotPayload["intervalMinutes"])
+	assert.Equal(t, float64(3), gotPayload["rangeMinutes"])
+	assert.Equal(t, float64(10), gotPayload["secondDelay"])
+
+	var got Monitor
+	err = json.Unmarshal(b, &got)
+	require.NoError(t, err)
+
+	assert.Equal(t, exp.APLQuery, got.APLQuery)
+	assert.Equal(t, exp.MPLQuery, got.MPLQuery)
+	assert.Equal(t, exp.Interval, got.Interval)
+	assert.Equal(t, exp.Range, got.Range)
+	assert.Equal(t, exp.Delay, got.Delay)
+}
+
+func TestValidateMonitorQueries(t *testing.T) {
+	t.Run("aplQuery only", func(t *testing.T) {
+		err := validateMonitorQueries(Monitor{
+			APLQuery: "['dataset'] | summarize count() by bin_auto(_time)",
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("mplQuery only", func(t *testing.T) {
+		err := validateMonitorQueries(Monitor{
+			MPLQuery: "`dataset`:`my-metric` | align to 5s using avg",
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("neither query", func(t *testing.T) {
+		err := validateMonitorQueries(Monitor{})
+		require.EqualError(t, err, "one of aplQuery or mplQuery is required")
+	})
+
+	t.Run("both queries", func(t *testing.T) {
+		err := validateMonitorQueries(Monitor{
+			APLQuery: "['dataset'] | summarize count() by bin_auto(_time)",
+			MPLQuery: "`dataset`:`my-metric` | align to 5s using avg",
+		})
+		require.EqualError(t, err, "aplQuery and mplQuery are mutually exclusive, provide only one")
+	})
 }
 
 func TestMonitorsService_Create(t *testing.T) {
