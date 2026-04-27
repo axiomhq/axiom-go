@@ -220,7 +220,8 @@ func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
 	s.Require().NotEmpty(monitor.ID)
-	s.True((monitor.APLQuery == expectedQuery) != (monitor.MPLQuery == expectedQuery))
+	s.Equal(expectedQuery, monitor.APLQuery)
+	s.Empty(monitor.MPLQuery)
 
 	// Explicitly clean up this additional monitor; setup monitor cleanup is handled in TearDownTest.
 	defer func() {
@@ -234,7 +235,8 @@ func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
 	s.Require().NoError(err)
 	s.Require().NotNil(got)
 	s.Equal(monitor.ID, got.ID)
-	s.True((got.APLQuery == expectedQuery) != (got.MPLQuery == expectedQuery))
+	s.Equal(expectedQuery, got.APLQuery)
+	s.Empty(got.MPLQuery)
 }
 
 func (s *MonitorsTestSuite) TestMonitorQueryExclusivityValidation() {
