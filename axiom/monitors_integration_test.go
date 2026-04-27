@@ -202,3 +202,52 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 	s.Require().NotNil(monitor)
 	s.Equal(axiom.MonitorTypeAnomalyDetection.String(), monitor.Type.String())
 }
+
+func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
+	expectedQuery := fmt.Sprintf("`%s`:`my-metric` | align to 5s using avg", s.datasetID)
+	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			AlertOnNoData: false,
+			MPLQuery:      expectedQuery,
+			Description:   "A test monitor using mplQuery",
+			Interval:      time.Minute,
+			Name:          "Test MPL Monitor",
+			Operator:      axiom.BelowOrEqual,
+			Range:         time.Minute * 5,
+			Threshold:     1,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+	s.Require().NotEmpty(monitor.ID)
+	s.True((monitor.APLQuery == expectedQuery) != (monitor.MPLQuery == expectedQuery))
+
+	// Explicitly clean up this additional monitor; setup monitor cleanup is handled in TearDownTest.
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
+		defer cancel()
+		err := s.client.Monitors.Delete(ctx, monitor.ID)
+		s.NoError(err)
+	}()
+
+	got, err := s.client.Monitors.Get(s.ctx, monitor.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(got)
+	s.Equal(monitor.ID, got.ID)
+	s.True((got.APLQuery == expectedQuery) != (got.MPLQuery == expectedQuery))
+}
+
+func (s *MonitorsTestSuite) TestMonitorQueryExclusivityValidation() {
+	_, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			APLQuery:  fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
+			MPLQuery:  fmt.Sprintf("`%s`:`my-metric` | align to 5s using avg", s.datasetID),
+			Interval:  time.Minute,
+			Name:      "Invalid Dual Query Monitor",
+			Operator:  axiom.BelowOrEqual,
+			Range:     time.Minute * 5,
+			Threshold: 1,
+		},
+	})
+	s.Require().EqualError(err, "aplQuery and mplQuery are mutually exclusive, provide only one")
+}
