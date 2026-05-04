@@ -87,11 +87,13 @@ jobs:
     # upstream repository.
     if: github.event.pull_request.head.repo.full_name == github.repository
     # HINT(lukasmalkmus): Make sure the job is only ever run once per
-    # environment, across all active jobs and workflows. Errors on the
-    # development environment will not cancel the matrix jobs on the staging
-    # environment (and thus not affect the overall workflow status).
+    # environment per ref. Including the ref scopes the lock to the current
+    # PR/push so concurrent PRs don't cancel each other's matrix jobs.
+    # Errors on the development environment will not cancel the matrix jobs
+    # on the staging environment (and thus not affect the overall workflow
+    # status).
     concurrency:
-      group: ${{ matrix.environment }}
+      group: ${{ matrix.environment }}-${{ github.ref }}
       cancel-in-progress: false
     continue-on-error: ${{ matrix.environment == 'development' }}
     strategy:
