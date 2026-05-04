@@ -47,7 +47,7 @@ jobs:
       TELEMETRY_TRACES_DATASET: ${{ vars[format('TELEMETRY_{0}_TRACES_DATASET', matrix.slug)] }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go }}
       - run: make test-integration
