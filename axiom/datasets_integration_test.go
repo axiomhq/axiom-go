@@ -371,6 +371,70 @@ func (s *DatasetsTestSuite) Test() {
 	s.Require().NoError(err)
 }
 
+// TestIngestEventLabelsApplied verifies that header-supplied event labels (set
+// via [ingest.SetEventLabel] and shipped as the `X-Axiom-Event-Labels` header
+// by the SDK) actually land on ingested events and are queryable. A failure
+// here means labels are not being applied server-side, independent of any
+// `ProcessedBytes` accounting changes.
+func (s *DatasetsTestSuite) TestIngestEventLabelsApplied() {
+	now := time.Now().Truncate(time.Second)
+	events := []axiom.Event{
+		{
+			ingest.TimestampField: now,
+			"test_id":             "label-roundtrip",
+		},
+	}
+
+	ingestStatus, err := s.client.Datasets.IngestEvents(s.ctx, s.dataset.ID, events,
+		ingest.SetEventLabel("region", "eu-west-1"),
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(ingestStatus)
+	s.EqualValues(1, ingestStatus.Ingested)
+	s.Zero(ingestStatus.Failed)
+
+	apl := fmt.Sprintf("['%s'] | where test_id == 'label-roundtrip'", s.dataset.ID)
+	startTime := now.Add(-time.Minute)
+	endTime := now.Add(time.Minute)
+
+	var queryResult *query.Result
+	s.Require().Eventually(func() bool {
+		queryResult, err = s.client.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(startTime),
+			query.SetEndTime(endTime),
+		)
+		return err == nil && queryResult != nil && queryResult.Status.RowsMatched == 1
+	}, 15*time.Second, 500*time.Millisecond, "ingested event did not become queryable in time")
+
+	s.Require().Len(queryResult.Tables, 1)
+	table := queryResult.Tables[0]
+
+	regionIdx := -1
+	for i, f := range table.Fields {
+		if f.Name == "region" {
+			regionIdx = i
+			break
+		}
+	}
+	s.Require().GreaterOrEqualf(regionIdx, 0,
+		"the 'region' label field is missing from the queried event — header-supplied event labels were not applied; fields present: %v",
+		fieldNames(table.Fields),
+	)
+
+	s.Require().Len(table.Columns, len(table.Fields))
+	s.Require().Len(table.Columns[regionIdx], 1)
+	s.Equal("eu-west-1", table.Columns[regionIdx][0],
+		"the 'region' label is present but its value does not match the header-supplied label")
+}
+
+func fieldNames(fields []query.Field) []string {
+	names := make([]string, len(fields))
+	for i, f := range fields {
+		names[i] = f.Name
+	}
+	return names
+}
+
 func (s *DatasetsTestSuite) TestCursor() {
 	// Let's ingest some data.
 	now := time.Now().Truncate(time.Second)
