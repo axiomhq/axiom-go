@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 # HINT(lukasmalkmus): Make sure the workflow is only ever run once for each
 # commit that has been pushed.
 concurrency:
@@ -21,8 +24,8 @@ jobs:
           - "1.25"
           - "1.26"
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: ${{ matrix.go }}
       - run: make generate
@@ -38,13 +41,13 @@ jobs:
           - "1.25"
           - "1.26"
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: ${{ matrix.go }}
           cache: false
       - run: echo "GOLANGCI_LINT_VERSION=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint/v2)" >> $GITHUB_ENV
-      - uses: golangci/golangci-lint-action@v9
+      - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
 
@@ -86,8 +89,8 @@ jobs:
       TELEMETRY_TRACES_TOKEN: ${{ secrets.TELEMETRY_TRACES_TOKEN }}
       TELEMETRY_TRACES_DATASET: ${{ vars[format('TELEMETRY_{0}_TRACES_DATASET', matrix.slug)] }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: ${{ matrix.go }}
       - run: make test-integration

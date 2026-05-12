@@ -7,7 +7,7 @@ on:
       - edited
       - closed
       - reopened
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - edited
@@ -24,21 +24,26 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'axiomhq'
+    permissions:
+      checks: write
+      contents: read
+      issues: write
+      pull-requests: write
+    if: github.repository_owner == 'axiomhq' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
     steps:
-      - uses: z0al/dependent-issues@v1
-        if: github.actor != 'dependabot[bot]'
+      - uses: z0al/dependent-issues@950226e7ca8fc43dc209a7febf67c655af3bdb43 # v1
+        if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_READ_TOKEN: ${{ secrets.AXIOM_AUTOMATION_TOKEN }}
         with:
           label: dependent
           keywords: depends on, blocked by, needs, requires
-      - uses: LouisBrunner/checks-action@v3.1.0
-        if: github.actor == 'dependabot[bot]'
+      - uses: LouisBrunner/checks-action@937cbbcde3259005b50746dc91cde29098aac2ff # v3.1.0
+        if: github.actor == 'dependabot[bot]' || github.event_name == 'pull_request'
         with:
           token: ${{ github.token }}
           name: Dependent Issues
           conclusion: success
           output: |
-            {"summary":"Not checking for dependent issues or PRs on Dependabot PRs."}
+            {"summary":"Skipping dependent issue checks for pull_request events and Dependabot PRs due token restrictions."}
