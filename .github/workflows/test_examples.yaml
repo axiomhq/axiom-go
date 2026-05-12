@@ -11,6 +11,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 # HINT(lukasmalkmus): Make sure the workflow is only ever run for the latest
 # changes in a PR or a commit that was pushed.
 concurrency:
@@ -89,8 +92,8 @@ jobs:
       AXIOM_ORG_ID: ${{ secrets.TESTING_STAGING_ORG_ID }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: go.mod
       - name: Setup test dataset
