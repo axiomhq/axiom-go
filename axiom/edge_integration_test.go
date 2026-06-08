@@ -162,21 +162,23 @@ func (s *EdgeTestSuite) TestEdgeQuery() {
 	s.Require().NotNil(ingestStatus)
 	s.EqualValues(2, ingestStatus.Ingested)
 
-	// Wait a moment for data to be queryable
-	time.Sleep(time.Second * 2)
-
-	now := time.Now().Truncate(time.Second)
-	startTime := now.Add(-time.Minute)
-	endTime := now.Add(time.Minute)
-
-	// Query via edge endpoint
 	apl := fmt.Sprintf("['%s']", s.dataset.ID)
-	queryResult, err := s.edgeClient.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-	)
-	s.Require().NoError(err)
-	s.Require().NotNil(queryResult)
+	var queryResult *query.Result
+	s.Require().Eventually(func() bool {
+		now := time.Now().Truncate(time.Second)
+		res, err := s.edgeClient.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(now.Add(-5*time.Minute)),
+			query.SetEndTime(now.Add(time.Minute)),
+		)
+		if err != nil || res == nil {
+			return false
+		}
+		if res.Status.RowsExamined < 2 || res.Status.RowsMatched < 2 {
+			return false
+		}
+		queryResult = res
+		return true
+	}, 30*time.Second, time.Second, "ingested events did not become queryable via edge")
 
 	s.NotZero(queryResult.Status.ElapsedTime)
 	s.GreaterOrEqual(queryResult.Status.RowsExamined, uint64(2))
@@ -205,21 +207,23 @@ func (s *EdgeTestSuite) TestEdgeIngestAndQueryRoundTrip() {
 	s.Require().NotNil(ingestStatus)
 	s.EqualValues(2, ingestStatus.Ingested)
 
-	// Wait for data to be queryable
-	time.Sleep(time.Second * 2)
-
-	now := time.Now().Truncate(time.Second)
-	startTime := now.Add(-time.Minute)
-	endTime := now.Add(time.Minute)
-
-	// Query for specific test data via edge
 	apl := fmt.Sprintf("['%s'] | where test_id startswith 'edge-roundtrip'", s.dataset.ID)
-	queryResult, err := s.edgeClient.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-	)
-	s.Require().NoError(err)
-	s.Require().NotNil(queryResult)
+	var queryResult *query.Result
+	s.Require().Eventually(func() bool {
+		now := time.Now().Truncate(time.Second)
+		res, err := s.edgeClient.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(now.Add(-5*time.Minute)),
+			query.SetEndTime(now.Add(time.Minute)),
+		)
+		if err != nil || res == nil {
+			return false
+		}
+		if res.Status.RowsMatched < 2 {
+			return false
+		}
+		queryResult = res
+		return true
+	}, 30*time.Second, time.Second, "ingested events did not become queryable via edge")
 
 	s.EqualValues(2, queryResult.Status.RowsMatched)
 }
