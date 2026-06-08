@@ -23,6 +23,8 @@ type Notifier struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// CreatedBy is the id of the user who created the notifier.
 	CreatedBy string `json:"createdBy"`
+	// UpdatedAt is the time when the notifier was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type NotifierProperties struct {
