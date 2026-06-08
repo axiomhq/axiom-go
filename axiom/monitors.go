@@ -119,6 +119,8 @@ type Monitor struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// CreatedBy is the ID of the user who created the monitor.
 	CreatedBy string `json:"createdBy"`
+	// UpdatedAt is the time when the monitor was last updated.
+	UpdatedAt time.Time `json:"updatedAt"`
 	// Name is the name of the monitor.
 	Name string `json:"name"`
 	// Type sets the type of monitor. Defaults to [Threshold]

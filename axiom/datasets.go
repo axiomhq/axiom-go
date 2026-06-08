@@ -86,6 +86,8 @@ type Dataset struct {
 	CreatedBy string `json:"who"`
 	// CreatedAt is the time the dataset was created at.
 	CreatedAt time.Time `json:"created"`
+	// UpdatedAt is the time the dataset was last updated at.
+	UpdatedAt time.Time `json:"updatedAt"`
 	// CanWrite sets whether writeable access is granted.
 	CanWrite bool `json:"canWrite"`
 	// UseRetentionPeriod sets whether the dataset uses a retention period.
