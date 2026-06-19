@@ -89,7 +89,7 @@ jobs:
       AXIOM_ORG_ID: ${{ secrets.TESTING_STAGING_ORG_ID }}
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
