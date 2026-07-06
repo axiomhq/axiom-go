@@ -183,7 +183,7 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 		{"id": "sectionheader-1", "datasetId": s.dataset.ID, "type": "SectionHeader", "name": "Section Header", "query": baseQuery},
 		{"id": "note-1", "type": "Note", "text": "Integration note"},
 		{"id": "monitorlist-1", "type": "MonitorList", "name": "Monitor List", "selectedMonitors": []string{s.monitor.ID}, "columns": map[string]any{"status": true, "history": false, "dataset": false, "type": false, "notifiers": false}},
-		{"id": "smartfilter-1", "type": "SmartFilter", "name": "Filter Bar", "filters": []map[string]any{{"type": "search", "id": "sf-search"}}},
+		{"id": "smartfilter-1", "type": "SmartFilter", "name": "Filter Bar", "filters": []map[string]any{{"type": "search", "id": "sf-search", "name": "Search"}}},
 		{"id": "spacer-1", "type": "Spacer", "name": "Spacer"},
 		{"id": "placeholder-1", "type": "Placeholder"},
 	}
