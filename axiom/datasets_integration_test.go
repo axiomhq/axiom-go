@@ -656,18 +656,32 @@ func (s *DatasetsTestSuite) TestIngestWithMapFields() {
 	// Ingest some more data.
 	ingestObjectDataFn(s, ingestDataMapFields2)
 
-	now := time.Now().Truncate(time.Second)
-	startTime := now.Add(-time.Minute)
-	endTime := now.Add(time.Minute)
-
-	// Run a simple APL query...
+	// Run a simple APL query. Ingestion is eventually consistent, so poll until
+	// both rows and their full column schema (including the second event's
+	// flattened fields) have become queryable before asserting on the shape.
 	apl := fmt.Sprintf("['%s']", s.dataset.ID)
-	queryResult, err := s.client.Datasets.Query(s.ctx, apl,
-		query.SetStartTime(startTime),
-		query.SetEndTime(endTime),
-	)
-	s.Require().NoError(err)
-	s.Require().NotNil(queryResult)
+	var queryResult *query.Result
+	s.Require().Eventually(func() bool {
+		now := time.Now().Truncate(time.Second)
+		res, err := s.client.Datasets.Query(s.ctx, apl,
+			query.SetStartTime(now.Add(-5*time.Minute)),
+			query.SetEndTime(now.Add(time.Minute)),
+		)
+		if err != nil || res == nil {
+			return false
+		}
+		if res.Status.RowsExamined != 2 || res.Status.RowsMatched != 2 {
+			return false
+		}
+		if len(res.Tables) != 1 {
+			return false
+		}
+		if len(res.Tables[0].Fields) != 3+numExtraFields || len(res.Tables[0].Columns) != 3+numExtraColumns {
+			return false
+		}
+		queryResult = res
+		return true
+	}, 30*time.Second, time.Second, "ingested map field events did not become fully queryable")
 
 	s.NotZero(queryResult.Status.ElapsedTime)
 	s.EqualValues(2, queryResult.Status.RowsExamined)

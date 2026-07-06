@@ -64,9 +64,11 @@ func (s *EdgeTestSuite) SetupSuite() {
 func (s *EdgeTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
-	// Create test dataset using the main client (not edge - dataset creation isn't supported on edge)
+	// Create test dataset using the main client (not edge - dataset creation isn't supported on edge).
+	// The name is unique per test so a failed teardown-delete (e.g. a transient
+	// API error) can't cascade into "entity exists" failures for later tests.
 	req := axiom.DatasetCreateRequest{
-		Name:        "test-axiom-go-edge-" + datasetSuffix,
+		Name:        fmt.Sprintf("test-axiom-go-edge-%s-%d", datasetSuffix, time.Now().UnixNano()),
 		Description: "This is a test dataset for edge integration tests.",
 	}
 
@@ -178,7 +180,7 @@ func (s *EdgeTestSuite) TestEdgeQuery() {
 		}
 		queryResult = res
 		return true
-	}, 30*time.Second, time.Second, "ingested events did not become queryable via edge")
+	}, 60*time.Second, time.Second, "ingested events did not become queryable via edge")
 
 	s.NotZero(queryResult.Status.ElapsedTime)
 	s.GreaterOrEqual(queryResult.Status.RowsExamined, uint64(2))
@@ -223,7 +225,7 @@ func (s *EdgeTestSuite) TestEdgeIngestAndQueryRoundTrip() {
 		}
 		queryResult = res
 		return true
-	}, 30*time.Second, time.Second, "ingested events did not become queryable via edge")
+	}, 60*time.Second, time.Second, "ingested events did not become queryable via edge")
 
 	s.EqualValues(2, queryResult.Status.RowsMatched)
 }
