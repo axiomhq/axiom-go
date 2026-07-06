@@ -99,6 +99,9 @@ type Dataset struct {
 	// EdgeDeployment is the edge deployment where the dataset is stored
 	// (e.g., "cloud.eu-central-1.aws").
 	EdgeDeployment string `json:"edgeDeployment,omitempty"`
+	// EdgeDeploymentURL is the URL of the edge deployment where the dataset is
+	// stored.
+	EdgeDeploymentURL string `json:"edgeDeploymentUrl,omitempty"`
 }
 
 // DatasetCreateRequest is a request used to create a dataset.
