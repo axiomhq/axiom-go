@@ -64,11 +64,9 @@ func (s *EdgeTestSuite) SetupSuite() {
 func (s *EdgeTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
-	// Create test dataset using the main client (not edge - dataset creation isn't supported on edge).
-	// The name is unique per test so a failed teardown-delete (e.g. a transient
-	// API error) can't cascade into "entity exists" failures for later tests.
+	// Create test dataset using the main client (not edge - dataset creation isn't supported on edge)
 	req := axiom.DatasetCreateRequest{
-		Name:        fmt.Sprintf("test-axiom-go-edge-%s-%d", datasetSuffix, time.Now().UnixNano()),
+		Name:        "test-axiom-go-edge-" + datasetSuffix,
 		Description: "This is a test dataset for edge integration tests.",
 	}
 
