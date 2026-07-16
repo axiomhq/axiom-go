@@ -90,7 +90,7 @@ jobs:
       AXIOM_DATASET: test-axiom-go-examples-${{ github.run_id }}-${{ matrix.example }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Setup test dataset
