@@ -45,7 +45,7 @@ func TestHandler(t *testing.T) {
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message"}`,
 		time.Now().Format(time.RFC3339Nano))
 
-	var hasRun uint64
+	var hasRun atomic.Uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestHandler(t *testing.T) {
 
 		testhelper.JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
 
-		atomic.AddUint64(&hasRun, 1)
+		hasRun.Add(1)
 
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))
@@ -69,7 +69,7 @@ func TestHandler(t *testing.T) {
 
 	closeHandler()
 
-	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
+	assert.EqualValues(t, 1, hasRun.Load())
 }
 
 func TestHandler_Source(t *testing.T) {
@@ -80,7 +80,7 @@ func TestHandler_Source(t *testing.T) {
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message", "source":%s}`,
 		time.Now().Format(time.RFC3339Nano), sourceStr)
 
-	var hasRun uint64
+	var hasRun atomic.Uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestHandler_Source(t *testing.T) {
 
 		testhelper.JSONEqExp(t, exp, str, []string{ingest.TimestampField})
 
-		atomic.AddUint64(&hasRun, 1)
+		hasRun.Add(1)
 
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))
@@ -106,14 +106,14 @@ func TestHandler_Source(t *testing.T) {
 
 	closeHandler()
 
-	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
+	assert.EqualValues(t, 1, hasRun.Load())
 }
 
 func TestHandler_WithError(t *testing.T) {
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message","error":"this is an error"}`,
 		time.Now().Format(time.RFC3339Nano))
 
-	var hasRun uint64
+	var hasRun atomic.Uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
@@ -123,7 +123,7 @@ func TestHandler_WithError(t *testing.T) {
 
 		testhelper.JSONEqExp(t, exp, string(b), []string{ingest.TimestampField})
 
-		atomic.AddUint64(&hasRun, 1)
+		hasRun.Add(1)
 
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))
@@ -139,14 +139,14 @@ func TestHandler_WithError(t *testing.T) {
 
 	closeHandler()
 
-	assert.EqualValues(t, 1, atomic.LoadUint64(&hasRun))
+	assert.EqualValues(t, 1, hasRun.Load())
 }
 
 func TestHandler_NoPanicAfterClose(t *testing.T) {
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","key":"value","msg":"my message"}`,
 		time.Now().Format(time.RFC3339Nano))
 
-	var lines uint64
+	var lines atomic.Uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
@@ -154,7 +154,7 @@ func TestHandler_NoPanicAfterClose(t *testing.T) {
 		s := bufio.NewScanner(zsr)
 		for s.Scan() {
 			testhelper.JSONEqExp(t, exp, s.Text(), []string{ingest.TimestampField})
-			atomic.AddUint64(&lines, 1)
+			lines.Add(1)
 		}
 		assert.NoError(t, s.Err())
 
@@ -175,14 +175,14 @@ func TestHandler_NoPanicAfterClose(t *testing.T) {
 		With("key", "value").
 		Info("my message")
 
-	assert.EqualValues(t, 1, atomic.LoadUint64(&lines))
+	assert.EqualValues(t, 1, lines.Load())
 }
 
 func TestHandler_Groups(t *testing.T) {
 	exp := fmt.Sprintf(`{"_time":"%s","level":"INFO","s":{"a":1,"b":2},"msg":"my message"}`,
 		time.Now().Format(time.RFC3339Nano))
 
-	var lines uint64
+	var lines atomic.Uint64
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		zsr, err := zstd.NewReader(r.Body)
 		require.NoError(t, err)
@@ -190,7 +190,7 @@ func TestHandler_Groups(t *testing.T) {
 		s := bufio.NewScanner(zsr)
 		for s.Scan() {
 			testhelper.JSONEqExp(t, exp, s.Text(), []string{ingest.TimestampField})
-			atomic.AddUint64(&lines, 1)
+			lines.Add(1)
 		}
 		assert.NoError(t, s.Err())
 
@@ -207,7 +207,7 @@ func TestHandler_Groups(t *testing.T) {
 
 	closeHandler()
 
-	assert.EqualValues(t, 2, atomic.LoadUint64(&lines))
+	assert.EqualValues(t, 2, lines.Load())
 }
 
 func setup(t *testing.T) func(dataset string, client *axiom.Client) (*slog.Logger, func()) {
