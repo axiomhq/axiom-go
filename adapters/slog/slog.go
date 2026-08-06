@@ -210,8 +210,8 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	})
 
 	// Nest attributes in handler groups as objects, if any.
-	for i := len(h.groups) - 1; i >= 0; i-- {
-		event = axiom.Event{h.groups[i]: event}
+	for _, v := range slices.Backward(h.groups) {
+		event = axiom.Event{v: event}
 	}
 
 	// Set timestamp, level and actual message. The zero time is ignored.

@@ -27,6 +27,8 @@ linters:
     - unused
     - whitespace
   settings:
+    goconst:
+      ignore-tests: true
     nolintlint:
       require-explanation: true
       require-specific: true

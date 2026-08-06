@@ -20,7 +20,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.41.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
@@ -264,7 +264,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 
 		err = backoff.Retry(func() error {
 			var httpResp *http.Response
-			//nolint:bodyclose,gosec // The response body is closed later down below. G704: URL is from trusted configuration.
+			//nolint:bodyclose // The response body is closed later down below.
 			httpResp, err = c.httpClient.Do(req)
 			switch {
 			case errors.Is(err, context.Canceled):
@@ -301,7 +301,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		}, bck)
 	} else {
 		var httpResp *http.Response
-		//nolint:bodyclose,gosec // The response body is closed later down below. G704: URL is from trusted configuration.
+		//nolint:bodyclose // The response body is closed later down below.
 		if httpResp, err = c.httpClient.Do(req); err != nil {
 			return nil, err
 		}

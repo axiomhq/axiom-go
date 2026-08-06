@@ -17,9 +17,9 @@ import (
 )
 
 func TestTracing(t *testing.T) {
-	var handlerCalled uint32
+	var handlerCalled atomic.Uint32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddUint32(&handlerCalled, 1)
+		handlerCalled.Add(1)
 
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, "/v1/traces", r.URL.Path)
@@ -63,5 +63,5 @@ func TestTracing(t *testing.T) {
 	// Stop tracer which flushes all spans.
 	require.NoError(t, stop())
 
-	assert.EqualValues(t, 1, atomic.LoadUint32(&handlerCalled))
+	assert.EqualValues(t, 1, handlerCalled.Load())
 }
