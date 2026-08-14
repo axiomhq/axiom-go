@@ -925,6 +925,8 @@ func setQueryStatusOnSpan(span trace.Span, status query.Status) {
 		attribute.String("axiom.query.elapsed_time", status.ElapsedTime.String()),
 		attribute.Int64("axiom.query.rows_examined", int64(status.RowsExamined)), //nolint:gosec // Fine for this use case.
 		attribute.Int64("axiom.query.rows_matched", int64(status.RowsMatched)),   //nolint:gosec // Fine for this use case.
+		attribute.Bool("axiom.query.is_partial", status.IsPartial),
+		attribute.Bool("axiom.query.is_estimate", status.IsEstimate),
 	)
 }
 
