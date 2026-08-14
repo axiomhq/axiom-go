@@ -136,6 +136,12 @@ type Status struct {
 	RowsExamined uint64 `json:"rowsExamined"`
 	// RowsMatched is the amount of rows that matched the query.
 	RowsMatched uint64 `json:"rowsMatched"`
+	// IsPartial describes if the query result is a partial result.
+	IsPartial bool `json:"isPartial"`
+	// IsEstimate describes if the query result is estimated. This is the case
+	// when the server trimmed intermediate results, for example a "top" over a
+	// high cardinality group.
+	IsEstimate bool `json:"isEstimate"`
 	// Messages is an optional list of messages that was emitted during query execution.
 	Messages []Message `json:"messages,omitempty"`
 }
