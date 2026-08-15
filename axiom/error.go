@@ -51,7 +51,10 @@ func (e HTTPError) Is(target error) bool {
 }
 
 // LimitError occurs when http status codes 429 (TooManyRequests) or 430
-// (Axiom-sepcific when ingest or query limit are reached) are encountered.
+// (Axiom-specific when ingest or query limit are reached) are encountered.
+//
+// It can be inspected as an [HTTPError] using [errors.As]. Code that handles
+// both must match LimitError first, as the [HTTPError] case matches it, too.
 type LimitError struct {
 	HTTPError
 
@@ -73,4 +76,15 @@ func (e LimitError) Is(target error) bool {
 		return false
 	}
 	return e.Limit == v.Limit && e.HTTPError.Is(v.HTTPError)
+}
+
+// As assigns the embedded [HTTPError] to target, so callers that handle any API
+// error the same way do not have to special case a limit error.
+func (e LimitError) As(target any) bool {
+	httpErr, ok := target.(*HTTPError)
+	if !ok {
+		return false
+	}
+	*httpErr = e.HTTPError
+	return true
 }
