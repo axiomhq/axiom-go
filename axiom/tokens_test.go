@@ -124,19 +124,18 @@ func TestTokensService_Get(t *testing.T) {
 func TestTokensService_Create(t *testing.T) {
 	tokenTime := testhelper.MustTimeParse(t, time.RFC3339, "2024-04-19T17:55:53Z")
 	exp := &CreateTokenResponse{
-		APIToken: APIToken{
-			Name:        "test",
-			Description: "test",
-			ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
-			DatasetCapabilities: map[string]DatasetCapabilities{
-				"dataset": {
-					Ingest: []Action{ActionCreate},
-					Query:  []Action{ActionRead},
-				},
+		Name:        "test",
+		Description: "test",
+		ExpiresAt:   tokenTime.UTC().Truncate(time.Second),
+		DatasetCapabilities: map[string]DatasetCapabilities{
+			"dataset": {
+				Ingest: []Action{ActionCreate},
+				Query:  []Action{ActionRead},
 			},
-			OrganisationCapabilities: OrganisationCapabilities{
-				APITokens: []Action{ActionCreate},
-			}},
+		},
+		OrganisationCapabilities: OrganisationCapabilities{
+			APITokens: []Action{ActionCreate},
+		},
 		Token: "test",
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -195,19 +194,17 @@ func TestTokensService_Regenerate(t *testing.T) {
 		NewTokenExpiresAt:      tokenTime.Add(time.Hour * 24),
 	}
 	exp := &CreateTokenResponse{
-		APIToken: APIToken{
-			Name:        "test",
-			Description: "test",
-			ExpiresAt:   tokenTime.Add(time.Hour * 24).UTC().Truncate(time.Second),
-			DatasetCapabilities: map[string]DatasetCapabilities{
-				"dataset": {
-					Ingest: []Action{ActionCreate},
-					Query:  []Action{ActionRead},
-				},
+		Name:        "test",
+		Description: "test",
+		ExpiresAt:   tokenTime.Add(time.Hour * 24).UTC().Truncate(time.Second),
+		DatasetCapabilities: map[string]DatasetCapabilities{
+			"dataset": {
+				Ingest: []Action{ActionCreate},
+				Query:  []Action{ActionRead},
 			},
-			OrganisationCapabilities: OrganisationCapabilities{
-				APITokens: []Action{ActionCreate},
-			},
+		},
+		OrganisationCapabilities: OrganisationCapabilities{
+			APITokens: []Action{ActionCreate},
 		},
 		Token: "test",
 	}
@@ -274,18 +271,16 @@ func TestTokensService_RegenerateWithNewToken(t *testing.T) {
 	}
 
 	exp := &CreateTokenResponse{
-		APIToken: APIToken{
-			Name:        "replacement",
-			Description: "replacement token",
-			ExpiresAt:   tokenTime.Add(48 * time.Hour).UTC().Truncate(time.Second),
-			DatasetCapabilities: map[string]DatasetCapabilities{
-				"dataset": {
-					Ingest: []Action{ActionCreate},
-				},
+		Name:        "replacement",
+		Description: "replacement token",
+		ExpiresAt:   tokenTime.Add(48 * time.Hour).UTC().Truncate(time.Second),
+		DatasetCapabilities: map[string]DatasetCapabilities{
+			"dataset": {
+				Ingest: []Action{ActionCreate},
 			},
-			OrganisationCapabilities: OrganisationCapabilities{
-				APITokens: []Action{ActionCreate},
-			},
+		},
+		OrganisationCapabilities: OrganisationCapabilities{
+			APITokens: []Action{ActionCreate},
 		},
 		Token: "replacement-token",
 	}

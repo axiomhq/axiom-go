@@ -12,13 +12,11 @@ import (
 func TestVirtualFieldsService_List(t *testing.T) {
 	exp := []*VirtualFieldWithID{
 		{
-			ID: "vfield1",
-			VirtualField: VirtualField{
-				Dataset:    "dataset1",
-				Name:       "field1",
-				Expression: "a + b",
-				Type:       "number",
-			},
+			ID:         "vfield1",
+			Dataset:    "dataset1",
+			Name:       "field1",
+			Expression: "a + b",
+			Type:       "number",
 		},
 	}
 
@@ -46,13 +44,11 @@ func TestVirtualFieldsService_List(t *testing.T) {
 
 func TestVirtualFieldsService_Get(t *testing.T) {
 	exp := &VirtualFieldWithID{
-		ID: "vfield1",
-		VirtualField: VirtualField{
-			Dataset:    "dataset1",
-			Name:       "field1",
-			Expression: "a + b",
-			Type:       "number",
-		},
+		ID:         "vfield1",
+		Dataset:    "dataset1",
+		Name:       "field1",
+		Expression: "a + b",
+		Type:       "number",
 	}
 
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -78,13 +74,11 @@ func TestVirtualFieldsService_Get(t *testing.T) {
 
 func TestVirtualFieldsService_Create(t *testing.T) {
 	exp := &VirtualFieldWithID{
-		ID: "vfield1",
-		VirtualField: VirtualField{
-			Dataset:    "dataset1",
-			Name:       "field1",
-			Expression: "a + b",
-			Type:       "number",
-		},
+		ID:         "vfield1",
+		Dataset:    "dataset1",
+		Name:       "field1",
+		Expression: "a + b",
+		Type:       "number",
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
@@ -115,13 +109,11 @@ func TestVirtualFieldsService_Create(t *testing.T) {
 
 func TestVirtualFieldsService_Update(t *testing.T) {
 	exp := &VirtualFieldWithID{
-		ID: "vfield1",
-		VirtualField: VirtualField{
-			Dataset:    "dataset1",
-			Name:       "field1_updated",
-			Expression: "a - b",
-			Type:       "number",
-		},
+		ID:         "vfield1",
+		Dataset:    "dataset1",
+		Name:       "field1_updated",
+		Expression: "a - b",
+		Type:       "number",
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPut, r.Method)

@@ -114,8 +114,7 @@ func TestHook_FlushFullBatch(t *testing.T) {
 		assert.EqualValues(t, 10_000, lines.Load())
 
 		// Advance virtual clock past the flush interval to trigger timer-based flush.
-		time.Sleep(flushInterval + time.Millisecond)
-		synctest.Wait()
+		synctest.Sleep(flushInterval + time.Millisecond)
 
 		assert.EqualValues(t, 10_001, lines.Load())
 	})
