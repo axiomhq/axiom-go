@@ -51,8 +51,9 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - run: make test-integration
+      - if: failure() || cancelled()
+        uses: axiomhq/cli/actions/setup@v0.19.0
       - name: Cleanup
         if: failure() || cancelled()
         run: |
-          curl -sL $(curl -s https://api.github.com/repos/axiomhq/cli/releases/tags/v0.14.0 | grep "http.*linux_amd64.tar.gz" | awk '{print $2}' | sed 's|[\"\,]*||g') | tar xzvf - --strip-components=1 --wildcards -C /usr/local/bin "axiom_*_linux_amd64/axiom"
           axiom dataset list -f=json | jq '.[] | select(.id | contains("${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go }}")).id' | xargs -r -n1 axiom dataset delete -f
