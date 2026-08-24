@@ -14,7 +14,7 @@ require (
 	github.com/google/go-querystring v1.2.0
 	github.com/klauspost/compress v1.19.2
 	github.com/schollz/progressbar/v3 v3.19.1
-	github.com/sirupsen/logrus v1.10.0
+	github.com/sirupsen/logrus v1.10.1
 	github.com/stretchr/testify v1.12.1
 	github.com/tidwall/sjson v1.2.5
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
