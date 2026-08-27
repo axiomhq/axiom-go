@@ -155,16 +155,14 @@ func (s *DashboardsTestSuite) TestAllChartTypes() {
 	uid := fmt.Sprintf("dash-all-charts-%d", time.Now().UnixNano())
 
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			Name:        "test-dashboard-monitor",
-			Description: "Monitor used by dashboards integration test",
-			Type:        axiom.MonitorTypeThreshold,
-			APLQuery:    fmt.Sprintf("['%s'] | summarize count()", s.dataset.ID),
-			Operator:    axiom.Above,
-			Threshold:   0,
-			Interval:    time.Minute,
-			Range:       time.Minute,
-		},
+		Name:        "test-dashboard-monitor",
+		Description: "Monitor used by dashboards integration test",
+		Type:        axiom.MonitorTypeThreshold,
+		APLQuery:    fmt.Sprintf("['%s'] | summarize count()", s.dataset.ID),
+		Operator:    axiom.Above,
+		Threshold:   0,
+		Interval:    time.Minute,
+		Range:       time.Minute,
 	})
 	s.Require().NoError(err)
 	s.monitor = monitor

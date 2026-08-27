@@ -60,21 +60,19 @@ func (s *MonitorsTestSuite) SetupTest() {
 
 	var err error
 	s.monitor, err = s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			AlertOnNoData:                false,
-			APLQuery:                     fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
-			Description:                  "A test monitor",
-			Interval:                     time.Minute,
-			Name:                         "Test Monitor",
-			Operator:                     axiom.BelowOrEqual,
-			Range:                        time.Minute * 5,
-			Threshold:                    1,
-			Delay:                        time.Second * 10,
-			NotifyEveryRun:               true,
-			SkipResolved:                 false,
-			TriggerFromNRuns:             3,
-			TriggerAfterNPositiveResults: 2,
-		},
+		AlertOnNoData:                false,
+		APLQuery:                     fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
+		Description:                  "A test monitor",
+		Interval:                     time.Minute,
+		Name:                         "Test Monitor",
+		Operator:                     axiom.BelowOrEqual,
+		Range:                        time.Minute * 5,
+		Threshold:                    1,
+		Delay:                        time.Second * 10,
+		NotifyEveryRun:               true,
+		SkipResolved:                 false,
+		TriggerFromNRuns:             3,
+		TriggerAfterNPositiveResults: 2,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.monitor)
@@ -98,17 +96,15 @@ func (s *MonitorsTestSuite) TearDownTest() {
 func (s *MonitorsTestSuite) Test() {
 	// Let's update the monitor.
 	monitor, err := s.client.Monitors.Update(s.ctx, s.monitor.ID, axiom.MonitorUpdateRequest{
-		Monitor: axiom.Monitor{
-			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
-			Description:   "A very good test monitor",
-			DisabledUntil: time.Now().Add(time.Minute * 10),
-			Interval:      time.Minute,
-			Name:          "Test Monitor",
-			Operator:      axiom.BelowOrEqual,
-			Range:         time.Minute * 10,
-			Threshold:     5,
-		},
+		AlertOnNoData: false,
+		APLQuery:      fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
+		Description:   "A very good test monitor",
+		DisabledUntil: time.Now().Add(time.Minute * 10),
+		Interval:      time.Minute,
+		Name:          "Test Monitor",
+		Operator:      axiom.BelowOrEqual,
+		Range:         time.Minute * 10,
+		Threshold:     5,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
@@ -133,18 +129,16 @@ func (s *MonitorsTestSuite) Test() {
 func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 	// Create the monitor
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s']", s.datasetID),
-			Description:   "A very good test monitor",
-			DisabledUntil: time.Now().Add(time.Minute * 10),
-			Interval:      time.Minute,
-			Name:          "Test Monitor",
-			Operator:      axiom.BelowOrEqual,
-			Range:         time.Minute * 10,
-			Threshold:     5,
-			Type:          axiom.MonitorTypeMatchEvent,
-		},
+		AlertOnNoData: false,
+		APLQuery:      fmt.Sprintf("['%s']", s.datasetID),
+		Description:   "A very good test monitor",
+		DisabledUntil: time.Now().Add(time.Minute * 10),
+		Interval:      time.Minute,
+		Name:          "Test Monitor",
+		Operator:      axiom.BelowOrEqual,
+		Range:         time.Minute * 10,
+		Threshold:     5,
+		Type:          axiom.MonitorTypeMatchEvent,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
@@ -185,18 +179,16 @@ func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 	// Create the monitor
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			AlertOnNoData: false,
-			APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
-			Description:   "A very good test monitor",
-			Interval:      time.Minute,
-			Name:          "Test Monitor",
-			Operator:      axiom.Below,
-			Range:         time.Minute * 10,
-			Tolerance:     5,
-			CompareDays:   7,
-			Type:          axiom.MonitorTypeAnomalyDetection,
-		},
+		AlertOnNoData: false,
+		APLQuery:      fmt.Sprintf("['%s'] | summarize count() by bin_auto(_time)", s.datasetID),
+		Description:   "A very good test monitor",
+		Interval:      time.Minute,
+		Name:          "Test Monitor",
+		Operator:      axiom.Below,
+		Range:         time.Minute * 10,
+		Tolerance:     5,
+		CompareDays:   7,
+		Type:          axiom.MonitorTypeAnomalyDetection,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
@@ -206,16 +198,14 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
 	expectedQuery := fmt.Sprintf("`%s`:`my-metric` | align to 5s using avg", s.datasetID)
 	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			AlertOnNoData: false,
-			MPLQuery:      expectedQuery,
-			Description:   "A test monitor using mplQuery",
-			Interval:      time.Minute,
-			Name:          "Test MPL Monitor",
-			Operator:      axiom.BelowOrEqual,
-			Range:         time.Minute * 5,
-			Threshold:     1,
-		},
+		AlertOnNoData: false,
+		MPLQuery:      expectedQuery,
+		Description:   "A test monitor using mplQuery",
+		Interval:      time.Minute,
+		Name:          "Test MPL Monitor",
+		Operator:      axiom.BelowOrEqual,
+		Range:         time.Minute * 5,
+		Threshold:     1,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
@@ -241,15 +231,13 @@ func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
 
 func (s *MonitorsTestSuite) TestMonitorQueryExclusivityValidation() {
 	_, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
-		Monitor: axiom.Monitor{
-			APLQuery:  fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
-			MPLQuery:  fmt.Sprintf("`%s`:`my-metric` | align to 5s using avg", s.datasetID),
-			Interval:  time.Minute,
-			Name:      "Invalid Dual Query Monitor",
-			Operator:  axiom.BelowOrEqual,
-			Range:     time.Minute * 5,
-			Threshold: 1,
-		},
+		APLQuery:  fmt.Sprintf("['%s'] | summarize count()", s.datasetID),
+		MPLQuery:  fmt.Sprintf("`%s`:`my-metric` | align to 5s using avg", s.datasetID),
+		Interval:  time.Minute,
+		Name:      "Invalid Dual Query Monitor",
+		Operator:  axiom.BelowOrEqual,
+		Range:     time.Minute * 5,
+		Threshold: 1,
 	})
 	s.Require().EqualError(err, "aplQuery and mplQuery are mutually exclusive, provide only one")
 }

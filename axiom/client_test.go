@@ -588,11 +588,9 @@ func TestClient_Do_RateLimit(t *testing.T) {
 	reset := time.Now().Add(time.Hour).Truncate(time.Second)
 
 	expErr := LimitError{
-		HTTPError: HTTPError{
-			Status:  http.StatusTooManyRequests,
-			Message: "limit exceeded",
-			TraceID: "abc",
-		},
+		Status:  http.StatusTooManyRequests,
+		Message: "limit exceeded",
+		TraceID: "abc",
 
 		Limit: Limit{
 			Scope:     LimitScopeAnonymous,

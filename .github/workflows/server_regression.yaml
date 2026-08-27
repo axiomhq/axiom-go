@@ -24,8 +24,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - "1.26"
           - "1.27"
+          - "1.28"
         environment:
           - development
           - staging

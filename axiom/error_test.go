@@ -66,8 +66,8 @@ func TestLimitError_As(t *testing.T) {
 // [axiom.LimitError] breaks this.
 func TestLimitError_Is(t *testing.T) {
 	limitErr := axiom.LimitError{
-		HTTPError: axiom.HTTPError{Status: http.StatusTooManyRequests},
-		Limit:     axiom.Limit{Remaining: 0},
+		Status: http.StatusTooManyRequests,
+		Limit:  axiom.Limit{Remaining: 0},
 	}
 
 	assert.False(t, errors.Is(limitErr, axiom.HTTPError{Status: http.StatusTooManyRequests}))
