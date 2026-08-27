@@ -1,6 +1,6 @@
 module github.com/axiomhq/axiom-go
 
-go 1.26.0
+go 1.26.5
 
 tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
@@ -19,16 +19,24 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
 	go.opentelemetry.io/otel v1.45.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.20.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.45.0
+	go.opentelemetry.io/otel/log v0.20.0
 	go.opentelemetry.io/otel/sdk v1.45.0
+	go.opentelemetry.io/otel/sdk/log v0.20.0
 	go.opentelemetry.io/otel/trace v1.45.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/sync v0.22.0
+	google.golang.org/adk/v2 v2.1.0
+	google.golang.org/genai v1.67.0
 )
 
 require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
+	cloud.google.com/go v0.123.0 // indirect
+	cloud.google.com/go/auth v0.21.0 // indirect
+	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	codeberg.org/chavacava/garif v0.2.0 // indirect
 	codeberg.org/polyfloyd/go-errorlint v1.9.0 // indirect
 	dev.gaijin.team/go/exhaustruct/v4 v4.0.0 // indirect
@@ -37,6 +45,7 @@ require (
 	github.com/AdminBenni/iota-mixing v1.0.0 // indirect
 	github.com/AlwxSin/noinlineerr v1.0.6 // indirect
 	github.com/ClickHouse/clickhouse-go-linter v1.2.1 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.33.0 // indirect
 	github.com/MirrexOne/unqueryvet v1.5.4 // indirect
 	github.com/alfatraining/structtag v1.0.0 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.3.1 // indirect
@@ -53,14 +62,26 @@ require (
 	github.com/golangci/golangci-lint/v2 v2.13.0 // indirect
 	github.com/golangci/rowserrcheck v0.0.0-20260419091836-c5f79b8a11ba // indirect
 	github.com/golangci/swaggoswag v0.0.0-20250504205917-77f2aca3143e // indirect
+	github.com/google/jsonschema-go v0.4.2 // indirect
+	github.com/google/s2a-go v0.1.9 // indirect
+	github.com/google/safehtml v0.1.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.18 // indirect
+	github.com/googleapis/gax-go/v2 v2.23.0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/ldez/structtags v0.6.1 // indirect
 	github.com/manuelarte/embeddedstructfieldcheck v0.4.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/ryancurrah/gomodguard/v2 v2.1.3 // indirect
 	go.augendre.info/arangolint v0.4.0 // indirect
+	go.opentelemetry.io/contrib/detectors/gcp v1.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
+	google.golang.org/api v0.288.0 // indirect
 	gotest.tools/gotestsum v1.13.0 // indirect
+	rsc.io/omap v1.2.0 // indirect
+	rsc.io/ordered v1.1.1 // indirect
 )
 
 require (

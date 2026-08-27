@@ -28,8 +28,8 @@ func init() {
 }
 
 // TraceExporter configures and returns a new exporter for OpenTelemetry spans.
-func TraceExporter(ctx context.Context, dataset string, options ...TraceOption) (trace.SpanExporter, error) {
-	config := defaultTraceConfig()
+func TraceExporter(ctx context.Context, dataset string, options ...Option) (trace.SpanExporter, error) {
+	config := defaultExporterConfig("/v1/traces")
 
 	// Apply supplied options.
 	for _, option := range options {
@@ -88,7 +88,7 @@ func TraceExporter(ctx context.Context, dataset string, options ...TraceOption) 
 }
 
 // TracerProvider configures and returns a new OpenTelemetry tracer provider.
-func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion string, options ...TraceOption) (*trace.TracerProvider, error) {
+func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion string, options ...Option) (*trace.TracerProvider, error) {
 	exporter, err := TraceExporter(ctx, dataset, options...)
 	if err != nil {
 		return nil, err
@@ -109,6 +109,7 @@ func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion st
 	opts := []trace.TracerProviderOption{
 		trace.WithBatcher(exporter, trace.WithMaxQueueSize(1024*10)),
 		trace.WithResource(rs),
+		trace.WithSpanProcessor(&baggageSpanProcessor{}),
 	}
 
 	return trace.NewTracerProvider(opts...), nil
@@ -119,7 +120,7 @@ func TracerProvider(ctx context.Context, dataset, serviceName, serviceVersion st
 // function must be called to shut down the tracer provider and flush any
 // remaining spans. The error returned by the cleanup function must be checked,
 // as well.
-func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion string, options ...TraceOption) (func() error, error) {
+func InitTracing(ctx context.Context, dataset, serviceName, serviceVersion string, options ...Option) (func() error, error) {
 	tracerProvider, err := TracerProvider(ctx, dataset, serviceName, serviceVersion, options...)
 	if err != nil {
 		return nil, err
