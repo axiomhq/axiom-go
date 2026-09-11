@@ -49,8 +49,6 @@ To quickstart, export the environment variables below.
   Hacker News into Axiom.
 - [query](query/main.go): How to query a dataset using the Kusto-like Axiom
   Processing Language (APL).
-- [querylegacy](querylegacy/main.go): How to query a dataset using the legacy
-  query datatypes.
 
 ## Adapter usage
 

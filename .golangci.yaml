@@ -51,7 +51,7 @@ linters:
       # Deprecated axiom-go APIs the module still has to reference and test.
       - linters:
           - staticcheck
-        text: "SA1019:.*(querylegacy|QueryLegacy|BlocksCreated|WALLength) is deprecated"
+        text: "SA1019:.*(BlocksCreated|WALLength) is deprecated"
       - linters:
           - revive
         path: adapters/slog/

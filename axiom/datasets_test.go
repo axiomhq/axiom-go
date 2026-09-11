@@ -16,7 +16,6 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
-	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
 
@@ -137,54 +136,6 @@ const actQueryResp = `{
 	}
 }`
 
-const actLegacyQueryResp = `{
-	"status": {
-		"minCursor": "c776x1uafkpu-4918f6cb9000095-0",
-		"maxCursor": "c776x1uafnvq-4918f6cb9000095-1",
-		"elapsedTime": 542114,
-		"blocksExamined": 4,
-		"rowsExamined": 142655,
-		"rowsMatched": 142655,
-		"numGroups": 0,
-		"isPartial": false,
-		"cacheStatus": 1,
-		"minBlockTime": "2020-11-19T11:06:31.569475746Z",
-		"maxBlockTime": "2020-11-27T12:06:38.966791794Z"
-	},
-	"matches": [
-		{
-			"_time": "2020-11-19T11:06:31.569475746Z",
-			"_sysTime": "2020-11-19T11:06:31.581384524Z",
-			"_rowId": "c776x1uafkpu-4918f6cb9000095-0",
-			"data": {
-				"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-				"bytes": 0,
-				"referrer": "-",
-				"remote_ip": "93.180.71.3",
-				"remote_user": "-",
-				"request": "GET /downloads/product_1 HTTP/1.1",
-				"response": 304,
-				"time": "17/May/2015:08:05:32 +0000"
-			}
-		},
-		{
-			"_time": "2020-11-19T11:06:31.569479846Z",
-			"_sysTime": "2020-11-19T11:06:31.581384524Z",
-			"_rowId": "c776x1uafnvq-4918f6cb9000095-1",
-			"data": {
-				"agent": "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-				"bytes": 0,
-				"referrer": "-",
-				"remote_ip": "93.180.71.3",
-				"remote_user": "-",
-				"request": "GET /downloads/product_1 HTTP/1.1",
-				"response": 304,
-				"time": "17/May/2015:08:05:23 +0000"
-			}
-		}
-	]
-}`
-
 var (
 	expQueryRes = &query.Result{
 		Tables: []query.Table{
@@ -302,55 +253,6 @@ var (
 			RowsMatched:  142655,
 		},
 		TraceID: "abc",
-	}
-
-	expLegacyQueryRes = &querylegacy.Result{
-		Status: querylegacy.Status{
-			ElapsedTime:    time.Microsecond * 542_114,
-			MinCursor:      "c776x1uafkpu-4918f6cb9000095-0",
-			MaxCursor:      "c776x1uafnvq-4918f6cb9000095-1",
-			BlocksExamined: 4,
-			RowsExamined:   142655,
-			RowsMatched:    142655,
-			NumGroups:      0,
-			IsPartial:      false,
-			MinBlockTime:   parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
-			MaxBlockTime:   parseTimeOrPanic("2020-11-27T12:06:38.966791794Z"),
-		},
-		Matches: []querylegacy.Entry{
-			{
-				Time:    parseTimeOrPanic("2020-11-19T11:06:31.569475746Z"),
-				SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
-				RowID:   "c776x1uafkpu-4918f6cb9000095-0",
-				Data: map[string]any{
-					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-					"bytes":       float64(0),
-					"referrer":    "-",
-					"remote_ip":   "93.180.71.3",
-					"remote_user": "-",
-					"request":     "GET /downloads/product_1 HTTP/1.1",
-					"response":    float64(304),
-					"time":        "17/May/2015:08:05:32 +0000",
-				},
-			},
-			{
-				Time:    parseTimeOrPanic("2020-11-19T11:06:31.569479846Z"),
-				SysTime: parseTimeOrPanic("2020-11-19T11:06:31.581384524Z"),
-				RowID:   "c776x1uafnvq-4918f6cb9000095-1",
-				Data: map[string]any{
-					"agent":       "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)",
-					"bytes":       float64(0),
-					"referrer":    "-",
-					"remote_ip":   "93.180.71.3",
-					"remote_user": "-",
-					"request":     "GET /downloads/product_1 HTTP/1.1",
-					"response":    float64(304),
-					"time":        "17/May/2015:08:05:23 +0000",
-				},
-			},
-		},
-		SavedQueryID: "fyTFUldK4Z5219rWaz",
-		TraceID:      "abc",
 	}
 )
 
@@ -1229,47 +1131,6 @@ func TestDatasetsService_Query(t *testing.T) {
 }
 
 // TODO(lukasmalkmus): Add test for a query with an aggregation.
-
-func TestDatasetsService_QueryLegacy(t *testing.T) {
-	hf := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPost, r.Method)
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
-
-		assert.Equal(t, "1s", r.URL.Query().Get("streaming-duration"))
-		assert.Equal(t, "true", r.URL.Query().Get("nocache"))
-		assert.Equal(t, "analytics", r.URL.Query().Get("saveAsKind"))
-
-		w.Header().Set("X-Axiom-History-Query-Id", "fyTFUldK4Z5219rWaz")
-
-		w.Header().Set("Content-Type", mediaTypeJSON)
-		w.Header().Set("X-Axiom-Trace-Id", "abc")
-		_, err := fmt.Fprint(w, actLegacyQueryResp)
-		assert.NoError(t, err)
-	}
-
-	client := setup(t, "POST /v1/datasets/test/query", hf)
-
-	res, err := client.Datasets.QueryLegacy(t.Context(), "test", querylegacy.Query{
-		StartTime: testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-26T11:18:00Z"),
-		EndTime:   testhelper.MustTimeParse(t, time.RFC3339Nano, "2020-11-17T11:18:00Z"),
-	}, querylegacy.Options{
-		StreamingDuration: time.Second,
-		NoCache:           true,
-		SaveKind:          querylegacy.Analytics,
-	})
-	require.NoError(t, err)
-
-	assert.Equal(t, expLegacyQueryRes, res)
-}
-
-func TestDatasetsService_QueryLegacyInvalid_InvalidSaveKind(t *testing.T) {
-	client := setup(t, "POST /v1/datasets/test/query", nil)
-
-	_, err := client.Datasets.QueryLegacy(t.Context(), "test", querylegacy.Query{}, querylegacy.Options{
-		SaveKind: querylegacy.APL,
-	})
-	require.EqualError(t, err, `invalid query kind "apl": must be "analytics" or "stream"`)
-}
 
 func TestDetectContentType(t *testing.T) {
 	tests := []struct {

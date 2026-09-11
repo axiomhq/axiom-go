@@ -25,7 +25,6 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
-	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/config"
 	"github.com/axiomhq/axiom-go/internal/version"
 )
@@ -480,18 +479,6 @@ func (c *Client) IngestChannel(ctx context.Context, id string, events <-chan Eve
 // [our documentation]: https://www.axiom.co/docs/apl/introduction
 func (c *Client) Query(ctx context.Context, apl string, options ...query.Option) (*query.Result, error) {
 	return c.Datasets.Query(ctx, apl, options...)
-}
-
-// QueryLegacy executes the given legacy query on the dataset identified by its
-// id.
-//
-// This function is an alias to [DatasetsService.Query].
-//
-// Deprecated: Legacy queries will be replaced by queries specified using the
-// Axiom Processing Language (APL) and the legacy query API will be removed in
-// the future. Use [Client.Query] instead.
-func (c *Client) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
-	return c.Datasets.QueryLegacy(ctx, id, q, opts)
 }
 
 func (c *Client) trace(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {

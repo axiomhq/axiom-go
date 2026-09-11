@@ -14,7 +14,6 @@ import (
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
-	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 )
 
 const (
@@ -294,77 +293,7 @@ func (s *DatasetsTestSuite) Test() {
 		}
 	}
 
-	// Also run a legacy query and make sure we see some results.
-	legacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, querylegacy.Query{
-		StartTime: startTime,
-		EndTime:   endTime,
-	}, querylegacy.Options{})
-	s.Require().NoError(err)
-	s.Require().NotNil(legacyQueryResult)
-
 	s.NotZero(queryResult.Status.ElapsedTime)
-	s.EqualValues(14, legacyQueryResult.Status.RowsExamined)
-	s.EqualValues(14, legacyQueryResult.Status.RowsMatched)
-	s.Len(legacyQueryResult.Matches, 14)
-
-	// Run a more complex legacy query.
-	complexLegacyQuery := querylegacy.Query{
-		StartTime: startTime,
-		EndTime:   endTime,
-		Aggregations: []querylegacy.Aggregation{
-			{
-				Alias: "event_count",
-				Op:    querylegacy.OpCount,
-				Field: "*",
-			},
-		},
-		GroupBy: []string{"success", "remote_ip"},
-		Filter: querylegacy.Filter{
-			Op:    querylegacy.OpExists,
-			Field: "response",
-			Children: []querylegacy.Filter{
-				{
-					Op:    querylegacy.OpContains,
-					Field: "request",
-					Value: "GET",
-				},
-			},
-		},
-		Order: []querylegacy.Order{
-			{
-				Field: "success",
-				Desc:  true,
-			},
-			{
-				Field: "remote_ip",
-				Desc:  false,
-			},
-		},
-		VirtualFields: []querylegacy.VirtualField{
-			{
-				Alias:      "success",
-				Expression: "toint(response) < 400",
-			},
-		},
-		Projections: []querylegacy.Projection{
-			{
-				Field: "remote_ip",
-				Alias: "ip",
-			},
-		},
-	}
-
-	complexLegacyQueryResult, err := s.client.Datasets.QueryLegacy(s.ctx, s.dataset.ID, complexLegacyQuery, querylegacy.Options{})
-	s.Require().NoError(err)
-	s.Require().NotNil(complexLegacyQueryResult)
-
-	s.EqualValues(14, complexLegacyQueryResult.Status.RowsExamined)
-	s.EqualValues(14, complexLegacyQueryResult.Status.RowsMatched)
-	if s.Len(complexLegacyQueryResult.Buckets.Totals, 2) {
-		agg := complexLegacyQueryResult.Buckets.Totals[0].Aggregations[0]
-		s.EqualValues("event_count", agg.Alias)
-		s.EqualValues(7, agg.Value)
-	}
 
 	// Trim the dataset down to a minimum.
 	err = s.client.Datasets.Trim(s.ctx, s.dataset.ID, time.Second)
