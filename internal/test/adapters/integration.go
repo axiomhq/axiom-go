@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/axiomhq/axiom-go/axiom"
-	"github.com/axiomhq/axiom-go/axiom/querylegacy"
+	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/internal/test/integration"
 	"github.com/axiomhq/axiom-go/internal/test/testhelper"
 )
@@ -80,13 +80,14 @@ func IntegrationTest(t *testing.T, adapterName string, testFunc IntegrationTestF
 	testFunc(ctx, dataset.ID, client)
 
 	// Make sure the dataset is not empty.
-	res, err := client.Datasets.QueryLegacy(ctx, dataset.ID, querylegacy.Query{
-		StartTime: startTime,
-		EndTime:   endtime,
-	}, querylegacy.Options{})
+	apl := fmt.Sprintf("['%s']", dataset.ID)
+	res, err := client.Datasets.Query(ctx, apl,
+		query.SetStartTime(startTime),
+		query.SetEndTime(endtime),
+	)
 	require.NoError(t, err)
 
-	assert.NotZero(t, len(res.Matches), "dataset should not be empty")
+	assert.NotZero(t, res.Status.RowsMatched, "dataset should not be empty")
 }
 
 //nolint:revive // This is a test helper so having context as the second parameter is fine.

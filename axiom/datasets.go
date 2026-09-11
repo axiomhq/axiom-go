@@ -20,7 +20,6 @@ import (
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
-	"github.com/axiomhq/axiom-go/axiom/querylegacy"
 	"github.com/axiomhq/axiom-go/internal/config"
 )
 
@@ -801,59 +800,6 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 	return &res.Result, nil
 }
 
-// QueryLegacy executes the given legacy query on the dataset identified by its
-// id.
-//
-// Deprecated: Legacy queries will be replaced by queries specified using the
-// Axiom Processing Language (APL) and the legacy query API will be removed in
-// the future. Use [DatasetsService.Query] instead.
-func (s *DatasetsService) QueryLegacy(ctx context.Context, id string, q querylegacy.Query, opts querylegacy.Options) (*querylegacy.Result, error) {
-	ctx, span := s.client.trace(ctx, "Datasets.QueryLegacy", trace.WithAttributes(
-		attribute.String("axiom.dataset_id", id),
-	))
-	defer span.End()
-
-	if opts.SaveKind == querylegacy.APL {
-		err := fmt.Errorf("invalid query kind %q: must be %q or %q",
-			opts.SaveKind, querylegacy.Analytics, querylegacy.Stream)
-		return nil, spanError(span, err)
-	}
-
-	path, err := url.JoinPath("/v1/datasets", id, "query")
-	if err != nil {
-		return nil, spanError(span, err)
-	} else if path, err = AddURLOptions(path, opts); err != nil {
-		return nil, spanError(span, err)
-	}
-
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, q)
-	if err != nil {
-		return nil, spanError(span, err)
-	}
-
-	var (
-		res struct {
-			querylegacy.Result
-
-			// HINT(lukasmalkmus): Ignore these fields as they are not relevant
-			// for the user.
-			FieldsMeta any `json:"fieldsMeta"`
-			Format     any `json:"format"`
-		}
-		resp *Response
-	)
-	if resp, err = s.client.Do(req, &res); err != nil {
-		return nil, spanError(span, err)
-	}
-	res.SavedQueryID = resp.Header.Get("X-Axiom-History-Query-Id")
-	res.TraceID = resp.TraceID()
-
-	setLegacyQueryStatusOnSpan(span, res.Status)
-	span.SetAttributes(attribute.String("axiom.trace_id", res.TraceID))
-
-	return &res.Result, nil
-}
-
 // DetectContentType detects the content type of a readers data. The returned
 // reader must be used instead of the passed one. Compressed content is not
 // detected.
@@ -927,26 +873,6 @@ func setQueryStatusOnSpan(span trace.Span, status query.Status) {
 		attribute.Int64("axiom.query.rows_matched", int64(status.RowsMatched)),   //nolint:gosec // Fine for this use case.
 		attribute.Bool("axiom.query.is_partial", status.IsPartial),
 		attribute.Bool("axiom.query.is_estimate", status.IsEstimate),
-	)
-}
-
-func setLegacyQueryStatusOnSpan(span trace.Span, status querylegacy.Status) {
-	if !span.IsRecording() {
-		return
-	}
-
-	span.SetAttributes(
-		attribute.String("axiom.querylegacy.elapsed_time", status.ElapsedTime.String()),
-		attribute.Int64("axiom.querylegacy.blocks_examined", int64(status.BlocksExamined)), //nolint:gosec // Fine for this use case.
-		attribute.Int64("axiom.querylegacy.rows_examined", int64(status.RowsExamined)),     //nolint:gosec // Fine for this use case.
-		attribute.Int64("axiom.querylegacy.rows_matched", int64(status.RowsMatched)),       //nolint:gosec // Fine for this use case.
-		attribute.Int64("axiom.querylegacy.num_groups", int64(status.NumGroups)),
-		attribute.Bool("axiom.querylegacy.is_partial", status.IsPartial),
-		attribute.Bool("axiom.querylegacy.is_estimate", status.IsEstimate),
-		attribute.String("axiom.querylegacy.min_block_time", status.MinBlockTime.String()),
-		attribute.String("axiom.querylegacy.max_block_time", status.MaxBlockTime.String()),
-		attribute.String("axiom.querylegacy.min_cursor", status.MinCursor),
-		attribute.String("axiom.querylegacy.max_cursor", status.MaxCursor),
 	)
 }
 
