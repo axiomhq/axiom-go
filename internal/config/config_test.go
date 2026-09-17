@@ -141,48 +141,48 @@ func mustParseURL(tb testing.TB, urlStr string) *url.URL {
 	return u
 }
 
-func TestConfig_EdgeIngestURL(t *testing.T) {
+func TestConfig_EdgeEndpoint(t *testing.T) {
 	tests := []struct {
 		name     string
 		edgeURL  string
 		edge     string
-		dataset  string
+		path     string
 		expected string
 	}{
 		{
 			name:     "no edge configured",
-			dataset:  "test-dataset",
+			path:     "/v1/ingest/test-dataset",
 			expected: "",
 		},
 		{
 			name:     "edge URL without path",
 			edgeURL:  "https://eu-central-1.aws.edge.axiom.co",
-			dataset:  "test-dataset",
+			path:     "/v1/ingest/test-dataset",
 			expected: "https://eu-central-1.aws.edge.axiom.co/v1/ingest/test-dataset",
 		},
 		{
 			name:     "edge URL with trailing slash",
 			edgeURL:  "https://eu-central-1.aws.edge.axiom.co/",
-			dataset:  "test-dataset",
-			expected: "https://eu-central-1.aws.edge.axiom.co/v1/ingest/test-dataset",
+			path:     "/v1/query/_apl",
+			expected: "https://eu-central-1.aws.edge.axiom.co/v1/query/_apl",
 		},
 		{
 			name:     "edge URL with custom path",
 			edgeURL:  "http://localhost:3400/ingest",
-			dataset:  "test-dataset",
+			path:     "/v1/ingest/test-dataset",
 			expected: "http://localhost:3400/ingest",
 		},
 		{
 			name:     "edge domain only",
 			edge:     "eu-central-1.aws.edge.axiom.co",
-			dataset:  "my-dataset",
+			path:     "/v1/ingest/my-dataset",
 			expected: "https://eu-central-1.aws.edge.axiom.co/v1/ingest/my-dataset",
 		},
 		{
 			name:     "edge URL takes precedence over edge domain",
 			edgeURL:  "https://primary.edge.axiom.co",
 			edge:     "secondary.edge.axiom.co",
-			dataset:  "test-dataset",
+			path:     "/v1/ingest/test-dataset",
 			expected: "https://primary.edge.axiom.co/v1/ingest/test-dataset",
 		},
 	}
@@ -194,110 +194,13 @@ func TestConfig_EdgeIngestURL(t *testing.T) {
 				cfg.edgeURL = mustParseURL(t, tt.edgeURL)
 			}
 
-			result := cfg.EdgeIngestURL(tt.dataset)
+			result := cfg.EdgeEndpoint(tt.path)
 			if tt.expected == "" {
 				assert.Nil(t, result)
 			} else {
 				require.NotNil(t, result)
 				assert.Equal(t, tt.expected, result.String())
 			}
-		})
-	}
-}
-
-func TestConfig_EdgeQueryURL(t *testing.T) {
-	tests := []struct {
-		name     string
-		edgeURL  string
-		edge     string
-		expected string
-	}{
-		{
-			name:     "no edge configured",
-			expected: "",
-		},
-		{
-			name:     "edge URL without path",
-			edgeURL:  "https://eu-central-1.aws.edge.axiom.co",
-			expected: "https://eu-central-1.aws.edge.axiom.co/v1/query/_apl",
-		},
-		{
-			name:     "edge URL with trailing slash",
-			edgeURL:  "https://eu-central-1.aws.edge.axiom.co/",
-			expected: "https://eu-central-1.aws.edge.axiom.co/v1/query/_apl",
-		},
-		{
-			name:     "edge URL with custom path",
-			edgeURL:  "http://localhost:3400/query",
-			expected: "http://localhost:3400/query",
-		},
-		{
-			name:     "edge domain only",
-			edge:     "eu-central-1.aws.edge.axiom.co",
-			expected: "https://eu-central-1.aws.edge.axiom.co/v1/query/_apl",
-		},
-		{
-			name:     "edge URL takes precedence over edge domain",
-			edgeURL:  "https://primary.edge.axiom.co",
-			edge:     "secondary.edge.axiom.co",
-			expected: "https://primary.edge.axiom.co/v1/query/_apl",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := Config{edge: tt.edge}
-			if tt.edgeURL != "" {
-				cfg.edgeURL = mustParseURL(t, tt.edgeURL)
-			}
-
-			result := cfg.EdgeQueryURL()
-			if tt.expected == "" {
-				assert.Nil(t, result)
-			} else {
-				require.NotNil(t, result)
-				assert.Equal(t, tt.expected, result.String())
-			}
-		})
-	}
-}
-
-func TestConfig_IsEdgeConfigured(t *testing.T) {
-	tests := []struct {
-		name     string
-		edgeURL  string
-		edge     string
-		expected bool
-	}{
-		{
-			name:     "no edge configured",
-			expected: false,
-		},
-		{
-			name:     "edge URL configured",
-			edgeURL:  "https://edge.example.com",
-			expected: true,
-		},
-		{
-			name:     "edge domain configured",
-			edge:     "edge.example.com",
-			expected: true,
-		},
-		{
-			name:     "both configured",
-			edgeURL:  "https://edge.example.com",
-			edge:     "edge.example.com",
-			expected: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := Config{edge: tt.edge}
-			if tt.edgeURL != "" {
-				cfg.edgeURL = mustParseURL(t, tt.edgeURL)
-			}
-			assert.Equal(t, tt.expected, cfg.IsEdgeConfigured())
 		})
 	}
 }
@@ -307,8 +210,7 @@ func TestSetEdgeURL(t *testing.T) {
 	err := cfg.Options(SetEdgeURL("https://edge.example.com"))
 	require.NoError(t, err)
 
-	assert.NotNil(t, cfg.EdgeURL())
-	assert.Equal(t, "https://edge.example.com", cfg.EdgeURL().String())
+	assert.Equal(t, "https://edge.example.com/v1/query/_apl", cfg.EdgeEndpoint("/v1/query/_apl").String())
 }
 
 func TestSetEdgeURL_Invalid(t *testing.T) {
@@ -322,5 +224,5 @@ func TestSetEdge(t *testing.T) {
 	err := cfg.Options(SetEdge("eu-central-1.aws.edge.axiom.co"))
 	require.NoError(t, err)
 
-	assert.Equal(t, "eu-central-1.aws.edge.axiom.co", cfg.Edge())
+	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/query/_apl", cfg.EdgeEndpoint("/v1/query/_apl").String())
 }
