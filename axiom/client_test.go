@@ -444,6 +444,30 @@ func TestClient_Do_unsupportedContentType_empty(t *testing.T) {
 	require.ErrorContains(t, err, "cannot decode response with unsupported content type")
 }
 
+func TestAccepts(t *testing.T) {
+	metrics := mediaTypeMetricsV2 + ", " + mediaTypeJSON
+
+	tests := []struct {
+		accept    string
+		mediaType string
+		want      bool
+	}{
+		{"", mediaTypeJSON, true},
+		{"*/*", mediaTypeJSON, true},
+		{"application/*", mediaTypeJSON, true},
+		{"not a media type", mediaTypeJSON, true},
+		{"", "text/html", false},
+		{"*/*", mediaTypeMetricsV2, false},
+		{mediaTypeJSON, mediaTypeMetricsV2, false},
+		{metrics, mediaTypeMetricsV2, true},
+		{metrics, mediaTypeJSON, true},
+		{metrics, "application/vnd.metrics.v4+json", false},
+	}
+	for _, tt := range tests {
+		assert.Equal(t, tt.want, accepts(tt.accept, tt.mediaType), "accepts(%q, %q)", tt.accept, tt.mediaType)
+	}
+}
+
 func TestClient_Do_HTTPError(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("X-Axiom-Trace-Id", "abc")
@@ -756,11 +780,17 @@ func TestClient_Do_Backoff_NoRetryOn400(t *testing.T) {
 // the response for the API method being tested.
 func setup(t *testing.T, path string, handler http.HandlerFunc) *Client {
 	t.Helper()
+	return setupAccept(t, path, mediaTypeJSON, handler)
+}
+
+// setupAccept is like [setup] but expects the given Accept header.
+func setupAccept(t *testing.T, path, accept string, handler http.HandlerFunc) *Client {
+	t.Helper()
 
 	r := http.NewServeMux()
 	r.HandleFunc(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.NotEmpty(t, r.Header.Get("Authorization"), "no authorization header present on the request")
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("Accept"), "bad accept header present on the request")
+		assert.Equal(t, accept, r.Header.Get("Accept"), "bad accept header present on the request")
 		assert.Equal(t, "axiom-go", r.Header.Get("User-Agent"), "bad user-agent header present on the request")
 		if organizationIDHeader := r.Header.Get("X-Axiom-Org-Id"); organizationIDHeader != "" {
 			assert.Equal(t, organizationID, organizationIDHeader, "bad x-axiom-org-id header present on the request")

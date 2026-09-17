@@ -3,7 +3,6 @@ package axiom_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -15,18 +14,6 @@ import (
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
-
-var (
-	edgeURL        string
-	edgeToken      string
-	edgeDeployment string
-)
-
-func init() {
-	edgeURL = os.Getenv("AXIOM_EDGE_URL")
-	edgeToken = os.Getenv("AXIOM_EDGE_TOKEN")
-	edgeDeployment = os.Getenv("AXIOM_EDGE_DEPLOYMENT")
-}
 
 // EdgeTestSuite tests ingest and query operations using edge endpoints.
 type EdgeTestSuite struct {
