@@ -71,8 +71,8 @@ type AnnotationUpdateRequest struct {
 	Type string `json:"type,omitempty"`
 }
 
-// AnnotationsService handles communication with the dataset related operations
-// of the Axiom API.
+// AnnotationsService handles communication with the annotation related
+// operations of the Axiom API.
 //
 // Axiom API Reference: /v2/annotations
 type AnnotationsService service
@@ -91,10 +91,11 @@ func (a *AnnotationsService) Create(ctx context.Context, annotation *AnnotationC
 }
 
 // AnnotationsFilter filters annotations on the [AnnotationsService.List] method.
+// Start and End must be set together and span at most 100 days.
 type AnnotationsFilter struct {
-	Datasets []string  `url:"datasets"`
-	Start    time.Time `url:"start"`
-	End      time.Time `url:"start"`
+	Datasets []string  `url:"datasets,comma"`
+	Start    time.Time `url:"start,omitempty" layout:"2006-01-02T15:04:05.999999999Z07:00"`
+	End      time.Time `url:"end,omitempty" layout:"2006-01-02T15:04:05.999999999Z07:00"`
 }
 
 // List annotations.
@@ -148,6 +149,8 @@ func (a *AnnotationsService) Get(ctx context.Context, id string) (*Annotation, e
 	return &res, nil
 }
 
+// Update the Annotation with the given ID. Zero-value fields leave the stored
+// values unchanged.
 func (a *AnnotationsService) Update(ctx context.Context, id string, annotation *AnnotationUpdateRequest) (*Annotation, error) {
 	ctx, span := a.client.trace(ctx, "Annotations.Update", trace.WithAttributes(
 		attribute.String("axiom.annotation_id", id),
