@@ -6,6 +6,7 @@ import (
 	stdlog "log"
 	"maps"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
@@ -39,7 +40,7 @@ func SetClient(client *axiom.Client) Option {
 // the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(h *Handler) error {
-		h.clientOptions = options
+		h.clientOptions = slices.Clone(options)
 		return nil
 	}
 }
@@ -57,7 +58,7 @@ func SetDataset(datasetName string) Option {
 // logs.
 func SetIngestOptions(opts ...ingest.Option) Option {
 	return func(h *Handler) error {
-		h.ingestOptions = opts
+		h.ingestOptions = slices.Clone(opts)
 		return nil
 	}
 }

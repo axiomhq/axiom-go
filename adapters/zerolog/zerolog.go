@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
@@ -103,7 +104,7 @@ func SetDataset(dataset string) Option {
 // the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(cfg *Writer) error {
-		cfg.clientOptions = options
+		cfg.clientOptions = slices.Clone(options)
 		return nil
 	}
 }
@@ -111,7 +112,7 @@ func SetClientOptions(options ...axiom.Option) Option {
 // SetIngestOptions configures the axiom ingest options.
 func SetIngestOptions(ingestOptions []ingest.Option) Option {
 	return func(cfg *Writer) error {
-		cfg.ingestOptions = ingestOptions
+		cfg.ingestOptions = slices.Clone(ingestOptions)
 		return nil
 	}
 }

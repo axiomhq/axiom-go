@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
@@ -57,7 +58,7 @@ func SetClient(client *axiom.Client) Option {
 // the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(ws *WriteSyncer) error {
-		ws.clientOptions = options
+		ws.clientOptions = slices.Clone(options)
 		return nil
 	}
 }
@@ -75,7 +76,7 @@ func SetDataset(datasetName string) Option {
 // logs.
 func SetIngestOptions(opts ...ingest.Option) Option {
 	return func(ws *WriteSyncer) error {
-		ws.ingestOptions = opts
+		ws.ingestOptions = slices.Clone(opts)
 		return nil
 	}
 }
