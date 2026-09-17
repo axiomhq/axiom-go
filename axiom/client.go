@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/axiomhq/axiom-go/axiom/ingest"
+	"github.com/axiomhq/axiom-go/axiom/mpl"
 	"github.com/axiomhq/axiom-go/axiom/query"
 	"github.com/axiomhq/axiom-go/internal/config"
 	"github.com/axiomhq/axiom-go/internal/version"
@@ -40,9 +41,10 @@ const (
 
 	headerTraceID = "X-Axiom-Trace-Id"
 
-	defaultMediaType = "application/octet-stream"
-	mediaTypeJSON    = "application/json"
-	mediaTypeNDJSON  = "application/x-ndjson"
+	defaultMediaType   = "application/octet-stream"
+	mediaTypeJSON      = "application/json"
+	mediaTypeNDJSON    = "application/x-ndjson"
+	mediaTypeMetricsV2 = "application/vnd.metrics.v2+json"
 
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
@@ -93,6 +95,7 @@ type Client struct {
 
 	// Services for communicating with different parts of the Axiom API.
 	Datasets      *DatasetsService
+	Metrics       *MetricsService
 	Dashboards    *DashboardsService
 	Organizations *OrganizationsService
 	Users         *UsersService
@@ -132,6 +135,7 @@ func NewClient(options ...Option) (*Client, error) {
 	}
 
 	client.Datasets = &DatasetsService{client: client, basePath: "/v2/datasets"}
+	client.Metrics = &MetricsService{client: client, basePath: "/v1/query"}
 	client.Dashboards = &DashboardsService{client: client, basePath: "/v2/dashboards"}
 	client.Organizations = &OrganizationsService{client: client, basePath: "/v2/orgs"}
 	client.Users = &UsersService{client: client, basePath: "/v2/users"}
@@ -381,7 +385,7 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			return resp, err
 		}
 
-		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); !accepts(req.Header.Get(headerAccept), ct) {
 			return resp, fmt.Errorf("cannot decode response with unsupported content type %q", ct)
 		}
 
@@ -481,8 +485,39 @@ func (c *Client) Query(ctx context.Context, apl string, options ...query.Option)
 	return c.Datasets.Query(ctx, apl, options...)
 }
 
+// QueryMPL executes the given query specified using the Metrics Processing
+// Language (MPL) for the time range from start to end.
+//
+// MPL queries only run on an edge endpoint. Configure one with [SetEdge] or
+// [SetEdgeURL]. [Dataset.EdgeDeploymentURL] is the edge URL of a dataset.
+// Without an edge endpoint, the method returns [ErrMissingEdge].
+//
+// To learn more about MPL, please refer to [our documentation].
+//
+// This function is an alias to [MetricsService.Query].
+//
+// [our documentation]: https://www.axiom.co/docs/mpl/introduction
+func (c *Client) QueryMPL(ctx context.Context, q string, start, end time.Time, options ...mpl.Option) (*mpl.Result, error) {
+	return c.Metrics.Query(ctx, q, start, end, options...)
+}
+
 func (c *Client) trace(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	return c.tracer.Start(ctx, name, opts...)
+}
+
+// accepts reports whether the Accept header lists the media type. A missing,
+// unparsable or wildcard entry counts as application/json.
+func accepts(accept, mediaType string) bool {
+	for entry := range strings.SplitSeq(accept, ",") {
+		mt, _, err := mime.ParseMediaType(entry)
+		if err != nil || strings.Contains(mt, "*") {
+			mt = mediaTypeJSON
+		}
+		if mt == mediaType {
+			return true
+		}
+	}
+	return false
 }
 
 func spanError(span trace.Span, err error) error {
