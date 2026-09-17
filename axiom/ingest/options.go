@@ -1,5 +1,10 @@
 package ingest
 
+import (
+	"maps"
+	"slices"
+)
+
 // TimestampField is the default field the server will look for a timestamp to
 // use as the ingestion time. If not present, the server will set the ingestion
 // time to the current server time.
@@ -62,10 +67,10 @@ func SetEventLabel(key string, value any) Option {
 	}
 }
 
-// SetEventLabels sets the labels to apply to all events. It will overwrite any
-// existing labels.
+// SetEventLabels sets the labels to apply to all events. It copies the map and
+// overwrites any existing labels.
 func SetEventLabels(labels map[string]any) Option {
-	return func(o *Options) { o.EventLabels = labels }
+	return func(o *Options) { o.EventLabels = maps.Clone(labels) }
 }
 
 // AddCSVField adds one or more fields to be ingested with every CSV event.
@@ -78,7 +83,8 @@ func AddCSVField(field ...string) Option {
 	}
 }
 
-// SetCSVFields sets the fields to be ingested with every CSV event.
+// SetCSVFields sets the fields to be ingested with every CSV event. It copies
+// the fields and overwrites any existing fields.
 func SetCSVFields(fields ...string) Option {
-	return func(o *Options) { o.CSVFields = fields }
+	return func(o *Options) { o.CSVFields = slices.Clone(fields) }
 }

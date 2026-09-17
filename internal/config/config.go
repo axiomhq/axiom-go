@@ -22,7 +22,7 @@ type Config struct {
 	// Takes precedence over edge if both are set.
 	edgeURL *url.URL
 	// edge is the regional edge domain (e.g., "eu-central-1.aws.edge.axiom.co").
-	// When set, edge URLs are built as "https://{edge}/v1/ingest/{dataset}".
+	// When set, edge URLs are built as "https://{edge}{path}".
 	edge string
 }
 
@@ -63,19 +63,9 @@ func (c *Config) SetOrganizationID(organizationID string) {
 	c.organizationID = organizationID
 }
 
-// EdgeURL returns the edge URL.
-func (c Config) EdgeURL() *url.URL {
-	return c.edgeURL
-}
-
 // SetEdgeURL sets the edge URL.
 func (c *Config) SetEdgeURL(edgeURL *url.URL) {
 	c.edgeURL = edgeURL
-}
-
-// Edge returns the edge domain.
-func (c Config) Edge() string {
-	return c.edge
 }
 
 // SetEdge sets the edge domain.
@@ -83,67 +73,28 @@ func (c *Config) SetEdge(edge string) {
 	c.edge = edge
 }
 
-// IsEdgeConfigured returns true if an edge endpoint is configured.
-func (c Config) IsEdgeConfigured() bool {
-	return c.edgeURL != nil || c.edge != ""
-}
-
-// EdgeIngestURL returns the URL for edge-based ingestion for the given dataset.
-// Returns nil if no edge configuration is set.
+// EdgeEndpoint returns the edge URL of the API endpoint at path, for example
+// "/v1/ingest/{dataset}" or "/v1/query/_apl". Returns nil if no edge
+// configuration is set.
 //
 // URL handling follows this priority:
 //   - If edgeURL has a custom path, it is used as-is
-//   - If edgeURL has no path (or only "/"), "/v1/ingest/{dataset}" is appended
-//   - If edge is set, builds "https://{edge}/v1/ingest/{dataset}"
-func (c Config) EdgeIngestURL(dataset string) *url.URL {
+//   - If edgeURL has no path (or only "/"), path is appended
+//   - If edge is set, builds "https://{edge}{path}"
+func (c Config) EdgeEndpoint(path string) *url.URL {
 	if c.edgeURL != nil {
-		path := strings.TrimSuffix(c.edgeURL.Path, "/")
-
 		// If URL has a custom path, use as-is
-		if path != "" {
+		if strings.TrimSuffix(c.edgeURL.Path, "/") != "" {
 			return c.edgeURL
 		}
-
-		// No path provided - resolve edge format path
-		return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/ingest/" + dataset})
+		return c.edgeURL.ResolveReference(&url.URL{Path: path})
 	}
 
 	if c.edge != "" {
 		return &url.URL{
 			Scheme: "https",
 			Host:   c.edge,
-			Path:   "/v1/ingest/" + dataset,
-		}
-	}
-
-	return nil
-}
-
-// EdgeQueryURL returns the URL for edge-based query operations.
-// Returns nil if no edge configuration is set.
-//
-// URL handling follows this priority:
-//   - If edgeURL has a custom path, it is used as-is
-//   - If edgeURL has no path (or only "/"), "/v1/query/_apl" is appended
-//   - If edge is set, builds "https://{edge}/v1/query/_apl"
-func (c Config) EdgeQueryURL() *url.URL {
-	if c.edgeURL != nil {
-		path := strings.TrimSuffix(c.edgeURL.Path, "/")
-
-		// If URL has a custom path, use as-is
-		if path != "" {
-			return c.edgeURL
-		}
-
-		// No path provided - resolve edge format path
-		return c.edgeURL.ResolveReference(&url.URL{Path: "/v1/query/_apl"})
-	}
-
-	if c.edge != "" {
-		return &url.URL{
-			Scheme: "https",
-			Host:   c.edge,
-			Path:   "/v1/query/_apl",
+			Path:   path,
 		}
 	}
 

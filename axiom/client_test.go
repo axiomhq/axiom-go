@@ -332,9 +332,7 @@ func TestClient_Options_SetEdgeURL(t *testing.T) {
 	err := client.Options(opt)
 	assert.NoError(t, err)
 
-	assert.NotNil(t, client.config.EdgeURL())
-	assert.Equal(t, exp, client.config.EdgeURL().String())
-	assert.True(t, client.config.IsEdgeConfigured())
+	assert.Equal(t, exp+"/v1/query/_apl", client.config.EdgeEndpoint("/v1/query/_apl").String())
 }
 
 func TestClient_Options_SetEdgeURL_Invalid(t *testing.T) {
@@ -344,60 +342,6 @@ func TestClient_Options_SetEdgeURL_Invalid(t *testing.T) {
 
 	err := client.Options(opt)
 	assert.Error(t, err)
-}
-
-func TestClient_EdgeIngestURL(t *testing.T) {
-	client := newClient(t)
-
-	// No edge configured - should return nil
-	assert.Nil(t, client.config.EdgeIngestURL("test-dataset"))
-
-	// Configure edge URL
-	err := client.Options(SetEdgeURL("https://eu-central-1.aws.edge.axiom.co"))
-	require.NoError(t, err)
-
-	edgeURL := client.config.EdgeIngestURL("test-dataset")
-	require.NotNil(t, edgeURL)
-	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/ingest/test-dataset", edgeURL.String())
-}
-
-func TestClient_EdgeQueryURL(t *testing.T) {
-	client := newClient(t)
-
-	// No edge configured - should return nil
-	assert.Nil(t, client.config.EdgeQueryURL())
-
-	// Configure edge URL with custom path - should use as-is
-	err := client.Options(SetEdgeURL("https://custom-edge.example.com/custom/query"))
-	require.NoError(t, err)
-
-	edgeURL := client.config.EdgeQueryURL()
-	require.NotNil(t, edgeURL)
-	assert.Equal(t, "https://custom-edge.example.com/custom/query", edgeURL.String())
-}
-
-func TestClient_EdgeIngestURL_NoPath(t *testing.T) {
-	client := newClient(t)
-
-	// Configure edge URL without path - should append edge format
-	err := client.Options(SetEdgeURL("https://eu-central-1.aws.edge.axiom.co"))
-	require.NoError(t, err)
-
-	edgeURL := client.config.EdgeIngestURL("my-dataset")
-	require.NotNil(t, edgeURL)
-	assert.Equal(t, "https://eu-central-1.aws.edge.axiom.co/v1/ingest/my-dataset", edgeURL.String())
-}
-
-func TestClient_EdgeIngestURL_CustomPath(t *testing.T) {
-	client := newClient(t)
-
-	// Configure edge URL with custom path - should use as-is
-	err := client.Options(SetEdgeURL("http://localhost:3400/ingest"))
-	require.NoError(t, err)
-
-	edgeURL := client.config.EdgeIngestURL("my-dataset")
-	require.NotNil(t, edgeURL)
-	assert.Equal(t, "http://localhost:3400/ingest", edgeURL.String())
 }
 
 func TestClient_NewRequest_BadURL(t *testing.T) {
@@ -498,6 +442,30 @@ func TestClient_Do_unsupportedContentType_empty(t *testing.T) {
 
 	_, err = client.Do(req, struct{}{})
 	require.ErrorContains(t, err, "cannot decode response with unsupported content type")
+}
+
+func TestAccepts(t *testing.T) {
+	metrics := mediaTypeMetricsV2 + ", " + mediaTypeJSON
+
+	tests := []struct {
+		accept    string
+		mediaType string
+		want      bool
+	}{
+		{"", mediaTypeJSON, true},
+		{"*/*", mediaTypeJSON, true},
+		{"application/*", mediaTypeJSON, true},
+		{"not a media type", mediaTypeJSON, true},
+		{"", "text/html", false},
+		{"*/*", mediaTypeMetricsV2, false},
+		{mediaTypeJSON, mediaTypeMetricsV2, false},
+		{metrics, mediaTypeMetricsV2, true},
+		{metrics, mediaTypeJSON, true},
+		{metrics, "application/vnd.metrics.v4+json", false},
+	}
+	for _, tt := range tests {
+		assert.Equal(t, tt.want, accepts(tt.accept, tt.mediaType), "accepts(%q, %q)", tt.accept, tt.mediaType)
+	}
 }
 
 func TestClient_Do_HTTPError(t *testing.T) {
@@ -812,11 +780,17 @@ func TestClient_Do_Backoff_NoRetryOn400(t *testing.T) {
 // the response for the API method being tested.
 func setup(t *testing.T, path string, handler http.HandlerFunc) *Client {
 	t.Helper()
+	return setupAccept(t, path, mediaTypeJSON, handler)
+}
+
+// setupAccept is like [setup] but expects the given Accept header.
+func setupAccept(t *testing.T, path, accept string, handler http.HandlerFunc) *Client {
+	t.Helper()
 
 	r := http.NewServeMux()
 	r.HandleFunc(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.NotEmpty(t, r.Header.Get("Authorization"), "no authorization header present on the request")
-		assert.Equal(t, mediaTypeJSON, r.Header.Get("Accept"), "bad accept header present on the request")
+		assert.Equal(t, accept, r.Header.Get("Accept"), "bad accept header present on the request")
 		assert.Equal(t, "axiom-go", r.Header.Get("User-Agent"), "bad user-agent header present on the request")
 		if organizationIDHeader := r.Header.Get("X-Axiom-Org-Id"); organizationIDHeader != "" {
 			assert.Equal(t, organizationID, organizationIDHeader, "bad x-axiom-org-id header present on the request")

@@ -428,8 +428,8 @@ func (s *DatasetsService) Ingest(ctx context.Context, id string, r io.Reader, ty
 		path string
 		err  error
 	)
-	if edgeURL := s.client.config.EdgeIngestURL(id); edgeURL != nil {
-		// Edge endpoints only support API tokens, not personal tokens.
+	if edgeURL := s.client.config.EdgeEndpoint("/v1/ingest/" + id); edgeURL != nil {
+		// Edge ingestion only supports API tokens, not personal tokens.
 		if config.IsPersonalToken(s.client.config.Token()) {
 			return nil, spanError(span, config.ErrPersonalTokenNotSupportedForEdge)
 		}
@@ -526,8 +526,8 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		path string
 		err  error
 	)
-	if edgeURL := s.client.config.EdgeIngestURL(id); edgeURL != nil {
-		// Edge endpoints only support API tokens, not personal tokens.
+	if edgeURL := s.client.config.EdgeEndpoint("/v1/ingest/" + id); edgeURL != nil {
+		// Edge ingestion only supports API tokens, not personal tokens.
 		if config.IsPersonalToken(s.client.config.Token()) {
 			return nil, spanError(span, config.ErrPersonalTokenNotSupportedForEdge)
 		}
@@ -759,11 +759,7 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 		path string
 		err  error
 	)
-	if edgeURL := s.client.config.EdgeQueryURL(); edgeURL != nil {
-		// Edge endpoints only support API tokens, not personal tokens.
-		if config.IsPersonalToken(s.client.config.Token()) {
-			return nil, spanError(span, config.ErrPersonalTokenNotSupportedForEdge)
-		}
+	if edgeURL := s.client.config.EdgeEndpoint("/v1/query/_apl"); edgeURL != nil {
 		path = edgeURL.String()
 		if path, err = AddURLOptions(path, queryParams); err != nil {
 			return nil, spanError(span, err)

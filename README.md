@@ -76,7 +76,22 @@ You can also configure via environment variables:
 - `AXIOM_EDGE` - Regional edge domain (e.g., `eu-central-1.aws.edge.axiom.co`)
 - `AXIOM_EDGE_URL` - Explicit edge URL (takes precedence over `AXIOM_EDGE`)
 
-**Note:** Edge endpoints require API tokens (`xaat-`), not personal tokens.
+**Note:** Edge ingestion requires an API token (`xaat-`). Edge queries accept
+API tokens and personal tokens.
+
+## Metrics Queries
+
+Query metrics with the Metrics Processing Language (MPL). MPL queries only run
+on edge endpoints, so configure an edge endpoint as described in
+[Edge Ingestion](#edge-ingestion). `Dataset.EdgeDeploymentURL` holds the edge
+URL of a dataset.
+
+```go
+res, err := client.QueryMPL(ctx,
+    "`my-metrics`:`http.server.duration` | align to 5m using avg",
+    time.Now().Add(-time.Hour), time.Now(),
+)
+```
 
 ## Install
 
