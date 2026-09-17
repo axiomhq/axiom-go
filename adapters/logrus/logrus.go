@@ -6,6 +6,7 @@ import (
 	"log"
 	"maps"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
@@ -39,7 +40,7 @@ func SetClient(client *axiom.Client) Option {
 // the [SetClient] option.
 func SetClientOptions(options ...axiom.Option) Option {
 	return func(h *Hook) error {
-		h.clientOptions = options
+		h.clientOptions = slices.Clone(options)
 		return nil
 	}
 }
@@ -57,7 +58,7 @@ func SetDataset(datasetName string) Option {
 // logs.
 func SetIngestOptions(opts ...ingest.Option) Option {
 	return func(h *Hook) error {
-		h.ingestOptions = opts
+		h.ingestOptions = slices.Clone(opts)
 		return nil
 	}
 }
@@ -66,7 +67,7 @@ func SetIngestOptions(opts ...ingest.Option) Option {
 // entries for.
 func SetLevels(levels ...logrus.Level) Option {
 	return func(h *Hook) error {
-		h.levels = levels
+		h.levels = slices.Clone(levels)
 		return nil
 	}
 }
@@ -103,7 +104,7 @@ type Hook struct {
 // [Hook.Close].
 func New(options ...Option) (*Hook, error) {
 	hook := &Hook{
-		levels: logrus.AllLevels,
+		levels: slices.Clone(logrus.AllLevels),
 
 		eventCh: make(chan axiom.Event, defaultBatchSize),
 		stopCh:  make(chan struct{}),
