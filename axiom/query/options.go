@@ -1,6 +1,9 @@
 package query
 
-import "time"
+import (
+	"maps"
+	"time"
+)
 
 // Options specifies the optional parameters for a query.
 type Options struct {
@@ -60,8 +63,9 @@ func SetVariable(name string, value any) Option {
 }
 
 // SetVariables sets the variables that can be referenced by the APL query. It
-// will overwrite any existing variables. Defining variables in APL using the
-// "let" keyword takes precedence over variables provided via the query options.
+// copies the map and overwrites any existing variables. Defining variables in
+// APL using the "let" keyword takes precedence over variables provided via the
+// query options.
 func SetVariables(variables map[string]any) Option {
-	return func(o *Options) { o.Variables = variables }
+	return func(o *Options) { o.Variables = maps.Clone(variables) }
 }
