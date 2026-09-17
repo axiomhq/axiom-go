@@ -16,9 +16,10 @@ type AnnotationsTestSuite struct {
 	IntegrationTestSuite
 
 	// Setup once per test.
-	datasetA   *axiom.Dataset
-	datasetB   *axiom.Dataset
-	annotation *axiom.Annotation
+	datasetA         *axiom.Dataset
+	datasetB         *axiom.Dataset
+	annotation       *axiom.Annotation
+	rangedAnnotation *axiom.Annotation
 }
 
 func TestAnnotationsTestSuite(t *testing.T) {
@@ -42,7 +43,7 @@ func (s *AnnotationsTestSuite) SetupTest() {
 		Description: "This is a test dataset for annotations integration tests.",
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(s.datasetA)
+	s.Require().NotNil(s.datasetB)
 
 	s.annotation, err = s.client.Annotations.Create(s.ctx, &axiom.AnnotationCreateRequest{
 		Title:    "Test Annotation",
@@ -51,11 +52,31 @@ func (s *AnnotationsTestSuite) SetupTest() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(s.annotation)
+
+	s.rangedAnnotation, err = s.client.Annotations.Create(s.ctx, &axiom.AnnotationCreateRequest{
+		Title:    "Test Ranged Annotation",
+		Datasets: []string{s.datasetB.ID},
+		Type:     "maintenance",
+		Time:     s.annotation.Time.Add(-2 * time.Hour),
+		EndTime:  s.annotation.Time.Add(-time.Hour),
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(s.rangedAnnotation)
 }
 
 func (s *AnnotationsTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
 	defer cancel()
+
+	if s.annotation != nil {
+		err := s.client.Annotations.Delete(ctx, s.annotation.ID)
+		s.NoError(err)
+	}
+
+	if s.rangedAnnotation != nil {
+		err := s.client.Annotations.Delete(ctx, s.rangedAnnotation.ID)
+		s.NoError(err)
+	}
 
 	if s.datasetA != nil {
 		err := s.client.Datasets.Delete(ctx, s.datasetA.ID)
@@ -64,11 +85,6 @@ func (s *AnnotationsTestSuite) TearDownTest() {
 
 	if s.datasetB != nil {
 		err := s.client.Datasets.Delete(ctx, s.datasetB.ID)
-		s.NoError(err)
-	}
-
-	if s.annotation != nil {
-		err := s.client.Annotations.Delete(ctx, s.annotation.ID)
 		s.NoError(err)
 	}
 
@@ -96,6 +112,31 @@ func (s *AnnotationsTestSuite) Test() {
 		s.Equal(s.annotation.ID, annotations[0].ID)
 	}
 
+	// List annotations of multiple datasets.
+	annotations, err = s.client.Annotations.List(s.ctx, &axiom.AnnotationsFilter{
+		Datasets: []string{s.datasetA.ID, s.datasetB.ID},
+	})
+	s.Require().NoError(err)
+	s.ElementsMatch([]string{s.annotation.ID, s.rangedAnnotation.ID}, annotationIDs(annotations))
+
+	// List annotations in a time range that covers both annotations.
+	annotations, err = s.client.Annotations.List(s.ctx, &axiom.AnnotationsFilter{
+		Datasets: []string{s.datasetA.ID, s.datasetB.ID},
+		Start:    s.annotation.Time.Add(-3 * time.Hour),
+		End:      s.annotation.Time.Add(time.Minute),
+	})
+	s.Require().NoError(err)
+	s.ElementsMatch([]string{s.annotation.ID, s.rangedAnnotation.ID}, annotationIDs(annotations))
+
+	// List annotations in a time range that only covers the ranged annotation.
+	annotations, err = s.client.Annotations.List(s.ctx, &axiom.AnnotationsFilter{
+		Datasets: []string{s.datasetA.ID, s.datasetB.ID},
+		Start:    s.annotation.Time.Add(-3 * time.Hour),
+		End:      s.annotation.Time.Add(-90 * time.Minute),
+	})
+	s.Require().NoError(err)
+	s.ElementsMatch([]string{s.rangedAnnotation.ID}, annotationIDs(annotations))
+
 	// Update annotation.
 	_, err = s.client.Annotations.Update(s.ctx, s.annotation.ID, &axiom.AnnotationUpdateRequest{
 		Datasets: []string{s.datasetB.ID},
@@ -108,4 +149,12 @@ func (s *AnnotationsTestSuite) Test() {
 	})
 	s.Require().NoError(err)
 	s.Len(annotations, 0)
+}
+
+func annotationIDs(annotations []*axiom.Annotation) []string {
+	ids := make([]string, len(annotations))
+	for i, annotation := range annotations {
+		ids[i] = annotation.ID
+	}
+	return ids
 }
