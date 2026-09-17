@@ -4,6 +4,7 @@
 //
 //	import "github.com/axiomhq/axiom-go/axiom"
 //	import "github.com/axiomhq/axiom-go/axiom/ingest" // When ingesting data
+//	import "github.com/axiomhq/axiom-go/axiom/mpl" // When constructing MPL queries
 //	import "github.com/axiomhq/axiom-go/axiom/otel" // When using OpenTelemetry
 //	import "github.com/axiomhq/axiom-go/axiom/query" // When constructing APL queries
 //
