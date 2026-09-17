@@ -140,6 +140,8 @@ type wrappedDataset struct {
 	// package so we just ignore it for now.
 	IntegrationConfigs any `json:"integrationConfigs,omitempty"`
 	IntegrationFilters any `json:"integrationFilters,omitempty"`
+	LabelIDs           any `json:"labelIds,omitempty"`
+	Labels             any `json:"labels,omitempty"`
 	QuickQueries       any `json:"quickQueries,omitempty"`
 	SharedByOrg        any `json:"sharedByOrg,omitempty"`
 
