@@ -93,6 +93,13 @@ res, err := client.QueryMPL(ctx,
 )
 ```
 
+`client.Metrics` also lists the metrics, tags and tag values of a dataset, and
+finds the metrics that have a tag with a given value:
+
+```go
+metrics, err := client.Metrics.List(ctx, "my-metrics", time.Now().Add(-time.Hour), time.Now())
+```
+
 ## Install
 
 ```shell
