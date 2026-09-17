@@ -24,6 +24,9 @@ var (
 	telemetryTracesURL     string
 	telemetryTracesToken   string
 	telemetryTracesDataset string
+	edgeURL                string
+	edgeToken              string
+	edgeDeployment         string
 )
 
 func init() {
@@ -36,6 +39,10 @@ func init() {
 	flag.StringVar(&telemetryTracesURL, "telemetry-traces-url", os.Getenv("TELEMETRY_TRACES_URL"), "URL to send traces to")
 	flag.StringVar(&telemetryTracesToken, "telemetry-traces-token", os.Getenv("TELEMETRY_TRACES_TOKEN"), "Token that has access to the traces dataset")
 	flag.StringVar(&telemetryTracesDataset, "telemetry-traces-dataset", os.Getenv("TELEMETRY_TRACES_DATASET"), "Dataset to send traces to")
+
+	edgeURL = os.Getenv("AXIOM_EDGE_URL")
+	edgeToken = os.Getenv("AXIOM_EDGE_TOKEN")
+	edgeDeployment = os.Getenv("AXIOM_EDGE_DEPLOYMENT")
 }
 
 // IntegrationTestSuite implements a base test suite for integration tests.
