@@ -76,7 +76,8 @@ You can also configure via environment variables:
 - `AXIOM_EDGE` - Regional edge domain (e.g., `eu-central-1.aws.edge.axiom.co`)
 - `AXIOM_EDGE_URL` - Explicit edge URL (takes precedence over `AXIOM_EDGE`)
 
-**Note:** Edge endpoints require API tokens (`xaat-`), not personal tokens.
+**Note:** Edge ingestion requires an API token (`xaat-`). Edge queries accept
+API tokens and personal tokens.
 
 ## Install
 
