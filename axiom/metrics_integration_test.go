@@ -25,7 +25,10 @@ import (
 type MetricsTestSuite struct {
 	IntegrationTestSuite
 
-	dataset *axiom.Dataset
+	// edgeClient uses the personal token of the main client.
+	edgeClient *axiom.Client
+	dataset    *axiom.Dataset
+	sampleTime time.Time
 }
 
 func TestMetricsTestSuite(t *testing.T) {
@@ -40,6 +43,9 @@ func (s *MetricsTestSuite) SetupSuite() {
 	s.IntegrationTestSuite.SetupSuite()
 
 	var err error
+	s.edgeClient, err = newClient(axiom.SetEdgeURL(edgeURL))
+	s.Require().NoError(err)
+
 	s.dataset, err = s.client.Datasets.Create(s.suiteCtx, axiom.DatasetCreateRequest{
 		Name:           "test-axiom-go-metrics-" + datasetSuffix,
 		Kind:           "otel:metrics:v1",
@@ -47,22 +53,17 @@ func (s *MetricsTestSuite) SetupSuite() {
 		EdgeDeployment: edgeDeployment,
 	})
 	s.Require().NoError(err)
-}
 
-func (s *MetricsTestSuite) TearDownSuite() {
-	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.suiteCtx), time.Second*15)
-	defer cancel()
+	// Unlike TearDownSuite, a cleanup also runs when the rest of the setup fails.
+	s.T().Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(s.suiteCtx), time.Second*15)
+		defer cancel()
 
-	if s.dataset != nil {
 		err := s.client.Datasets.Delete(ctx, s.dataset.ID)
 		s.NoError(err)
-	}
+	})
 
-	s.IntegrationTestSuite.TearDownSuite()
-}
-
-func (s *MetricsTestSuite) TestQuery() {
-	sampleTime := time.Now().Truncate(time.Minute)
+	s.sampleTime = time.Now().Truncate(time.Minute)
 
 	// Metrics are ingested as OTLP protobuf only.
 	b, err := proto.Marshal(&collmetricpb.ExportMetricsServiceRequest{
@@ -72,11 +73,11 @@ func (s *MetricsTestSuite) TestQuery() {
 					Name: "axiom_go_test",
 					Data: &metricpb.Metric_Gauge{Gauge: &metricpb.Gauge{
 						DataPoints: []*metricpb.NumberDataPoint{{
-							Attributes: []*commonpb.KeyValue{{
-								Key:   "test",
-								Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: "mpl"}},
-							}},
-							TimeUnixNano: uint64(sampleTime.UnixNano()),
+							Attributes: []*commonpb.KeyValue{
+								{Key: "test", Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: "mpl"}}},
+								{Key: "code", Value: &commonpb.AnyValue{Value: &commonpb.AnyValue_IntValue{IntValue: 200}}},
+							},
+							TimeUnixNano: uint64(s.sampleTime.UnixNano()),
 							Value:        &metricpb.NumberDataPoint_AsDouble{AsDouble: 42},
 						}},
 					}},
@@ -93,24 +94,22 @@ func (s *MetricsTestSuite) TestQuery() {
 	path, err := url.JoinPath(edgeURL, "v1/metrics")
 	s.Require().NoError(err)
 
-	req, err := ingestClient.NewRequest(s.ctx, http.MethodPost, path, bytes.NewReader(b))
+	req, err := ingestClient.NewRequest(s.suiteCtx, http.MethodPost, path, bytes.NewReader(b))
 	s.Require().NoError(err)
 	req.Header.Set("Content-Type", "application/x-protobuf")
 	req.Header.Set("X-Axiom-Dataset", s.dataset.ID)
 
 	_, err = ingestClient.Do(req, nil)
 	s.Require().NoError(err)
+}
 
-	// Query with the personal token of the main client.
-	client, err := newClient(axiom.SetEdgeURL(edgeURL))
-	s.Require().NoError(err)
-
+func (s *MetricsTestSuite) TestQuery() {
 	q := fmt.Sprintf("param $test: string; `%s`:`axiom_go_test` | where `test` == $test | align to 1m using last", s.dataset.ID)
 
 	var res *mpl.Result
 	s.Require().EventuallyWithT(func(c *assert.CollectT) {
 		var err error
-		res, err = client.QueryMPL(s.ctx, q, sampleTime.Add(-5*time.Minute), sampleTime.Add(5*time.Minute),
+		res, err = s.edgeClient.QueryMPL(s.ctx, q, s.sampleTime.Add(-5*time.Minute), s.sampleTime.Add(5*time.Minute),
 			mpl.SetParam("test", `"mpl"`),
 		)
 		if assert.NoError(c, err) {
@@ -125,9 +124,54 @@ func (s *MetricsTestSuite) TestQuery() {
 	s.Require().Equal(time.Minute, series.Resolution)
 	s.NotEmpty(res.TraceID)
 
-	i := int(sampleTime.Sub(series.Start) / series.Resolution)
+	i := int(s.sampleTime.Sub(series.Start) / series.Resolution)
 	s.Require().GreaterOrEqual(i, 0)
 	s.Require().Less(i, len(series.Data))
 	s.Require().NotNil(series.Data[i])
 	s.EqualValues(42, *series.Data[i])
+}
+
+func (s *MetricsTestSuite) TestInfo() {
+	var (
+		metrics = s.edgeClient.Metrics
+		id      = s.dataset.ID
+		start   = s.sampleTime.Add(-5 * time.Minute)
+		end     = s.sampleTime.Add(5 * time.Minute)
+	)
+
+	s.Require().EventuallyWithT(func(c *assert.CollectT) {
+		res, err := metrics.List(s.ctx, id, start, end)
+		if assert.NoError(c, err) {
+			assert.Contains(c, res, "axiom_go_test")
+		}
+	}, 30*time.Second, time.Second, "ingested metric did not become listable")
+
+	s.Run("Tags", func() {
+		tags, err := metrics.Tags(s.ctx, id, "axiom_go_test", start, end)
+		s.Require().NoError(err)
+		s.Subset(tags, []string{"test", "code"})
+	})
+
+	// Tag values and find results did not show a fresh ingest within 45 seconds,
+	// so only the calls themselves are checked.
+	s.Run("TagValues", func() {
+		_, err := metrics.TagValues(s.ctx, id, "axiom_go_test", "code", start, end)
+		s.Require().NoError(err)
+	})
+
+	s.Run("DatasetTags", func() {
+		tags, err := metrics.DatasetTags(s.ctx, id, start, end)
+		s.Require().NoError(err)
+		s.Subset(tags, []string{"test", "code"})
+	})
+
+	s.Run("DatasetTagValues", func() {
+		_, err := metrics.DatasetTagValues(s.ctx, id, "test", start, end)
+		s.Require().NoError(err)
+	})
+
+	s.Run("Find", func() {
+		_, err := metrics.Find(s.ctx, id, 200, start, end)
+		s.Require().NoError(err)
+	})
 }
