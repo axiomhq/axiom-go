@@ -41,10 +41,11 @@ const (
 
 	headerTraceID = "X-Axiom-Trace-Id"
 
-	defaultMediaType   = "application/octet-stream"
-	mediaTypeJSON      = "application/json"
-	mediaTypeNDJSON    = "application/x-ndjson"
-	mediaTypeMetricsV2 = "application/vnd.metrics.v2+json"
+	defaultMediaType       = "application/octet-stream"
+	mediaTypeJSON          = "application/json"
+	mediaTypeNDJSON        = "application/x-ndjson"
+	mediaTypeMetricsV2     = "application/vnd.metrics.v2+json"
+	mediaTypeMetricsInfoV2 = "application/vnd.metrics-info.v2+json"
 
 	otelTracerName = "github.com/axiomhq/axiom-go/axiom"
 )
@@ -338,8 +339,9 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 			span.SetAttributes(semconv.HTTPResponseStatusCode(statusCode))
 		}
 
-		// Handle a generic HTTP error if the response is not JSON formatted.
-		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON {
+		// Handle a generic HTTP error if the response is not JSON formatted. The
+		// edge labels a metrics info error with the vendor media type.
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get(headerContentType)); ct != mediaTypeJSON && ct != mediaTypeMetricsInfoV2 {
 			return resp, httpErr
 		}
 
