@@ -552,7 +552,12 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		zsw := pool.Get()
 		zsw.Reset(pw)
 
+		// done lets the watcher goroutine below exit once encoding finishes.
+		done := make(chan struct{})
+
 		go func() {
+			defer close(done)
+
 			var (
 				enc    = json.NewEncoder(zsw)
 				encErr error
@@ -571,6 +576,17 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 				pool.Put(zsw)
 			}
 			_ = pw.CloseWithError(encErr)
+		}()
+
+		// io.Pipe writes block until read. If the connection stalls before
+		// the body is fully drained, nothing unblocks the goroutine above
+		// and it leaks forever. Closing pr when ctx is done fixes that.
+		go func() {
+			select {
+			case <-ctx.Done():
+				_ = pr.CloseWithError(ctx.Err())
+			case <-done:
+			}
 		}()
 
 		return pr, nil
@@ -668,12 +684,21 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 	const maxConsecutiveErrors = 3
 	var consecutiveErrors int
 
+	// flushTimeout bounds a single IngestEvents call. The slog and Logrus
+	// adapters run IngestChannel on context.Background(), so without this a
+	// stalled connection blocks flush() — and leaks getBody's goroutine —
+	// indefinitely instead of for the ~30s this function's retries imply.
+	const flushTimeout = 30 * time.Second
+
 	flush := func() error {
 		if len(batch) == 0 {
 			return nil
 		}
 
-		res, err := s.IngestEvents(ctx, id, batch, options...)
+		flushCtx, cancel := context.WithTimeout(ctx, flushTimeout)
+		defer cancel()
+
+		res, err := s.IngestEvents(flushCtx, id, batch, options...)
 		if err != nil {
 			return fmt.Errorf("failed to ingest events: %w", err)
 		}
