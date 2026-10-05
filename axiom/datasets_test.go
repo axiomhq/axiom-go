@@ -1,11 +1,13 @@
 package axiom
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -1108,6 +1110,65 @@ func TestDatasetsService_IngestChannel_FlushRetry(t *testing.T) {
 		assert.Equal(t, 2, int(res.Ingested))
 		assert.GreaterOrEqual(t, handlerCalls, 2)
 	})
+}
+
+func TestDatasetsService_IngestChannel_ShutdownFlush(t *testing.T) {
+	for _, tt := range []struct {
+		name            string
+		capacity        int
+		failures        int32
+		cancelOnFailure bool
+		wantRequests    int32
+		wantError       bool
+	}{
+		{name: "success", capacity: 2, wantRequests: 1},
+		{name: "transient failure", capacity: 2, failures: 1, wantRequests: 2},
+		{name: "last attempt succeeds", capacity: 2, failures: 2, wantRequests: 3},
+		{name: "exhausted budget", capacity: 2, failures: 3, wantRequests: 3, wantError: true},
+		{name: "preserves prior failures", capacity: 1, failures: 4, wantRequests: 3, wantError: true},
+		{name: "canceled during flush", capacity: 2, failures: 1, cancelOnFailure: true, wantRequests: 1, wantError: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			var requests atomic.Int32
+			hf := func(w http.ResponseWriter, r *http.Request) {
+				attempt := requests.Add(1)
+				reader, err := zstd.NewReader(r.Body)
+				require.NoError(t, err)
+				defer reader.Close()
+				events := assertValidJSON(t, reader)
+				assert.Equal(t, []any{map[string]any{"message": "final event"}}, events)
+				if attempt <= tt.failures {
+					if tt.cancelOnFailure {
+						cancel()
+					}
+					w.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
+				w.Header().Set("Content-Type", mediaTypeJSON)
+				_, _ = fmt.Fprint(w, `{"ingested":1,"failed":0,"failures":[],"processedBytes":25,"blocksCreated":0,"walLength":1}`)
+			}
+			client := setup(t, "POST /v1/datasets/test/ingest", hf)
+			// Isolate the channel's flush budget from Client.Do's HTTP retries.
+			client.noRetry = true
+			events := make(chan Event, tt.capacity)
+			events <- Event{"message": "final event"}
+			close(events)
+			status, err := client.Datasets.IngestChannel(ctx, "test", events)
+			if tt.wantError {
+				require.Error(t, err)
+				assert.Zero(t, status.Ingested)
+			} else {
+				require.NoError(t, err)
+				assert.EqualValues(t, 1, status.Ingested)
+			}
+			if tt.cancelOnFailure {
+				assert.ErrorIs(t, err, context.Canceled)
+			}
+			assert.Equal(t, tt.wantRequests, requests.Load())
+		})
+	}
 }
 
 func TestDatasetsService_Query(t *testing.T) {
