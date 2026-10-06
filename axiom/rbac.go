@@ -40,7 +40,7 @@ type RoleRequest struct {
 	// Description of the role.
 	Description string `json:"description"`
 	// DatasetCapabilities are the capabilities the role grants on individual
-	// datasets, keyed by dataset name.
+	// datasets, keyed by dataset name. The key "*" applies to all datasets.
 	DatasetCapabilities map[string]RoleDatasetCapabilities `json:"datasetCapabilities,omitempty"`
 	// ViewCapabilities are the capabilities the role grants on individual
 	// views, keyed by view name. The wildcard view "*" is not allowed.
@@ -138,8 +138,9 @@ type GroupRequest struct {
 	Description string `json:"description"`
 	// Roles are the IDs of the roles assigned to the group.
 	Roles []string `json:"roles"`
-	// Members are the IDs of the users in the group. The authenticated user
-	// can't add themselves to a group. Ignored for managed groups.
+	// Members are the IDs of the users in the group. Ignored for managed
+	// groups. With a personal access token, the token's user can't add
+	// themselves to a group.
 	Members []string `json:"members"`
 }
 
