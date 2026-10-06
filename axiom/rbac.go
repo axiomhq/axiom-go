@@ -136,11 +136,12 @@ type GroupRequest struct {
 	Name string `json:"name"`
 	// Description of the group.
 	Description string `json:"description"`
-	// Roles are the IDs of the roles assigned to the group.
+	// Roles are the IDs of the roles assigned to the group. Replaces the
+	// group's roles; nil removes them all.
 	Roles []string `json:"roles"`
-	// Members are the IDs of the users in the group. Ignored for managed
-	// groups. With a personal access token, the token's user can't add
-	// themselves to a group.
+	// Members are the IDs of the users in the group. Replaces the group's
+	// members; nil removes them all. Ignored for managed groups. Must not
+	// include the requesting user, even if they're already a member.
 	Members []string `json:"members"`
 }
 
@@ -219,7 +220,8 @@ func (s *RolesService) Update(ctx context.Context, id string, req RoleRequest) (
 }
 
 // Delete the role identified by the given id. Users whose base role is the
-// deleted role are reset to [RoleNone].
+// deleted role are reset to [RoleNone], and the role is removed from all
+// groups.
 func (s *RolesService) Delete(ctx context.Context, id string) error {
 	ctx, span := s.client.trace(ctx, "Roles.Delete", trace.WithAttributes(
 		attribute.String("axiom.role_id", id),
@@ -292,7 +294,8 @@ func (s *GroupsService) Create(ctx context.Context, req GroupRequest) (*Group, e
 	return &res, nil
 }
 
-// Update the group identified by the given id with the given properties.
+// Update the group identified by the given id with the given properties. The
+// group's roles and members are replaced, so pass the current ones to keep them.
 func (s *GroupsService) Update(ctx context.Context, id string, req GroupRequest) (*Group, error) {
 	ctx, span := s.client.trace(ctx, "Groups.Update", trace.WithAttributes(
 		attribute.String("axiom.group_id", id),
