@@ -38,13 +38,7 @@ func (s *RBACTestSuite) SetupTest() {
 	s.IntegrationTestSuite.SetupTest()
 
 	var err error
-	s.role, err = s.client.Roles.Create(s.ctx, axiom.RoleRequest{
-		Name:        "test-role-" + datasetSuffix,
-		Description: "Created by the axiom-go integration tests",
-		DatasetCapabilities: map[string]axiom.RoleDatasetCapabilities{
-			"test-rbac-" + datasetSuffix: {Query: []axiom.Action{axiom.ActionRead}},
-		},
-	})
+	s.role, err = s.client.Roles.Create(s.ctx, testRoleCreateRequest())
 	if httpErr := new(axiom.HTTPError); errors.As(err, httpErr) && httpErr.Status == http.StatusForbidden {
 		s.T().Skipf("RBAC is not available for this organization: %s", err)
 	}
@@ -75,6 +69,53 @@ func (s *RBACTestSuite) TearDownTest() {
 	}
 
 	s.IntegrationTestSuite.TearDownTest()
+}
+
+// testRoleCreateRequest covers each capability kind, the dataset wildcard and
+// the audit log, which the API stores under a different resource name.
+func testRoleCreateRequest() axiom.RoleRequest {
+	return axiom.RoleRequest{
+		Name:        "test-role-" + datasetSuffix,
+		Description: "Created by the axiom-go integration tests",
+		DatasetCapabilities: map[string]axiom.RoleDatasetCapabilities{
+			"test-rbac-" + datasetSuffix: {Query: []axiom.Action{axiom.ActionRead}},
+			"*":                          {Ingest: []axiom.Action{axiom.ActionCreate}},
+		},
+		ViewCapabilities: map[string]axiom.RoleViewCapabilities{
+			"test-rbac-view-" + datasetSuffix: {Query: []axiom.Action{axiom.ActionRead}},
+		},
+		OrgCapabilities: axiom.RoleOrgCapabilities{
+			AuditLog:   []axiom.Action{axiom.ActionRead},
+			Dashboards: []axiom.Action{axiom.ActionRead},
+		},
+	}
+}
+
+func (s *RBACTestSuite) TestCreatedRoleAndGroupAreReadable() {
+	want := testRoleCreateRequest()
+
+	role, err := s.client.Roles.Get(s.ctx, s.role.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(role)
+
+	s.Equal(s.role.ID, role.ID)
+	s.Equal(want.Name, role.Name)
+	s.Equal(want.Description, role.Description)
+	s.Equal(want.DatasetCapabilities, role.DatasetCapabilities)
+	s.Equal(want.ViewCapabilities, role.ViewCapabilities)
+	s.Equal(want.OrgCapabilities, role.OrgCapabilities)
+	s.Empty(role.Members)
+
+	group, err := s.client.Groups.Get(s.ctx, s.group.ID)
+	s.Require().NoError(err)
+	s.Require().NotNil(group)
+
+	s.Equal(s.group.ID, group.ID)
+	s.Equal("test-group-"+datasetSuffix, group.Name)
+	s.Equal("Created by the axiom-go integration tests", group.Description)
+	s.Equal([]string{s.role.ID}, group.Roles)
+	s.Empty(group.Members)
+	s.False(group.IsManaged)
 }
 
 func (s *RBACTestSuite) TestRoles() {
