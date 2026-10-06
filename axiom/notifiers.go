@@ -25,6 +25,8 @@ type Notifier struct {
 	CreatedBy string `json:"createdBy"`
 	// UpdatedAt is the time when the notifier was last updated.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// LabelIDs are the IDs of the labels assigned to the notifier. Read-only.
+	LabelIDs []string `json:"labelIds,omitempty"`
 }
 
 type NotifierProperties struct {

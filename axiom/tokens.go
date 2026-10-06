@@ -84,6 +84,15 @@ type APIToken struct {
 	// SAMLAuthenticated is a flag that determines whether the token can access
 	// a SAML authenticated org
 	SAMLAuthenticated bool `json:"samlAuthenticated"`
+	// AuditIdentity is the identity the token is recorded under in the audit
+	// log.
+	AuditIdentity string `json:"auditIdentity,omitempty"`
+	// APILastUsed is the time the token was last used on an API other than
+	// ingest. Zero if never.
+	APILastUsed time.Time `json:"apiLastUsed,omitzero"`
+	// IngestLastUsed is the time the token was last used to ingest. Zero if
+	// never.
+	IngestLastUsed time.Time `json:"ingestLastUsed,omitzero"`
 }
 
 // DatasetCapabilities represents the capabilities available to a token for a
