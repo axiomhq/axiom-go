@@ -1,10 +1,12 @@
 package axiom
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"runtime"
 	"strings"
 	"testing"
 	"testing/synctest"
@@ -746,6 +748,88 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 
 	assert.Equal(t, exp, res)
 	assert.True(t, hasErrored)
+}
+
+// stallingRoundTripper simulates a connection that stalls before reading any
+// of the body, only returning once the request's context is done. It never
+// reads req.Body, guaranteeing getBody's goroutine blocks on its first write
+// regardless of payload size — a real httptest server can't reproduce this
+// reliably, since small payloads just fit into OS socket buffers and the
+// write completes without anything needing to read it.
+type stallingRoundTripper struct{}
+
+func (stallingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	<-req.Context().Done()
+	return nil, req.Context().Err()
+}
+
+// TestDatasetsService_IngestEvents_GoroutineLeak reproduces the leak fixed by
+// giving getBody's encoding goroutine a ctx-cancellation path: without it, a
+// stalled connection leaves the goroutine (and its zstd encoder) blocked on
+// io.(*pipe).write forever. Found via a live goroutine dump on a production
+// service — dozens of goroutines stuck for 40+ minutes on this exact stack.
+func TestDatasetsService_IngestEvents_GoroutineLeak(t *testing.T) {
+	client, err := NewClient(
+		SetURL(endpoint),
+		SetToken(personalToken),
+		SetClient(&http.Client{Transport: stallingRoundTripper{}}),
+		SetNoEnv(),
+	)
+	require.NoError(t, err)
+	client.noRetry = true // isolate this test from the unrelated Client.Do retry/backoff behavior.
+
+	baseline := runtime.NumGoroutine()
+
+	ctx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
+	defer cancel()
+
+	_, err = client.Datasets.IngestEvents(ctx, "test", []Event{{"message": "hello"}})
+	require.Error(t, err, "expected the deadline to surface as an error, not hang")
+
+	// Give the goroutine a moment to exit. A plain sleep, not
+	// require.Eventually: polling runtime.NumGoroutine() every few ms
+	// perturbed scheduling enough to produce false failures in practice.
+	time.Sleep(time.Second)
+	after := runtime.NumGoroutine()
+	assert.LessOrEqual(t, after, baseline,
+		"goroutine count never returned to baseline (%d); leaked at %d", baseline, after)
+}
+
+// TestDatasetsService_IngestChannel_FlushTimeout proves the companion fix:
+// getBody's ctx-cancellation only helps a caller that gives ctx a deadline,
+// and the slog/Logrus adapters run IngestChannel on context.Background() —
+// no deadline, ever. Without flushTimeout this hangs forever; run inside
+// synctest so the 30s bound is virtual time, not a real wait.
+func TestDatasetsService_IngestChannel_FlushTimeout(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		client, err := NewClient(
+			SetURL(endpoint),
+			SetToken(personalToken),
+			SetClient(&http.Client{Transport: stallingRoundTripper{}}),
+			SetNoEnv(),
+		)
+		require.NoError(t, err)
+		client.noRetry = true
+
+		// Unbuffered: a buffered channel sets IngestChannel's batch size to
+		// its capacity, triggering an extra flush this test would then need
+		// to account for.
+		eventCh := make(chan Event)
+		go func() {
+			eventCh <- Event{"message": "hello"}
+			close(eventCh)
+		}()
+
+		start := time.Now()
+		// context.Background(), deliberately: what the slog/Logrus adapters
+		// actually pass.
+		_, err = client.Datasets.IngestChannel(context.Background(), "test", eventCh)
+		require.Error(t, err)
+
+		elapsed := time.Since(start)
+		assert.GreaterOrEqual(t, elapsed, 25*time.Second, "returned before flushTimeout could have fired")
+		assert.Less(t, elapsed, 35*time.Second, "took meaningfully longer than flushTimeout — did something else block it?")
+	})
 }
 
 func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {
