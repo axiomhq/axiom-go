@@ -690,9 +690,21 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 			return &ingestStatus, spanError(span, context.Cause(ctx))
 		case event, ok := <-events:
 			if !ok {
-				// Channel is closed.
-				err := flush()
-				return &ingestStatus, spanError(span, err)
+				// Preserve the normal flush budget when draining a closed channel.
+				for {
+					if err := context.Cause(ctx); err != nil {
+						return &ingestStatus, spanError(span, err)
+					}
+					err := flush()
+					if err == nil {
+						return &ingestStatus, nil
+					}
+					consecutiveErrors++
+					span.RecordError(err)
+					if consecutiveErrors >= maxConsecutiveErrors {
+						return &ingestStatus, spanError(span, err)
+					}
+				}
 			}
 			batch = append(batch, event)
 
