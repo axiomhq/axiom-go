@@ -1142,6 +1142,22 @@ func TestDatasetsService_Query(t *testing.T) {
 	assert.Equal(t, expQueryRes, res)
 }
 
+func TestDatasetsService_Query_EdgePersonalToken(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, organizationID, r.Header.Get("X-Axiom-Org-Id"))
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, actQueryResp)
+		assert.NoError(t, err)
+	}
+
+	client := setup(t, "POST /v1/query/_apl", hf)
+	require.NoError(t, client.Options(SetEdgeURL(client.config.BaseURL().String())))
+
+	_, err := client.Datasets.Query(t.Context(), "['test']")
+	require.NoError(t, err)
+}
+
 // TODO(lukasmalkmus): Add test for a query with an aggregation.
 
 func TestDetectContentType(t *testing.T) {
