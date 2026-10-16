@@ -530,6 +530,33 @@ func TestClient_Do_HTTPError_JSON(t *testing.T) {
 	}
 }
 
+func TestClient_Do_HTTPError_ContentType(t *testing.T) {
+	tests := []struct {
+		contentType string
+		message     string
+	}{
+		{mediaTypeMetricsInfoV2, "This is a Bad Request error"},
+		{"application/vnd.metrics.v4+json", "Bad Request"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.contentType, func(t *testing.T) {
+			hf := func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", tt.contentType)
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = fmt.Fprint(w, `{"message": "This is a Bad Request error"}`)
+			}
+
+			client := setup(t, "GET /", hf)
+
+			req, err := client.NewRequest(t.Context(), http.MethodGet, "/", nil)
+			require.NoError(t, err)
+
+			_, err = client.Do(req, nil)
+			assert.EqualError(t, err, "API error 400: "+tt.message)
+		})
+	}
+}
+
 func TestClient_Do_HTTPError_Unauthenticated(t *testing.T) {
 	hf := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", mediaTypeJSON)
