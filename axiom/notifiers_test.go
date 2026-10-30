@@ -51,8 +51,9 @@ func TestNotifiersService_List(t *testing.T) {
 
 func TestNotifiersService_Get(t *testing.T) {
 	exp := &Notifier{
-		ID:   "test",
-		Name: "test",
+		ID:       "test",
+		Name:     "test",
+		Disabled: true,
 		Properties: NotifierProperties{
 			Email: &EmailConfig{
 				Emails: []string{"test@test.com"},
@@ -67,6 +68,7 @@ func TestNotifiersService_Get(t *testing.T) {
 		_, err := fmt.Fprint(w, `{
 			"id": "test",
 			"name": "test",
+			"disabled": true,
 			"properties": {
 				"email": {
 					"emails": [

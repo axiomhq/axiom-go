@@ -316,6 +316,7 @@ func TestDatasetsService_Get(t *testing.T) {
 			"who": "f83e245a-afdc-47ad-a765-4addd1994321",
 			"created": "2020-11-17T22:29:00.521238198Z",
 			"labelIds": ["lbl_01m2j2jk97e8arkxqwmgw4n0px"],
+			"labelNames": ["team=sdk"],
 			"labels": [
 				{
 					"id": "lbl_01m2j2jk97e8arkxqwmgw4n0px",
