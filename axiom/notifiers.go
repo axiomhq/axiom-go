@@ -17,6 +17,8 @@ type Notifier struct {
 	Name string `json:"name"`
 	// DisabledUntil sets the notifier's disabled until property.
 	DisabledUntil time.Time `json:"disabledUntil"`
+	// Disabled reports whether the notifier is currently disabled. Read-only.
+	Disabled bool `json:"disabled,omitempty"`
 	// Properties of the notifier.
 	Properties NotifierProperties `json:"properties"`
 	// CreatedAt is the time when the notifier was created.

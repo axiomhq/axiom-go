@@ -142,6 +142,7 @@ type wrappedDataset struct {
 	IntegrationFilters any `json:"integrationFilters,omitempty"`
 	LabelIDs           any `json:"labelIds,omitempty"`
 	Labels             any `json:"labels,omitempty"`
+	LabelNames         any `json:"labelNames,omitempty"`
 	QuickQueries       any `json:"quickQueries,omitempty"`
 	SharedByOrg        any `json:"sharedByOrg,omitempty"`
 
