@@ -72,7 +72,6 @@ func (s *MonitorsTestSuite) SetupTest() {
 			Delay:                        time.Second * 10,
 			NotifyEveryRun:               true,
 			SkipResolved:                 false,
-			IncludeChart:                 true,
 			TriggerFromNRuns:             3,
 			TriggerAfterNPositiveResults: 2,
 		},
@@ -80,7 +79,6 @@ func (s *MonitorsTestSuite) SetupTest() {
 	s.Require().NoError(err)
 	s.Require().NotNil(s.monitor)
 	s.Equal(time.Second*10, s.monitor.Delay)
-	s.True(s.monitor.IncludeChart)
 }
 
 func (s *MonitorsTestSuite) TearDownTest() {
@@ -114,7 +112,6 @@ func (s *MonitorsTestSuite) Test() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
-	s.False(monitor.IncludeChart, "omitting includeChart on update should disable it")
 
 	s.monitor = monitor
 
