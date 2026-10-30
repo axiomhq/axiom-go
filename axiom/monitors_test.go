@@ -99,12 +99,13 @@ func TestMonitorsService_Get(t *testing.T) {
 
 func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	exp := Monitor{
-		APLQuery:  "['dataset'] | summarize count() by bin_auto(_time)",
-		MPLQuery:  "`dataset`:`my-metric` | align to 5s using avg",
-		Interval:  2 * time.Minute,
-		Range:     3 * time.Minute,
-		Delay:     10 * time.Second,
-		Threshold: 1,
+		APLQuery:     "['dataset'] | summarize count() by bin_auto(_time)",
+		MPLQuery:     "`dataset`:`my-metric` | align to 5s using avg",
+		Interval:     2 * time.Minute,
+		Range:        3 * time.Minute,
+		Delay:        10 * time.Second,
+		Threshold:    1,
+		IncludeChart: true,
 	}
 
 	b, err := json.Marshal(exp)
@@ -119,6 +120,7 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, float64(2), gotPayload["intervalMinutes"])
 	assert.Equal(t, float64(3), gotPayload["rangeMinutes"])
 	assert.Equal(t, float64(10), gotPayload["secondDelay"])
+	assert.Equal(t, true, gotPayload["includeChart"])
 
 	var got Monitor
 	err = json.Unmarshal(b, &got)
@@ -129,6 +131,12 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, exp.Interval, got.Interval)
 	assert.Equal(t, exp.Range, got.Range)
 	assert.Equal(t, exp.Delay, got.Delay)
+	assert.True(t, got.IncludeChart)
+
+	// includeChart is omitted when false, like the API.
+	b, err = json.Marshal(Monitor{})
+	require.NoError(t, err)
+	assert.NotContains(t, string(b), "includeChart")
 }
 
 func TestValidateMonitorQueries(t *testing.T) {
@@ -229,6 +237,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		Delay:                        time.Second * 10,
 		NotifyEveryRun:               true,
 		SkipResolved:                 false,
+		IncludeChart:                 true,
 		TriggerFromNRuns:             5,
 		TriggerAfterNPositiveResults: 3,
 		Type:                         MonitorTypeThreshold,
@@ -255,6 +264,7 @@ func TestMonitorsService_Update(t *testing.T) {
 			"secondDelay": 10,
 			"notifyEveryRun": true,
 			"skipResolved": false,
+			"includeChart": true,
 			"triggerFromNRuns": 5,
 			"triggerAfterNPositiveResults": 3,
 			"type": "Threshold",
@@ -278,6 +288,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		Range:         time.Minute,
 		Threshold:     1,
 		Delay:         time.Second * 10,
+		IncludeChart:  true,
 	}})
 	require.NoError(t, err)
 

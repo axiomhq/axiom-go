@@ -164,6 +164,9 @@ type Monitor struct {
 	NotifyEveryRun bool `json:"notifyEveryRun,omitempty"`
 	// SkipResolved indicates whether to skip resolved alerts.
 	SkipResolved bool `json:"skipResolved,omitempty"`
+	// IncludeChart indicates whether to include a query chart in triggered
+	// notifications. This only has an effect on threshold monitors.
+	IncludeChart bool `json:"includeChart,omitempty"`
 	// Tolerance is the acceptable tolerance for an anomaly detection monitor.
 	Tolerance float64 `json:"tolerance,omitempty"`
 	// TriggerFromNRuns indicates the number of runs to consider when

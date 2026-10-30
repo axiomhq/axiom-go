@@ -17,16 +17,28 @@ type Notifier struct {
 	Name string `json:"name"`
 	// DisabledUntil sets the notifier's disabled until property.
 	DisabledUntil time.Time `json:"disabledUntil"`
+	// Disabled reports whether repeated delivery failures disabled the
+	// notifier. It is false when the notifier is snoozed with DisabledUntil.
+	// Read-only.
+	Disabled bool `json:"disabled,omitempty"`
+	// LastError is the delivery error that disabled the notifier. Read-only.
+	LastError string `json:"lastError,omitempty"`
 	// Properties of the notifier.
 	Properties NotifierProperties `json:"properties"`
 	// CreatedAt is the time when the notifier was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// CreatedBy is the id of the user who created the notifier.
 	CreatedBy string `json:"createdBy"`
+	// CreatedByAgent reports whether the Axiom MCP server created the
+	// notifier. Read-only.
+	CreatedByAgent bool `json:"createdByAgent,omitempty"`
 	// UpdatedAt is the time when the notifier was last updated.
 	UpdatedAt time.Time `json:"updatedAt"`
 	// LabelIDs are the IDs of the labels assigned to the notifier. Read-only.
 	LabelIDs []string `json:"labelIds,omitempty"`
+	// LabelNames are the names of the labels assigned to the notifier.
+	// Read-only.
+	LabelNames []string `json:"labelNames,omitempty"`
 }
 
 type NotifierProperties struct {
