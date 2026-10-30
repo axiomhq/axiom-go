@@ -138,13 +138,16 @@ type wrappedDataset struct {
 
 	// HINT(lukasmalkmus) This is some future stuff we don't yet support in this
 	// package so we just ignore it for now.
+	CreatedByAgent     any `json:"createdByAgent,omitempty"`
 	IntegrationConfigs any `json:"integrationConfigs,omitempty"`
 	IntegrationFilters any `json:"integrationFilters,omitempty"`
 	LabelIDs           any `json:"labelIds,omitempty"`
-	Labels             any `json:"labels,omitempty"`
 	LabelNames         any `json:"labelNames,omitempty"`
+	Labels             any `json:"labels,omitempty"`
 	QuickQueries       any `json:"quickQueries,omitempty"`
+	ReclaimableFields  any `json:"reclaimableFields,omitempty"`
 	SharedByOrg        any `json:"sharedByOrg,omitempty"`
+	VacuumCandidate    any `json:"vacuumCandidate,omitempty"`
 
 	// Deprecated: Region is replaced by EdgeDeployment.
 	Region any `json:"region,omitempty"`
