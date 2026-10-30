@@ -317,6 +317,9 @@ func TestDatasetsService_Get(t *testing.T) {
 			"created": "2020-11-17T22:29:00.521238198Z",
 			"labelIds": ["lbl_01m2j2jk97e8arkxqwmgw4n0px"],
 			"labelNames": ["team=sdk"],
+			"createdByAgent": false,
+			"vacuumCandidate": false,
+			"reclaimableFields": 0,
 			"labels": [
 				{
 					"id": "lbl_01m2j2jk97e8arkxqwmgw4n0px",
