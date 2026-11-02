@@ -25,6 +25,7 @@ func TestMonitorsService_List(t *testing.T) {
 			Operator:      Above,
 			Range:         time.Minute,
 			Threshold:     1,
+			Thresholds:    []MonitorThreshold{{Value: 1}},
 		},
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +43,8 @@ func TestMonitorsService_List(t *testing.T) {
 			"notifierIDs": null,
 			"operator": "Above",
 			"rangeMinutes": 1,
-			"threshold": 1
+			"threshold": 1,
+			"thresholds": [{"value": 1}]
 		}]`)
 		assert.NoError(t, err)
 	}
@@ -66,8 +68,12 @@ func TestMonitorsService_Get(t *testing.T) {
 		NotifierIDs:   nil,
 		Operator:      Above,
 		Range:         time.Minute,
-		Threshold:     1,
-		Type:          MonitorTypeThreshold,
+		Threshold:     95,
+		Thresholds: []MonitorThreshold{
+			{Name: "Heads up", Severity: MonitorSeverityWarning, Value: 80, Recovery: new(75.0)},
+			{Name: "Page on-call", Severity: MonitorSeverityCritical, Value: 95},
+		},
+		Type: MonitorTypeThreshold,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
@@ -84,7 +90,11 @@ func TestMonitorsService_Get(t *testing.T) {
 			"notifierIDs": null,
 			"operator": "Above",
 			"rangeMinutes": 1,
-			"threshold": 1,
+			"threshold": 95,
+			"thresholds": [
+				{"name": "Heads up", "severity": "warning", "value": 80, "recovery": 75},
+				{"name": "Page on-call", "severity": "critical", "value": 95}
+			],
 			"type": "Threshold"
 		}`, mplQuery)
 		assert.NoError(t, err)
@@ -119,6 +129,7 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, float64(2), gotPayload["intervalMinutes"])
 	assert.Equal(t, float64(3), gotPayload["rangeMinutes"])
 	assert.Equal(t, float64(10), gotPayload["secondDelay"])
+	assert.NotContains(t, gotPayload, "thresholds")
 
 	var got Monitor
 	err = json.Unmarshal(b, &got)
@@ -161,6 +172,10 @@ func TestValidateMonitorQueries(t *testing.T) {
 }
 
 func TestMonitorsService_Create(t *testing.T) {
+	thresholds := []MonitorThreshold{
+		{Name: "Heads up", Severity: MonitorSeverityWarning, Value: 80, Recovery: new(75.0)},
+		{Name: "Page on-call", Severity: MonitorSeverityCritical, Value: 95},
+	}
 	exp := &Monitor{
 		AlertOnNoData: false,
 		APLQuery:      "['dataset'] | summarize count() by bin_auto(_time)",
@@ -172,11 +187,21 @@ func TestMonitorsService_Create(t *testing.T) {
 		NotifierIDs:   nil,
 		Operator:      Above,
 		Range:         time.Minute,
-		Threshold:     1,
+		Threshold:     95,
+		Thresholds:    thresholds,
 	}
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
+
+		var body struct {
+			Thresholds json.RawMessage `json:"thresholds"`
+		}
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		assert.JSONEq(t, `[
+				{"name": "Heads up", "severity": "warning", "value": 80, "recovery": 75},
+				{"name": "Page on-call", "severity": "critical", "value": 95}
+			]`, string(body.Thresholds))
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
@@ -189,7 +214,11 @@ func TestMonitorsService_Create(t *testing.T) {
 			"notifierIDs": null,
 			"operator": "Above",
 			"rangeMinutes": 1,
-			"threshold": 1
+			"threshold": 95,
+			"thresholds": [
+				{"name": "Heads up", "severity": "warning", "value": 80, "recovery": 75},
+				{"name": "Page on-call", "severity": "critical", "value": 95}
+			]
 		}`)
 		assert.NoError(t, err)
 	}
@@ -206,7 +235,7 @@ func TestMonitorsService_Create(t *testing.T) {
 		NotifierIDs:   nil,
 		Operator:      Above,
 		Range:         time.Minute,
-		Threshold:     1,
+		Thresholds:    thresholds,
 	}})
 	require.NoError(t, err)
 
@@ -225,7 +254,8 @@ func TestMonitorsService_Update(t *testing.T) {
 		NotifierIDs:                  nil,
 		Operator:                     Above,
 		Range:                        time.Minute,
-		Threshold:                    1,
+		Threshold:                    90,
+		Thresholds:                   []MonitorThreshold{{Name: "Page on-call", Severity: MonitorSeverityCritical, Value: 90, Recovery: new(85.0)}},
 		Delay:                        time.Second * 10,
 		NotifyEveryRun:               true,
 		SkipResolved:                 false,
@@ -239,6 +269,12 @@ func TestMonitorsService_Update(t *testing.T) {
 		assert.Equal(t, http.MethodPut, r.Method)
 		assert.Equal(t, mediaTypeJSON, r.Header.Get("Content-Type"))
 
+		var body struct {
+			Thresholds json.RawMessage `json:"thresholds"`
+		}
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		assert.JSONEq(t, `[{"name": "Page on-call", "severity": "critical", "value": 90, "recovery": 85}]`, string(body.Thresholds))
+
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
 			"alertOnNoData": false,
@@ -251,7 +287,8 @@ func TestMonitorsService_Update(t *testing.T) {
 			"notifierIDs": null,
 			"operator": "Above",
 			"rangeMinutes": 1,
-			"threshold": 1,
+			"threshold": 90,
+			"thresholds": [{"name": "Page on-call", "severity": "critical", "value": 90, "recovery": 85}],
 			"secondDelay": 10,
 			"notifyEveryRun": true,
 			"skipResolved": false,
@@ -276,7 +313,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		NotifierIDs:   nil,
 		Operator:      Above,
 		Range:         time.Minute,
-		Threshold:     1,
+		Thresholds:    []MonitorThreshold{{Name: "Page on-call", Severity: MonitorSeverityCritical, Value: 90, Recovery: new(85.0)}},
 		Delay:         time.Second * 10,
 	}})
 	require.NoError(t, err)

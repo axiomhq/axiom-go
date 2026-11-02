@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-//go:generate go tool stringer -type=Operator,MonitorType -linecomment -output=monitors_string.go
+//go:generate go tool stringer -type=Operator,MonitorType,MonitorSeverity -linecomment -output=monitors_string.go
 
 // Operator represents a comparison operation for a monitor. A [Monitor] acts on
 // the result of comparing a query result with a threshold.
@@ -112,6 +112,73 @@ func (c *MonitorType) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
+// MonitorSeverity represents the severity of a [MonitorThreshold] level.
+type MonitorSeverity uint8
+
+// All available [MonitorSeverity]s.
+const (
+	emptyMonitorSeverity MonitorSeverity = iota //
+
+	MonitorSeverityInfo     // info
+	MonitorSeverityWarning  // warning
+	MonitorSeverityError    // error
+	MonitorSeverityCritical // critical
+)
+
+func monitorSeverityFromString(s string) (ms MonitorSeverity, err error) {
+	switch s {
+	case emptyMonitorSeverity.String():
+		ms = emptyMonitorSeverity
+	case MonitorSeverityInfo.String():
+		ms = MonitorSeverityInfo
+	case MonitorSeverityWarning.String():
+		ms = MonitorSeverityWarning
+	case MonitorSeverityError.String():
+		ms = MonitorSeverityError
+	case MonitorSeverityCritical.String():
+		ms = MonitorSeverityCritical
+	default:
+		err = fmt.Errorf("unknown monitor severity %q", s)
+	}
+
+	return ms, err
+}
+
+// MarshalJSON implements [json.Marshaler]. It is in place to marshal the
+// MonitorSeverity to its string representation because that's what the server
+// expects.
+func (ms MonitorSeverity) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ms.String())
+}
+
+// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
+// MonitorSeverity from the string representation the server returns.
+func (ms *MonitorSeverity) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*ms, err = monitorSeverityFromString(s)
+
+	return err
+}
+
+// MonitorThreshold is one named level of a [MonitorTypeThreshold] monitor. All
+// levels share the monitor's query and [Operator].
+type MonitorThreshold struct {
+	// Name of the level, shown in notifications.
+	Name string `json:"name,omitempty"`
+	// Severity of the level, sent to PagerDuty and Opsgenie.
+	Severity MonitorSeverity `json:"severity,omitempty"`
+	// Value the query result must cross, by the monitor's operator, to reach
+	// the level.
+	Value float64 `json:"value"`
+	// Recovery is the value the query result must cross back to leave the
+	// level. Defaults to Value when nil.
+	Recovery *float64 `json:"recovery,omitempty"`
+}
+
 type Monitor struct {
 	// ID is the unique ID of the monitor.
 	ID string `json:"id,omitempty"`
@@ -135,8 +202,14 @@ type Monitor struct {
 	// Operator is the operator to use for the monitor.
 	Operator Operator `json:"operator"`
 	// Threshold the query result is compared against, which evaluates if the
-	// monitor acts or not.
+	// monitor acts or not. On a monitor with Thresholds, the server sets it to
+	// the value of the most severe level.
 	Threshold float64 `json:"threshold"`
+	// Thresholds are the levels of a [MonitorTypeThreshold] monitor, from
+	// least to most severe. The server returns a monitor without levels as a
+	// single level with only a Value, equal to Threshold. More than one level
+	// must be enabled for the organization.
+	Thresholds []MonitorThreshold `json:"thresholds,omitempty"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
 	// NotifyByGroup tracks each non-time group independently.
