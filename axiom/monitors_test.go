@@ -142,6 +142,25 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, exp.Delay, got.Delay)
 }
 
+func TestMonitorThreshold_MarshalUnmarshalJSON(t *testing.T) {
+	// The unnamed level of a monitor without levels sends only its value.
+	b, err := json.Marshal([]MonitorThreshold{{Value: 1}})
+	require.NoError(t, err)
+	assert.JSONEq(t, `[{"value":1}]`, string(b))
+
+	// Unknown and empty severities decode instead of failing the whole monitor.
+	var got []MonitorThreshold
+	err = json.Unmarshal([]byte(`[
+		{"name": "Heads up", "severity": "fatal", "value": 80},
+		{"name": "Page on-call", "severity": "", "value": 95}
+	]`), &got)
+	require.NoError(t, err)
+	assert.Equal(t, []MonitorThreshold{
+		{Name: "Heads up", Severity: "fatal", Value: 80},
+		{Name: "Page on-call", Value: 95},
+	}, got)
+}
+
 func TestValidateMonitorQueries(t *testing.T) {
 	t.Run("aplQuery only", func(t *testing.T) {
 		err := validateMonitorQueries(Monitor{
@@ -320,6 +339,42 @@ func TestMonitorsService_Update(t *testing.T) {
 
 	assert.Equal(t, exp, res)
 	assert.Equal(t, time.Second*10, res.Delay)
+}
+
+func TestMonitorsService_Update_LegacyLevel(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Threshold  float64         `json:"threshold"`
+			Thresholds json.RawMessage `json:"thresholds"`
+		}
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		assert.Equal(t, float64(5), body.Threshold)
+		assert.JSONEq(t, `[{"value":1}]`, string(body.Thresholds))
+
+		// The server takes the new value from threshold, not the echoed level.
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `{
+			"id": "testID",
+			"aplQuery": "['dataset'] | summarize count()",
+			"operator": "Above",
+			"threshold": 5,
+			"thresholds": [{"value": 5}]
+		}`)
+		assert.NoError(t, err)
+	}
+	client := setup(t, "PUT /v2/monitors/testID", hf)
+
+	// A monitor read back from Get, with only Threshold changed.
+	res, err := client.Monitors.Update(t.Context(), "testID", MonitorUpdateRequest{Monitor{
+		APLQuery:   "['dataset'] | summarize count()",
+		Operator:   Above,
+		Threshold:  5,
+		Thresholds: []MonitorThreshold{{Value: 1}},
+	}})
+	require.NoError(t, err)
+
+	assert.Equal(t, float64(5), res.Threshold)
+	assert.Equal(t, []MonitorThreshold{{Value: 5}}, res.Thresholds)
 }
 
 func TestMonitorsService_Delete(t *testing.T) {
