@@ -162,15 +162,16 @@ type Monitor struct {
 	Operator Operator `json:"operator"`
 	// Threshold the query result is compared against, which evaluates if the
 	// monitor acts or not. On a monitor with Thresholds, the server sets it to
-	// the value of the most severe level. Changing only Threshold on a monitor
-	// with more than one level fails with a 400 response; change Thresholds
-	// instead.
+	// the value of the most severe level. An update without Thresholds on a
+	// monitor with more than one level fails with a 400 response; send the
+	// levels back.
 	Threshold float64 `json:"threshold"`
 	// Thresholds are the levels of a [MonitorTypeThreshold] monitor, from
 	// least to most severe. The server returns a monitor without levels as a
-	// single level with only a Value, equal to Threshold. Changing the Value
-	// of that unnamed level has no effect; change Threshold instead. More than
-	// one level must be enabled for the organization.
+	// single level with only a Value, equal to Threshold. While that level has
+	// no Severity or Recovery, the server ignores its Value; change Threshold
+	// instead. Setting either makes it a named level, which needs a Name. More
+	// than one level must be enabled for the organization.
 	Thresholds []MonitorThreshold `json:"thresholds,omitempty"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
