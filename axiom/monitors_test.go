@@ -388,6 +388,40 @@ func TestMonitorsService_Update_LegacyLevel(t *testing.T) {
 	assert.Equal(t, []MonitorThreshold{{Value: 5}}, res.Thresholds)
 }
 
+func TestMonitorsService_Update_RemoveLevels(t *testing.T) {
+	hf := func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Threshold  float64         `json:"threshold"`
+			Thresholds json.RawMessage `json:"thresholds"`
+		}
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		assert.Equal(t, float64(7), body.Threshold)
+		assert.JSONEq(t, `[]`, string(body.Thresholds))
+
+		w.Header().Set("Content-Type", mediaTypeJSON)
+		_, err := fmt.Fprint(w, `{
+			"id": "testID",
+			"aplQuery": "['dataset'] | summarize count()",
+			"operator": "Above",
+			"threshold": 7,
+			"thresholds": [{"value": 7}]
+		}`)
+		assert.NoError(t, err)
+	}
+	client := setup(t, "PUT /v2/monitors/testID", hf)
+
+	res, err := client.Monitors.Update(t.Context(), "testID", MonitorUpdateRequest{Monitor{
+		APLQuery:   "['dataset'] | summarize count()",
+		Operator:   Above,
+		Threshold:  7,
+		Thresholds: []MonitorThreshold{},
+	}})
+	require.NoError(t, err)
+
+	assert.Equal(t, float64(7), res.Threshold)
+	assert.Equal(t, []MonitorThreshold{{Value: 7}}, res.Thresholds)
+}
+
 func TestMonitorsService_Delete(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodDelete, r.Method)

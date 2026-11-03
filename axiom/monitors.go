@@ -164,7 +164,7 @@ type Monitor struct {
 	// monitor acts or not. On a monitor with Thresholds, the server sets it to
 	// the value of the most severe level. An update without Thresholds on a
 	// monitor with more than one level fails with a 400 response; send the
-	// levels back.
+	// levels back, or remove them with an empty Thresholds.
 	Threshold float64 `json:"threshold"`
 	// Thresholds are the levels of a [MonitorTypeThreshold] monitor, from
 	// least to most severe. The server returns a monitor without levels as a
@@ -172,7 +172,13 @@ type Monitor struct {
 	// no Severity or Recovery, the server ignores its Value; change Threshold
 	// instead. Setting either makes it a named level, which needs a Name. More
 	// than one level must be enabled for the organization.
-	Thresholds []MonitorThreshold `json:"thresholds,omitempty"`
+	//
+	// A nil Thresholds is not sent. On update, that moves a single stored
+	// level to Threshold and fails on more than one. A non-nil empty
+	// Thresholds, such as []MonitorThreshold{}, is sent as an empty list and
+	// removes all levels, leaving Threshold as the only value, so set
+	// Threshold with it.
+	Thresholds []MonitorThreshold `json:"thresholds,omitzero"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
 	// NotifyByGroup tracks each non-time group independently.
