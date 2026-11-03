@@ -123,18 +123,22 @@ const (
 	MonitorSeverityCritical MonitorSeverity = "critical"
 )
 
-// MonitorThreshold is one named level of a [MonitorTypeThreshold] monitor. All
-// levels share the monitor's query and [Operator].
+// MonitorThreshold is one named level of a [MonitorTypeThreshold] or
+// [MonitorTypeAnomalyDetection] monitor. All levels share the monitor's query
+// and [Operator].
 type MonitorThreshold struct {
 	// Name of the level, shown in notifications.
 	Name string `json:"name,omitempty"`
 	// Severity of the level, sent to PagerDuty and Opsgenie.
 	Severity MonitorSeverity `json:"severity,omitempty"`
 	// Value the query result must cross, by the monitor's operator, to reach
-	// the level.
+	// the level. On an anomaly detection monitor, it is a tolerance like
+	// [Monitor.Tolerance]: the number of standard deviations from the
+	// expected value, above 0 and at most 100.
 	Value float64 `json:"value"`
 	// Recovery is the value the query result must cross back to leave the
-	// level. Defaults to Value when nil.
+	// level. Defaults to Value when nil. On an anomaly detection monitor, it
+	// is a tolerance from 0 to Value.
 	Recovery *float64 `json:"recovery,omitempty"`
 }
 
@@ -161,23 +165,29 @@ type Monitor struct {
 	// Operator is the operator to use for the monitor.
 	Operator Operator `json:"operator"`
 	// Threshold the query result is compared against, which evaluates if the
-	// monitor acts or not. On a monitor with Thresholds, the server sets it to
-	// the value of the most severe level. An update without Thresholds on a
-	// monitor with more than one level fails with a 400 response; send the
-	// levels back, or remove them with an empty Thresholds.
+	// monitor acts or not. On a threshold monitor with Thresholds, the server
+	// sets it to the value of the most severe level. An update without
+	// Thresholds on a monitor with more than one level fails with a 400
+	// response; send the levels back, or remove them with an empty Thresholds.
 	Threshold float64 `json:"threshold"`
-	// Thresholds are the levels of a [MonitorTypeThreshold] monitor, from
-	// least to most severe. The server returns a monitor without levels as a
-	// single level with only a Value, equal to Threshold. While that level has
-	// no Severity or Recovery, the server ignores its Value; change Threshold
-	// instead. Setting either makes it a named level, which needs a Name. More
-	// than one level must be enabled for the organization.
+	// Thresholds are the levels of a [MonitorTypeThreshold] or
+	// [MonitorTypeAnomalyDetection] monitor, from least to most severe. On a
+	// threshold monitor, level Values take the place of Threshold. On an
+	// anomaly detection monitor, they take the place of Tolerance and must
+	// increase with severity whatever the [Operator]. The rest of this comment
+	// calls that field the monitor's value.
+	//
+	// The server returns a monitor without levels as a single level with
+	// only a Value, equal to the monitor's value. While that level has no
+	// Severity or Recovery, the server ignores its Value; change the
+	// monitor's value instead. Setting either makes it a named level, which
+	// needs a Name. More than one level must be enabled for the organization.
 	//
 	// A nil Thresholds is not sent. On update, that moves a single stored
-	// level to Threshold and fails on more than one. A non-nil empty
-	// Thresholds, such as []MonitorThreshold{}, is sent as an empty list and
-	// removes all levels, leaving Threshold as the only value, so set
-	// Threshold with it.
+	// level to the monitor's value and fails on more than one. A non-nil
+	// empty Thresholds, such as []MonitorThreshold{}, is sent as an empty
+	// list and removes all levels, leaving the monitor's value as the only
+	// one, so set it with the empty list.
 	Thresholds []MonitorThreshold `json:"thresholds,omitzero"`
 	// AlertOnNoData indicates whether to alert on no data.
 	AlertOnNoData bool `json:"alertOnNoData"`
@@ -206,7 +216,11 @@ type Monitor struct {
 	NotifyEveryRun bool `json:"notifyEveryRun,omitempty"`
 	// SkipResolved indicates whether to skip resolved alerts.
 	SkipResolved bool `json:"skipResolved,omitempty"`
-	// Tolerance is the acceptable tolerance for an anomaly detection monitor.
+	// Tolerance is the acceptable tolerance for an anomaly detection monitor:
+	// the number of standard deviations from the expected value that triggers
+	// the monitor, or its most severe level. On a monitor with Thresholds, the
+	// server sets it to the value of the most severe level. Updates treat it as
+	// they treat Threshold on a threshold monitor; see Thresholds.
 	Tolerance float64 `json:"tolerance,omitempty"`
 	// TriggerFromNRuns indicates the number of runs to consider when
 	// determining whether the current run should notify.
