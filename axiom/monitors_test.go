@@ -167,6 +167,23 @@ func TestMonitorThreshold_MarshalUnmarshalJSON(t *testing.T) {
 		{Name: "Heads up", Severity: "fatal", Value: 80},
 		{Name: "Page on-call", Value: 95},
 	}, got)
+
+	// Notifiers are sent only on the levels that set them, under the key the
+	// server expects, and round trip.
+	levels := []MonitorThreshold{
+		{Name: "Heads up", Severity: MonitorSeverityWarning, Value: 80},
+		{Name: "Page on-call", Severity: MonitorSeverityCritical, Value: 95, NotifierIDs: []string{"pager", "slack"}},
+	}
+	b, err = json.Marshal(levels)
+	require.NoError(t, err)
+	assert.JSONEq(t, `[
+		{"name": "Heads up", "severity": "warning", "value": 80},
+		{"name": "Page on-call", "severity": "critical", "value": 95, "notifierIds": ["pager", "slack"]}
+	]`, string(b))
+
+	got = nil
+	require.NoError(t, json.Unmarshal(b, &got))
+	assert.Equal(t, levels, got)
 }
 
 func TestValidateMonitorQueries(t *testing.T) {

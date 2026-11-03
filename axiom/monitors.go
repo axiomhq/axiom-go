@@ -140,6 +140,15 @@ type MonitorThreshold struct {
 	// level. Defaults to Value when nil. On an anomaly detection monitor, it
 	// is a tolerance from 0 to Value.
 	Recovery *float64 `json:"recovery,omitempty"`
+	// NotifierIDs are the notifiers of the level. Empty means the monitor's
+	// [Monitor.NotifierIDs]. An alert notifies the notifiers of its level and
+	// of every less severe one. A notifier gets a resolve when the alert drops
+	// below the least severe level that lists it, unless
+	// [Monitor.SkipResolved] is set. A level with notifiers is a named level,
+	// and setting them must be enabled for the organization. An update that
+	// sends the stored levels back unchanged, in the order the server returned
+	// them, needs no flag.
+	NotifierIDs []string `json:"notifierIds,omitempty"`
 }
 
 type Monitor struct {
@@ -179,9 +188,10 @@ type Monitor struct {
 	//
 	// The server returns a monitor without levels as a single level with
 	// only a Value, equal to the monitor's value. While that level has no
-	// Severity or Recovery, the server ignores its Value; change the
-	// monitor's value instead. Setting either makes it a named level, which
-	// needs a Name. More than one level must be enabled for the organization.
+	// Severity, Recovery or NotifierIDs, the server ignores its Value; change
+	// the monitor's value instead. Setting any of them makes it a named
+	// level, which needs a Name and a Severity. More than one level must be
+	// enabled for the organization.
 	//
 	// A nil Thresholds is not sent. On update, that moves a single stored
 	// level to the monitor's value and fails on more than one. A non-nil
@@ -196,7 +206,8 @@ type Monitor struct {
 	// Resolvable determines whether the events triggered by the monitor are
 	// resolvable. This has no effect on threshold monitors.
 	Resolvable bool `json:"resolvable"`
-	// NotifierIDs attached to the monitor.
+	// NotifierIDs attached to the monitor. When any of Thresholds sets its
+	// own NotifierIDs, these only notify for levels without them.
 	NotifierIDs []string `json:"notifierIDs"`
 
 	// Interval is the interval in minutes in which the monitor will run. The
