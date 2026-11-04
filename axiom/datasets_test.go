@@ -812,6 +812,26 @@ func TestDatasetsService_IngestEvents_NoGoroutineLeak(t *testing.T) {
 	}
 }
 
+func TestDatasetsService_IngestChannel_FlushTimeout(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		client, err := NewClient(SetURL(endpoint), SetToken(personalToken), SetClient(&http.Client{Transport: stallingRoundTripper{}}), SetNoEnv())
+		require.NoError(t, err)
+
+		events := make(chan Event)
+		go func() {
+			events <- Event{"message": "hello"}
+			close(events)
+		}()
+
+		start := time.Now()
+		_, err = client.Datasets.IngestChannel(context.Background(), "test", events)
+		require.Error(t, err)
+		elapsed := time.Since(start)
+		assert.GreaterOrEqual(t, elapsed, 30*time.Second)
+		assert.LessOrEqual(t, elapsed, 90*time.Second)
+	})
+}
+
 func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {
 	exp := &ingest.Status{
 		Ingested:       2,

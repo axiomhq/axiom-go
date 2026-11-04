@@ -666,17 +666,24 @@ func (s *DatasetsService) IngestChannel(ctx context.Context, id string, events <
 		setIngestStatusOnSpan(span, ingestStatus)
 	}()
 
-	// 3 attempts × up to ~10s Client.Do backoff ≈ 30s resilience window
-	// before we give up and hand the batch back to the adapter's outer loop.
+	// After this many failed flushes in a row, IngestChannel returns and the
+	// batch is lost.
 	const maxConsecutiveErrors = 3
 	var consecutiveErrors int
+
+	// A caller's context may have no deadline and a custom client may have no
+	// timeout, so a stalled connection would otherwise block a flush forever.
+	const flushTimeout = 30 * time.Second
 
 	flush := func() error {
 		if len(batch) == 0 {
 			return nil
 		}
 
-		res, err := s.IngestEvents(ctx, id, batch, options...)
+		flushCtx, cancel := context.WithTimeout(ctx, flushTimeout)
+		defer cancel()
+
+		res, err := s.IngestEvents(flushCtx, id, batch, options...)
 		if err != nil {
 			return fmt.Errorf("failed to ingest events: %w", err)
 		}
