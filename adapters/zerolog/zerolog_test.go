@@ -2,6 +2,8 @@ package zerolog
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"io"
 	"net/http"
 	"sync/atomic"
@@ -137,4 +139,40 @@ func setup(t *testing.T) func(dataset string, client *axiom.Client) (*zerolog.Lo
 
 		return &l.Logger, func() { writer.Close() }
 	}
+}
+
+type rejectingRoundTripper struct {
+	requests atomic.Int32
+}
+
+func (rt *rejectingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	rt.requests.Add(1)
+	_ = req.Body.Close()
+	return &http.Response{StatusCode: http.StatusServiceUnavailable, Header: http.Header{}, Body: http.NoBody, Request: req}, nil
+}
+
+func TestWriter_Close_FailedIngest(t *testing.T) {
+	rt := &rejectingRoundTripper{}
+	client, err := axiom.NewClient(
+		axiom.SetURL("http://axiom.local"),
+		axiom.SetToken("xaat-test"),
+		axiom.SetClient(&http.Client{Transport: rt}),
+		axiom.SetNoEnv(),
+	)
+	require.NoError(t, err)
+
+	w, err := New(SetClient(client), SetDataset("test"), SetMaxBufferCapacity(1<<30))
+	require.NoError(t, err)
+
+	payload := make([]byte, 1<<20)
+	_, err = rand.Read(payload)
+	require.NoError(t, err)
+
+	_, err = w.Write([]byte(`{"level":"info","message":"` + hex.EncodeToString(payload) + `"}`))
+	require.NoError(t, err)
+
+	// The race detector reports the failure here.
+	w.Close()
+
+	assert.EqualValues(t, 1, rt.requests.Load())
 }

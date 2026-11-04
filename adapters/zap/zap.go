@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"sync"
@@ -201,7 +202,16 @@ func (ws *WriteSyncer) Sync() error {
 		return err
 	}
 
-	res, err := ws.client.Ingest(ctx, ws.datasetName, r, axiom.NDJSON, axiom.Zstd, ws.ingestOptions...)
+	// Compress before sending. A failed Ingest can return while the encoder
+	// still reads the buffer that the deferred reset above clears.
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	// NopCloser hides the bytes.Reader, so Client.Do doesn't retry while Sync
+	// holds the lock.
+	res, err := ws.client.Ingest(ctx, ws.datasetName, io.NopCloser(bytes.NewReader(b)), axiom.NDJSON, axiom.Zstd, ws.ingestOptions...)
 	if err != nil {
 		return err
 	} else if res.Failed > 0 {
