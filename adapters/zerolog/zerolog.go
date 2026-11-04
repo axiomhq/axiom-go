@@ -216,10 +216,20 @@ func (w *Writer) runBackgroundJob() {
 		if err != nil {
 			return err
 		}
+
+		// Compress before sending. A failed Ingest can return while the encoder
+		// still reads the buffer that the deferred reset above clears.
+		b, err := io.ReadAll(r)
+		if err != nil {
+			return err
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
-		res, err := w.client.Ingest(ctx, w.dataset, r, axiom.NDJSON, axiom.Zstd, w.ingestOptions...)
+		// NopCloser hides the bytes.Reader, so Client.Do doesn't retry while the
+		// channel fills.
+		res, err := w.client.Ingest(ctx, w.dataset, io.NopCloser(bytes.NewReader(b)), axiom.NDJSON, axiom.Zstd, w.ingestOptions...)
 		if err != nil {
 			return err
 		}

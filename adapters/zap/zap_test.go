@@ -1,9 +1,11 @@
 package zap
 
 import (
+	"crypto/rand"
 	"fmt"
 	"io"
 	"net/http"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -85,4 +87,40 @@ func TestCore(t *testing.T) {
 	require.NoError(t, logger.Sync())
 
 	assert.True(t, hasRun)
+}
+
+type rejectingRoundTripper struct {
+	requests atomic.Int32
+}
+
+func (rt *rejectingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	rt.requests.Add(1)
+	_ = req.Body.Close()
+	return &http.Response{StatusCode: http.StatusServiceUnavailable, Header: http.Header{}, Body: http.NoBody, Request: req}, nil
+}
+
+func TestWriteSyncer_Sync_FailedIngest(t *testing.T) {
+	rt := &rejectingRoundTripper{}
+	client, err := axiom.NewClient(
+		axiom.SetURL("http://axiom.local"),
+		axiom.SetToken("xaat-test"),
+		axiom.SetClient(&http.Client{Transport: rt}),
+		axiom.SetNoEnv(),
+	)
+	require.NoError(t, err)
+
+	ws := &WriteSyncer{client: client, datasetName: "test", maxBufferCapacity: 1 << 30}
+
+	payload := make([]byte, 8<<20)
+	_, err = rand.Read(payload)
+	require.NoError(t, err)
+
+	_, err = ws.Write(payload)
+	require.NoError(t, err)
+	require.Error(t, ws.Sync())
+	assert.EqualValues(t, 1, rt.requests.Load())
+
+	_, err = ws.Write([]byte("next batch"))
+	require.NoError(t, err)
+	assert.Equal(t, "next batch", ws.buf.String())
 }
