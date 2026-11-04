@@ -96,7 +96,7 @@ func (s *NotifiersTestSuite) TestCreateCustomWebhookNotifier() {
 		Name: "Custom Webhook Notifier",
 		Properties: axiom.NotifierProperties{
 			CustomWebhook: &axiom.CustomWebhook{
-				URL: "http://example.com/webhook",
+				URL: "https://example.com/webhook",
 				Headers: map[string]string{
 					"Authorization": "Bearer token",
 				},
@@ -121,7 +121,7 @@ func (s *NotifiersTestSuite) TestCreateCustomWebhookNotifier() {
 		Name: "Updated Custom Webhook Notifier",
 		Properties: axiom.NotifierProperties{
 			CustomWebhook: &axiom.CustomWebhook{
-				URL: "http://example.com/updated-webhook",
+				URL: "https://example.com/updated-webhook",
 				Headers: map[string]string{
 					"Authorization": "Bearer new-token",
 				},
