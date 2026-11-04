@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -265,24 +264,27 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 		bck.MaxElapsedTime = time.Second * 10
 		bck.Multiplier = 2.0
 
+		firstAttempt := true
 		err = backoff.Retry(func() error {
-			var httpResp *http.Response
-			//nolint:bodyclose // The response body is closed later down below.
-			httpResp, err = c.httpClient.Do(req)
-			switch {
-			case errors.Is(err, context.Canceled):
-				return backoff.Permanent(err)
-			case err != nil:
-				// Reset the request body so it can be re-read on
-				// retry. Without this, retries after network errors
-				// (e.g. "io: read/write on closed pipe") would reuse
-				// the already-consumed body and fail immediately.
-				body, resetErr := req.GetBody()
-				if resetErr != nil {
-					return backoff.Permanent(resetErr)
+			// Open the body when an attempt starts. Nothing reads or closes a body
+			// opened after the last attempt, so a goroutine writing to it blocks
+			// forever.
+			if !firstAttempt {
+				body, bodyErr := req.GetBody()
+				if bodyErr != nil {
+					return backoff.Permanent(bodyErr)
 				}
 				req.Body = body
-				return err
+			}
+			firstAttempt = false
+
+			//nolint:bodyclose // The response body is closed later down below.
+			httpResp, doErr := c.httpClient.Do(req)
+			if doErr != nil {
+				if req.Context().Err() != nil {
+					return backoff.Permanent(doErr)
+				}
+				return doErr
 			}
 			resp = newResponse(httpResp)
 
@@ -292,16 +294,11 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 				_, _ = io.Copy(io.Discard, resp.Body)
 				_ = resp.Body.Close()
 
-				// Reset the requests body, so it can be re-read.
-				if req.Body, err = req.GetBody(); err != nil {
-					return backoff.Permanent(err)
-				}
-
 				return fmt.Errorf("got status code %d", code)
 			}
 
 			return nil
-		}, bck)
+		}, backoff.WithContext(bck, req.Context()))
 	} else {
 		var httpResp *http.Response
 		//nolint:bodyclose // The response body is closed later down below.

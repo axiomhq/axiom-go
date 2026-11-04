@@ -1,7 +1,9 @@
 package axiom
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -750,6 +752,64 @@ func TestDatasetsService_IngestEvents_Retry(t *testing.T) {
 
 	assert.Equal(t, exp, res)
 	assert.True(t, hasErrored)
+}
+
+type stallingRoundTripper struct{}
+
+func (stallingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	<-req.Context().Done()
+	_ = req.Body.Close()
+	return nil, context.Cause(req.Context())
+}
+
+type failingRoundTripper struct {
+	status int
+}
+
+func (rt failingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	_, _ = io.Copy(io.Discard, req.Body)
+	_ = req.Body.Close()
+	if rt.status == 0 {
+		return nil, errors.New("connection refused")
+	}
+	return &http.Response{StatusCode: rt.status, Header: http.Header{}, Body: http.NoBody, Request: req}, nil
+}
+
+func TestDatasetsService_IngestEvents_NoGoroutineLeak(t *testing.T) {
+	tests := []struct {
+		name    string
+		rt      http.RoundTripper
+		timeout time.Duration
+		options []ingest.Option
+	}{
+		{name: "retries exhausted on network error", rt: failingRoundTripper{}},
+		{name: "retries exhausted on 503", rt: failingRoundTripper{status: http.StatusServiceUnavailable}},
+		{name: "deadline during backoff", rt: failingRoundTripper{}, timeout: time.Second},
+		{name: "deadline during stalled attempt", rt: stallingRoundTripper{}, timeout: time.Second},
+		{name: "request setup fails", rt: failingRoundTripper{}, options: []ingest.Option{ingest.SetEventLabel("k", make(chan int))}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				client, err := NewClient(SetURL(endpoint), SetToken(personalToken), SetClient(&http.Client{Transport: tt.rt}), SetNoEnv())
+				require.NoError(t, err)
+
+				ctx := context.Background()
+				if tt.timeout > 0 {
+					var cancel context.CancelFunc
+					ctx, cancel = context.WithTimeout(ctx, tt.timeout)
+					defer cancel()
+				}
+
+				start := time.Now()
+				_, err = client.Datasets.IngestEvents(ctx, "test", []Event{{"message": "hello"}}, tt.options...)
+				require.Error(t, err)
+				if tt.timeout > 0 {
+					assert.Equal(t, tt.timeout, time.Since(start))
+				}
+			})
+		})
+	}
 }
 
 func TestDatasetsService_IngestChannel_Unbuffered(t *testing.T) {

@@ -580,16 +580,10 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 		return pr, nil
 	}
 
-	r, err := getBody()
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, nil)
 	if err != nil {
 		return nil, spanError(span, err)
 	}
-
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, r)
-	if err != nil {
-		return nil, spanError(span, err)
-	}
-	req.GetBody = getBody
 
 	if err = setOptionHeaders(req, opts, NDJSON); err != nil {
 		return nil, spanError(span, err)
@@ -597,6 +591,11 @@ func (s *DatasetsService) IngestEvents(ctx context.Context, id string, events []
 
 	req.Header.Set("Content-Type", NDJSON.String())
 	req.Header.Set("Content-Encoding", Zstd.String())
+
+	if req.Body, err = getBody(); err != nil {
+		return nil, spanError(span, err)
+	}
+	req.GetBody = getBody
 
 	var (
 		res  ingest.Status
