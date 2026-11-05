@@ -3,29 +3,17 @@ package axiom_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/axiomhq/axiom-go/axiom"
 	"github.com/axiomhq/axiom-go/axiom/ingest"
 	"github.com/axiomhq/axiom-go/axiom/query"
 )
-
-var (
-	edgeURL        string
-	edgeToken      string
-	edgeDeployment string
-)
-
-func init() {
-	edgeURL = os.Getenv("AXIOM_EDGE_URL")
-	edgeToken = os.Getenv("AXIOM_EDGE_TOKEN")
-	edgeDeployment = os.Getenv("AXIOM_EDGE_DEPLOYMENT")
-}
 
 // EdgeTestSuite tests ingest and query operations using edge endpoints.
 type EdgeTestSuite struct {
@@ -49,7 +37,7 @@ func (s *EdgeTestSuite) SetupSuite() {
 		edgeOptions = append(edgeOptions, axiom.SetEdgeURL(edgeURL))
 	}
 
-	// Use dedicated edge token if provided (edge requires API token, not personal token)
+	// Use dedicated edge token if provided (edge ingestion requires API token, not personal token)
 	if edgeToken != "" {
 		s.T().Log("using dedicated edge token")
 		edgeOptions = append(edgeOptions, axiom.SetToken(edgeToken))
@@ -183,6 +171,17 @@ func (s *EdgeTestSuite) TestEdgeQuery() {
 	s.NotZero(queryResult.Status.ElapsedTime)
 	s.GreaterOrEqual(queryResult.Status.RowsExamined, uint64(2))
 	s.GreaterOrEqual(queryResult.Status.RowsMatched, uint64(2))
+
+	// Edge queries accept the personal token of the main client, too.
+	if edgeURL != "" {
+		client, err := newClient(axiom.SetEdgeURL(edgeURL))
+		s.Require().NoError(err)
+
+		s.EventuallyWithT(func(c *assert.CollectT) {
+			_, err := client.Datasets.Query(s.ctx, apl)
+			assert.NoError(c, err)
+		}, 30*time.Second, time.Second, "edge query with a personal token failed")
+	}
 }
 
 func (s *EdgeTestSuite) TestEdgeIngestAndQueryRoundTrip() {
