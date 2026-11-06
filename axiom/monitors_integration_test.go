@@ -97,6 +97,14 @@ func (s *MonitorsTestSuite) TearDownTest() {
 	s.IntegrationTestSuite.TearDownTest()
 }
 
+// deleteMonitor deletes a monitor that a test created. TearDownTest deletes the suite's monitor.
+func (s *MonitorsTestSuite) deleteMonitor(id string) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
+	defer cancel()
+
+	s.NoError(s.client.Monitors.Delete(ctx, id))
+}
+
 func (s *MonitorsTestSuite) Test() {
 	// Let's update the monitor.
 	monitor, err := s.client.Monitors.Update(s.ctx, s.monitor.ID, axiom.MonitorUpdateRequest{
@@ -151,6 +159,7 @@ func (s *MonitorsTestSuite) TestCreateMatchMonitor() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
+	defer s.deleteMonitor(monitor.ID)
 	s.Equal(axiom.MonitorTypeMatchEvent.String(), monitor.Type.String())
 	s.Equal(false, monitor.Disabled)
 
@@ -203,6 +212,7 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(monitor)
+	defer s.deleteMonitor(monitor.ID)
 	s.Equal(axiom.MonitorTypeAnomalyDetection.String(), monitor.Type.String())
 }
 
@@ -226,13 +236,7 @@ func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
 	s.Equal(expectedQuery, monitor.APLQuery)
 	s.Empty(monitor.MPLQuery)
 
-	// Explicitly clean up this additional monitor; setup monitor cleanup is handled in TearDownTest.
-	defer func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(s.ctx), time.Second*15)
-		defer cancel()
-		err := s.client.Monitors.Delete(ctx, monitor.ID)
-		s.NoError(err)
-	}()
+	defer s.deleteMonitor(monitor.ID)
 
 	got, err := s.client.Monitors.Get(s.ctx, monitor.ID)
 	s.Require().NoError(err)
