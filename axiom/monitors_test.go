@@ -116,6 +116,10 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 		Delay:        10 * time.Second,
 		Threshold:    1,
 		IncludeChart: true,
+		Type:         MonitorTypeNewValues,
+		TrackedValue: "host",
+		LookbackDays: 14,
+		BackfillDays: 7,
 	}
 
 	b, err := json.Marshal(exp)
@@ -131,6 +135,10 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, float64(3), gotPayload["rangeMinutes"])
 	assert.Equal(t, float64(10), gotPayload["secondDelay"])
 	assert.Equal(t, true, gotPayload["includeChart"])
+	assert.Equal(t, "NewValues", gotPayload["type"])
+	assert.Equal(t, "host", gotPayload["trackedValue"])
+	assert.Equal(t, float64(14), gotPayload["lookbackDays"])
+	assert.Equal(t, float64(7), gotPayload["backfillDays"])
 	assert.NotContains(t, gotPayload, "thresholds")
 
 	var got Monitor
@@ -143,11 +151,18 @@ func TestMonitor_MarshalUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, exp.Range, got.Range)
 	assert.Equal(t, exp.Delay, got.Delay)
 	assert.True(t, got.IncludeChart)
+	assert.Equal(t, MonitorTypeNewValues, got.Type)
+	assert.Equal(t, exp.TrackedValue, got.TrackedValue)
+	assert.Equal(t, exp.LookbackDays, got.LookbackDays)
+	assert.Equal(t, exp.BackfillDays, got.BackfillDays)
 
-	// includeChart is omitted when false, like the API.
+	// includeChart and the new values fields are omitted when unset, like the API.
 	b, err = json.Marshal(Monitor{})
 	require.NoError(t, err)
 	assert.NotContains(t, string(b), "includeChart")
+	assert.NotContains(t, string(b), "trackedValue")
+	assert.NotContains(t, string(b), "lookbackDays")
+	assert.NotContains(t, string(b), "backfillDays")
 }
 
 func TestMonitorThreshold_MarshalUnmarshalJSON(t *testing.T) {
