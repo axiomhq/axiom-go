@@ -34,11 +34,12 @@ func _() {
 	_ = x[MonitorTypeThreshold-0]
 	_ = x[MonitorTypeMatchEvent-1]
 	_ = x[MonitorTypeAnomalyDetection-2]
+	_ = x[MonitorTypeNewValues-3]
 }
 
-const _MonitorType_name = "ThresholdMatchEventAnomalyDetection"
+const _MonitorType_name = "ThresholdMatchEventAnomalyDetectionNewValues"
 
-var _MonitorType_index = [...]uint8{0, 9, 19, 35}
+var _MonitorType_index = [...]uint8{0, 9, 19, 35, 44}
 
 func (i MonitorType) String() string {
 	idx := int(i) - 0
