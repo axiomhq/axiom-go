@@ -79,6 +79,7 @@ const (
 	MonitorTypeThreshold        MonitorType = iota // Threshold
 	MonitorTypeMatchEvent                          // MatchEvent
 	MonitorTypeAnomalyDetection                    // AnomalyDetection
+	MonitorTypeNewValues                           // NewValues
 )
 
 func typeFromString(s string) (c MonitorType) {
@@ -87,6 +88,8 @@ func typeFromString(s string) (c MonitorType) {
 		return MonitorTypeMatchEvent
 	case MonitorTypeAnomalyDetection.String():
 		return MonitorTypeAnomalyDetection
+	case MonitorTypeNewValues.String():
+		return MonitorTypeNewValues
 	default:
 		return MonitorTypeThreshold
 	}
@@ -245,6 +248,19 @@ type Monitor struct {
 	// CompareDays indicates the number of days to compare for anomaly detection
 	// only.
 	CompareDays int64 `json:"compareDays,omitempty"`
+	// TrackedValue is the column of the query result whose values a new values
+	// monitor checks for ones it has not seen. Required for new values
+	// monitors only.
+	TrackedValue string `json:"trackedValue,omitempty"`
+	// LookbackDays is the number of days a new values monitor remembers a
+	// value: a value counts as new when it was not seen in this many days.
+	// Required for new values monitors only.
+	LookbackDays int64 `json:"lookbackDays,omitempty"`
+	// BackfillDays is the number of days of values a new values monitor
+	// records as seen before its first run, so they do not alert. It must not
+	// exceed LookbackDays, and 0 disables the backfill. New values monitors
+	// only.
+	BackfillDays int64 `json:"backfillDays,omitempty"`
 }
 
 // MarshalJSON implements [json.Marshaler]. It is in place to marshal the
