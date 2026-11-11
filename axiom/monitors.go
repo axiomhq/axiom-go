@@ -230,6 +230,15 @@ type Monitor struct {
 	// IncludeChart indicates whether to include a query chart in triggered
 	// notifications. This only has an effect on threshold monitors.
 	IncludeChart bool `json:"includeChart,omitempty"`
+	// Metadata holds static key-value pairs that notifications carry, such as
+	// team or severity. Custom webhook and message templates read them with
+	// {{index .Metadata "team"}}, and incident.io alerts include them. At most
+	// 20 keys of 1 to 64 letters, digits, '_', '.' or '-', with values of at
+	// most 1024 bytes.
+	//
+	// A nil Metadata is not sent, so an update keeps the stored metadata. A
+	// non-nil empty Metadata, such as map[string]string{}, removes it.
+	Metadata map[string]string `json:"metadata,omitzero"`
 	// Tolerance is the acceptable tolerance for an anomaly detection monitor:
 	// the number of standard deviations from the expected value that triggers
 	// the monitor, or its most severe level. On a monitor with Thresholds, the

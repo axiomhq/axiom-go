@@ -304,6 +304,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		NotifyEveryRun:               true,
 		SkipResolved:                 false,
 		IncludeChart:                 true,
+		Metadata:                     map[string]string{"team": "atlas"},
 		TriggerFromNRuns:             5,
 		TriggerAfterNPositiveResults: 3,
 		Type:                         MonitorTypeThreshold,
@@ -316,9 +317,11 @@ func TestMonitorsService_Update(t *testing.T) {
 
 		var body struct {
 			Thresholds json.RawMessage `json:"thresholds"`
+			Metadata   json.RawMessage `json:"metadata"`
 		}
 		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 		assert.JSONEq(t, `[{"name": "Page on-call", "severity": "critical", "value": 90, "recovery": 85}]`, string(body.Thresholds))
+		assert.JSONEq(t, `{"team": "atlas"}`, string(body.Metadata))
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
@@ -338,6 +341,7 @@ func TestMonitorsService_Update(t *testing.T) {
 			"notifyEveryRun": true,
 			"skipResolved": false,
 			"includeChart": true,
+			"metadata": {"team": "atlas"},
 			"triggerFromNRuns": 5,
 			"triggerAfterNPositiveResults": 3,
 			"type": "Threshold",
@@ -362,6 +366,7 @@ func TestMonitorsService_Update(t *testing.T) {
 		Thresholds:    []MonitorThreshold{{Name: "Page on-call", Severity: MonitorSeverityCritical, Value: 90, Recovery: new(85.0)}},
 		Delay:         time.Second * 10,
 		IncludeChart:  true,
+		Metadata:      map[string]string{"team": "atlas"},
 	}})
 	require.NoError(t, err)
 
@@ -371,13 +376,11 @@ func TestMonitorsService_Update(t *testing.T) {
 
 func TestMonitorsService_Update_LegacyLevel(t *testing.T) {
 	hf := func(w http.ResponseWriter, r *http.Request) {
-		var body struct {
-			Threshold  float64         `json:"threshold"`
-			Thresholds json.RawMessage `json:"thresholds"`
-		}
+		var body map[string]json.RawMessage
 		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
-		assert.Equal(t, float64(5), body.Threshold)
-		assert.JSONEq(t, `[{"value":1}]`, string(body.Thresholds))
+		assert.JSONEq(t, `5`, string(body["threshold"]))
+		assert.NotContains(t, body, "metadata", "a nil Metadata keeps the stored metadata")
+		assert.JSONEq(t, `[{"value":1}]`, string(body["thresholds"]))
 
 		// The server takes the new value from threshold, not the echoed level.
 		w.Header().Set("Content-Type", mediaTypeJSON)
@@ -410,10 +413,12 @@ func TestMonitorsService_Update_RemoveLevels(t *testing.T) {
 		var body struct {
 			Threshold  float64         `json:"threshold"`
 			Thresholds json.RawMessage `json:"thresholds"`
+			Metadata   json.RawMessage `json:"metadata"`
 		}
 		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 		assert.Equal(t, float64(7), body.Threshold)
 		assert.JSONEq(t, `[]`, string(body.Thresholds))
+		assert.JSONEq(t, `{}`, string(body.Metadata), "an empty Metadata removes it")
 
 		w.Header().Set("Content-Type", mediaTypeJSON)
 		_, err := fmt.Fprint(w, `{
@@ -432,6 +437,7 @@ func TestMonitorsService_Update_RemoveLevels(t *testing.T) {
 		Operator:   Above,
 		Threshold:  7,
 		Thresholds: []MonitorThreshold{},
+		Metadata:   map[string]string{},
 	}})
 	require.NoError(t, err)
 
