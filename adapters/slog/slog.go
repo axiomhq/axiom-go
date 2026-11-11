@@ -90,13 +90,18 @@ type rootHandler struct {
 	closeOnce sync.Once
 }
 
+type handlerGroup struct {
+	name  string
+	attrs []slog.Attr
+}
+
 // Handler implements a [slog.Handler] used for shipping logs to Axiom.
 type Handler struct {
 	*rootHandler
 
 	level     slog.Leveler
 	attrs     []slog.Attr
-	groups    []string
+	groups    []handlerGroup
 	addSource bool
 }
 
@@ -210,8 +215,15 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	})
 
 	// Nest attributes in handler groups as objects, if any.
-	for _, v := range slices.Backward(h.groups) {
-		event = axiom.Event{v: event}
+	for _, group := range slices.Backward(h.groups) {
+		parent := axiom.Event{}
+		for _, attr := range group.attrs {
+			addAttrToEvent(parent, attr)
+		}
+		if len(event) > 0 {
+			parent[group.name] = event
+		}
+		event = parent
 	}
 
 	// Set timestamp, level and actual message. The zero time is ignored.
@@ -250,7 +262,9 @@ func (h *Handler) WithGroup(name string) slog.Handler {
 		return h
 	}
 	h2 := h.clone()
-	h2.groups = append(h2.groups, name)
+	// Keep existing attributes outside the new group.
+	h2.groups = append(h2.groups, handlerGroup{name: name, attrs: h2.attrs})
+	h2.attrs = nil
 	return h2
 }
 
