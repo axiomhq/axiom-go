@@ -2,11 +2,14 @@ package slog
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -208,6 +211,99 @@ func TestHandler_Groups(t *testing.T) {
 	closeHandler()
 
 	assert.EqualValues(t, 2, lines.Load())
+}
+
+func TestHandler_GroupScopes(t *testing.T) {
+	tests := []struct {
+		name string
+		emit func(*slog.Logger)
+	}{
+		{
+			name: "interleaved attributes and groups",
+			emit: func(logger *slog.Logger) {
+				base := logger.With("service", "api")
+				request := base.WithGroup("request").With("id", "r1")
+				request.WithGroup("handler").Info("served", "status", 200)
+				request.Info("request", "status", 201)
+				base.Info("base", "status", 202)
+				logger.WithGroup("request").Info("control", "status", 203)
+			},
+		},
+		{
+			name: "empty group and attributes",
+			emit: func(logger *slog.Logger) {
+				logger.With("service", "api").WithGroup("").With().Info("empty name", "status", 200)
+				logger.With("service", "api").WithGroup("request").WithGroup("handler").Info("no attributes")
+				logger.WithGroup("request").LogAttrs(t.Context(), slog.LevelInfo, "zero attribute", slog.Attr{})
+			},
+		},
+		{
+			name: "explicit named groups",
+			emit: func(logger *slog.Logger) {
+				logger.With("service", "api").WithGroup("request").
+					With(slog.Group("headers", slog.String("accept", "application/json"))).
+					WithGroup("handler").Info("named groups", slog.Group("response", slog.Int("status", 200)))
+			},
+		},
+		{
+			name: "parent and sibling groups",
+			emit: func(logger *slog.Logger) {
+				base := logger.With("service", "api").With("region", "east").With("release", "v1")
+				left := base.WithGroup("left").With("id", "left")
+				right := base.WithGroup("right").With("id", "right")
+				left.WithGroup("handler").Info("left", "status", 200)
+				right.Info("right", "status", 201)
+				base.Info("parent", "status", 202)
+			},
+		},
+		{
+			name: "concurrent derived handlers",
+			emit: func(logger *slog.Logger) {
+				base := logger.With("service", "api").WithGroup("request").
+					With("id", "r1").With("method", "GET").With("host", "example")
+				var wg sync.WaitGroup
+				for i := range 16 {
+					wg.Go(func() {
+						base.With("worker", i).WithGroup("handler").With("operation", "serve").
+							Info(fmt.Sprintf("worker-%d", i), "status", 200)
+					})
+				}
+				wg.Wait()
+				base.Info("parent", "status", 201)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var reference bytes.Buffer
+			tt.emit(slog.New(slog.NewJSONHandler(&reference, nil)))
+			expected := make(map[string]map[string]any)
+			decoder := json.NewDecoder(&reference)
+			for decoder.More() {
+				var event map[string]any
+				require.NoError(t, decoder.Decode(&event))
+				delete(event, slog.TimeKey)
+				expected[event[slog.MessageKey].(string)] = event
+			}
+
+			handler := &Handler{rootHandler: &rootHandler{
+				eventCh: make(chan axiom.Event, len(expected)),
+				closeCh: make(chan struct{}),
+			}}
+			tt.emit(slog.New(handler))
+			require.Len(t, handler.eventCh, len(expected))
+			for range len(expected) {
+				event := <-handler.eventCh
+				delete(event, ingest.TimestampField)
+				encoded, err := json.Marshal(event)
+				require.NoError(t, err)
+				var actual map[string]any
+				require.NoError(t, json.Unmarshal(encoded, &actual))
+				assert.Equal(t, expected[event[slog.MessageKey].(string)], actual)
+			}
+		})
+	}
 }
 
 func setup(t *testing.T) func(dataset string, client *axiom.Client) (*slog.Logger, func()) {
