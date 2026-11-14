@@ -3,6 +3,7 @@ package axiom_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -214,6 +215,45 @@ func (s *MonitorsTestSuite) TestCreateAnomalyDetectionMonitor() {
 	s.Require().NotNil(monitor)
 	defer s.deleteMonitor(monitor.ID)
 	s.Equal(axiom.MonitorTypeAnomalyDetection.String(), monitor.Type.String())
+}
+
+func (s *MonitorsTestSuite) TestCreateNewValuesMonitor() {
+	monitor, err := s.client.Monitors.Create(s.ctx, axiom.MonitorCreateRequest{
+		Monitor: axiom.Monitor{
+			APLQuery:     fmt.Sprintf("['%s'] | summarize count() by new", s.datasetID),
+			Description:  "A new values test monitor",
+			Interval:     time.Minute,
+			Name:         "Test Monitor",
+			Type:         axiom.MonitorTypeNewValues,
+			TrackedValue: "new",
+			LookbackDays: 14,
+			BackfillDays: 7,
+		},
+	})
+	if err != nil && strings.Contains(err.Error(), "not enabled for this organization") {
+		s.T().Skip("new values monitors are not enabled for this organization")
+	}
+	s.Require().NoError(err)
+	s.Require().NotNil(monitor)
+	defer s.deleteMonitor(monitor.ID)
+	s.Equal(axiom.MonitorTypeNewValues, monitor.Type)
+	s.Equal("new", monitor.TrackedValue)
+	s.EqualValues(14, monitor.LookbackDays)
+	s.EqualValues(7, monitor.BackfillDays)
+
+	monitor.LookbackDays = 30
+	updated, err := s.client.Monitors.Update(s.ctx, monitor.ID, axiom.MonitorUpdateRequest{Monitor: *monitor})
+	s.Require().NoError(err)
+	s.Require().NotNil(updated)
+	s.Equal(axiom.MonitorTypeNewValues, updated.Type, "an update keeps the type")
+	s.EqualValues(30, updated.LookbackDays)
+
+	got, err := s.client.Monitors.Get(s.ctx, monitor.ID)
+	s.Require().NoError(err)
+	s.Equal(axiom.MonitorTypeNewValues, got.Type)
+	s.Equal("new", got.TrackedValue)
+	s.EqualValues(30, got.LookbackDays)
+	s.EqualValues(7, got.BackfillDays)
 }
 
 func (s *MonitorsTestSuite) TestCreateMonitorWithMPLQuery() {
