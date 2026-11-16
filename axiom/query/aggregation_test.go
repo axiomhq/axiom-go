@@ -9,39 +9,38 @@ import (
 )
 
 func TestAggregationOp_Unmarshal(t *testing.T) {
-	var act struct {
-		Op AggregationOp `json:"name"`
+	tests := []struct {
+		input string
+		want  AggregationOp
+	}{
+		{`{ "name": "count" }`, OpCount},
+		{`{ "name": "takeany" }`, OpTakeAny},
+		{`{ "name": "futureagg" }`, AggregationOp("futureagg")},
 	}
-	err := json.Unmarshal([]byte(`{ "name": "count" }`), &act)
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			var act struct {
+				Op AggregationOp `json:"name"`
+			}
+			require.NoError(t, json.Unmarshal([]byte(tt.input), &act))
 
-	assert.Equal(t, OpCount, act.Op)
+			assert.Equal(t, tt.want, act.Op)
+		})
+	}
+}
+
+func TestAggregation_JSONRoundTrip(t *testing.T) {
+	exp := Aggregation{Op: OpTopk, Fields: []string{"players"}, Args: []any{float64(10)}}
+
+	b, err := json.Marshal(exp)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"name":"topk","fields":["players"],"args":[10]}`, string(b))
+
+	var act Aggregation
+	require.NoError(t, json.Unmarshal(b, &act))
+	assert.Equal(t, exp, act)
 }
 
 func TestAggregationOp_String(t *testing.T) {
-	// Check outer bounds.
-	assert.Equal(t, OpUnknown, AggregationOp(0))
-	assert.Contains(t, (OpSpotlight + 1).String(), "AggregationOp(")
-
-	for op := OpUnknown; op <= OpSpotlight; op++ {
-		s := op.String()
-		assert.NotEmpty(t, s)
-		assert.NotContains(t, s, "AggregationOp(")
-	}
-}
-
-func TestAggregationOpFromString(t *testing.T) {
-	for op := OpCount; op <= OpSpotlight; op++ {
-		s := op.String()
-
-		parsedOp, err := aggregationOpFromString(s)
-		if assert.NoError(t, err) {
-			assert.NotEmpty(t, s)
-			assert.Equal(t, op, parsedOp)
-		}
-	}
-
-	op, err := aggregationOpFromString("abc")
-	assert.Equal(t, OpUnknown, op)
-	assert.EqualError(t, err, "unknown aggregation operation: abc")
+	assert.Equal(t, "stdev", OpStandardDeviation.String())
 }

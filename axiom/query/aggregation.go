@@ -1,136 +1,59 @@
 package query
 
-import (
-	"encoding/json"
-	"fmt"
-	"strings"
-)
+// An AggregationOp is the name of the [Aggregation] operation applied on a
+// [Field]. Names without a constant decode as is.
+type AggregationOp string
 
-//go:generate go tool stringer -type=AggregationOp -linecomment -output=aggregation_string.go
-
-// An AggregationOp describes the [Aggregation] operation applied on a [Field].
-type AggregationOp uint8
-
-// All available [Aggregation] operations.
+// Known [Aggregation] operations. The server can return others.
 const (
-	OpUnknown AggregationOp = iota // unknown
+	OpUnknown AggregationOp = "unknown"
 
-	OpCount               // count
-	OpCountIf             // countif
-	OpDistinct            // distinct
-	OpDistinctIf          // distinctif
-	OpSum                 // sum
-	OpSumIf               // sumif
-	OpAvg                 // avg
-	OpAvgIf               // avgif
-	OpMin                 // min
-	OpMinIf               // minif
-	OpMax                 // max
-	OpMaxIf               // maxif
-	OpTopk                // topk
-	OpTopkIf              // topkif
-	OpPercentiles         // percentiles
-	OpPercentilesIf       // percentilesif
-	OpHistogram           // histogram
-	OpHistogramIf         // histogramif
-	OpStandardDeviation   // stdev
-	OpStandardDeviationIf // stdevif
-	OpVariance            // variance
-	OpVarianceIf          // varianceif
-	OpArgMin              // argmin
-	OpArgMax              // argmax
-	OpRate                // rate
-	OpMakeSet             // makeset
-	OpMakeSetIf           // makesetif
-	OpMakeList            // makelist
-	OpMakeListIf          // makelistif
-	OpComputed            // computed
-	OpSpotlight           // spotlight
+	OpCount                     AggregationOp = "count"
+	OpCountIf                   AggregationOp = "countif"
+	OpDistinct                  AggregationOp = "distinct"
+	OpDistinctIf                AggregationOp = "distinctif"
+	OpSum                       AggregationOp = "sum"
+	OpSumIf                     AggregationOp = "sumif"
+	OpAvg                       AggregationOp = "avg"
+	OpAvgIf                     AggregationOp = "avgif"
+	OpMin                       AggregationOp = "min"
+	OpMinIf                     AggregationOp = "minif"
+	OpMax                       AggregationOp = "max"
+	OpMaxIf                     AggregationOp = "maxif"
+	OpTopk                      AggregationOp = "topk"
+	OpTopkIf                    AggregationOp = "topkif"
+	OpPercentiles               AggregationOp = "percentiles"
+	OpPercentilesIf             AggregationOp = "percentilesif"
+	OpHistogram                 AggregationOp = "histogram"
+	OpHistogramIf               AggregationOp = "histogramif"
+	OpStandardDeviation         AggregationOp = "stdev"
+	OpStandardDeviationIf       AggregationOp = "stdevif"
+	OpVariance                  AggregationOp = "variance"
+	OpVarianceIf                AggregationOp = "varianceif"
+	OpArgMin                    AggregationOp = "argmin"
+	OpArgMax                    AggregationOp = "argmax"
+	OpRate                      AggregationOp = "rate"
+	OpMakeSet                   AggregationOp = "makeset"
+	OpMakeSetIf                 AggregationOp = "makesetif"
+	OpMakeList                  AggregationOp = "makelist"
+	OpMakeListIf                AggregationOp = "makelistif"
+	OpComputed                  AggregationOp = "computed"
+	OpSpotlight                 AggregationOp = "spotlight"
+	OpTakeAny                   AggregationOp = "takeany"
+	OpTakeAnyIf                 AggregationOp = "takeanyif"
+	OpPhrases                   AggregationOp = "phrases"
+	OpPresence                  AggregationOp = "presence"
+	OpAvgWeighted               AggregationOp = "avgw"
+	OpCountWeighted             AggregationOp = "countw"
+	OpSumWeighted               AggregationOp = "sumw"
+	OpHistogramWeighted         AggregationOp = "histogramw"
+	OpPercentilesWeighted       AggregationOp = "percentilesw"
+	OpStandardDeviationWeighted AggregationOp = "stdevw"
+	OpVarianceWeighted          AggregationOp = "variancew"
+	OpTopkWeighted              AggregationOp = "topkw"
 )
 
-func aggregationOpFromString(s string) (op AggregationOp, err error) {
-	switch strings.ToLower(s) {
-	case OpCount.String():
-		op = OpCount
-	case OpCountIf.String():
-		op = OpCountIf
-	case OpDistinct.String():
-		op = OpDistinct
-	case OpDistinctIf.String():
-		op = OpDistinctIf
-	case OpSum.String():
-		op = OpSum
-	case OpSumIf.String():
-		op = OpSumIf
-	case OpAvg.String():
-		op = OpAvg
-	case OpAvgIf.String():
-		op = OpAvgIf
-	case OpMin.String():
-		op = OpMin
-	case OpMinIf.String():
-		op = OpMinIf
-	case OpMax.String():
-		op = OpMax
-	case OpMaxIf.String():
-		op = OpMaxIf
-	case OpTopk.String():
-		op = OpTopk
-	case OpTopkIf.String():
-		op = OpTopkIf
-	case OpPercentiles.String():
-		op = OpPercentiles
-	case OpPercentilesIf.String():
-		op = OpPercentilesIf
-	case OpHistogram.String():
-		op = OpHistogram
-	case OpHistogramIf.String():
-		op = OpHistogramIf
-	case OpStandardDeviation.String():
-		op = OpStandardDeviation
-	case OpStandardDeviationIf.String():
-		op = OpStandardDeviationIf
-	case OpVariance.String():
-		op = OpVariance
-	case OpVarianceIf.String():
-		op = OpVarianceIf
-	case OpArgMin.String():
-		op = OpArgMin
-	case OpArgMax.String():
-		op = OpArgMax
-	case OpRate.String():
-		op = OpRate
-	case OpMakeSet.String():
-		op = OpMakeSet
-	case OpMakeSetIf.String():
-		op = OpMakeSetIf
-	case OpMakeList.String():
-		op = OpMakeList
-	case OpMakeListIf.String():
-		op = OpMakeListIf
-	case OpComputed.String():
-		op = OpComputed
-	case OpSpotlight.String():
-		op = OpSpotlight
-	default:
-		return OpUnknown, fmt.Errorf("unknown aggregation operation: %s", s)
-	}
-
-	return op, nil
-}
-
-// UnmarshalJSON implements [json.Unmarshaler]. It is in place to unmarshal the
-// AggregationOp from the string representation the server returns.
-func (op *AggregationOp) UnmarshalJSON(b []byte) (err error) {
-	var s string
-	if err = json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	*op, err = aggregationOpFromString(s)
-
-	return err
-}
+func (op AggregationOp) String() string { return string(op) }
 
 // Aggregation that is applied to a [Field] in a [Table].
 type Aggregation struct {
