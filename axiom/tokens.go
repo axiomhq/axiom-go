@@ -148,12 +148,12 @@ type OrganisationCapabilities struct {
 	// Endpoints is the Endpoints capability and the actions that can be
 	// performed on them.
 	Endpoints []Action `json:"endpoints,omitempty"`
-	// Flows is the Flows capability and the actions that can be performed on
-	// them.
-	Flows []Action `json:"flows,omitempty"`
 	// Integrations is the Integrations capability and the actions that can be
 	// performed on them.
 	Integrations []Action `json:"integrations,omitempty"`
+	// Labels is the Labels capability and the actions that can be performed on
+	// them.
+	Labels []Action `json:"labels,omitempty"`
 	// Monitors is the Monitors capability and the actions that can be performed
 	// on them.
 	Monitors []Action `json:"monitors,omitempty"`
