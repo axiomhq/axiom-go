@@ -341,6 +341,20 @@ func TestTokensService_Delete(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestOrganisationCapabilities_Labels(t *testing.T) {
+	exp := OrganisationCapabilities{
+		Labels: []Action{ActionCreate, ActionRead},
+	}
+
+	b, err := json.Marshal(exp)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"labels":["create","read"]}`, string(b))
+
+	var act OrganisationCapabilities
+	require.NoError(t, json.Unmarshal(b, &act))
+	assert.Equal(t, exp, act)
+}
+
 func TestAction_Marshal(t *testing.T) {
 	exp := `{
 		"action": "update"
