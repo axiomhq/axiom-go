@@ -825,8 +825,9 @@ func (s *DatasetsService) Query(ctx context.Context, apl string, options ...quer
 // detected.
 func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 	var (
-		br  = bufio.NewReader(r)
-		typ ContentType
+		br     = bufio.NewReader(r)
+		prefix bytes.Buffer
+		typ    ContentType
 	)
 	for {
 		var (
@@ -844,6 +845,7 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 		} else if unicode.IsLetter(c) || c == '"' { // We assume a CSV table starts with a letter or a quote.
 			typ = CSV
 		} else if unicode.IsSpace(c) {
+			_, _ = prefix.WriteRune(c)
 			continue
 		} else {
 			return nil, 0, errors.New("cannot determine content type")
@@ -855,16 +857,8 @@ func DetectContentType(r io.Reader) (io.Reader, ContentType, error) {
 		break
 	}
 
-	// Create a new reader and prepend what we have already consumed in order to
-	// figure out the content type.
-	buf, err := br.Peek(br.Buffered())
-	if err != nil {
-		return nil, 0, err
-	}
-	alreadyRead := bytes.NewReader(buf)
-	r = io.MultiReader(alreadyRead, r)
-
-	return r, typ, nil
+	// Replay the whitespace consumed during detection before the unread data.
+	return io.MultiReader(&prefix, br), typ, nil
 }
 
 func setIngestStatusOnSpan(span trace.Span, status ingest.Status) {
