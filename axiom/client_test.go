@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -773,6 +775,93 @@ func TestClient_Do_Backoff_NetworkError(t *testing.T) {
 	assert.Equal(t, 1, requestCount)      // Only the successful attempt hits the server.
 	assert.Equal(t, 3, transportAttempts) // 2 failures + 1 success.
 	assert.Equal(t, 2, getBodyCounter)    // Body reset before each retry after failure.
+}
+
+func TestClient_Do_Backoff_NetworkError_ClosesIdleConnections(t *testing.T) {
+	payload := `{"foo":"bar"}`
+
+	hf := func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	client := setup(t, "POST /", hf)
+
+	// Fail the first attempt with a network error and count how often the
+	// client asks the transport to drop its idle connections.
+	var attempts int
+	origTransport := client.httpClient.Transport
+	transport := &idleCountingTransport{
+		roundTrip: func(req *http.Request) (*http.Response, error) {
+			attempts++
+			if attempts == 1 {
+				_, _ = io.Copy(io.Discard, req.Body)
+				return nil, io.ErrClosedPipe
+			}
+			return origTransport.RoundTrip(req)
+		},
+	}
+	client.httpClient.Transport = transport
+
+	req, err := client.NewRequest(t.Context(), http.MethodPost, "/", strings.NewReader(payload))
+	require.NoError(t, err)
+
+	resp, err := client.Do(req, nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, 2, attempts)
+	assert.Equal(t, 1, transport.closeIdleCalls) // Once, after the network error.
+}
+
+func TestDefaultHTTPTransport_CloseIdleConnections(t *testing.T) {
+	// Count the TCP connections the server accepts.
+	var newConns atomic.Int32
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	srv.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+		if state == http.StateNew {
+			newConns.Add(1)
+		}
+	}
+	srv.Start()
+	t.Cleanup(srv.Close)
+
+	httpClient := DefaultHTTPClient()
+
+	get := func() {
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, srv.URL, nil)
+		require.NoError(t, err)
+		resp, err := httpClient.Do(req)
+		require.NoError(t, err)
+		_, _ = io.Copy(io.Discard, resp.Body)
+		require.NoError(t, resp.Body.Close())
+	}
+
+	get()
+	get()
+	require.EqualValues(t, 1, newConns.Load(), "second request should reuse the pooled connection")
+
+	// Dropping the idle connections must reach the wrapped http.Transport,
+	// so the next request dials again.
+	httpClient.CloseIdleConnections()
+	get()
+	assert.EqualValues(t, 2, newConns.Load())
+}
+
+// idleCountingTransport is an [http.RoundTripper] that counts calls to
+// CloseIdleConnections.
+type idleCountingTransport struct {
+	roundTrip      func(*http.Request) (*http.Response, error)
+	closeIdleCalls int
+}
+
+func (t *idleCountingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return t.roundTrip(req)
+}
+
+func (t *idleCountingTransport) CloseIdleConnections() {
+	t.closeIdleCalls++
 }
 
 // roundTripFunc is an adapter to allow the use of ordinary functions as

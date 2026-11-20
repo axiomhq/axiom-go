@@ -66,7 +66,7 @@ func DefaultHTTPClient() *http.Client {
 // DefaultHTTPTransport returns the default [http.Client.Transport] used by
 // [DefaultHTTPClient].
 func DefaultHTTPTransport() http.RoundTripper {
-	return otelhttp.NewTransport(gzhttp.Transport(&http.Transport{
+	base := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			Timeout:   time.Second * 30,
@@ -77,7 +77,28 @@ func DefaultHTTPTransport() http.RoundTripper {
 		TLSHandshakeTimeout:   time.Second * 10,
 		ExpectContinueTimeout: time.Second * 1,
 		ForceAttemptHTTP2:     true,
-	}))
+	}
+	return &idleClosingTransport{
+		RoundTripper: otelhttp.NewTransport(gzhttp.Transport(base)),
+		base:         base,
+	}
+}
+
+// idleClosingTransport is the [http.RoundTripper] returned by
+// [DefaultHTTPTransport]. Neither the otelhttp nor the gzhttp wrapper forwards
+// CloseIdleConnections to the [http.Transport] they wrap, so it keeps a
+// reference to that transport and forwards the call itself. This lets
+// [http.Client.CloseIdleConnections] evict pooled connections.
+type idleClosingTransport struct {
+	http.RoundTripper
+
+	base *http.Transport
+}
+
+// CloseIdleConnections closes the idle connections of the underlying
+// [http.Transport].
+func (t *idleClosingTransport) CloseIdleConnections() {
+	t.base.CloseIdleConnections()
 }
 
 // Client provides the Axiom HTTP API operations.
@@ -289,6 +310,13 @@ func (c *Client) Do(req *http.Request, v any) (*Response, error) {
 				if req.Context().Err() != nil {
 					return backoff.Permanent(doErr)
 				}
+				// A network error can leave a broken connection in the
+				// pool (for example a half-closed HTTP/2 connection after
+				// a proxy dropped it). Evict idle connections so the next
+				// attempt dials a fresh one instead of reusing it. This is
+				// a no-op for transports that do not implement
+				// CloseIdleConnections.
+				c.httpClient.CloseIdleConnections()
 				return doErr
 			}
 			resp = newResponse(httpResp)
