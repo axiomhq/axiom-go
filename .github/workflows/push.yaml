@@ -18,8 +18,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - "1.26"
           - "1.27"
+          - "1.28"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -35,8 +35,8 @@ jobs:
     strategy:
       matrix:
         go:
-          - "1.26"
           - "1.27"
+          - "1.28"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -64,8 +64,8 @@ jobs:
       fail-fast: true
       matrix:
         go:
-          - "1.26"
           - "1.27"
+          - "1.28"
         environment:
           - development
           - staging
